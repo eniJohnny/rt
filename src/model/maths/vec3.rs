@@ -12,27 +12,6 @@ impl Vec3 {
         Self { x, y, z }
     }
 
-    pub fn dot(&self, other: &Self) -> f64 {
-		self.x * other.x + self.y * other.y + self.z * other.z
-    }
-
-    pub fn cross(&self, other: &Self) -> Self {
-		Self {
-			x: self.y * other.z - self.z * other.y,
-			y: self.z * other.x - self.x * other.z,
-			z: self.x * other.y - self.y * other.x
-		}
-	}
-
-    pub fn normalize(self) -> Self {
-		let norm: f64 = self.get_norm();
-		Self {
-			x: self.x / norm,
-			y: self.y / norm,
-			z: self.z / norm
-		}
-    }
-
 	pub fn x(&self) -> &f64 {
 		&self.x
 	}
@@ -44,10 +23,31 @@ impl Vec3 {
 	pub fn z(&self) -> &f64 {
 		&self.z
 	}
+	
+    pub fn dot(&self, other: &Self) -> f64 {
+		self.x * other.x + self.y * other.y + self.z * other.z
+    }
 
+    pub fn cross(&self, other: &Self) -> Self {
+		Self {
+			x: self.y * other.z - self.z * other.y,
+			y: self.z * other.x - self.x * other.z,
+			z: self.x * other.y - self.y * other.x
+		}
+	}
+	
 	pub fn get_norm(&self) -> f64 {
 		(self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
 	}
+
+	pub fn normalize(self) -> Self {
+		let norm: f64 = self.get_norm();
+		Self {
+			x: self.x / norm,
+			y: self.y / norm,
+			z: self.z / norm
+		}
+    }
 }
 
 impl Add for Vec3 {
