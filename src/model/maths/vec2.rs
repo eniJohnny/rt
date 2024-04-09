@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Mul, Sub, AddAssign, SubAssign, MulAssign, Neg};
 use std::cmp::PartialEq;
 use std::fmt::{Display, Formatter, Result};
 
@@ -78,6 +78,44 @@ impl Mul<f64> for Vec2 {
 	}
 }
 
+impl AddAssign for Vec2 {
+	fn add_assign(&mut self, rhs: Self) {
+		self.x += rhs.x;
+		self.y += rhs.y;
+	}
+}
+
+impl SubAssign for Vec2 {
+	fn sub_assign(&mut self, rhs: Self) {
+		self.x -= rhs.x;
+		self.y -= rhs.y;
+	}
+}
+
+impl MulAssign<Self> for Vec2 {
+	fn mul_assign(&mut self, rhs: Self) {
+		self.x *= rhs.x;
+		self.y *= rhs.y;
+	}
+}
+
+impl MulAssign<f64> for Vec2 {
+	fn mul_assign(&mut self, rhs: f64) {
+		self.x *= rhs;
+		self.y *= rhs;
+	}
+}
+
+impl Neg for Vec2 {
+	type Output = Self;
+	fn neg(self) -> Self::Output {
+		Self {
+			x: -self.x,
+			y: -self.y
+		}
+	}
+}
+
 impl PartialEq for Vec2 {
 	fn eq(&self, other: &Self) -> bool {
 		self.x == other.x && self.y == other.y
@@ -142,5 +180,42 @@ mod tests {
 	fn test_normalize() {
 		let v1: Vec2 = Vec2::new(3., 4.);
 		assert_eq!(v1.normalize().length(), 1.);
+	}
+
+	#[test]
+	fn test_add_assign() {
+		let mut v1: Vec2 = Vec2::new(1., 2.);
+		let v2: Vec2 = Vec2::new(3., 4.);
+		v1 += v2;
+		assert_eq!(v1, Vec2::new(4., 6.));
+	}
+
+	#[test]
+	fn test_sub_assign() {
+		let mut v1: Vec2 = Vec2::new(1., 2.);
+		let v2: Vec2 = Vec2::new(3., 4.);
+		v1 -= v2;
+		assert_eq!(v1, Vec2::new(-2., -2.));
+	}
+
+	#[test]
+	fn test_mul_assign() {
+		let mut v1: Vec2 = Vec2::new(1., 2.);
+		let v2: Vec2 = Vec2::new(3., 4.);
+		v1 *= v2;
+		assert_eq!(v1, Vec2::new(3., 8.));
+	}
+
+	#[test]
+	fn test_mul_assign_scalar() {
+		let mut v1: Vec2 = Vec2::new(1., 2.);
+		v1 *= 2.;
+		assert_eq!(v1, Vec2::new(2., 4.));
+	}
+
+	#[test]
+	fn test_neg() {
+		let v1: Vec2 = Vec2::new(1., 2.);
+		assert_eq!(-v1, Vec2::new(-1., -2.));
 	}
 }
