@@ -2,7 +2,7 @@ use std::ops::{Add, Mul, Sub, AddAssign, SubAssign, MulAssign, Neg};
 use std::cmp::PartialEq;
 use std::fmt::{Display, Formatter, Result};
 
-#[derive(Debug)]
+#[derive(PartialEq, Debug)]
 pub struct Vec3 {
     x: f64,
     y: f64,
@@ -136,16 +136,6 @@ impl Neg for Vec3 {
 			y: -self.y,
 			z: -self.z
 		}
-	}
-}
-
-impl PartialEq for Vec3 {
-	fn eq(&self, other: &Self) -> bool {
-		self.x == other.x && self.y == other.y && self.z == other.z
-	}
-
-	fn ne(&self, other: &Self) -> bool {
-		self.x != other.x || self.y != other.y || self.z != other.z 
 	}
 }
 
