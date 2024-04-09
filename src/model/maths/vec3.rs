@@ -96,12 +96,6 @@ impl Mul<f64> for Vec3 {
     }
 }
 
-impl Display for Vec3 {
-	fn fmt(&self, f: &mut Formatter) -> Result {
-		write!(f, "({}, {}, {})", self.x, self.y, self.z)
-	}
-}
-
 impl PartialEq for Vec3 {
 	fn eq(&self, other: &Self) -> bool {
 		self.x == other.x && self.y == other.y && self.z == other.z
@@ -109,6 +103,12 @@ impl PartialEq for Vec3 {
 
 	fn ne(&self, other: &Self) -> bool {
 		self.x != other.x || self.y != other.y || self.z != other.z 
+	}
+}
+
+impl Display for Vec3 {
+	fn fmt(&self, f: &mut Formatter) -> Result {
+		write!(f, "({}, {}, {})", self.x, self.y, self.z)
 	}
 }
 
