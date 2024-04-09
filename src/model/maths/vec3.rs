@@ -33,16 +33,16 @@ impl Vec3 {
 		}
     }
 
-	pub fn get_x(&self) -> f64 {
-		self.x
+	pub fn x(&self) -> &f64 {
+		&self.x
 	}
 
-	pub fn get_y(&self) -> f64 {
-		self.y
+	pub fn y(&self) -> &f64 {
+		&self.y
 	}
 
-	pub fn get_z(&self) -> f64 {
-		self.z
+	pub fn z(&self) -> &f64 {
+		&self.z
 	}
 
 	pub fn get_norm(&self) -> f64 {
