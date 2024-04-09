@@ -1,45 +1,31 @@
 [
     {
         "type": "sphere",
-        "posx": 0,
-        "posy": 0,
-        "posz": 0,
+        "position": [0, 0, 0],
         "radius": 50,
-        "color": "red"
+        "color": [255, 0, 0]
     },
     {
         "type": "cone",
-        "posx": 100,
-        "posy": 100,
-        "posz": 0,
-        "dirx": 1,
-        "diry": 0,
-        "dirz": 0,
+        "position": [0, 100, 0],
+        "direction": [0, -1, 0],
         "radius": 100,
         "height": 100,
-        "color": "yellow"
+        "color": [255, 0, 255]
     },
     {
         "type": "cylinder",
-        "posx": 100,
-        "posy": 100,
-        "posz": 0,
-        "dirx": 1,
-        "diry": 0,
-        "dirz": 0,
+        "position": [100, -100, 0],
+        "direction": [0, 1, 0],
         "radius": 100,
         "height": 100,
-        "color": "blue"
+        "color": [0, 0, 255]
     },
     {
         "type": "plane",
-        "posx": 0,
-        "posy": 0,
-        "posz": 0,
-        "dirx": 1,
-        "diry": 0,
-        "dirz": 0,
-        "color": "green"
+        "position": [0, 0, 0],
+        "direction": [0, 0, 1],
+        "color": [255, 0, 0]
     },
     {
         "type": "ambient",
@@ -48,19 +34,13 @@
     },
     {
         "type": "spotlight",
-        "posx": 0,
-        "posy": 0,
-        "posz": 100,
-        "color": "white",
+        "position": [0, 0, 100],
+        "color": [255, 255, 255],
         "intensity": 0.5
     },
     {
         "type": "camera",
-        "posx": 0,
-        "posy": 0,
-        "posz": 100,
-        "dirx": 0,
-        "diry": 0,
-        "dirz": -1
+        "position": [0, 0, 100],
+        "direction": [0, 0, -1]
     }
 ]
