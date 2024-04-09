@@ -120,27 +120,27 @@ mod tests {
 	fn test_add() {
 		let v1: Vec3 = Vec3::new(1., 2., 3.);
 		let v2: Vec3 = Vec3::new(4., 5., 6.);
-		assert_eq!(v1 + v2, Vec3 {x: 5., y: 7., z: 9.})
+		assert_eq!(v1 + v2, Vec3::new(5., 7., 9.))
 	}
 
 	#[test]
 	fn test_sub() {
 		let v1: Vec3 = Vec3::new(1., 2., 3.);
 		let v2: Vec3 = Vec3::new(4., 5., 6.);
-		assert_eq!(v1 - v2, Vec3 {x: -3., y: -3., z: -3.})
+		assert_eq!(v1 - v2, Vec3::new(-3., -3., -3.))
 	}
 
 	#[test]
 	fn test_mul() {
 		let v1: Vec3 = Vec3::new(1., 2., 3.);
 		let v2: Vec3 = Vec3::new(4., 5., 6.);
-		assert_eq!(v1 * v2, Vec3 {x: 4., y: 10., z: 18.})
+		assert_eq!(v1 * v2, Vec3::new(4., 10., 18.))
 	}
 
 	#[test]
 	fn test_mul_scalar() {
 		let v1: Vec3 = Vec3::new(1., 2., 3.);
-		assert_eq!(v1 * 2., Vec3 {x: 2., y: 4., z: 6.})
+		assert_eq!(v1 * 2., Vec3::new(2., 4., 6.))
 	}
 
 	#[test]
@@ -154,7 +154,7 @@ mod tests {
 	fn test_cross() {
 		let v1: Vec3 = Vec3::new(1., 2., 3.);
 		let v2: Vec3 = Vec3::new(4., 5., 6.);
-		assert_eq!(v1.cross(&v2), Vec3 {x: -3., y: 6., z: -3.})
+		assert_eq!(v1.cross(&v2), Vec3::new(-3., 6., -3.))
 	}
 
 	#[test]
