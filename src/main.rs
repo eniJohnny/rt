@@ -14,6 +14,7 @@ fn main() {
 
 fn parse_json() {
     let content = std::fs::read_to_string("scenes/scene.json").unwrap();
+    let mut objects: Vec<HashMap<String, &str>> = Vec::new();
     let mut i = 0;
 
     println!("\n---Start---\n");
@@ -28,14 +29,15 @@ fn parse_json() {
         for prop in object_str.split(",\n        \"") {
             let prop = prop.trim();
             let mut prop = prop.split(": ");
-            let key = prop.next().unwrap().trim_matches(['"', ' ', '\n', '{', '}']);
+            let key = prop.next().unwrap().trim_matches(['"', ' ', '\n', '{', '}']).to_string();
             let value = prop.next().unwrap().trim_matches(['{', '"', ' ', '\n', '}']);
 
-            println!("{}: {}", key, value);
-            object.insert(key.to_string(), value);
+            object.insert(key, value);
         }
-        println!("---");
+        objects.push(object);
     }
+    // Here, objects is a vector of HashMaps, each representing an object in the scene.
+    println!("{:?}", objects);
 }
 
 fn view(app: &App, frame: Frame) {
