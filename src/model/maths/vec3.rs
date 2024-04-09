@@ -38,12 +38,12 @@ impl Vec3 {
 		}
 	}
 	
-	pub fn get_norm(&self) -> f64 {
+	pub fn length(&self) -> f64 {
 		(self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
 	}
 
 	pub fn normalize(self) -> Self {
-		let norm: f64 = self.get_norm();
+		let norm: f64 = self.length();
 		Self {
 			x: self.x / norm,
 			y: self.y / norm,
@@ -158,14 +158,14 @@ mod tests {
 	}
 
 	#[test]
-	fn test_get_norm() {
+	fn test_length() {
 		let v1: Vec3 = Vec3::new(1., 2., 3.);
-		assert_eq!(v1.get_norm(), 14_f64.sqrt())
+		assert_eq!(v1.length(), 14_f64.sqrt())
 	}
 
 	#[test]
 	fn test_normalize() {
 		let v1: Vec3 = Vec3::new(1., 2., 3.);
-		assert_eq!(v1.normalize().get_norm(), 1.)
+		assert_eq!(v1.normalize().length(), 1.)
 	}
 }

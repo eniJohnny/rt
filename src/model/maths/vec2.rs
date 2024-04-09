@@ -25,12 +25,12 @@ impl Vec2 {
 		self.x * other.x + self.y * other.y
 	}
 
-	pub fn get_norm(&self) -> f64 {
+	pub fn length(&self) -> f64 {
 		(self.x * self.x + self.y * self.y).sqrt()
 	}
 
 	pub fn normalize(&self) -> Self {
-		let norm: f64 = self.get_norm();
+		let norm: f64 = self.length();
 		Self {
 			x: self.x / norm,
 			y: self.y / norm
@@ -133,14 +133,14 @@ mod tests {
 	}
 
 	#[test]
-	fn test_get_norm() {
+	fn test_length() {
 		let v1: Vec2 = Vec2::new(3., 4.);
-		assert_eq!(v1.get_norm(), 5.);
+		assert_eq!(v1.length(), 5.);
 	}
 
 	#[test]
 	fn test_normalize() {
 		let v1: Vec2 = Vec2::new(3., 4.);
-		assert_eq!(v1.normalize().get_norm(), 1.);
+		assert_eq!(v1.normalize().length(), 1.);
 	}
 }
