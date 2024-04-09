@@ -16,7 +16,7 @@ fn parse_json() {
     let content = std::fs::read_to_string("scenes/scene.json").unwrap();
     let mut i = 0;
 
-    println!("\n\n\n---Start---");
+    println!("\n---Start---\n");
     while i < content.len() && content[i..].find('{') != None {
         let mut object: HashMap<String, &str> = HashMap::new();
         let remaining = &content[i..];
@@ -31,10 +31,11 @@ fn parse_json() {
             let key = prop.next().unwrap().trim_matches(['"', ' ', '\n', '{', '}']);
             let value = prop.next().unwrap().trim_matches(['{', '"', ' ', '\n', '}']);
 
-            println!("***{} --- {}***", key, value);
+            println!("{}: {}", key, value);
             object.insert(key.to_string(), value);
+        }
+        println!("---");
     }
-}
 }
 
 fn view(app: &App, frame: Frame) {
