@@ -13,7 +13,7 @@ fn main() {
 }
 
 fn parse_json() {
-    let content = std::fs::read_to_string("rt/src/scene.json").unwrap();
+    let content = std::fs::read_to_string("scenes/scene.json").unwrap();
     let mut i = 0;
 
     println!("\n\n\n---Start---");
