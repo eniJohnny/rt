@@ -1,4 +1,5 @@
 use std::ops::{Add, Mul, Sub};
+use std::fmt::{Display, Formatter, Result};
 
 pub struct Vec3 {
     x: f64,
@@ -12,16 +13,41 @@ impl Vec3 {
     }
 
     pub fn dot(&self, other: &Self) -> f64 {
-        unimplemented!()
+		self.x * other.x + self.y * other.y + self.z * other.z
     }
 
     pub fn cross(&self, other: &Self) -> Self {
-        unimplemented!()
-    }
+		Self {
+			x: self.y * other.z - self.z * other.y,
+			y: self.z * other.x - self.x * other.z,
+			z: self.x * other.y - self.y * other.x
+		}
+	}
 
     pub fn normalize(self) -> Self {
-        unimplemented!()
+		let norm: f64 = self.get_norm();
+		Self {
+			x: self.x / norm,
+			y: self.y / norm,
+			z: self.z / norm
+		}
     }
+
+	pub fn get_x(&self) -> f64 {
+		self.x
+	}
+
+	pub fn get_y(&self) -> f64 {
+		self.y
+	}
+
+	pub fn get_z(&self) -> f64 {
+		self.z
+	}
+
+	pub fn get_norm(&self) -> f64 {
+		(self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
+	}
 }
 
 impl Add for Vec3 {
@@ -66,4 +92,10 @@ impl Mul<f64> for Vec3 {
             z: self.z * rhs
         }
     }
+}
+
+impl Display for Vec3 {
+	fn fmt(&self, f: &mut Formatter) -> Result {
+		write!(f, "({}, {}, {})", self.x, self.y, self.z)
+	}
 }
