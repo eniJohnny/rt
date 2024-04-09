@@ -1,3 +1,5 @@
+use rt::run;
+
 use nannou::{draw, prelude::*};
 use std::collections::HashMap;
 
