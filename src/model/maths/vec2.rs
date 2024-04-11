@@ -2,7 +2,7 @@ use std::ops::{Add, Mul, Sub, Div, AddAssign, SubAssign, MulAssign, DivAssign, N
 use std::cmp::PartialEq;
 use std::fmt::{Display, Formatter, Result};
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Vec2 {
     x: f64,
     y: f64
