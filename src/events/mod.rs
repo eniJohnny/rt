@@ -1,5 +1,5 @@
 use nannou::prelude::*;
-use crate::render::{SCREEN_WIDTH, SCREEN_HEIGHT};
+use crate::{SCREEN_WIDTH, SCREEN_HEIGHT};
 
 pub struct Model {}
 

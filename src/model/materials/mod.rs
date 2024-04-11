@@ -1,4 +1,5 @@
 use super::maths::vec3::Vec3;
+use crate::model::materials::unicolor::Unicolor;
 
 mod unicolor;
 
@@ -29,8 +30,8 @@ pub trait Material {
     fn needs_projection(&self) -> bool;
 }
 
-impl Material {
-    pub fn new(color: Color) -> Self {
-        Self::Unicolor(Unicolor::new(color))
+impl dyn Material {
+    pub fn new(color: Color) -> Box<Self> {
+        Box::new(Unicolor::new(color))
     }
 }

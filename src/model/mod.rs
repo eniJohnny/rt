@@ -1,6 +1,5 @@
 use self::{materials::Material, shapes::Shape};
-use crate::render::{camera::Camera, light::AmbientLight};
-use crate::render::light::Light;
+use crate::model::objects::{camera::Camera, light::AmbientLight, light::Light};
 
 pub mod materials;
 pub mod shapes;
@@ -46,6 +45,7 @@ impl Scene {
         }
     }
 
+    // Add a new object to the scene
     pub fn add_element(&mut self, element: Element) {
         self.elements.push(element);
     }
@@ -60,6 +60,19 @@ impl Scene {
 
     pub fn add_ambient_light(&mut self, ambient_light: AmbientLight) {
         self.ambient_light = ambient_light;
+    }
+
+    // Accessors
+    pub fn elements(&self) -> &Vec<Element> {
+        &self.elements
+    }
+
+    pub fn camera(&self) -> &Camera {
+        &self.camera
+    }
+
+    pub fn lights(&self) -> &Vec<Light> {
+        &self.lights
     }
 
 }

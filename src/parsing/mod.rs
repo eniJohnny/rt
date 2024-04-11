@@ -3,7 +3,7 @@ use crate::model::maths::vec3::Vec3;
 use crate::model::shapes::Shape;
 use crate::model::Element;
 use crate::model::{Scene, shapes::sphere::Sphere, shapes::plane::Plane, shapes::cylinder::Cylinder, shapes::cone::Cone};
-use crate::render::{camera::Camera, light::Light, light::AmbientLight};
+use crate::model::objects::{camera::Camera, light::Light, light::AmbientLight};
 use std::collections::HashMap;
 
 pub fn get_scene() -> Scene {
@@ -18,8 +18,8 @@ pub fn get_scene() -> Scene {
                 let color = get_color(&object);
                 let dir = get_direction(&object);
 
-                let shape = Shape::Sphere(Sphere::new(pos, dir, radius));
-                let material = Material::new(color);
+                let shape = Box::new(Sphere::new(pos, dir, radius));
+                let material = <dyn Material>::new(color);
 
                 let element = Element::new(shape, material);
                 scene.add_element(element)
@@ -29,8 +29,8 @@ pub fn get_scene() -> Scene {
                 let dir = get_direction(&object);
                 let color = get_color(&object);
 
-                let shape = Shape::Plane(Plane::new(pos, dir));
-                let material = Material::new(color);
+                let shape = Box::new(Plane::new(pos, dir));
+                let material = <dyn Material>::new(color);
 
                 let element = Element::new(shape, material);
                 scene.add_element(element)
@@ -43,8 +43,8 @@ pub fn get_scene() -> Scene {
                 let color = get_color(&object);
                 let dir: Vec3 = Vec3::new(1.0, 0.0, 0.0);
 
-                let shape = Shape::Cylinder(Cylinder::new(pos, dir, radius, height));
-                let material = Material::new(color);
+                let shape = Box::new(Cylinder::new(pos, dir, radius, height));
+                let material = <dyn Material>::new(color);
 
                 let element = Element::new(shape, material);
                 scene.add_element(element)
@@ -56,8 +56,8 @@ pub fn get_scene() -> Scene {
                 let color = get_color(&object);
                 let dir: Vec3 = Vec3::new(1.0, 0.0, 0.0);
 
-                let shape = Shape::Cone(Cone::new(pos, dir, radius, height));
-                let material = Material::new(color);
+                let shape = Box::new(Cone::new(pos, dir, radius, height));
+                let material = <dyn Material>::new(color);
 
                 let element = Element::new(shape, material);
                 scene.add_element(element)

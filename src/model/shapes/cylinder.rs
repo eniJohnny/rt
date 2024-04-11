@@ -1,5 +1,5 @@
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
-use super::HasShape;
+use super::Shape;
 
 pub struct Cylinder {
     pos: Vec3,
@@ -8,14 +8,14 @@ pub struct Cylinder {
     height: f64
 }
 
-impl HasShape for Cylinder {
-    fn distance(&self) -> f64 {
+impl Shape for Cylinder {
+    fn distance(&self, vec: &Vec3) -> f64 {
         unimplemented!()
     }
     fn intersect(&self, vector: &Ray) -> Option<Hit> {
         unimplemented!()
     }
-    fn projection(&self, hit: &Hit) -> Option<(i32, i32)> {
+    fn projection(&self, hit: &Hit) -> (i32, i32) {
         unimplemented!()
     }
 }

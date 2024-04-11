@@ -1,6 +1,6 @@
 use model::Scene;
 use parsing::get_scene;
-use render::render_scene;
+use render::display_scene;
 
 pub mod gui;
 pub mod model;
@@ -21,5 +21,5 @@ pub fn run() {
 }
 
 pub fn event_loop(scene: &Scene) {
-    render_scene(scene)
+    display_scene(scene)
 }
