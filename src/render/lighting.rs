@@ -1,4 +1,4 @@
-use crate::model::{materials::Color, maths::hit::Hit, Scene};
+use crate::model::{materials::Color, maths::hit::Hit, scene::Scene};
 
 pub fn apply_lighting(hit: Hit, scene: &Scene) -> Color {
     let material = hit.element().material();
