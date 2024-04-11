@@ -1,11 +1,20 @@
 use self::sphere::Sphere;
+use self::plane::Plane;
+use self::cylinder::Cylinder;
+use self::cone::Cone;
 
 use super::maths::{hit::Hit, ray::Ray};
 
 pub mod sphere;
+pub mod plane;
+pub mod cylinder;
+pub mod cone;
 
 pub enum Shape{
-    Sphere(Sphere)
+    Sphere(Sphere),
+    Plane(Plane),
+    Cylinder(Cylinder),
+    Cone(Cone)
 }
 
 pub trait HasShape {

@@ -18,10 +18,19 @@ impl Color {
             b: color.b
         }
     }
+    pub fn from_rgb(r: u8, g: u8, b: u8) -> Self {
+        Self { r, g, b }
+    }
 }
 
 pub enum Material{
     Unicolor(Unicolor)
+}
+
+impl Material {
+    pub fn new(color: Color) -> Self {
+        Self::Unicolor(Unicolor::new(color))
+    }
 }
 
 pub trait HasMaterial {

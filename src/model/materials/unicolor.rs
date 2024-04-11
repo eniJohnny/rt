@@ -1,4 +1,4 @@
-use crate::model::maths::{vec3::Vec3};
+use crate::model::maths::vec3::Vec3;
 
 use super::{Color, HasMaterial};
 
@@ -8,9 +8,9 @@ pub struct Unicolor {
 }
 
 impl Unicolor {
-    pub fn new(color: &Color)-> Self {
+    pub fn new(color: Color)-> Self {
         Self {
-            color: Color::new(color)
+            color: Color::new(&color)
         }
     }
 }

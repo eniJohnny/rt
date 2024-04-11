@@ -1,5 +1,5 @@
 use model::Scene;
-use parsing::getScene;
+use parsing::get_scene;
 use render::render_scene;
 
 pub mod gui;
@@ -12,7 +12,8 @@ pub const SCREEN_WIDTH: u32 = 1600;
 pub const SCREEN_HEIGHT: u32 = 900;
 
 pub fn run() {
-    let scene = getScene();
+    let scene = get_scene();
+    
     event_loop(&scene);
 }
 

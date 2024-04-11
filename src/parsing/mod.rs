@@ -1,9 +1,93 @@
-use crate::model::Scene;
+use crate::model::materials::{Color, Material};
+use crate::model::maths::vec3::Vec3;
+use crate::model::shapes::Shape;
+use crate::model::Element;
+use crate::model::{Scene, shapes::sphere::Sphere, shapes::plane::Plane, shapes::cylinder::Cylinder, shapes::cone::Cone};
+use crate::render::{camera::Camera, light::Light, light::AmbientLight};
 use std::collections::HashMap;
 
-pub fn getScene() -> Scene {
-    let scene = Scene;
+pub fn get_scene() -> Scene {
+    let mut scene = Scene::new();
     let objects = parse_json();
+
+    for object in objects {
+        match object["type"].as_str() {
+            "sphere" => {
+                let pos = get_position(&object);
+                let radius = get_radius(&object);
+                let color = get_color(&object);
+                let dir: Vec3 = Vec3::new(1.0, 0.0, 0.0);
+
+                let shape = Shape::Sphere(Sphere::new(pos, dir, radius));
+                let material = Material::new(color);
+
+                let element = Element::new(shape, material);
+                scene.add_element(element)
+            },
+            "plane" => {
+                let pos = get_position(&object);
+                let dir = get_direction(&object);
+                let color = get_color(&object);
+
+                let shape = Shape::Plane(Plane::new(pos, dir));
+                let material = Material::new(color);
+
+                let element = Element::new(shape, material);
+                scene.add_element(element)
+            
+            },
+            "cylinder" => {
+                let pos = get_position(&object);
+                let radius = get_radius(&object);
+                let height = get_height(&object);
+                let color = get_color(&object);
+                let dir: Vec3 = Vec3::new(1.0, 0.0, 0.0);
+
+                let shape = Shape::Cylinder(Cylinder::new(pos, dir, radius, height));
+                let material = Material::new(color);
+
+                let element = Element::new(shape, material);
+                scene.add_element(element)
+            },
+            "cone" => {
+                let pos = get_position(&object);
+                let radius = get_radius(&object);
+                let height = get_height(&object);
+                let color = get_color(&object);
+                let dir: Vec3 = Vec3::new(1.0, 0.0, 0.0);
+
+                let shape = Shape::Cone(Cone::new(pos, dir, radius, height));
+                let material = Material::new(color);
+
+                let element = Element::new(shape, material);
+                scene.add_element(element)
+            },
+            "camera" => {
+                let pos = get_position(&object);
+                let dir = get_direction(&object);
+                let fov = object.get("fov").unwrap().parse::<f64>().unwrap();
+
+                let new_camera = Camera::new(pos, dir, fov);
+                scene.add_camera(new_camera);
+            },
+            "light" => {
+                let pos = get_position(&object);
+                let intensity = get_intensity(&object);
+                let color = get_color(&object);
+
+                let new_light = Light::new(pos, intensity, color);
+                scene.add_light(new_light);
+            },
+            "ambient" => {
+                let intensity = get_intensity(&object);
+                let color = get_color(&object);
+
+                let new_ambient_light = AmbientLight::new(intensity, color);
+                scene.add_ambient_light(new_ambient_light);
+            },
+            _ => {}
+        }
+    }
 
     return scene;
 }
@@ -31,11 +115,11 @@ fn parse_json() -> Vec<HashMap<String, String>> {
                 let str = value.trim_matches(['[', ']']).replace(", ", ",");
                 let tmp: Vec<&str> = str.split(",").collect();
 
-                if key == "position" {
+                if key == "pos" {
                     object.insert("position_x".to_string(), tmp[0].to_string());
                     object.insert("position_y".to_string(), tmp[1].to_string());
                     object.insert("position_z".to_string(), tmp[2].to_string());
-                } else if key == "direction" {
+                } else if key == "dir" {
                     object.insert("direction_x".to_string(), tmp[0].to_string());
                     object.insert("direction_y".to_string(), tmp[1].to_string());
                     object.insert("direction_z".to_string(), tmp[2].to_string());
@@ -54,4 +138,39 @@ fn parse_json() -> Vec<HashMap<String, String>> {
     
     // Here, objects is a vector of HashMaps, each representing an object in the scene.
     return objects;
+}
+
+fn get_color(object: &HashMap<String, String>) -> Color {
+    let r = object.get("color_r").unwrap().parse::<u8>().unwrap();
+    let g = object.get("color_g").unwrap().parse::<u8>().unwrap();
+    let b = object.get("color_b").unwrap().parse::<u8>().unwrap();
+    return Color::from_rgb(r, g, b);
+}
+
+fn get_position(object: &HashMap<String, String>) -> Vec3 {
+    Vec3::new(
+        object.get("position_x").unwrap().parse::<f64>().unwrap(),
+        object.get("position_y").unwrap().parse::<f64>().unwrap(),
+        object.get("position_z").unwrap().parse::<f64>().unwrap()
+    )
+}
+
+fn get_direction(object: &HashMap<String, String>) -> Vec3 {
+    Vec3::new(
+        object.get("direction_x").unwrap().parse::<f64>().unwrap(),
+        object.get("direction_y").unwrap().parse::<f64>().unwrap(),
+        object.get("direction_z").unwrap().parse::<f64>().unwrap()
+    )
+}
+
+fn get_radius(object: &HashMap<String, String>) -> f64 {
+    object.get("radius").unwrap().parse::<f64>().unwrap()
+}
+
+fn get_height(object: &HashMap<String, String>) -> f64 {
+    object.get("height").unwrap().parse::<f64>().unwrap()
+}
+
+fn get_intensity(object: &HashMap<String, String>) -> f64 {
+    object.get("intensity").unwrap().parse::<f64>().unwrap()
 }

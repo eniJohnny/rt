@@ -7,6 +7,7 @@ pub const SCREEN_WIDTH: u32 = 1600;
 pub const SCREEN_HEIGHT: u32 = 900;
 
 pub mod camera;
+pub mod light;
 
 pub fn render_scene(scene: &Scene) {
     nannou::app(model).view(view).event(event).run();
