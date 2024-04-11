@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: dependencies
+      run: apt install -y libxcb-shape0-dev libxcb-xfixes0-dev
     - uses: actions/checkout@v3
     - name: Build
       run: cargo build --verbose
