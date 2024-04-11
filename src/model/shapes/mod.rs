@@ -1,15 +1,9 @@
-use self::sphere::Sphere;
-
-use super::maths::{hit::Hit, ray::Ray};
+use super::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 
 pub mod sphere;
 
-pub enum Shape{
-    Sphere(Sphere)
-}
-
-pub trait HasShape {
-    fn distance(&self) -> f64;
-    fn intersect(&self, vector: &Ray) -> Option<Hit>;
-    fn projection(&self, hit: &Hit) -> Option<(i32, i32)>;
+pub trait Shape {
+    fn distance(&self, vec : &Vec3) -> f64;
+    fn intersect(&self, ray: &Ray) -> Option<Hit>;
+    fn projection(&self, hit: &Hit) -> (i32, i32);
 }

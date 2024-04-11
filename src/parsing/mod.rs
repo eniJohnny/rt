@@ -1,5 +1,5 @@
-use crate::model::Scene;
+use crate::model::scene::Scene;
 
-pub fn getScene() -> Scene {
+pub fn get_scene() -> Scene {
     unimplemented!()
 }
