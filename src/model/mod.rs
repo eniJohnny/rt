@@ -1,21 +1,29 @@
-use self::{materials::Material, maths::ray::Ray, shapes::Shape};
+use self::{materials::Material, shapes::Shape};
 
 pub mod materials;
 pub mod shapes;
 pub mod maths;
+pub mod objects;
+pub mod scene;
 
 pub struct Element {
-    shape: Shape,
-    material: Material
+    material: Box<dyn Material>,
+    shape: Box<dyn Shape>
 }
 
 impl Element {
-    pub fn new(shape: Shape, material: Material) -> Self {
+    pub fn new(shape: Box<dyn Shape>, material: Box<dyn Material>) -> Self {
         Self {
             shape,
             material
         }
     }
-}
 
-pub struct Scene;
+    pub fn material(&self) -> &dyn Material {
+        self.material.as_ref()
+    }
+
+    pub fn shape(&self) -> &dyn Shape {
+        self.shape.as_ref()
+    }
+}

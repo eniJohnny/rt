@@ -1,6 +1,6 @@
-use crate::model::maths::{vec3::Vec3};
+use crate::model::maths::vec3::Vec3;
 
-use super::{Color, HasMaterial};
+use super::{Color, Material};
 
 
 pub struct Unicolor {
@@ -15,7 +15,7 @@ impl Unicolor {
     }
 }
 
-impl HasMaterial for Unicolor {
+impl Material for Unicolor {
     fn color(&self, _: i32, _: i32) -> Color {
         Color::new(&self.color)
     }
@@ -27,5 +27,8 @@ impl HasMaterial for Unicolor {
     }
     fn refraction_coef(&self) -> f64 {
         0.
+    }
+    fn needs_projection(&self) -> bool {
+        false
     }
 }
