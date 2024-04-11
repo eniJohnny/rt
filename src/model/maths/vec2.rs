@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul, Sub, AddAssign, SubAssign, MulAssign, Neg};
+use std::ops::{Add, Mul, Sub, Div, AddAssign, SubAssign, MulAssign, DivAssign, Neg};
 use std::cmp::PartialEq;
 use std::fmt::{Display, Formatter, Result};
 
@@ -78,6 +78,19 @@ impl Mul<f64> for Vec2 {
 	}
 }
 
+impl Div<f64> for Vec2 {
+	type Output = Self;
+	fn div(self, rhs: f64) -> Self::Output {
+		if rhs == 0. {
+			panic!("Division by zero");
+		}
+		Self {
+			x: self.x / rhs,
+			y: self.y / rhs
+		}
+	}
+}
+
 impl AddAssign for Vec2 {
 	fn add_assign(&mut self, rhs: Self) {
 		self.x += rhs.x;
@@ -103,6 +116,16 @@ impl MulAssign<f64> for Vec2 {
 	fn mul_assign(&mut self, rhs: f64) {
 		self.x *= rhs;
 		self.y *= rhs;
+	}
+}
+
+impl DivAssign<f64> for Vec2 {
+	fn div_assign(&mut self, rhs: f64) {
+		if rhs == 0. {
+			panic!("Division by zero");
+		}
+		self.x /= rhs;
+		self.y /= rhs;
 	}
 }
 
@@ -154,6 +177,19 @@ mod tests {
 	}
 
 	#[test]
+	fn test_div_scalar() {
+		let v1: Vec2 = Vec2::new(1., 2.);
+		assert_eq!(v1 / 2., Vec2::new(0.5, 1.));
+	}
+
+	#[test]
+	#[should_panic(expected = "Division by zero")]
+	fn test_div_scalar_zero() {
+		let v1: Vec2 = Vec2::new(1., 2.);
+		let _ = v1 / 0.;
+	}
+
+	#[test]
 	fn test_dot() {
 		let v1: Vec2 = Vec2::new(1., 2.);
 		let v2: Vec2 = Vec2::new(3., 4.);
@@ -201,6 +237,20 @@ mod tests {
 		let mut v1: Vec2 = Vec2::new(1., 2.);
 		v1 *= 2.;
 		assert_eq!(v1, Vec2::new(2., 4.));
+	}
+
+	#[test]
+	fn test_div_assign() {
+		let mut v1: Vec2 = Vec2::new(1., 2.);
+		v1 /= 2.;
+		assert_eq!(v1, Vec2::new(0.5, 1.));
+	}
+
+	#[test]
+	#[should_panic(expected = "Division by zero")]
+	fn test_div_assign_zero() {
+		let mut v1: Vec2 = Vec2::new(1., 2.);
+		v1 /= 0.;
 	}
 
 	#[test]
