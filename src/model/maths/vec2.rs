@@ -42,8 +42,8 @@ impl Add for Vec2 {
 	type Output = Self;
 	fn add(self, rhs: Self) -> Self::Output {
 		Self {
-			x: self.x + &rhs.x,
-			y: self.y + &rhs.y
+			x: self.x + rhs.x,
+			y: self.y + rhs.y
 		}
 	}
 }
@@ -52,8 +52,8 @@ impl Add for &Vec2 {
 	type Output = Vec2;
 	fn add(self, rhs: Self) -> Self::Output {
 		Vec2 {
-			x: self.x + &rhs.x,
-			y: self.y + &rhs.y
+			x: self.x + rhs.x,
+			y: self.y + rhs.y
 		}
 	}
 }
@@ -62,8 +62,8 @@ impl Add<Vec2> for &Vec2 {
 	type Output = Vec2;
 	fn add(self, rhs: Vec2) -> Self::Output {
 		Vec2 {
-			x: self.x + &rhs.x,
-			y: self.y + &rhs.y
+			x: self.x + rhs.x,
+			y: self.y + rhs.y
 		}
 	}
 }
@@ -72,8 +72,8 @@ impl Add<&Self> for Vec2 {
 	type Output = Self;
 	fn add(self, rhs: &Self) -> Self::Output {
 		Self {
-			x: self.x + &rhs.x,
-			y: self.y + &rhs.y
+			x: self.x + rhs.x,
+			y: self.y + rhs.y
 		}
 	}
 }
@@ -82,8 +82,8 @@ impl Sub for Vec2 {
 	type Output = Self;
 	fn sub(self, rhs: Self) -> Self::Output {
 		Self {
-			x: self.x - &rhs.x,
-			y: self.y - &rhs.y
+			x: self.x - rhs.x,
+			y: self.y - rhs.y
 		}
 	}
 }
@@ -92,8 +92,8 @@ impl Sub for &Vec2 {
 	type Output = Vec2;
 	fn sub(self, rhs: Self) -> Self::Output {
 		Vec2 {
-			x: self.x - &rhs.x,
-			y: self.y - &rhs.y
+			x: self.x - rhs.x,
+			y: self.y - rhs.y
 		}
 	}
 }
@@ -102,8 +102,8 @@ impl Sub<Vec2> for &Vec2 {
 	type Output = Vec2;
 	fn sub(self, rhs: Vec2) -> Self::Output {
 		Vec2 {
-			x: self.x - &rhs.x,
-			y: self.y - &rhs.y
+			x: self.x - rhs.x,
+			y: self.y - rhs.y
 		}
 	}
 }
@@ -112,8 +112,8 @@ impl Sub<&Self> for Vec2 {
 	type Output = Self;
 	fn sub(self, rhs: &Self) -> Self::Output {
 		Self {
-			x: self.x - &rhs.x,
-			y: self.y - &rhs.y
+			x: self.x - rhs.x,
+			y: self.y - rhs.y
 		}
 	}
 }
