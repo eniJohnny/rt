@@ -28,3 +28,9 @@ pub trait Material {
     fn refraction_coef(&self) -> f64;
     fn needs_projection(&self) -> bool;
 }
+
+impl Material {
+    pub fn new(color: Color) -> Self {
+        Self::Unicolor(Unicolor::new(color))
+    }
+}

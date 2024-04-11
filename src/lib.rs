@@ -1,4 +1,4 @@
-use model::scene::Scene;
+use model::Scene;
 use parsing::get_scene;
 use render::render_scene;
 

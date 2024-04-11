@@ -7,6 +7,8 @@ use nannou::prelude::*;
 pub mod camera;
 pub mod light;
 pub mod lighting;
+pub mod camera;
+pub mod light;
 
 pub fn display_scene(scene: &Scene) {
     nannou::app(model).view(view).event(event).run();
