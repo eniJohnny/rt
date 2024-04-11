@@ -1,6 +1,7 @@
 use std::ops::{Add, Mul, Sub, Div, AddAssign, SubAssign, MulAssign, DivAssign, Neg};
 use std::cmp::PartialEq;
 use std::fmt::{Display, Formatter, Result};
+use super::vec3::Vec3;
 
 #[derive(PartialEq, Debug)]
 pub struct Quaternion {
@@ -14,6 +15,14 @@ impl Quaternion {
 	pub fn new(x: f64, y: f64, z: f64, w: f64) -> Self {
 		Self { x, y, z, w }
 	}
+
+	// pub fn new_from_axis_angle(axis: &Vec3, angle: f64) -> Self {
+	// 	let half_angle: f64 = angle / 2.;
+	// 	let sin: f64 = half_angle.sin();
+	// 	let cos: f64 = half_angle.cos();
+
+	// 	cos + sin * axis / axis.length()
+	// }
 
 	pub fn x(&self) -> &f64 {
 		&self.x
@@ -57,8 +66,44 @@ impl Quaternion {
 
 impl Add for Quaternion {
 	type Output = Self;
-	fn add(self, other: Self) -> Self {
+	fn add(self, other: Self) -> Self::Output {
 		Self {
+			x: self.x + &other.x,
+			y: self.y + &other.y,
+			z: self.z + &other.z,
+			w: self.w + &other.w
+		}
+	}
+}
+
+impl Add<&Self> for Quaternion {
+	type Output = Self;
+	fn add(self, other: &Self) -> Self::Output {
+		Self {
+			x: self.x + &other.x,
+			y: self.y + &other.y,
+			z: self.z + &other.z,
+			w: self.w + &other.w
+		}
+	}
+}
+
+impl Add<Quaternion> for &Quaternion {
+	type Output = Quaternion;
+	fn add(self, other: Quaternion) -> Self::Output {
+		Quaternion {
+			x: self.x + &other.x,
+			y: self.y + &other.y,
+			z: self.z + &other.z,
+			w: self.w + &other.w
+		}
+	}
+}
+
+impl Add for &Quaternion {
+	type Output = Quaternion;
+	fn add(self, other: Self) -> Self::Output {
+		Quaternion {
 			x: self.x + &other.x,
 			y: self.y + &other.y,
 			z: self.z + &other.z,
@@ -69,8 +114,44 @@ impl Add for Quaternion {
 
 impl Sub for Quaternion {
 	type Output = Self;
-	fn sub(self, other: Self) -> Self {
+	fn sub(self, other: Self) -> Self::Output {
 		Self {
+			x: self.x - &other.x,
+			y: self.y - &other.y,
+			z: self.z - &other.z,
+			w: self.w - &other.w
+		}
+	}
+}
+
+impl Sub<&Self> for Quaternion {
+	type Output = Self;
+	fn sub(self, other: &Self) -> Self::Output {
+		Self {
+			x: self.x - &other.x,
+			y: self.y - &other.y,
+			z: self.z - &other.z,
+			w: self.w - &other.w
+		}
+	}
+}
+
+impl Sub<Quaternion> for &Quaternion {
+	type Output = Quaternion;
+	fn sub(self, other: Quaternion) -> Self::Output {
+		Quaternion {
+			x: self.x - &other.x,
+			y: self.y - &other.y,
+			z: self.z - &other.z,
+			w: self.w - &other.w
+		}
+	}
+}
+
+impl Sub for &Quaternion {
+	type Output = Quaternion;
+	fn sub(self, other: Self) -> Self::Output {
+		Quaternion {
 			x: self.x - &other.x,
 			y: self.y - &other.y,
 			z: self.z - &other.z,
@@ -81,8 +162,44 @@ impl Sub for Quaternion {
 
 impl Mul<Self> for Quaternion {
 	type Output = Self;
-	fn mul(self, other: Self) -> Self {
+	fn mul(self, other: Self) -> Self::Output {
 		Self {
+			x: self.w * &other.x + self.x * &other.w + self.y * &other.z - self.z * &other.y,
+			y: self.w * &other.y - self.x * &other.z + self.y * &other.w + self.z * &other.x,
+			z: self.w * &other.z + self.x * &other.y - self.y * &other.x + self.z * &other.w,
+			w: self.w * &other.w - self.x * &other.x - self.y * &other.y - self.z * &other.z
+		}
+	}
+}
+
+impl Mul<&Self> for Quaternion {
+	type Output = Self;
+	fn mul(self, other: &Self) -> Self::Output {
+		Self {
+			x: self.w * &other.x + self.x * &other.w + self.y * &other.z - self.z * &other.y,
+			y: self.w * &other.y - self.x * &other.z + self.y * &other.w + self.z * &other.x,
+			z: self.w * &other.z + self.x * &other.y - self.y * &other.x + self.z * &other.w,
+			w: self.w * &other.w - self.x * &other.x - self.y * &other.y - self.z * &other.z
+		}
+	}
+}
+
+impl Mul<Quaternion> for &Quaternion {
+	type Output = Quaternion;
+	fn mul(self, other: Quaternion) -> Self::Output {
+		Quaternion {
+			x: self.w * &other.x + self.x * &other.w + self.y * &other.z - self.z * &other.y,
+			y: self.w * &other.y - self.x * &other.z + self.y * &other.w + self.z * &other.x,
+			z: self.w * &other.z + self.x * &other.y - self.y * &other.x + self.z * &other.w,
+			w: self.w * &other.w - self.x * &other.x - self.y * &other.y - self.z * &other.z
+		}
+	}
+}
+
+impl Mul<Self> for &Quaternion {
+	type Output = Quaternion;
+	fn mul(self, other: Self) -> Self::Output {
+		Quaternion {
 			x: self.w * &other.x + self.x * &other.w + self.y * &other.z - self.z * &other.y,
 			y: self.w * &other.y - self.x * &other.z + self.y * &other.w + self.z * &other.x,
 			z: self.w * &other.z + self.x * &other.y - self.y * &other.x + self.z * &other.w,
@@ -93,8 +210,44 @@ impl Mul<Self> for Quaternion {
 
 impl Mul<f64> for Quaternion {
 	type Output = Self;
-	fn mul(self, scalar: f64) -> Self {
+	fn mul(self, scalar: f64) -> Self::Output {
 		Self {
+			x: self.x * scalar,
+			y: self.y * scalar,
+			z: self.z * scalar,
+			w: self.w * scalar
+		}
+	}
+}
+
+impl Mul<&f64> for Quaternion {
+	type Output = Self;
+	fn mul(self, scalar: &f64) -> Self::Output {
+		Self {
+			x: self.x * scalar,
+			y: self.y * scalar,
+			z: self.z * scalar,
+			w: self.w * scalar
+		}
+	}
+}
+
+impl Mul<f64> for &Quaternion {
+	type Output = Quaternion;
+	fn mul(self, scalar: f64) -> Self::Output {
+		Quaternion {
+			x: self.x * scalar,
+			y: self.y * scalar,
+			z: self.z * scalar,
+			w: self.w * scalar
+		}
+	}
+}
+
+impl Mul<&f64> for &Quaternion {
+	type Output = Quaternion;
+	fn mul(self, scalar: &f64) -> Self::Output {
+		Quaternion {
 			x: self.x * scalar,
 			y: self.y * scalar,
 			z: self.z * scalar,
@@ -105,11 +258,56 @@ impl Mul<f64> for Quaternion {
 
 impl Div<f64> for Quaternion {
 	type Output = Self;
-	fn div(self, scalar: f64) -> Self {
+	fn div(self, scalar: f64) -> Self::Output {
 		if scalar == 0. {
 			panic!("Division by zero");
 		}
 		Self {
+			x: self.x / scalar,
+			y: self.y / scalar,
+			z: self.z / scalar,
+			w: self.w / scalar
+		}
+	}
+}
+
+impl Div<f64> for &Quaternion {
+	type Output = Quaternion;
+	fn div(self, scalar: f64) -> Self::Output {
+		if scalar == 0. {
+			panic!("Division by zero");
+		}
+		Quaternion {
+			x: self.x / scalar,
+			y: self.y / scalar,
+			z: self.z / scalar,
+			w: self.w / scalar
+		}
+	}
+}
+
+impl Div<&f64> for Quaternion {
+	type Output = Self;
+	fn div(self, scalar: &f64) -> Self::Output {
+		if *scalar == 0. {
+			panic!("Division by zero");
+		}
+		Self {
+			x: self.x / scalar,
+			y: self.y / scalar,
+			z: self.z / scalar,
+			w: self.w / scalar
+		}
+	}
+}
+
+impl Div<&f64> for &Quaternion {
+	type Output = Quaternion;
+	fn div(self, scalar: &f64) -> Self::Output {
+		if *scalar == 0. {
+			panic!("Division by zero");
+		}
+		Quaternion {
 			x: self.x / scalar,
 			y: self.y / scalar,
 			z: self.z / scalar,
@@ -127,6 +325,15 @@ impl AddAssign for Quaternion {
 	}
 }
 
+impl AddAssign<&Self> for Quaternion {
+	fn add_assign(&mut self, other: &Self) {
+		self.x += other.x;
+		self.y += other.y;
+		self.z += other.z;
+		self.w += other.w;
+	}
+}
+
 impl SubAssign for Quaternion {
 	fn sub_assign(&mut self, other: Self) {
 		self.x -= other.x;
@@ -136,8 +343,29 @@ impl SubAssign for Quaternion {
 	}
 }
 
+impl SubAssign<&Self> for Quaternion {
+	fn sub_assign(&mut self, other: &Self) {
+		self.x -= other.x;
+		self.y -= other.y;
+		self.z -= other.z;
+		self.w -= other.w;
+	}
+}
+
 impl MulAssign<Self> for Quaternion {
 	fn mul_assign(&mut self, other: Self) {
+		*self = Self {
+			x: self.w * &other.x + self.x * &other.w + self.y * &other.z - self.z * &other.y,
+			y: self.w * &other.y - self.x * &other.z + self.y * &other.w + self.z * &other.x,
+			z: self.w * &other.z + self.x * &other.y - self.y * &other.x + self.z * &other.w,
+			w: self.w * &other.w - self.x * &other.x - self.y * &other.y - self.z * &other.z
+		}
+	}
+	
+}
+
+impl MulAssign<&Self> for Quaternion {
+	fn mul_assign(&mut self, other: &Self) {
 		*self = Self {
 			x: self.w * &other.x + self.x * &other.w + self.y * &other.z - self.z * &other.y,
 			y: self.w * &other.y - self.x * &other.z + self.y * &other.w + self.z * &other.x,
@@ -159,9 +387,32 @@ impl MulAssign<f64> for Quaternion {
 	}
 }
 
+impl MulAssign<&f64> for Quaternion {
+	fn mul_assign(&mut self, scalar: &f64) {
+		*self = Self {
+			x: self.x * scalar,
+			y: self.y * scalar,
+			z: self.z * scalar,
+			w: self.w * scalar
+		}
+	}
+}
+
 impl DivAssign<f64> for Quaternion {
 	fn div_assign(&mut self, scalar: f64) {
 		if scalar == 0. {
+			panic!("Division by zero");
+		}
+		self.x /= scalar;
+		self.y /= scalar;
+		self.z /= scalar;
+		self.w /= scalar;
+	}
+}
+
+impl DivAssign<&f64> for Quaternion {
+	fn div_assign(&mut self, scalar: &f64) {
+		if *scalar == 0. {
 			panic!("Division by zero");
 		}
 		self.x /= scalar;

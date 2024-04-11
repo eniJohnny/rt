@@ -49,6 +49,17 @@ impl Vec3 {
 			z: self.z / norm
 		}
     }
+
+	// pub fn rotate(&self, angle: f64, axis: &Self) -> Self {
+	// 	let cos: f64 = angle.cos();
+	// 	let sin: f64 = angle.sin();
+	// 	let u: Vec3 = axis.normalize();
+	// 	Self {
+	// 		x: self.x,
+	// 		y: self.y,
+	// 		z: self.z
+	// 	}
+	// }
 }
 
 impl Add for Vec3 {
@@ -399,7 +410,7 @@ impl Display for Vec3 {
 
 #[cfg(test)]
 mod tests {
-    use crate::model::maths::vec3::Vec3;
+    use super::Vec3;
 
 	#[test]
 	fn test_add() {
