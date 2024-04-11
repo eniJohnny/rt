@@ -7,7 +7,7 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn get_rays(&self) -> [[Ray; WINDOW_HEIGHT]; WINDOW_WIDTH] {
+    pub fn get_rays(&self) -> Vec<Vec<Ray>> {
         unimplemented!()
     }
 }
