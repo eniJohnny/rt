@@ -1,5 +1,6 @@
 use crate::gui::draw_gui;
 use crate::{model::{materials::Color, maths::{hit::Hit, ray::Ray}, scene::Scene}, WINDOW_HEIGHT, WINDOW_WIDTH};
+use crate::gui::draw_gui;
 use crate::events::{Model, event, model};
 use nannou::prelude::*;
 
@@ -38,6 +39,10 @@ pub fn render_scene(scene: &Scene) {
     }
 }
 
+pub fn show_scene(scene: &Scene) {
+    nannou::app(model).view(view).event(event).run();
+}
+
 pub fn cast_ray(scene: &Scene, ray: &Ray) -> Color {
     match get_closest_hit(scene, ray) {
         Some(hit) => unimplemented!(),
@@ -57,4 +62,12 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
         }
     }
     closest
+}
+
+fn view(app: &App, _model: &Model, frame: Frame) {
+    let draw = app.draw();
+    draw.background().color(BLACK);
+    draw_gui(&draw);
+
+    draw.to_frame(app, &frame).unwrap();
 }

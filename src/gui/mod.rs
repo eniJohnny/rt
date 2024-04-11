@@ -1,5 +1,5 @@
 use nannou::{draw, prelude::*};
-use crate::render::{SCREEN_WIDTH, SCREEN_HEIGHT};
+use crate::{SCREEN_WIDTH, SCREEN_HEIGHT};
 
 pub(crate) fn draw_gui(draw: &draw::Draw) {
 
@@ -25,7 +25,6 @@ fn pixel_put(x: i32, y: i32, color: nannou::color::Rgb<u8>, draw: &draw::Draw) {
         .color(color);
 }
 
-#[allow(dead_code)]
 fn line_put(start: Point2, end: Point2, color: nannou::color::Rgb<u8>, draw: &draw::Draw) {
 
     let x = end.x - start.x;
@@ -41,7 +40,6 @@ fn line_put(start: Point2, end: Point2, color: nannou::color::Rgb<u8>, draw: &dr
     }
 }
 
-#[allow(dead_code)]
 fn rect_put(start: Point2, end: Point2, color: nannou::color::Rgb<u8>, draw: &draw::Draw) {
     let mut upper_left = Point2::default();
     let mut lower_right = Point2::default();
@@ -60,7 +58,6 @@ fn rect_put(start: Point2, end: Point2, color: nannou::color::Rgb<u8>, draw: &dr
     line_put(lower_left, upper_left, color, draw);
 }
 
-#[allow(dead_code)]
 fn filled_rect_put(start: Point2, end: Point2, color: nannou::color::Rgb<u8>, draw: &draw::Draw) {
     let mut upper_left = Point2::default();
     let mut lower_right = Point2::default();
