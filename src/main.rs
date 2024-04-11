@@ -1,17 +1,130 @@
 use rt::run;
 
-use nannou::{draw, prelude::*};
+use nannou::{draw, prelude::*, state::mouse};
 use std::collections::HashMap;
 
-use rt::run;
+const SCREEN_WIDTH: u32 = 1600;
+const SCREEN_HEIGHT: u32 = 900;
+
+struct Model {}
 
 fn main() {
-    run();
+    // run();
     // Create window
-    // nannou::sketch(view).size(400, 800).run();
+    // nannou::sketch(view).size(screen_width, screen_height).event(event).run();
+    nannou::app(model).size(SCREEN_WIDTH, SCREEN_HEIGHT).view(view).event(event).run();
 
     // Parse JSON
-    parse_json();
+    // parse_json();
+}
+
+fn window_event(_app: &App, _model: &mut Model, event: WindowEvent) {
+    match event {
+        KeyPressed(_key) => {}
+        KeyReleased(_key) => {}
+        MouseMoved(_pos) => {}
+        MousePressed(_button) => {}
+        MouseReleased(_button) => {}
+        MouseEntered => {}
+        MouseExited => {}
+        MouseWheel(_amount, _phase) => {}
+        Moved(_pos) => {}
+        Resized(_size) => {}
+        Touch(_touch) => {}
+        TouchPressure(_pressure) => {}
+        HoveredFile(_path) => {}
+        DroppedFile(_path) => {}
+        HoveredFileCancelled => {}
+        Focused => {}
+        Unfocused => {}
+        Closed => {}
+    }
+}
+
+
+fn raw_window_event(_app: &App, _model: &mut Model, _event: &nannou::winit::event::WindowEvent) {}
+
+fn key_pressed(_app: &App, _model: &mut Model, _key: Key) {}
+fn key_released(_app: &App, _model: &mut Model, _key: Key) {}
+
+fn mouse_moved(_app: &App, _model: &mut Model, _pos: Point2) {}
+
+fn mouse_pressed(_app: &App, _model: &mut Model, _button: MouseButton) {
+    // Get mouse position
+    let mouse_pos = _app.mouse.position(); // Access the mouse function
+    println!("Mouse position: {:?}", mouse_pos);
+}
+
+fn mouse_released(_app: &App, _model: &mut Model, _button: MouseButton) {}
+
+fn mouse_wheel(_app: &App, _model: &mut Model, _dt: MouseScrollDelta, _phase: TouchPhase) {}
+
+fn mouse_entered(_app: &App, _model: &mut Model) {}
+
+fn mouse_exited(_app: &App, _model: &mut Model) {}
+
+fn touch(_app: &App, _model: &mut Model, _touch: TouchEvent) {}
+
+fn touchpad_pressure(_app: &App, _model: &mut Model, _pressure: TouchpadPressure) {}
+
+fn window_moved(_app: &App, _model: &mut Model, _pos: Point2) {}
+
+fn window_resized(_app: &App, _model: &mut Model, _dim: Vec2) {}
+
+fn window_focused(_app: &App, _model: &mut Model) {}
+
+fn window_unfocused(_app: &App, _model: &mut Model) {}
+
+fn window_closed(_app: &App, _model: &mut Model) {}
+
+fn hovered_file(_app: &App, _model: &mut Model, _path: std::path::PathBuf) {}
+
+fn hovered_file_cancelled(_app: &App, _model: &mut Model) {}
+
+fn dropped_file(_app: &App, _model: &mut Model, _path: std::path::PathBuf) {}
+
+fn model(app: &App) -> Model {
+    app.new_window()
+        .size(SCREEN_WIDTH, SCREEN_HEIGHT)
+        .event(window_event)
+        .raw_event(raw_window_event)
+        .key_pressed(key_pressed)
+        .key_released(key_released)
+        .mouse_moved(mouse_moved)
+        .mouse_pressed(mouse_pressed)
+        .mouse_released(mouse_released)
+        .mouse_wheel(mouse_wheel)
+        .mouse_entered(mouse_entered)
+        .mouse_exited(mouse_exited)
+        .touch(touch)
+        .touchpad_pressure(touchpad_pressure)
+        .moved(window_moved)
+        .resized(window_resized)
+        .hovered_file(hovered_file)
+        .hovered_file_cancelled(hovered_file_cancelled)
+        .dropped_file(dropped_file)
+        .focused(window_focused)
+        .unfocused(window_unfocused)
+        .closed(window_closed)
+        .build()
+        .unwrap();
+    Model {}
+}
+
+fn update(_app: &App, _model: &mut Model, _update: Update) {}
+
+fn event(_app: &App, _model: &mut Model, event: Event) {
+    match event {
+        Event::WindowEvent {
+            id: _,
+            //raw: _,
+            simple: _,
+        } => {}
+        Event::DeviceEvent(_device_id, _event) => {}
+        Event::Update(_dt) => {}
+        Event::Suspended => {}
+        Event::Resumed => {}
+    }
 }
 
 fn parse_json() {
@@ -64,13 +177,30 @@ fn parse_json() {
     }
 }
 
-fn view(app: &App, frame: Frame) {
+fn draw_gui(draw: &draw::Draw) {
+    let gui_x_start: f32 = (SCREEN_WIDTH / 2 - 200) as f32;
+    let gui_x_end: f32 = (SCREEN_WIDTH  / 2) as f32;
+    let gui_y_start: f32 = (SCREEN_HEIGHT / 2) as f32;
+    let gui_y_end: f32 = (SCREEN_HEIGHT as i32 / 2 * -1) as f32;
+
+    line_put(Point2::new(gui_x_start, gui_y_start), Point2::new(gui_x_start, gui_y_end), nannou::color::WHITE, &draw);
+
+    let test_button: [Point2; 2] = [
+        Point2::new(gui_x_start + 20., gui_y_start - 20.),
+        Point2::new(gui_x_end - 20., gui_y_start - 70.)
+    ];
+
+    rect_put(test_button[0], test_button[1], nannou::color::GRAY, &draw);
+}
+
+fn view(app: &App, _model: &Model, frame: Frame) {
     let draw = app.draw();
     draw.background().color(BLACK);
+    draw_gui(&draw);
 
     // line_put(Point2::new(0.0, 0.0), Point2::new(20.0, 20.0), nannou::color::WHITE, &draw);
-    rect_put(Point2::new(-150.0, -350.0), Point2::new(150.0, -250.0), nannou::color::WHITE, &draw);
-    filled_rect_put(Point2::new(150.0, 350.0), Point2::new(-150.0, 250.0), nannou::color::WHITE, &draw);
+    // rect_put(Point2::new(-150.0, -350.0), Point2::new(150.0, -250.0), nannou::color::WHITE, &draw);
+    // filled_rect_put(Point2::new(150.0, 350.0), Point2::new(-150.0, 250.0), nannou::color::WHITE, &draw);
 
     draw.to_frame(app, &frame).unwrap();
 }
