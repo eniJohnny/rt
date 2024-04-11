@@ -1,4 +1,4 @@
-use crate::model::maths::{ray::Ray, vec3::Vec3};
+use crate::{model::maths::{ray::Ray, vec3::Vec3}, VFOV_RAD, WINDOW_HEIGHT, WINDOW_WIDTH};
 
 #[derive(Debug)]
 pub struct Camera {
@@ -31,6 +31,26 @@ impl Camera {
     }
 
     pub fn get_rays(&self) -> Vec<Vec<Ray>> {
-        unimplemented!()
+        let u = Vec3::new(*self.dir.y(), - *self.dir.x(), 0.).normalize();
+        let v = - self.dir.cross(&u).normalize();
+        let width = (self.fov as f64/2.).tan() * 2.;
+        let height = (VFOV_RAD / 2.).tan() * 2.;
+        let center: Vec3 = self.pos + self.dir;
+
+        let topLeft = center +  u * - width/2. + v * height/2.;
+        let leftToRight = u * width;
+        let topToBot = v * height;
+
+        let result: Vec<Vec<Ray>> = vec![];
+        for x in 0..WINDOW_WIDTH {
+            let line: Vec<Ray> = vec![];
+            for y in 0..WINDOW_HEIGHT {
+                let pos = self.pos.clone();
+                let dir = ((topLeft + leftToRight * (x as f64 / WINDOW_WIDTH as f64) + topToBot * (y as f64 / WINDOW_HEIGHT as f64)) - pos).normalize();
+                let ray = Ray::new(pos, dir, 0);
+            }
+            result.push(line);
+        }
+        result
     }
 }
