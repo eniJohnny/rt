@@ -48,9 +48,69 @@ impl Add for Vec2 {
 	}
 }
 
+impl Add for &Vec2 {
+	type Output = Vec2;
+	fn add(self, rhs: Self) -> Self::Output {
+		Vec2 {
+			x: self.x + &rhs.x,
+			y: self.y + &rhs.y
+		}
+	}
+}
+
+impl Add<Vec2> for &Vec2 {
+	type Output = Vec2;
+	fn add(self, rhs: Vec2) -> Self::Output {
+		Vec2 {
+			x: self.x + &rhs.x,
+			y: self.y + &rhs.y
+		}
+	}
+}
+
+impl Add<&Self> for Vec2 {
+	type Output = Self;
+	fn add(self, rhs: &Self) -> Self::Output {
+		Self {
+			x: self.x + &rhs.x,
+			y: self.y + &rhs.y
+		}
+	}
+}
+
 impl Sub for Vec2 {
 	type Output = Self;
 	fn sub(self, rhs: Self) -> Self::Output {
+		Self {
+			x: self.x - &rhs.x,
+			y: self.y - &rhs.y
+		}
+	}
+}
+
+impl Sub for &Vec2 {
+	type Output = Vec2;
+	fn sub(self, rhs: Self) -> Self::Output {
+		Vec2 {
+			x: self.x - &rhs.x,
+			y: self.y - &rhs.y
+		}
+	}
+}
+
+impl Sub<Vec2> for &Vec2 {
+	type Output = Vec2;
+	fn sub(self, rhs: Vec2) -> Self::Output {
+		Vec2 {
+			x: self.x - &rhs.x,
+			y: self.y - &rhs.y
+		}
+	}
+}
+
+impl Sub<&Self> for Vec2 {
+	type Output = Self;
+	fn sub(self, rhs: &Self) -> Self::Output {
 		Self {
 			x: self.x - &rhs.x,
 			y: self.y - &rhs.y
@@ -68,9 +128,69 @@ impl Mul<Self> for Vec2 {
 	}
 }
 
+impl Mul<Self> for &Vec2 {
+	type Output = Vec2;
+	fn mul(self, rhs: Self) -> Self::Output {
+		Vec2 {
+			x: self.x * rhs.x,
+			y: self.y * rhs.y
+		}
+	}
+}
+
+impl Mul<Vec2> for &Vec2 {
+	type Output = Vec2;
+	fn mul(self, rhs: Vec2) -> Self::Output {
+		Vec2 {
+			x: self.x * rhs.x,
+			y: self.y * rhs.y
+		}
+	}
+}
+
+impl Mul<&Self> for Vec2 {
+	type Output = Self;
+	fn mul(self, rhs: &Self) -> Self::Output {
+		Self {
+			x: self.x * rhs.x,
+			y: self.y * rhs.y
+		}
+	}
+}
+
 impl Mul<f64> for Vec2 {
 	type Output = Self;
 	fn mul(self, rhs: f64) -> Self::Output {
+		Self {
+			x: self.x * rhs,
+			y: self.y * rhs
+		}
+	}
+}
+
+impl Mul<f64> for &Vec2 {
+	type Output = Vec2;
+	fn mul(self, rhs: f64) -> Self::Output {
+		Vec2 {
+			x: self.x * rhs,
+			y: self.y * rhs
+		}
+	}
+}
+
+impl Mul<&f64> for &Vec2 {
+	type Output = Vec2;
+	fn mul(self, rhs: &f64) -> Self::Output {
+		Vec2 {
+			x: self.x * rhs,
+			y: self.y * rhs
+		}
+	}
+}
+
+impl Mul<&f64> for Vec2 {
+	type Output = Self;
+	fn mul(self, rhs: &f64) -> Self::Output {
 		Self {
 			x: self.x * rhs,
 			y: self.y * rhs
@@ -91,8 +211,54 @@ impl Div<f64> for Vec2 {
 	}
 }
 
+impl Div<f64> for &Vec2 {
+	type Output = Vec2;
+	fn div(self, rhs: f64) -> Self::Output {
+		if rhs == 0. {
+			panic!("Division by zero");
+		}
+		Vec2 {
+			x: self.x / rhs,
+			y: self.y / rhs
+		}
+	}
+}
+
+impl Div<&f64> for &Vec2 {
+	type Output = Vec2;
+	fn div(self, rhs: &f64) -> Self::Output {
+		if *rhs == 0. {
+			panic!("Division by zero");
+		}
+		Vec2 {
+			x: self.x / rhs,
+			y: self.y / rhs
+		}
+	}
+}
+
+impl Div<&f64> for Vec2 {
+	type Output = Self;
+	fn div(self, rhs: &f64) -> Self::Output {
+		if *rhs == 0. {
+			panic!("Division by zero");
+		}
+		Self {
+			x: self.x / rhs,
+			y: self.y / rhs
+		}
+	}
+}
+
 impl AddAssign for Vec2 {
 	fn add_assign(&mut self, rhs: Self) {
+		self.x += rhs.x;
+		self.y += rhs.y;
+	}
+}
+
+impl AddAssign<&Self> for Vec2 {
+	fn add_assign(&mut self, rhs: &Self) {
 		self.x += rhs.x;
 		self.y += rhs.y;
 	}
@@ -105,8 +271,22 @@ impl SubAssign for Vec2 {
 	}
 }
 
+impl SubAssign<&Self> for Vec2 {
+	fn sub_assign(&mut self, rhs: &Self) {
+		self.x -= rhs.x;
+		self.y -= rhs.y;
+	}
+}
+
 impl MulAssign<Self> for Vec2 {
 	fn mul_assign(&mut self, rhs: Self) {
+		self.x *= rhs.x;
+		self.y *= rhs.y;
+	}
+}
+
+impl MulAssign<&Self> for Vec2 {
+	fn mul_assign(&mut self, rhs: &Self) {
 		self.x *= rhs.x;
 		self.y *= rhs.y;
 	}
@@ -119,9 +299,26 @@ impl MulAssign<f64> for Vec2 {
 	}
 }
 
+impl MulAssign<&f64> for Vec2 {
+	fn mul_assign(&mut self, rhs: &f64) {
+		self.x *= rhs;
+		self.y *= rhs;
+	}
+}
+
 impl DivAssign<f64> for Vec2 {
 	fn div_assign(&mut self, rhs: f64) {
 		if rhs == 0. {
+			panic!("Division by zero");
+		}
+		self.x /= rhs;
+		self.y /= rhs;
+	}
+}
+
+impl DivAssign<&f64> for Vec2 {
+	fn div_assign(&mut self, rhs: &f64) {
+		if *rhs == 0. {
 			panic!("Division by zero");
 		}
 		self.x /= rhs;
