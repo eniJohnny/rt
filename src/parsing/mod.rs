@@ -16,7 +16,7 @@ pub fn get_scene() -> Scene {
                 let pos = get_position(&object);
                 let radius = get_radius(&object);
                 let color = get_color(&object);
-                let dir: Vec3 = Vec3::new(1.0, 0.0, 0.0);
+                let dir = get_direction(&object);
 
                 let shape = Shape::Sphere(Sphere::new(pos, dir, radius));
                 let material = Material::new(color);
