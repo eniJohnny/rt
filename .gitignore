@@ -14,13 +14,5 @@ Cargo.lock
 *.pdb
 
 
-# Added by cargo
-
-/target
-
 # Visual Studio Code workspace file
 .vscode/
-
-# Added by cargo
-
-/target

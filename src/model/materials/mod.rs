@@ -1,13 +1,11 @@
-use self::unicolor::Unicolor;
-
 use super::maths::vec3::Vec3;
 
 mod unicolor;
 
 pub struct Color {
-    r: u8,
-    g: u8,
-    b: u8
+    pub r: u8,
+    pub g: u8,
+    pub b: u8
 }
 
 impl Color {
@@ -23,19 +21,10 @@ impl Color {
     }
 }
 
-pub enum Material{
-    Unicolor(Unicolor)
-}
-
-impl Material {
-    pub fn new(color: Color) -> Self {
-        Self::Unicolor(Unicolor::new(color))
-    }
-}
-
-pub trait HasMaterial {
+pub trait Material {
     fn color(&self, x: i32, y: i32) -> Color;
     fn norm(&self, x: i32, y: i32) -> Vec3;
     fn reflection_coef(&self) -> f64;
     fn refraction_coef(&self) -> f64;
+    fn needs_projection(&self) -> bool;
 }
