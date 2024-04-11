@@ -1,9 +1,9 @@
 use crate::gui::draw_gui;
-use crate::{model::{materials::Color, maths::{hit::Hit, ray::Ray}, Scene}, WINDOW_HEIGHT, WINDOW_WIDTH};
+use crate::{model::{materials::Color, maths::{hit::Hit, ray::Ray}, Scene}, SCREEN_HEIGHT, SCREEN_WIDTH};
 use crate::events::{Model, event, model};
 use nannou::prelude::*;
 
-pub mod camera;
+// pub mod camera;
 pub mod lighting;
 
 pub fn display_scene(scene: &Scene) {
@@ -23,9 +23,9 @@ fn view(app: &App, _model: &Model, frame: Frame) {
 //     let rays = camera.get_rays();
 //     let mut image: Vec<Vec<Color>> = vec![];
 
-//     for x in [0, WINDOW_WIDTH] {
+//     for x in [0, SCREEN_WIDTH] {
 //         let mut line: Vec<Color> = vec![];
-//         for y in [0, WINDOW_HEIGHT] {
+//         for y in [0, SCREEN_HEIGHT] {
 //             line.push(cast_ray(scene, &rays[x][y]))
 //         }
 //         image.push(line)
