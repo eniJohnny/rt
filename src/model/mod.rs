@@ -8,8 +8,8 @@ pub mod scene;
 
 #[derive(Debug)]
 pub struct Element {
-    pub material: Box<dyn Material>,
-    pub shape: Box<dyn Shape>
+    material: Box<dyn Material>,
+    shape: Box<dyn Shape>
 }
 
 impl Element {
