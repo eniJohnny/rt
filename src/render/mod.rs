@@ -1,5 +1,6 @@
 use crate::{model::{materials::Color, maths::{hit::Hit, ray::Ray}, scene::Scene}, SCREEN_HEIGHT, SCREEN_WIDTH};
-use crate::model::Element;
+
+use self::lighting::apply_lighting;
 
 pub mod lighting;
 
@@ -19,7 +20,7 @@ pub mod lighting;
 
 pub fn cast_ray(scene: &Scene, ray: &Ray) -> Color {
     match get_closest_hit(scene, ray) {
-        Some(hit) => unimplemented!(),
+        Some(hit) => apply_lighting(hit, scene),
         None => Color::new(0, 0, 0)
     }
 }
