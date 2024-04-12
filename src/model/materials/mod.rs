@@ -30,9 +30,18 @@ impl Color {
     pub fn new(r: u8, g: u8, b: u8) -> Self {
         Self { r, g, b }
     }
+	
     pub fn toRgba(self) -> Rgba<u8> {
         Rgba([self.r, self.g, self.b, 255])
     }
+
+	pub fn mix(&self, other: &Color, coef: f64) -> Color {
+		Self {
+			r: (self.r as f64 * (1. - coef) + other.r as f64 * coef) as u8,
+			g: (self.g as f64 * (1. - coef) + other.g as f64 * coef) as u8,
+			b: (self.b as f64 * (1. - coef) + other.b as f64 * coef) as u8
+		}
+	}
 }
 
 impl Add for Color {
