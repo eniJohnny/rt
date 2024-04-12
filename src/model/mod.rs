@@ -6,6 +6,7 @@ pub mod maths;
 pub mod objects;
 pub mod scene;
 
+#[derive(Debug)]
 pub struct Element {
     material: Box<dyn Material>,
     shape: Box<dyn Shape>
