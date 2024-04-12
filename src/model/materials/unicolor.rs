@@ -3,7 +3,7 @@ use crate::model::maths::vec3::Vec3;
 use super::{Color, Material};
 
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Unicolor {
     color: Color,
 }
@@ -12,6 +12,11 @@ impl Unicolor {
     pub fn new(r: u8, g: u8, b: u8)-> Self {
         Self {
             color: Color::new(r, g, b)
+        }
+    }
+    pub fn from(color: Color) -> Self {
+        Self {
+            color
         }
     }
 }

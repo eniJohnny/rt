@@ -1,6 +1,7 @@
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 use super::Shape;
 
+#[derive(Debug)]
 pub struct Cylinder {
     pos: Vec3,
     dir: Vec3,
@@ -22,10 +23,10 @@ impl Shape for Cylinder {
 
 impl Cylinder {
     // Accessors
-    pub fn get_pos(&self) -> &Vec3 { &self.pos }
-    pub fn get_dir(&self) -> &Vec3 { &self.dir }
-    pub fn get_radius(&self) -> f64 { self.radius }
-    pub fn get_height(&self) -> f64 { self.height }
+    pub fn pos(&self) -> &Vec3 { &self.pos }
+    pub fn dir(&self) -> &Vec3 { &self.dir }
+    pub fn radius(&self) -> f64 { self.radius }
+    pub fn height(&self) -> f64 { self.height }
 
     // Mutators
     pub fn set_pos(&mut self, pos: Vec3) { self.pos = pos }

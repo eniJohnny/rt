@@ -2,10 +2,11 @@ use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 
 use super::Shape;
 
+#[derive(Debug)]
 pub struct Sphere {
     pos: Vec3,
     dir: Vec3,
-    radius: f64
+    radius: f64,
 }
 
 impl Shape for Sphere {
@@ -24,9 +25,9 @@ impl Shape for Sphere {
 
 impl Sphere {
     // Accessors
-    pub fn get_pos(&self) -> &Vec3 { &self.pos }
-    pub fn get_dir(&self) -> &Vec3 { &self.dir }
-    pub fn get_radius(&self) -> f64 { self.radius }
+    pub fn pos(&self) -> &Vec3 { &self.pos }
+    pub fn dir(&self) -> &Vec3 { &self.dir }
+    pub fn radius(&self) -> f64 { self.radius }
 
     // Mutators
     pub fn set_pos(&mut self, pos: Vec3) { self.pos = pos }

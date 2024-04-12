@@ -1,9 +1,9 @@
 use super::maths::vec3::Vec3;
 use crate::model::materials::unicolor::Unicolor;
+use std::fmt::Debug;
+pub mod unicolor;
 
-mod unicolor;
-
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Color {
     r: u8,
     g: u8,
@@ -28,7 +28,7 @@ impl Color {
     }
 }
 
-pub trait Material {
+pub trait Material: Debug {
     fn color(&self, x: i32, y: i32) -> Color;
     fn norm(&self, x: i32, y: i32) -> Vec3;
     fn reflection_coef(&self) -> f64;
@@ -39,5 +39,8 @@ pub trait Material {
 impl dyn Material {
     pub fn new(color: Color) -> Box<Self> {
         Box::new(Unicolor::new(color.r(), color.g(), color.b()))
+    }
+    pub fn default() -> Box<Self> {
+        Box::new(Unicolor::new(0, 0, 0))
     }
 }

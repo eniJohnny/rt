@@ -1,5 +1,4 @@
 use self::{materials::Material, shapes::Shape};
-use crate::model::objects::{camera::Camera, light::AmbientLight, light::Light};
 
 pub mod materials;
 pub mod shapes;
@@ -7,9 +6,10 @@ pub mod maths;
 pub mod objects;
 pub mod scene;
 
+#[derive(Debug)]
 pub struct Element {
-    material: Box<dyn Material>,
-    shape: Box<dyn Shape>
+    pub material: Box<dyn Material>,
+    pub shape: Box<dyn Shape>
 }
 
 impl Element {

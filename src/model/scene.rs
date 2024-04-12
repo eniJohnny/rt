@@ -2,7 +2,7 @@ use crate::model::objects::light::{AmbientLight, Light};
 
 use super::{objects::camera::Camera, Element};
 
-
+#[derive(Debug)]
 pub struct Scene {
     elements: Vec<Element>,
     camera: Camera,

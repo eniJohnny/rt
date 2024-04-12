@@ -1,10 +1,16 @@
 use crate::error;
 use crate::model::materials::{Color, Material};
+use crate::model::materials::unicolor::Unicolor;
 use crate::model::maths::vec3::Vec3;
 use crate::model::Element;
 use crate::model::{scene::Scene, shapes::sphere::Sphere, shapes::plane::Plane, shapes::cylinder::Cylinder, shapes::cone::Cone};
 use crate::model::objects::{camera::Camera, light::Light, light::AmbientLight};
 use std::collections::HashMap;
+use std::io::Write;
+
+pub fn print_scene(scene: &Scene) {
+    write!(std::io::stdout(), "{:#?}", scene).expect("Error printing scene");
+}
 
 pub fn get_scene() -> Scene {
     let mut scene = Scene::new();
@@ -19,7 +25,7 @@ pub fn get_scene() -> Scene {
                 let dir = get_direction(&object);
 
                 let shape = Box::new(Sphere::new(pos, dir, radius));
-                let material = <dyn Material>::new(color);
+                let material = Box::new(Unicolor::from(color));
 
                 let element = Element::new(shape, material);
                 scene.add_element(element)
@@ -44,7 +50,7 @@ pub fn get_scene() -> Scene {
                 let dir: Vec3 = Vec3::new(1.0, 0.0, 0.0);
 
                 let shape = Box::new(Cylinder::new(pos, dir, radius, height));
-                let material = <dyn Material>::new(color);
+                let material = Box::new(Unicolor::from(color));
 
                 let element = Element::new(shape, material);
                 scene.add_element(element)
@@ -57,7 +63,7 @@ pub fn get_scene() -> Scene {
                 let dir: Vec3 = Vec3::new(1.0, 0.0, 0.0);
 
                 let shape = Box::new(Cone::new(pos, dir, radius, height));
-                let material = <dyn Material>::new(color);
+                let material = Box::new(Unicolor::from(color));
 
                 let element = Element::new(shape, material);
                 scene.add_element(element)

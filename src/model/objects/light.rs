@@ -1,5 +1,6 @@
 use crate::model::{materials::Color, maths::vec3::Vec3};
 
+#[derive(Debug)]
 pub struct Light {
     pos: Vec3,
     intensity: f64,
@@ -8,9 +9,9 @@ pub struct Light {
 
 impl Light {
     // Accessors
-    pub fn get_pos(&self) -> &Vec3 { &self.pos }
-    pub fn get_intensity(&self) -> f64 { self.intensity }
-    pub fn get_color(&self) -> &Color { &self.color }
+    pub fn pos(&self) -> &Vec3 { &self.pos }
+    pub fn intensity(&self) -> f64 { self.intensity }
+    pub fn color(&self) -> &Color { &self.color }
 
     // Mutators
     pub fn set_pos(&mut self, pos: Vec3) { self.pos = pos }
@@ -23,6 +24,7 @@ impl Light {
     }
 }
 
+#[derive(Debug)]
 pub struct AmbientLight {
     intensity: f64,
     color: Color
@@ -30,8 +32,8 @@ pub struct AmbientLight {
 
 impl AmbientLight {
     // Accessors
-    pub fn get_intensity(&self) -> f64 { self.intensity }
-    pub fn get_color(&self) -> &Color { &self.color }
+    pub fn intensity(&self) -> f64 { self.intensity }
+    pub fn color(&self) -> &Color { &self.color }
 
     // Constructor
     pub fn new(intensity: f64, color: Color) -> Self {

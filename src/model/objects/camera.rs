@@ -1,5 +1,6 @@
 use crate::model::maths::{ray::Ray, vec3::Vec3};
 
+#[derive(Debug)]
 pub struct Camera {
     pos: Vec3,
     dir: Vec3,
@@ -8,9 +9,9 @@ pub struct Camera {
 
 impl Camera {
     // Accessors
-    pub fn get_pos(&self) -> &Vec3 { &self.pos }
-    pub fn get_dir(&self) -> &Vec3 { &self.dir }
-    pub fn get_fov(&self) -> f64 { self.fov }
+    pub fn pos(&self) -> &Vec3 { &self.pos }
+    pub fn dir(&self) -> &Vec3 { &self.dir }
+    pub fn fov(&self) -> f64 { self.fov }
 
     // Mutators
     pub fn set_pos(&mut self, pos: Vec3) { self.pos = pos }
