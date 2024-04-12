@@ -17,8 +17,8 @@ impl Shape for Sphere {
     fn intersect(&self, r: &Ray) -> Option<f64> {
         // intersection rayon/sphere
         let dist = &self.pos - r.get_pos();
-        let dot_product = r.get_dir() * &dist;
-        let discriminant = &dot_product *&dot_product - &dist * &dist + &self.radius * &self.radius;
+        let dot_product = r.get_dir().dot(&dist);
+        let discriminant = &dot_product * &dot_product - &dist.dot(&dist) + &self.radius * &self.radius;
         if (discriminant < 0.0) {
             return None;
         }
@@ -31,7 +31,6 @@ impl Shape for Sphere {
             return Some(intersection2);
         }
         return None;
-
     }
 
     fn projection(&self, hit: &Hit) -> (i32, i32) {
@@ -55,4 +54,33 @@ impl Sphere {
         self::Sphere { pos, dir, radius }
     }
 
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::model::maths::ray::Ray;
+    use crate::model::maths::vec3::Vec3;
+    use crate::model::shapes::Shape;
+    use crate::model::shapes::sphere::Sphere;
+
+    #[test]
+    fn test_intersect() {
+        let s1: Sphere = Sphere::new(Vec3::new(0., 0., 0.), Vec3::new(0., 0., 0.), 1.);
+        let r1: Ray = Ray::new(Vec3::new(-5., 0., 0.), Vec3::new(1., 0., 0.), 5);
+        assert_eq!(s1.intersect(&r1), Some(4.0));
+    }
+
+    #[test]
+    fn test_intersect2() {
+        let s1: Sphere = Sphere::new(Vec3::new(0., 0., 2.), Vec3::new(0., 0., 0.), 1.);
+        let r1: Ray = Ray::new(Vec3::new(0., 0., 0.), Vec3::new(0., 0., 1.), 5);
+        assert_eq!(s1.intersect(&r1), Some(1.0));
+    }
+
+    #[test]
+    fn test_intersect3() {
+        let s1: Sphere = Sphere::new(Vec3::new(0., 0., 2.), Vec3::new(0., 0., 0.), 1.);
+        let r1: Ray = Ray::new(Vec3::new(0., 0., 0.), Vec3::new(1., 0., 0.), 5);
+        assert_eq!(s1.intersect(&r1), None);
+    }
 }
