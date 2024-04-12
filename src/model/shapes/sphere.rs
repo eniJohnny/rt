@@ -28,6 +28,11 @@ impl Sphere {
     pub fn get_dir(&self) -> &Vec3 { &self.dir }
     pub fn get_radius(&self) -> f64 { self.radius }
 
+    // Mutators
+    pub fn set_pos(&mut self, pos: Vec3) { self.pos = pos }
+    pub fn set_dir(&mut self, dir: Vec3) { self.dir = dir }
+    pub fn set_radius(&mut self, radius: f64) { self.radius = radius }
+
     // Constructor
     pub fn new(pos: Vec3, dir: Vec3, radius: f64) -> Sphere{
         self::Sphere { pos, dir, radius }

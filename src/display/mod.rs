@@ -12,5 +12,5 @@ fn view(app: &App, _model: &Model, frame: Frame) {
     draw.background().color(BLACK);
     draw_gui(&draw);
 
-    draw.to_frame(app, &frame).unwrap();
+    draw.to_frame(app, &frame).expect("Could not draw frame")
 }

@@ -27,6 +27,12 @@ impl Cone {
     pub fn get_radius(&self) -> f64 { self.radius }
     pub fn get_height(&self) -> f64 { self.height }
 
+    // Mutators
+    pub fn set_pos(&mut self, pos: Vec3) { self.pos = pos }
+    pub fn set_dir(&mut self, dir: Vec3) { self.dir = dir }
+    pub fn set_radius(&mut self, radius: f64) { self.radius = radius }
+    pub fn set_height(&mut self, height: f64) { self.height = height }
+
     // Constructor
     pub fn new(pos: Vec3, dir: Vec3, radius: f64, height: f64) -> Cone {
         self::Cone { pos, dir, radius, height }

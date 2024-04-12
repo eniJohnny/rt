@@ -21,3 +21,7 @@ pub fn run() {
 pub fn event_loop(scene: &Scene) {
     display_scene(scene)
 }
+
+pub fn error(msg: &str) {
+    eprintln!("Error: {}", msg);
+}

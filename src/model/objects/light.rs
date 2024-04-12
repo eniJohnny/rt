@@ -12,6 +12,11 @@ impl Light {
     pub fn get_intensity(&self) -> f64 { self.intensity }
     pub fn get_color(&self) -> &Color { &self.color }
 
+    // Mutators
+    pub fn set_pos(&mut self, pos: Vec3) { self.pos = pos }
+    pub fn set_intensity(&mut self, intensity: f64) { self.intensity = intensity }
+    pub fn set_color(&mut self, color: Color) { self.color = color }
+
     // Constructor
     pub fn new(pos: Vec3, intensity: f64, color: Color) -> Self {
         self::Light { pos, intensity, color }

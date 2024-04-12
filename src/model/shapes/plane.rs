@@ -23,6 +23,10 @@ impl Plane {
     pub fn get_pos(&self) -> &Vec3 { &self.pos }
     pub fn get_dir(&self) -> &Vec3 { &self.dir }
 
+    // Mutators
+    pub fn set_pos(&mut self, pos: Vec3) { self.pos = pos }
+    pub fn set_dir(&mut self, dir: Vec3) { self.dir = dir }
+
     // Constructor
     pub fn new(pos: Vec3, dir: Vec3) -> Plane{
         self::Plane { pos, dir }

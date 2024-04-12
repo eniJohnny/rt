@@ -27,7 +27,7 @@ pub fn model(app: &App) -> Model {
         .unfocused(window_unfocused)
         .closed(window_closed)
         .build()
-        .unwrap();
+        .expect("Could not create window");
     Model {}
 }
 

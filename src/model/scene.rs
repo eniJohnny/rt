@@ -20,7 +20,7 @@ impl Scene {
         }
     }
 
-    // Add a new object to the scene
+    // Adders
     pub fn add_element(&mut self, element: Element) {
         self.elements.push(element);
     }
@@ -48,6 +48,28 @@ impl Scene {
 
     pub fn lights(&self) -> &Vec<Light> {
         &self.lights
+    }
+
+    pub fn ambient_light(&self) -> &AmbientLight {
+        &self.ambient_light
+    }
+
+    // Mutators
+
+    pub fn set_elements(&mut self, elements: Vec<Element>) {
+        self.elements = elements;
+    }
+
+    pub fn set_camera(&mut self, camera: Camera) {
+        self.camera = camera;
+    }
+
+    pub fn set_lights(&mut self, lights: Vec<Light>) {
+        self.lights = lights;
+    }
+
+    pub fn set_ambient_light(&mut self, ambient_light: AmbientLight) {
+        self.ambient_light = ambient_light;
     }
 
 }
