@@ -36,6 +36,15 @@ impl Vec2 {
 			y: self.y / norm
 		}
 	}
+
+	pub fn rotate(&self, angle: f64) -> Self {
+		let cos: f64 = angle.cos();
+		let sin: f64 = angle.sin();
+		Self {
+			x: self.x * cos - self.y * sin,
+			y: self.x * sin + self.y * cos
+		}
+	}
 }
 
 impl Add for Vec2 {
@@ -194,6 +203,26 @@ impl Mul<&f64> for Vec2 {
 		Self {
 			x: self.x * rhs,
 			y: self.y * rhs
+		}
+	}
+}
+
+impl Mul<Vec2> for f64 {
+	type Output = Vec2;
+	fn mul(self, rhs: Vec2) -> Self::Output {
+		Vec2 {
+			x: rhs.x * self,
+			y: rhs.y * self
+		}
+	}
+}
+
+impl Mul<&Vec2> for f64 {
+	type Output = Vec2;
+	fn mul(self, rhs: &Vec2) -> Self::Output {
+		Vec2 {
+			x: rhs.x * self,
+			y: rhs.y * self
 		}
 	}
 }
@@ -454,5 +483,13 @@ mod tests {
 	fn test_neg() {
 		let v1: Vec2 = Vec2::new(1., 2.);
 		assert_eq!(-v1, Vec2::new(-1., -2.));
+	}
+
+	#[test]
+	fn test_rotate() {
+		let v1: Vec2 = Vec2::new(1., 0.);
+		let v2: Vec2 = Vec2::new(0., 1.);
+		assert!((v1.rotate(std::f64::consts::FRAC_PI_2).x() - v2.x()).abs() < f64::EPSILON);
+		assert!((v1.rotate(std::f64::consts::FRAC_PI_2).y() - v2.y()).abs() < f64::EPSILON);
 	}
 }
