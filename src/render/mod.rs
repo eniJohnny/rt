@@ -1,7 +1,6 @@
 use crate::{model::{materials::Color, maths::{hit::Hit, ray::Ray}, scene::Scene}, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::model::Element;
 
-
-pub mod camera;
 pub mod lighting;
 
 // pub fn render_scene(scene: &Scene) {
@@ -26,15 +25,19 @@ pub fn cast_ray(scene: &Scene, ray: &Ray) -> Color {
 }
 
 pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
-    let mut closest: Option<Hit> = None;
+    let mut closest: Option<(f64, &Element)> = None;
     for element in scene.elements().iter() {
-        if let Some(hit) = element.shape().intersect(ray) {
-            if let Some(closest_hit) = &closest{
-                if hit.dist() < closest_hit.dist() {
-                    closest = Some(hit);
+        if let Some(t) = element.shape().intersect(ray) {
+            if let Some((tmin, elem)) = &closest {
+                if &t[0] < tmin {
+                    closest = Some((t[0], element));
                 }
             }
         }
     }
-    closest
+    if closest.is_none() {
+        return None;
+    }
+    let hit = Hit::new(closest.unwrap().1, closest.unwrap().0, ray.get_pos() + ray.get_dir() * closest.unwrap().0);
+    return Some(hit);
 }

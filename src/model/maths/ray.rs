@@ -6,3 +6,17 @@ pub struct Ray {
     depth: u8
 }
 
+impl Ray {
+    pub fn new(pos: Vec3, dir: Vec3, depth: u8) -> Self {
+        Self {
+            pos,
+            dir,
+            depth
+        }
+    }
+
+    pub fn get_pos(&self) -> &Vec3 { return &self.pos; }
+    pub fn get_dir(&self) -> &Vec3 { return &self.dir; }
+    pub fn get_depth(&self) -> &u8 { return &self.depth; }
+}
+
