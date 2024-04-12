@@ -176,19 +176,21 @@ fn get_position(object: &HashMap<String, String>) -> Vec3 {
 
 fn get_direction(object: &HashMap<String, String>) -> Vec3 {
     // Testing if the direction is in the format [x, y, z]
-    let dir_str = [&object["direction_x"], &object["direction_y"], &object["direction_z"]];
+    let dir = [&object["direction_x"], &object["direction_y"], &object["direction_z"]];
+    
 
     for i in 0..3 {
-        if dir_str[i].parse::<f64>().is_err() {
+        if dir[i].parse::<f64>().is_err() {
             error("Direction must be in the format [x, y, z] where x, y, z are floats.");
         }
+
     }
 
     Vec3::new(
-        object["direction_x"].parse::<f64>().expect("Error parsing direction"),
-        object["direction_y"].parse::<f64>().expect("Error parsing direction"),
-        object["direction_z"].parse::<f64>().expect("Error parsing direction")
-    )
+        dir[0].parse::<f64>().expect("Error parsing direction"),
+        dir[1].parse::<f64>().expect("Error parsing direction"),
+        dir[2].parse::<f64>().expect("Error parsing direction")
+    ).normalize()
 }
 
 fn get_radius(object: &HashMap<String, String>) -> f64 {
