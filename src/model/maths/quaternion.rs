@@ -16,13 +16,13 @@ impl Quaternion {
 		Self { x, y, z, w }
 	}
 
-	// pub fn new_from_axis_angle(axis: &Vec3, angle: f64) -> Self {
-	// 	let half_angle: f64 = angle / 2.;
-	// 	let sin: f64 = half_angle.sin();
-	// 	let cos: f64 = half_angle.cos();
+	pub fn new_from_axis_angle(axis: &Vec3, angle: f64) -> Self {
+		let half_angle: f64 = angle / 2.;
+		let sin: f64 = half_angle.sin();
+		let cos: f64 = half_angle.cos();
 
-	// 	cos + sin * axis / axis.length()
-	// }
+		(sin * axis.clone().normalize()).to_quaternion(cos)
+	}
 
 	pub fn x(&self) -> &f64 {
 		&self.x
@@ -61,6 +61,10 @@ impl Quaternion {
 			z: -self.z,
 			w: self.w
 		}
+	}
+
+	pub fn to_vec3(&self) -> Vec3 {
+		Vec3::new(self.x, self.y, self.z)
 	}
 }
 
@@ -228,6 +232,30 @@ impl Mul<&f64> for Quaternion {
 			y: self.y * scalar,
 			z: self.z * scalar,
 			w: self.w * scalar
+		}
+	}
+}
+
+impl Mul<Quaternion> for f64 {
+	type Output = Quaternion;
+	fn mul(self, q: Self::Output) -> Self::Output {
+		Self::Output {
+			x: q.x * self,
+			y: q.y * self,
+			z: q.z * self,
+			w: q.w * self
+		}
+	}
+}
+
+impl Mul<&Quaternion> for f64 {
+	type Output = Quaternion;
+	fn mul(self, q: &Self::Output) -> Self::Output {
+		Self::Output {
+			x: q.x * self,
+			y: q.y * self,
+			z: q.z * self,
+			w: q.w * self
 		}
 	}
 }
@@ -568,5 +596,17 @@ use super::Quaternion;
 	fn test_display() {
 		let q = Quaternion::new(1., 2., 3., 4.);
 		assert_eq!(format!("{}", q), "1i + 2j + 3k + 4");
+	}
+	
+	#[test]
+	fn test_new_from_axis_angle() {
+		let axis = super::Vec3::new(1., 0., 0.);
+		let angle = std::f64::consts::PI / 3.;
+		let q = Quaternion::new_from_axis_angle(&axis, angle);
+		println!("{:?}", q);
+		assert!((q.x() - 0.5).abs() < std::f64::EPSILON);
+		assert_eq!(*q.y(), 0.);
+		assert_eq!(*q.z(), 0.);
+		assert!((q.w() - 3_f64.sqrt() / 2.).abs() - 0.5 < f64::EPSILON);
 	}
 }

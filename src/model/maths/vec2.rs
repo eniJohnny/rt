@@ -207,6 +207,26 @@ impl Mul<&f64> for Vec2 {
 	}
 }
 
+impl Mul<Vec2> for f64 {
+	type Output = Vec2;
+	fn mul(self, rhs: Vec2) -> Self::Output {
+		Vec2 {
+			x: rhs.x * self,
+			y: rhs.y * self
+		}
+	}
+}
+
+impl Mul<&Vec2> for f64 {
+	type Output = Vec2;
+	fn mul(self, rhs: &Vec2) -> Self::Output {
+		Vec2 {
+			x: rhs.x * self,
+			y: rhs.y * self
+		}
+	}
+}
+
 impl Div<f64> for Vec2 {
 	type Output = Self;
 	fn div(self, rhs: f64) -> Self::Output {
