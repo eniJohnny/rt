@@ -1,22 +1,8 @@
-use crate::gui::draw_gui;
-use crate::{model::{materials::Color, maths::{hit::Hit, ray::Ray}, Scene}, SCREEN_HEIGHT, SCREEN_WIDTH};
-use crate::events::{Model, event, model};
-use nannou::prelude::*;
+use crate::{model::{materials::Color, maths::{hit::Hit, ray::Ray}, scene::Scene}, SCREEN_HEIGHT, SCREEN_WIDTH};
 
-// pub mod camera;
+
+pub mod camera;
 pub mod lighting;
-
-pub fn display_scene(scene: &Scene) {
-    nannou::app(model).view(view).event(event).run();
-}
-
-fn view(app: &App, _model: &Model, frame: Frame) {
-    let draw = app.draw();
-    draw.background().color(BLACK);
-    draw_gui(&draw);
-
-    draw.to_frame(app, &frame).unwrap();
-}
 
 // pub fn render_scene(scene: &Scene) {
 //     let camera = scene.camera();
@@ -32,14 +18,10 @@ fn view(app: &App, _model: &Model, frame: Frame) {
 //     }
 // }
 
-pub fn show_scene(scene: &Scene) {
-    nannou::app(model).view(view).event(event).run();
-}
-
 pub fn cast_ray(scene: &Scene, ray: &Ray) -> Color {
     match get_closest_hit(scene, ray) {
         Some(hit) => unimplemented!(),
-        None => Color {r: 0, g: 0, b: 0}
+        None => Color::new(0, 0, 0)
     }
 }
 

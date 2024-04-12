@@ -1,8 +1,7 @@
 use crate::model::materials::{Color, Material};
 use crate::model::maths::vec3::Vec3;
-use crate::model::shapes::Shape;
 use crate::model::Element;
-use crate::model::{Scene, shapes::sphere::Sphere, shapes::plane::Plane, shapes::cylinder::Cylinder, shapes::cone::Cone};
+use crate::model::{scene::Scene, shapes::sphere::Sphere, shapes::plane::Plane, shapes::cylinder::Cylinder, shapes::cone::Cone};
 use crate::model::objects::{camera::Camera, light::Light, light::AmbientLight};
 use std::collections::HashMap;
 
@@ -141,36 +140,37 @@ fn parse_json() -> Vec<HashMap<String, String>> {
 }
 
 fn get_color(object: &HashMap<String, String>) -> Color {
-    let r = object.get("color_r").unwrap().parse::<u8>().unwrap();
-    let g = object.get("color_g").unwrap().parse::<u8>().unwrap();
-    let b = object.get("color_b").unwrap().parse::<u8>().unwrap();
-    return Color::from_rgb(r, g, b);
+    let r = object["color_r"].parse::<u8>().unwrap();
+    let g = object["color_g"].parse::<u8>().unwrap();
+    let b = object["color_b"].parse::<u8>().unwrap();
+
+    return Color::new(r, g, b);
 }
 
 fn get_position(object: &HashMap<String, String>) -> Vec3 {
     Vec3::new(
-        object.get("position_x").unwrap().parse::<f64>().unwrap(),
-        object.get("position_y").unwrap().parse::<f64>().unwrap(),
-        object.get("position_z").unwrap().parse::<f64>().unwrap()
+        object["position_x"].parse::<f64>().unwrap(),
+        object["position_y"].parse::<f64>().unwrap(),
+        object["position_z"].parse::<f64>().unwrap()
     )
 }
 
 fn get_direction(object: &HashMap<String, String>) -> Vec3 {
     Vec3::new(
-        object.get("direction_x").unwrap().parse::<f64>().unwrap(),
-        object.get("direction_y").unwrap().parse::<f64>().unwrap(),
-        object.get("direction_z").unwrap().parse::<f64>().unwrap()
+        object["direction_x"].parse::<f64>().unwrap(),
+        object["direction_y"].parse::<f64>().unwrap(),
+        object["direction_z"].parse::<f64>().unwrap()
     )
 }
 
 fn get_radius(object: &HashMap<String, String>) -> f64 {
-    object.get("radius").unwrap().parse::<f64>().unwrap()
+    object["radius"].parse::<f64>().unwrap()
 }
 
 fn get_height(object: &HashMap<String, String>) -> f64 {
-    object.get("height").unwrap().parse::<f64>().unwrap()
+    object["height"].parse::<f64>().unwrap()
 }
 
 fn get_intensity(object: &HashMap<String, String>) -> f64 {
-    object.get("intensity").unwrap().parse::<f64>().unwrap()
+    object["intensity"].parse::<f64>().unwrap()
 }

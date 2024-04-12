@@ -8,7 +8,7 @@ pub struct Light {
 
 impl Light {
     // Accessors
-    pub fn get_pos(&self) -> Vec3 { Vec3::new(self.pos.x().to_owned(), self.pos.y().to_owned(), self.pos.z().to_owned()) }
+    pub fn get_pos(&self) -> &Vec3 { &self.pos }
     pub fn get_intensity(&self) -> f64 { self.intensity }
     pub fn get_color(&self) -> &Color { &self.color }
 
@@ -35,7 +35,7 @@ impl AmbientLight {
     pub fn default() -> Self {
         Self {
             intensity: 0.5,
-            color: Color::from_rgb(255, 255, 255)
+            color: Color::new(255, 255, 255)
         }
     }
 }

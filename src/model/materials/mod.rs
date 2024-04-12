@@ -3,21 +3,27 @@ use crate::model::materials::unicolor::Unicolor;
 
 mod unicolor;
 
+#[derive(Clone)]
 pub struct Color {
-    pub r: u8,
-    pub g: u8,
-    pub b: u8
+    r: u8,
+    g: u8,
+    b: u8
 }
 
 impl Color {
-    pub fn new(color: &Self) -> Self{
-        Self {
-            r: color.r,
-            g: color.g,
-            b: color.b
-        }
+    // Getters
+    pub fn r(&self) -> u8 {
+        self.r
     }
-    pub fn from_rgb(r: u8, g: u8, b: u8) -> Self {
+    pub fn g(&self) -> u8 {
+        self.g
+    }
+    pub fn b(&self) -> u8 {
+        self.b
+    }
+
+    // Constructors
+    pub fn new(r: u8, g: u8, b: u8) -> Self {
         Self { r, g, b }
     }
 }
@@ -32,6 +38,6 @@ pub trait Material {
 
 impl dyn Material {
     pub fn new(color: Color) -> Box<Self> {
-        Box::new(Unicolor::new(color))
+        Box::new(Unicolor::new(color.r(), color.g(), color.b()))
     }
 }

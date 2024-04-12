@@ -1,4 +1,4 @@
-use crate::model::maths::vec3::Vec3;
+use crate::model::maths::{ray::Ray, vec3::Vec3};
 
 pub struct Camera {
     pos: Vec3,
@@ -8,8 +8,8 @@ pub struct Camera {
 
 impl Camera {
     // Accessors
-    pub fn get_pos(&self) -> Vec3 { Vec3::new(self.pos.x().to_owned(), self.pos.y().to_owned(), self.pos.z().to_owned()) }
-    pub fn get_dir(&self) -> Vec3 { Vec3::new(self.dir.x().to_owned(), self.dir.y().to_owned(), self.dir.z().to_owned()) }
+    pub fn get_pos(&self) -> &Vec3 { &self.pos }
+    pub fn get_dir(&self) -> &Vec3 { &self.dir }
     pub fn get_fov(&self) -> f64 { self.fov }
 
     // Constructor
@@ -22,5 +22,9 @@ impl Camera {
             dir: Vec3::new(0.0, 0.0, 0.0),
             fov: 0.
         }
+    }
+
+    pub fn get_rays(&self) -> Vec<Vec<Ray>> {
+        unimplemented!()
     }
 }

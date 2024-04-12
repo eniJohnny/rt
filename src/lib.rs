@@ -1,15 +1,16 @@
-use model::Scene;
+use model::scene::Scene;
 use parsing::get_scene;
-use render::display_scene;
+use display::display_scene;
 
 pub mod gui;
 pub mod model;
 pub mod parsing;
 pub mod render;
 pub mod events;
+pub mod display;
 
-pub const SCREEN_WIDTH: u32 = 1600;
-pub const SCREEN_HEIGHT: u32 = 900;
+const SCREEN_WIDTH: u32 = 1600;
+const SCREEN_HEIGHT: u32 = 900;
 
 pub fn run() {
     let scene = get_scene();

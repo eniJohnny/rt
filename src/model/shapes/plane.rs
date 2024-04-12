@@ -20,8 +20,8 @@ impl Shape for Plane {
 
 impl Plane {
     // Accessors
-    pub fn get_pos(&self) -> Vec3 { Vec3::new(self.pos.x().to_owned(), self.pos.y().to_owned(), self.pos.z().to_owned()) }
-    pub fn get_dir(&self) -> Vec3 { Vec3::new(self.dir.x().to_owned(), self.dir.y().to_owned(), self.dir.z().to_owned()) }
+    pub fn get_pos(&self) -> &Vec3 { &self.pos }
+    pub fn get_dir(&self) -> &Vec3 { &self.dir }
 
     // Constructor
     pub fn new(pos: Vec3, dir: Vec3) -> Plane{
