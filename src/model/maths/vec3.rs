@@ -1,6 +1,7 @@
 use std::ops::{Add, Mul, Sub, Div, AddAssign, SubAssign, MulAssign, DivAssign, Neg};
 use std::cmp::PartialEq;
 use std::fmt::{Display, Formatter, Result};
+use super::quaternion::Quaternion;
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct Vec3 {
@@ -49,6 +50,17 @@ impl Vec3 {
 			z: self.z / norm
 		}
     }
+
+	pub fn to_quaternion(&self, w: f64) -> Quaternion {
+		Quaternion::new(self.x, self.y, self.z, w)
+    }
+
+	pub fn rotate(&self, angle: f64, axis: &Self) -> Self {
+		let q = Quaternion::new_from_axis_angle(axis, angle);
+		let q_conj = q.conjugate();
+		let p = self.to_quaternion(0.);
+		(q * p * q_conj).to_vec3()
+	}
 }
 
 impl Add for Vec3 {
@@ -227,6 +239,28 @@ impl Mul<&f64> for &Vec3 {
     }
 }
 
+impl Mul<Vec3> for f64 {
+    type Output = Vec3;
+    fn mul(self, rhs: Self::Output) -> Self::Output {
+        Self::Output {
+            x: rhs.x * self,
+            y: rhs.y * self,
+            z: rhs.z * self
+        }
+    }
+}
+
+impl Mul<&Vec3> for f64 {
+    type Output = Vec3;
+    fn mul(self, rhs: &Self::Output) -> Self::Output {
+        Self::Output {
+            x: rhs.x * self,
+            y: rhs.y * self,
+            z: rhs.z * self
+        }
+    }
+}
+
 impl Div<f64> for Vec3 {
 	type Output = Self;
 	fn div(self, rhs: f64) -> Self::Output {
@@ -399,7 +433,7 @@ impl Display for Vec3 {
 
 #[cfg(test)]
 mod tests {
-    use crate::model::maths::vec3::Vec3;
+    use super::Vec3;
 
 	#[test]
 	fn test_add() {
@@ -516,5 +550,15 @@ mod tests {
 	fn test_neg() {
 		let v1: Vec3 = Vec3::new(1., 2., 3.);
 		assert_eq!(-v1, Vec3::new(-1., -2., -3.))
+	}
+
+	#[test]
+	fn test_rotate() {
+		let v1: Vec3 = Vec3::new(1., 0., 0.);
+		let axis: Vec3 = Vec3::new(0., 0., 1.);
+		let rotated = v1.rotate(std::f64::consts::PI / 2., &axis);
+		assert!((rotated.x() - 0.).abs() <= f64::EPSILON);
+		assert!((rotated.y() - 1.).abs() <= f64::EPSILON);
+		assert!((rotated.z() - 0.).abs() <= f64::EPSILON);
 	}
 }
