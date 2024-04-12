@@ -37,16 +37,17 @@ impl Camera {
         let height = (VFOV_RAD / 2.).tan() * 2.;
         let center: Vec3 = &self.pos + &self.dir;
 
-        let topLeft = center +  &u * - width/2. + &v * height/2.;
-        let leftToRight = u * width;
-        let topToBot = v * height;
+        let top_left = center +  &u * - width/2. + &v * height/2.;
+        let left_to_right = &u * width;
+        let top_to_bot = v * height;
 
         let mut result: Vec<Vec<Ray>> = vec![];
         for x in 0..SCREEN_WIDTH {
             let mut line: Vec<Ray> = vec![];
             for y in 0..SCREEN_HEIGHT {
                 let pos = self.pos.clone();
-                let dir = ((&topLeft + &leftToRight * (x as f64 / SCREEN_WIDTH as f64) + &topToBot * (y as f64 / SCREEN_HEIGHT as f64)) - &pos).normalize();
+                let dir = &top_left + &left_to_right * (x as f64 / SCREEN_WIDTH as f64);
+                // let dir = (( dir + &top_to_bot * (y as f64 / SCREEN_HEIGHT as f64)) - &pos).normalize();
                 let ray = Ray::new(pos, dir, 0);
                 line.push(ray);
             }
