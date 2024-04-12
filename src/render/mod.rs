@@ -29,8 +29,8 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     for element in scene.elements().iter() {
         if let Some(t) = element.shape().intersect(ray) {
             if let Some((tmin, elem)) = &closest {
-                if &t < tmin {
-                    closest = Some((t, element));
+                if &t[0] < tmin {
+                    closest = Some((t[0], element));
                 }
             }
         }

@@ -14,7 +14,7 @@ impl Shape for Sphere {
         unimplemented!()
     }
     
-    fn intersect(&self, r: &Ray) -> Option<f64> {
+    fn intersect(&self, r: &Ray) -> Option<Vec<f64>> {
         // intersection rayon/sphere
         let dist = &self.pos - r.get_pos();
         let dot_product = r.get_dir().dot(&dist);
@@ -25,10 +25,7 @@ impl Shape for Sphere {
         let intersection1 = &dot_product - &discriminant.sqrt();
         let intersection2 = &dot_product + &discriminant.sqrt();
         if (intersection1 > 0.1) {
-            return Some(intersection1);
-        }
-        if (intersection2 > 0.1) {
-            return Some(intersection2);
+            return Some(Vec::from([intersection1, intersection2]));
         }
         return None;
     }
@@ -67,14 +64,14 @@ mod tests {
     fn test_intersect() {
         let s1: Sphere = Sphere::new(Vec3::new(0., 0., 0.), Vec3::new(0., 0., 0.), 1.);
         let r1: Ray = Ray::new(Vec3::new(-5., 0., 0.), Vec3::new(1., 0., 0.), 5);
-        assert_eq!(s1.intersect(&r1), Some(4.0));
+        assert_eq!(s1.intersect(&r1), Some(Vec::from([4., 6.])));
     }
 
     #[test]
     fn test_intersect2() {
         let s1: Sphere = Sphere::new(Vec3::new(0., 0., 2.), Vec3::new(0., 0., 0.), 1.);
         let r1: Ray = Ray::new(Vec3::new(0., 0., 0.), Vec3::new(0., 0., 1.), 5);
-        assert_eq!(s1.intersect(&r1), Some(1.0));
+        assert_eq!(s1.intersect(&r1), Some(Vec::from([1., 3.])));
     }
 
     #[test]

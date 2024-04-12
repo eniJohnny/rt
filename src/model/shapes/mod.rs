@@ -8,6 +8,6 @@ pub mod cone;
 
 pub trait Shape: Debug {
     fn distance(&self, vec : &Vec3) -> f64;
-    fn intersect(&self, ray: &Ray) -> Option<f64>;
+    fn intersect(&self, ray: &Ray) -> Option<Vec<f64>>;
     fn projection(&self, hit: &Hit) -> (i32, i32);
 }

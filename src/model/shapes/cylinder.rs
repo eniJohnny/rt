@@ -13,7 +13,7 @@ impl Shape for Cylinder {
     fn distance(&self, vec: &Vec3) -> f64 {
         unimplemented!()
     }
-    fn intersect(&self, vector: &Ray) -> Option<f64> {
+    fn intersect(&self, vector: &Ray) -> Option<Vec<f64>> {
         unimplemented!()
     }
     fn projection(&self, hit: &Hit) -> (i32, i32) {
