@@ -14,8 +14,24 @@ impl Shape for Sphere {
         unimplemented!()
     }
     
-    fn intersect(&self, vector: &Ray) -> Option<Hit> {
-        unimplemented!()
+    fn intersect(&self, r: &Ray) -> Option<f64> {
+        // intersection rayon/sphere
+        let dist = &self.pos - r.get_pos();
+        let dot_product = r.get_dir() * &dist;
+        let discriminant = &dot_product *&dot_product - &dist * &dist + &self.radius * &self.radius;
+        if (discriminant < 0.0) {
+            return None;
+        }
+        let intersection1 = &dot_product - &discriminant.sqrt();
+        let intersection2 = &dot_product + &discriminant.sqrt();
+        if (intersection1 > 0.1) {
+            return Some(intersection1);
+        }
+        if (intersection2 > 0.1) {
+            return Some(intersection2);
+        }
+        return None;
+
     }
 
     fn projection(&self, hit: &Hit) -> (i32, i32) {
