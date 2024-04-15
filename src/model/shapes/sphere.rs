@@ -19,15 +19,15 @@ impl Shape for Sphere {
         let dist = &self.pos - r.get_pos();
         let dot_product = r.get_dir().dot(&dist);
         let discriminant = &dot_product * &dot_product - &dist.dot(&dist) + &self.radius * &self.radius;
-        if (discriminant < 0.0) {
+        if discriminant < 0.0 {
             return None;
         }
         let intersection1 = &dot_product - &discriminant.sqrt();
         let intersection2 = &dot_product + &discriminant.sqrt();
-        if (intersection1 > 0.1) {
+        if intersection1 > 0.1 {
             return Some(Vec::from([intersection1, intersection2]));
         }
-        return None;
+        None
     }
 
     fn projection(&self, hit: &Hit) -> (i32, i32) {
