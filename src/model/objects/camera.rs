@@ -26,18 +26,18 @@ impl Camera {
         Self {
             pos: Vec3::new(0.0, 0.0, 0.0),
             dir: Vec3::new(0.0, 0.0, 0.0),
-            fov: 0.
+            fov: 0. 
         }
     }
 
     pub fn get_rays(&self) -> Vec<Vec<Ray>> {
-        let u = Vec3::new(*self.dir.y(), - *self.dir.x(), 0.).normalize();
+        let u = Vec3::new(*self.dir().z(), 0., - *self.dir().x()).normalize();
         let v = - self.dir.cross(&u).normalize();
-        let width = (self.fov as f64/2.).tan() * 2.;
-        let height = (VFOV_RAD / 2.).tan() * 2.;
+        let width = (self.fov/2.).tan() * 2.;
+        let height = width * SCREEN_HEIGHT as f64 / SCREEN_WIDTH as f64;
         let center: Vec3 = &self.pos + &self.dir;
 
-        let top_left = center +  &u * - width/2. + &v * height/2.;
+        let top_left = center +  &u * - width/2. - &v * height/2.;
         let left_to_right = &u * width;
         let top_to_bot = v * height;
 
@@ -46,9 +46,8 @@ impl Camera {
             let mut line: Vec<Ray> = vec![];
             for y in 0..SCREEN_HEIGHT {
                 let pos = self.pos.clone();
-                let dir = &top_left + &left_to_right * (x as f64 / SCREEN_WIDTH as f64);
-                // let dir = (( dir + &top_to_bot * (y as f64 / SCREEN_HEIGHT as f64)) - &pos).normalize();
-                let ray = Ray::new(pos, dir, 0);
+                let dir = &top_left + &top_to_bot * (y as f64 / SCREEN_HEIGHT as f64) + &left_to_right * (x as f64 / SCREEN_WIDTH as f64) - &pos;
+                let ray = Ray::new(pos, dir.normalize(), 0);    
                 line.push(ray);
             }
             result.push(line);
