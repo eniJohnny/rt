@@ -4,6 +4,7 @@ extern crate winit;
 
 use crate::{gui::draw_gui, model::scene::Scene, render::raycasting::render_scene_threadpool, SCREEN_HEIGHT, SCREEN_WIDTH};
 use pixels::{Pixels, SurfaceTexture};
+use crate::parsing::get_scene;
 use winit::{
     dpi::LogicalSize,
     event::{Event, VirtualKeyCode, WindowEvent, KeyboardInput},
@@ -11,13 +12,13 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
-pub fn display_scene(scene: Scene) {
+pub fn display_scene() {
 
     // DUMMY DATA FOR TESTING 
     // let mut rgb = [128,128,128];
     // let rays = vec![vec![Rgba([rgb[0], rgb[1], rgb[2], 255]); SCREEN_WIDTH as usize]; SCREEN_HEIGHT as usize];
 
-
+    let mut scene = get_scene();
     // Set up window and event loop
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
@@ -55,16 +56,24 @@ pub fn display_scene(scene: Scene) {
                 if state == winit::event::ElementState::Released {
                     match virtual_keycode {
                         Some(VirtualKeyCode::Left) => {
-                            println!("Left released");
+                            let pos = scene.camera().pos().clone();
+                            scene.camera_mut().set_pos(Vec3::new(*pos.x() - 1.0, *pos.y(), *pos.z()));
+                            display(&mut pixels, &scene)
                         }
                         Some(VirtualKeyCode::Right) => {
-                            println!("Right released");
+                            let pos = scene.camera().pos().clone();
+                            scene.camera_mut().set_pos(Vec3::new(*pos.x() + 1.0, *pos.y(), *pos.z()));
+                            display(&mut pixels, &scene)
                         }
                         Some(VirtualKeyCode::Up) => {
-                            
+                            let pos = scene.camera().pos().clone();
+                            scene.camera_mut().set_pos(Vec3::new(*pos.x(), *pos.y() + 1.0, *pos.z()));
+                            display(&mut pixels, &scene)
                         }
                         Some(VirtualKeyCode::Down) => {
-                            
+                            let pos = scene.camera().pos().clone();
+                            scene.camera_mut().set_pos(Vec3::new(*pos.x(), *pos.y() - 1.0, *pos.z()));
+                            display(&mut pixels, &scene)
                         }
                         Some(VirtualKeyCode::Escape) => {
                             *control_flow = ControlFlow::Exit;

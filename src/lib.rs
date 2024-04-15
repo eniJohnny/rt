@@ -17,7 +17,7 @@ const MAX_THREADS: usize = 16;
 pub fn run() {
     let mut scene = get_scene();
     generate_rays(scene.camera_mut());
-    display_scene(scene);
+    display_scene();
 }
 
 pub fn error(msg: &str) {

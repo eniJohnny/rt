@@ -1,6 +1,6 @@
 use crate::model::objects::light::{AmbientLight, Light};
 
-use super::{objects::camera::Camera, Element};
+use super::{maths::vec3::Vec3, objects::camera::Camera, Element};
 
 #[derive(Debug)]
 pub struct Scene {
@@ -45,6 +45,10 @@ impl Scene {
     pub fn camera(&self) -> &Camera {
         &self.camera
     }
+    pub fn camera_mut(&mut self) -> &mut Camera {
+        &mut self.camera
+    }
+
     pub fn camera_mut(&mut self) -> &mut Camera {
         &mut self.camera
     }
