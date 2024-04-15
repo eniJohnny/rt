@@ -89,7 +89,9 @@
 // fn window_resized(_app: &App, _model: &mut Model, _dim: Vec2) {}
 // fn window_focused(_app: &App, _model: &mut Model) {}
 // fn window_unfocused(_app: &App, _model: &mut Model) {}
-// fn window_closed(_app: &App, _model: &mut Model) {}
+// fn window_closed(_app: &App, _model: &mut Model) {
+//     std::process::exit(0);
+// }
 // fn hovered_file(_app: &App, _model: &mut Model, _path: std::path::PathBuf) {}
 // fn hovered_file_cancelled(_app: &App, _model: &mut Model) {}
 // fn dropped_file(_app: &App, _model: &mut Model, _path: std::path::PathBuf) {}

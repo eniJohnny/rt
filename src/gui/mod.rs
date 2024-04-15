@@ -18,7 +18,7 @@
 //     rect_put(test_button[0], test_button[1], nannou::color::GRAY, &draw);
 // }
 
-// fn pixel_put(x: i32, y: i32, color: nannou::color::Rgb<u8>, draw: &draw::Draw) {
+// pub fn pixel_put(x: i32, y: i32, color: nannou::color::Rgb<u8>, draw: &draw::Draw) {
 //     draw.rect()
 //         .w_h(1.0, 1.0)
 //         .x_y(x as f32, y as f32)
