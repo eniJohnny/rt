@@ -1,5 +1,4 @@
 extern crate image;
-
 use display::display_scene;
 use parsing::get_scene;
 use render::raycasting::generate_rays;
