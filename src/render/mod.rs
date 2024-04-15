@@ -1,6 +1,6 @@
 use image::RgbaImage;
 
-use crate::{model::{materials::Color, maths::{hit::Hit, ray::Ray}, scene::Scene, Element}, parsing::print_scene, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::{model::{materials::Color, maths::{hit::Hit, ray::Ray}, scene::Scene, Element}, SCREEN_HEIGHT, SCREEN_WIDTH, GUI_WIDTH};
 
 use self::lighting::apply_lighting;
 
@@ -8,15 +8,19 @@ pub mod lighting;
 
 pub fn render_scene(scene: &Scene) -> RgbaImage {
     let camera = scene.camera();
+    let perf_timer = std::time::Instant::now();
     let rays = camera.get_rays();
-    let mut img = RgbaImage::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32);
+    println!("Ray generation time: {:?}", perf_timer.elapsed());
+    let width = SCREEN_WIDTH - GUI_WIDTH;
+    let mut img = RgbaImage::new(SCREEN_WIDTH, SCREEN_HEIGHT);
 
-
-    for x in 0..SCREEN_WIDTH {
+    let perf_timer = std::time::Instant::now();
+    for x in 0..width {
         for y in 0..SCREEN_HEIGHT {
             img.put_pixel(x as u32, y as u32, cast_ray(scene, &rays[x as usize][y as usize]).toRgba());
         }
     }
+    println!("Image building time: {:?}", perf_timer.elapsed());
     img
 }
 
