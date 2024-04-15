@@ -1,4 +1,4 @@
-use crate::{model::maths::{ray::Ray, vec3::Vec3}, VFOV_RAD, SCREEN_WIDTH, SCREEN_HEIGHT};
+use crate::{model::maths::{ray::Ray, vec3::Vec3}, SCREEN_WIDTH, SCREEN_HEIGHT};
 
 #[derive(Debug)]
 pub struct Camera {

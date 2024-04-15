@@ -10,7 +10,7 @@ use std::f64::consts::PI;
 use std::io::Write;
 
 pub fn print_scene(scene: &Scene) {
-    write!(std::io::stdout(), "{:#?}", scene).expect("Error printing scene");
+    write!(std::io::stdout(), "{:#?}\n", scene).expect("Error printing scene");
 }
 
 pub fn get_scene() -> Scene {
