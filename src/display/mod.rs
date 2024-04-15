@@ -18,7 +18,7 @@ pub fn display_scene(scene: &Scene) {
 
     // DUMMY DATA FOR TESTING 
     let mut rgb = [128,128,128];
-    let rays = vec![vec![Rgba([rgb[0], rgb[1], rgb[2], 255]); 1400]; 900];
+    let rays = vec![vec![Rgba([rgb[0], rgb[1], rgb[2], 255]); SCREEN_WIDTH as usize]; SCREEN_HEIGHT as usize];
 
 
     // Set up window and event loop
@@ -56,22 +56,32 @@ pub fn display_scene(scene: &Scene) {
                 ..
             } => {
                 if state == winit::event::ElementState::Released {
-                    let perf_timer = std::time::Instant::now();
                     match virtual_keycode {
                         Some(VirtualKeyCode::Left) => {
+                            let perf_timer = std::time::Instant::now();
                             for i in 0..3 {
-                                rgb[i] = max(0, (rgb[i] as i32 - 10) as u8);
+                                if rgb[i] > 10 {
+                                    rgb[i] -= 10;
+                                } else {
+                                    rgb[i] = 0;
+                                }
                             }
-                            let rays = vec![vec![Rgba([rgb[0], rgb[1], rgb[2], 255]); 1400]; 900];
+                            let rays = vec![vec![Rgba([rgb[0], rgb[1], rgb[2], 255]); SCREEN_WIDTH as usize]; SCREEN_HEIGHT as usize];
+
                             display(rays, &mut pixels);
                             println!("Left released, RGB value: {:?}. Redrawn in {:?}", rgb, perf_timer.elapsed());
                         }
                         Some(VirtualKeyCode::Right) => {
-                            
+                            let perf_timer = std::time::Instant::now();
                             for i in 0..3 {
-                                rgb[i] = min(255, rgb[i] + 10);
+                                if rgb[i] < 245 {
+                                    rgb[i] += 10;
+                                } else {
+                                    rgb[i] = 255;
+                                }
                             }
-                            let rays = vec![vec![Rgba([rgb[0], rgb[1], rgb[2], 255]); 1400]; 900];
+                            let rays = vec![vec![Rgba([rgb[0], rgb[1], rgb[2], 255]); SCREEN_WIDTH as usize]; SCREEN_HEIGHT as usize];
+
                             display(rays, &mut pixels);
                             println!("Right released, RGB value: {:?}. Redrawn in {:?}", rgb, perf_timer.elapsed());
                         }
@@ -110,11 +120,8 @@ fn display (rays: Vec<Vec<Rgba<u8>>>, pixels: &mut Pixels<Window>) {
         }
     }
 
-    // Resize the image buffer for display
-    let resized_img = image::imageops::resize(&img, SCREEN_WIDTH, SCREEN_HEIGHT, image::imageops::FilterType::Nearest);
-    
     // Copy image data to pixels buffer
-    pixels.get_frame().copy_from_slice(&resized_img.to_vec());
+    pixels.get_frame().copy_from_slice(&img);
 
     // Render the pixels buffer
     pixels.render().unwrap();
