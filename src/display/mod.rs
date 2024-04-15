@@ -2,10 +2,8 @@ extern crate image;
 extern crate pixels;
 extern crate winit;
 
-use std::cmp::{max, min};
-
-use crate::{model::scene::Scene, SCREEN_HEIGHT, SCREEN_WIDTH};
-use image::{GenericImage, Rgba, RgbaImage};
+use crate::{gui::draw_gui, model::scene::Scene, GUI_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH};
+use image::{Rgba, RgbaImage};
 use pixels::{Pixels, SurfaceTexture};
 use winit::{
     dpi::LogicalSize,
@@ -72,7 +70,6 @@ pub fn display_scene(scene: &Scene) {
                             println!("Left released, RGB value: {:?}. Redrawn in {:?}", rgb, perf_timer.elapsed());
                         }
                         Some(VirtualKeyCode::Right) => {
-                            let perf_timer = std::time::Instant::now();
                             for i in 0..3 {
                                 if rgb[i] < 245 {
                                     rgb[i] += 10;
@@ -81,7 +78,8 @@ pub fn display_scene(scene: &Scene) {
                                 }
                             }
                             let rays = vec![vec![Rgba([rgb[0], rgb[1], rgb[2], 255]); SCREEN_WIDTH as usize]; SCREEN_HEIGHT as usize];
-
+                            
+                            let perf_timer = std::time::Instant::now();
                             display(rays, &mut pixels);
                             println!("Right released, RGB value: {:?}. Redrawn in {:?}", rgb, perf_timer.elapsed());
                         }
@@ -110,16 +108,17 @@ pub fn display_scene(scene: &Scene) {
 
 fn display (rays: Vec<Vec<Rgba<u8>>>, pixels: &mut Pixels<Window>) {
     // Create a new RGBA image
-    let width = rays[0].len() as u32;
+    let width = rays[0].len() as u32 ;
     let height = rays.len() as u32;
-    let mut img = RgbaImage::new(width, height);
+    let mut img: image::ImageBuffer<Rgba<u8>, Vec<u8>> = RgbaImage::new(width, height);
 
-    for x in 0..width {
+    for x in 0..width - GUI_WIDTH  {
         for y in 0..height {
             img.put_pixel(x, y, rays[y as usize][x as usize]);
         }
     }
 
+    img = draw_gui(img);
     // Copy image data to pixels buffer
     pixels.get_frame().copy_from_slice(&img);
 
