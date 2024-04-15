@@ -1,11 +1,8 @@
 extern crate image;
-extern crate minifb;
 
-use std::f64::consts::PI;
 use display::display_scene;
 use model::scene::Scene;
 use parsing::get_scene;
-
 
 pub mod gui;
 pub mod model;
@@ -25,7 +22,7 @@ pub fn run() {
 }
 
 pub fn event_loop(scene: &Scene) {
-    display_scene(scene)
+    display_scene(scene);
 }
 
 pub fn error(msg: &str) {
