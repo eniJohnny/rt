@@ -1,3 +1,5 @@
+use image::{Rgba, RgbaImage};
+
 use super::maths::vec3::Vec3;
 use crate::model::materials::unicolor::Unicolor;
 use std::fmt::Debug;
@@ -27,6 +29,9 @@ impl Color {
     // Constructors
     pub fn new(r: u8, g: u8, b: u8) -> Self {
         Self { r, g, b }
+    }
+    pub fn toRgba(self) -> Rgba<u8> {
+        Rgba([self.r, self.g, self.b, 255])
     }
 }
 

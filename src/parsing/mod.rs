@@ -6,6 +6,7 @@ use crate::model::Element;
 use crate::model::{scene::Scene, shapes::sphere::Sphere, shapes::plane::Plane, shapes::cylinder::Cylinder, shapes::cone::Cone};
 use crate::model::objects::{camera::Camera, light::Light, light::AmbientLight};
 use std::collections::HashMap;
+use std::f64::consts::PI;
 use std::io::Write;
 
 pub fn print_scene(scene: &Scene) {
@@ -71,7 +72,7 @@ pub fn get_scene() -> Scene {
             "camera" => {
                 let pos = get_position(&object);
                 let dir = get_direction(&object);
-                let fov = get_fov(&object);
+                let fov = get_fov(&object) * 2. * PI / 360.;
 
                 let new_camera = Camera::new(pos, dir, fov);
                 scene.add_camera(new_camera);
@@ -99,7 +100,7 @@ pub fn get_scene() -> Scene {
 }
 
 fn parse_json() -> Vec<HashMap<String, String>> {
-    let content = std::fs::read_to_string("scenes/scene.json").expect("Error reading file");
+    let content = std::fs::read_to_string("scenes/sphere.json").expect("Error reading file");
     let mut objects: Vec<HashMap<String, String>> = Vec::new();
     let mut i = 0;
 
