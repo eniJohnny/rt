@@ -34,12 +34,92 @@ impl Color {
     pub fn toRgba(self) -> Rgba<u8> {
         Rgba([self.r, self.g, self.b, 255])
     }
+}
 
-	pub fn mix(&self, other: &Color, coef: f64) -> Color {
-		Self {
-			r: (self.r as f64 * (1. - coef) + other.r as f64 * coef) as u8,
-			g: (self.g as f64 * (1. - coef) + other.g as f64 * coef) as u8,
-			b: (self.b as f64 * (1. - coef) + other.b as f64 * coef) as u8
+impl Add for Color {
+	type Output = Self;
+	fn add(self: Self, rhs: Self) -> Self::Output {
+		Self::Output {
+			r: min(255 as u16, self.r as u16 + rhs.r as u16) as u8,
+			g: min(255 as u16, self.g as u16 + rhs.g as u16) as u8,
+			b: min(255 as u16, self.b as u16 + rhs.b as u16) as u8
+		}
+	}
+}
+
+impl Add for &Color {
+	type Output = Color;
+	fn add(self: Self, rhs: Self) -> Self::Output {
+		Self::Output {
+			r: min(255 as u16, self.r as u16 + rhs.r as u16) as u8,
+			g: min(255 as u16, self.g as u16 + rhs.g as u16) as u8,
+			b: min(255 as u16, self.b as u16 + rhs.b as u16) as u8
+		}
+	}
+}
+
+impl Add<Color> for &Color {
+	type Output = Color;
+	fn add(self: Self, rhs: Color) -> Self::Output {
+		Self::Output {
+			r: min(255 as u16, self.r as u16 + rhs.r as u16) as u8,
+			g: min(255 as u16, self.g as u16 + rhs.g as u16) as u8,
+			b: min(255 as u16, self.b as u16 + rhs.b as u16) as u8
+		}
+	}
+}
+
+impl Add<&Color> for Color {
+	type Output = Self;
+	fn add(self: Self, rhs: &Self) -> Self::Output {
+		Self::Output {
+			r: min(255, self.r as u16 + rhs.r as u16) as u8,
+			g: min(255, self.g as u16 + rhs.g as u16) as u8,
+			b: min(255, self.b as u16 + rhs.b as u16) as u8
+		}
+	}
+}
+
+impl Mul<f64> for Color {
+	type Output = Self;
+	fn mul(self: Self, rhs: f64) -> Self::Output {
+		Self::Output {
+			r: min(255, (self.r as f64 * rhs) as u16) as u8,
+			g: min(255, (self.g as f64 * rhs) as u16) as u8,
+			b: min(255, (self.b as f64 * rhs) as u16) as u8
+		}
+	}
+}
+
+impl Mul<Color> for f64 {
+	type Output = Color;
+	fn mul(self: Self, rhs: Color) -> Self::Output {
+		Self::Output {
+			r: min(255, (self * rhs.r as f64) as u16) as u8,
+			g: min(255, (self * rhs.g as f64) as u16) as u8,
+			b: min(255, (self * rhs.b as f64) as u16) as u8
+		}
+	}
+}
+
+impl Mul<f64> for &Color {
+	type Output = Color;
+	fn mul(self: Self, rhs: f64) -> Self::Output {
+		Self::Output {
+			r: min(255, (self.r as f64 * rhs) as u16) as u8,
+			g: min(255, (self.g as f64 * rhs) as u16) as u8,
+			b: min(255, (self.b as f64 * rhs) as u16) as u8
+		}
+	}
+}
+
+impl Mul<&Color> for f64 {
+	type Output = Color;
+	fn mul(self: Self, rhs: &Color) -> Self::Output {
+		Self::Output {
+			r: min(255, (self * rhs.r as f64) as u16) as u8,
+			g: min(255, (self * rhs.g as f64) as u16) as u8,
+			b: min(255, (self * rhs.b as f64) as u16) as u8
 		}
 	}
 }
