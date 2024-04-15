@@ -42,7 +42,7 @@ impl AmbientLight {
     pub fn default() -> Self {
         Self {
             intensity: 0.5,
-            color: Color::new(255, 255, 255)
+            color: Color::new(1., 1., 1.)
         }
     }
 }
