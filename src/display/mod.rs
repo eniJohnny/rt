@@ -75,7 +75,7 @@ pub fn display_scene(scene: Scene) {
             }
 
             Event::RedrawRequested(_) => {
-                // pixels.render().unwrap();
+                pixels.render().unwrap();
             }
 
             _ => (),
