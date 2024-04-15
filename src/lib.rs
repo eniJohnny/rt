@@ -1,5 +1,4 @@
 extern crate image;
-
 use display::display_scene;
 use model::scene::Scene;
 use parsing::get_scene;
