@@ -9,7 +9,7 @@ pub struct Unicolor {
 }
 
 impl Unicolor {
-    pub fn new(r: u8, g: u8, b: u8)-> Self {
+    pub fn new(r: f64, g: f64, b: f64)-> Self {
         Self {
             color: Color::new(r, g, b)
         }

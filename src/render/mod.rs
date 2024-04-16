@@ -27,7 +27,7 @@ pub fn render_scene(scene: &Scene) -> RgbaImage {
 pub fn cast_ray(scene: &Scene, ray: &Ray) -> Color {
     match get_closest_hit(scene, ray) {
         Some(hit) => apply_lighting(hit, scene),
-        None => Color::new(0, 0, 0)
+        None => Color::new(0., 0., 0.)
     }
 }
 
