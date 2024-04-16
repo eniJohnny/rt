@@ -19,6 +19,9 @@ impl Shape for Cone {
     fn projection(&self, hit: &Hit) -> (i32, i32) {
         unimplemented!()
     }
+    fn norm(&self, hit_position: &Vec3) -> Vec3 {
+        unimplemented!()
+    }
 }
 
 impl Cone {

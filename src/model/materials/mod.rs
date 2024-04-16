@@ -79,6 +79,50 @@ impl Add<&Color> for Color {
 	}
 }
 
+impl Mul for Color {
+	type Output = Self;
+	fn mul(self: Self, rhs: Self) -> Self::Output {
+		Self::Output {
+			r: (self.r * rhs.r).clamp(0., 1.),
+			g: (self.g * rhs.g).clamp(0., 1.),
+			b: (self.b * rhs.b).clamp(0., 1.)
+		}
+	}
+}
+
+impl Mul for &Color {
+	type Output = Color;
+	fn mul(self: Self, rhs: Self) -> Self::Output {
+		Self::Output {
+			r: (self.r * rhs.r).clamp(0., 1.),
+			g: (self.g * rhs.g).clamp(0., 1.),
+			b: (self.b * rhs.b).clamp(0., 1.)
+		}
+	}
+}
+
+impl Mul<Color> for &Color {
+	type Output = Color;
+	fn mul(self: Self, rhs: Color) -> Self::Output {
+		Self::Output {
+			r: (self.r * rhs.r).clamp(0., 1.),
+			g: (self.g * rhs.g).clamp(0., 1.),
+			b: (self.b * rhs.b).clamp(0., 1.)
+		}
+	}
+}
+
+impl Mul<&Color> for Color {
+	type Output = Self;
+	fn mul(self: Self, rhs: &Self) -> Self::Output {
+		Self::Output {
+			r: (self.r * rhs.r).clamp(0., 1.),
+			g: (self.g * rhs.g).clamp(0., 1.),
+			b: (self.b * rhs.b).clamp(0., 1.)
+		}
+	}
+}
+
 impl Mul<f64> for Color {
 	type Output = Self;
 	fn mul(self: Self, rhs: f64) -> Self::Output {
