@@ -161,7 +161,7 @@ fn get_color(object: &HashMap<String, String>) -> Color {
     let g = object["color_g"].parse::<u8>().expect("Error parsing color");
     let b = object["color_b"].parse::<u8>().expect("Error parsing color");
 
-    return Color::new(r, g, b);
+    return Color::new( r as f64 / 255., g as f64 / 255., b as f64 / 255.);
 }
 
 fn get_position(object: &HashMap<String, String>) -> Vec3 {
