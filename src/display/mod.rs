@@ -5,7 +5,7 @@ extern crate winit;
 use image::{ImageBuffer, Rgba, RgbaImage};
 use rusttype::{Font, Scale};
 use pixels::{Pixels, SurfaceTexture};
-use crate::parsing::get_scene;
+use crate::{gui::{gui_clicked, hitbox_contains, update_element, Gui}, model::shapes::Shape, parsing::get_scene};
 use winit::{
     dpi::LogicalSize,
     event::{Event, VirtualKeyCode, WindowEvent},
@@ -22,7 +22,7 @@ use crate::{
 
 pub fn display_scene() {
     // Load scene
-    let scene = get_scene();
+    let mut scene = get_scene();
 
     // Set up window and event loop (can't move them elsewhere because of the borrow checker)
     let event_loop = EventLoop::new();
@@ -73,10 +73,37 @@ pub fn display_scene() {
                             let hit = hit.unwrap();
                             let element = hit.element();
 
-                            display_element_infos(element, &mut img);
+                            let element_index: usize = scene.elements().iter().position(|e| {
+                                let e_shape = e.shape();
+                                let element_shape = element.shape();
+                                get_shape(e_shape) == get_shape(element_shape)
+                            }).unwrap() as usize;
+
+                            scene.gui = display_element_infos(element, &mut img);
+                            scene.gui.set_element_index(element_index);
                             display(&mut pixels, &mut img);
+                        } else if gui_clicked(mouse_position, &scene.gui) {
+                            // If the GUI is clicked
+                            let gui = &scene.gui;
+                            let element = scene.elements().get(gui.element_index()).unwrap();
+                            println!("Element: {:?}", element);
+                            
+                            if gui.keys().len() > 0 {
+                                for i in 0..gui.keys().len() {
+                                    let key = gui.keys()[i].clone();
+                                    let value = gui.values()[i].clone();
+                                    let hitbox = gui.hitboxes()[i].clone();
+                                    if hitbox_contains(&hitbox, mouse_position) {
+                                        // Update element
+                                        let shape = &mut element.shape();
+                                        update_element(shape, key, value);
+
+                                    }
+                                }
+                            }
                         } else {
                             hide_gui(&mut img, &scene);
+                            scene.gui = Gui::new();
                             display(&mut pixels, &mut img);
                         }
                     }
@@ -123,36 +150,39 @@ fn display (pixels: &mut Pixels<Window>, scene: &Scene) {
     pixels.render().unwrap();
 }
 
-fn display_element_infos(element: &Element, img: &mut ImageBuffer<Rgba<u8>, Vec<u8>>) {
+fn display_element_infos(element: &Element, img: &mut ImageBuffer<Rgba<u8>, Vec<u8>>) -> Gui {
     let img = img;
     let shape = element.shape();
 
     if shape.as_sphere().is_some() {
         let sphere = shape.as_sphere().unwrap();
-        draw_sphere_gui(img, sphere);
-    } else if shape.as_plane().is_some() {
-        let plane = shape.as_plane().unwrap();
-        let pos = plane.pos();
-        let dir = plane.dir();
-
-        println!("Plane: pos: {:?}, dir: {:?}", pos, dir);
-    } else if shape.as_cylinder().is_some() {
-        let cylinder = shape.as_cylinder().unwrap();
-        let pos = cylinder.pos();
-        let dir = cylinder.dir();
-        let radius = cylinder.radius();
-        let height = cylinder.height();
-
-        println!("Cylinder: pos: {:?}, dir: {:?}, radius: {}, height: {}", pos, dir, radius, height);
-    } else if shape.as_cone().is_some() {
-        let cone = shape.as_cone().unwrap();
-        let pos = cone.pos();
-        let dir = cone.dir();
-        let radius = cone.radius();
-        let height = cone.height();
-
-        println!("Cone: pos: {:?}, dir: {:?}, radius: {}, height: {}", pos, dir, radius, height);
+        return draw_sphere_gui(img, sphere);
+    } else {
+        return Gui::new();
     }
+    // else if shape.as_plane().is_some() {
+    //     let plane = shape.as_plane().unwrap();
+    //     let pos = plane.pos();
+    //     let dir = plane.dir();
+
+    //     println!("Plane: pos: {:?}, dir: {:?}", pos, dir);
+    // } else if shape.as_cylinder().is_some() {
+    //     let cylinder = shape.as_cylinder().unwrap();
+    //     let pos = cylinder.pos();
+    //     let dir = cylinder.dir();
+    //     let radius = cylinder.radius();
+    //     let height = cylinder.height();
+
+    //     println!("Cylinder: pos: {:?}, dir: {:?}, radius: {}, height: {}", pos, dir, radius, height);
+    // } else if shape.as_cone().is_some() {
+    //     let cone = shape.as_cone().unwrap();
+    //     let pos = cone.pos();
+    //     let dir = cone.dir();
+    //     let radius = cone.radius();
+    //     let height = cone.height();
+
+    //     println!("Cone: pos: {:?}, dir: {:?}, radius: {}, height: {}", pos, dir, radius, height);
+    // }
 }
 
 pub fn draw_text (image: &mut RgbaImage, pos: &Vec2, text: String, format: &TextFormat) {
@@ -215,5 +245,19 @@ fn draw_text_background (image: &mut RgbaImage, pos: &Vec2, size: &Vec2, color: 
         for y in y..y + height {
             image.put_pixel(x, y, color);
         }
+    }
+}
+
+fn get_shape(shape: &dyn Shape) -> String {
+    if let Some(sphere) = shape.as_sphere() {
+        return format!("Sphere: pos: {:#?}, radius: {}", sphere.pos(), sphere.radius());
+    } else if let Some(plane) = shape.as_plane() {
+        return format!("Plane: pos: {:#?}, dir: {:#?}", plane.pos(), plane.dir());
+    } else if let Some(cylinder) = shape.as_cylinder() {
+        return format!("Cylinder: pos: {:#?}, dir: {:#?}, radius: {}, height: {}", cylinder.pos(), cylinder.dir(), cylinder.radius(), cylinder.height());
+    } else if let Some(cone) = shape.as_cone() {
+        return format!("Cone: pos: {:#?}, dir: {:#?}, radius: {}, height: {}", cone.pos(), cone.dir(), cone.radius(), cone.height());
+    } else {
+        return String::from("Unknown shape");
     }
 }

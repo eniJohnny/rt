@@ -1,4 +1,7 @@
-use crate::model::objects::light::{AmbientLight, Light};
+use crate::{
+    model::objects::light::{AmbientLight, Light},
+    gui::Gui
+};
 
 use super::{maths::vec3::Vec3, objects::camera::Camera, Element};
 
@@ -7,7 +10,8 @@ pub struct Scene {
     elements: Vec<Element>,
     camera: Camera,
     lights: Vec<Light>,
-    ambient_light: AmbientLight
+    ambient_light: AmbientLight,
+    pub gui: Gui
 }
 
 impl Scene {
@@ -16,7 +20,8 @@ impl Scene {
             elements: Vec::new(),
             camera: Camera::default(),
             lights: Vec::new(),
-            ambient_light: AmbientLight::default() 
+            ambient_light: AmbientLight::default(),
+            gui: Gui::new()
         }
     }
 
