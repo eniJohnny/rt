@@ -14,12 +14,11 @@ impl Shape for Plane {
     fn intersect(&self, r: &Ray) -> Option<Vec<f64>> {
 
         let dist = &self.pos - r.get_pos();
-        let normalized_dir = r.get_dir().dot(&self.dir);
-        if (normalized_dir < 0.0) {
+        let dot_product = r.get_dir().dot(&self.dir);
+        if (dot_product < f64::EPSILON && dot_product > -f64::EPSILON) {
             return None;
         }
-        let test = dist.dot(&self.dir);
-        let t = test / normalized_dir;
+        let t = dist.dot(&self.dir) / dot_product;
         if (t > 0.0) {
             return Some(Vec::from([t]));
         }
