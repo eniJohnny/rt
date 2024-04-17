@@ -15,7 +15,7 @@ impl Shape for Plane {
 
         let dist = &self.pos - r.get_pos();
         let dot_product = r.get_dir().dot(&self.dir);
-        if (dot_product < f64::EPSILON && dot_product > -f64::EPSILON) {
+        if (dot_product >0. ) {
             return None;
         }
         let t = dist.dot(&self.dir) / dot_product;
