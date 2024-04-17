@@ -1,5 +1,3 @@
-use std::any::Any;
-
 use self::{materials::Material, shapes::Shape};
 
 pub mod materials;
