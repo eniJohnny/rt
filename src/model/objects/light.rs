@@ -1,7 +1,4 @@
-use winit::event::ElementState;
-
-use crate::model::{materials::Color, maths::{ hit::Hit, vec3::Vec3}};
-use std::cmp::min;
+use crate::model::{materials::Color, maths::{ hit::Hit, ray::Ray, vec3::Vec3}};
 
 #[derive(Debug)]
 pub struct Light {
@@ -28,11 +25,24 @@ impl Light {
 
 	pub fn get_diffuse(&self, hit: &Hit) -> Color {
 		let to_light = (self.pos() - hit.pos()).normalize();
-		let ratio = to_light.dot(hit.norm());
+		let mut ratio = to_light.dot(hit.norm());
 		if ratio < 0. {
 			return Color::new(0., 0., 0.);
 		}
-		(1. / (self.pos() - hit.pos()).length().powf(2.)) * self.intensity().powf(2.) * ratio * self.color()
+		ratio *= 0_f64.max(1. - (self.pos() - hit.pos()).length().powf(2.) / (self.intensity().powf(2.)));
+		ratio * self.color()
+	}
+
+	pub fn get_specular(&self, hit: &Hit, ray: &Ray) -> Color {
+		let to_light = (self.pos() - hit.pos()).normalize();
+		let reflected = (-(&to_light) - hit.norm().dot(&-to_light) * 2. * hit.norm()).normalize();
+		let mut ratio = (-ray.get_dir()).normalize().dot(&reflected);
+		if ratio < 0. {
+			return Color::new(0., 0., 0.);
+		}
+		ratio = ratio.powf(25.);
+		ratio *= 0_f64.max(1. - (self.pos() - hit.pos()).length().powf(2.) / (self.intensity().powf(2.)));
+		ratio * self.color()
 	}
 }
 

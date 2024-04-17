@@ -108,7 +108,7 @@ fn build_image(rx: Receiver<(usize, Vec<Color>)>) -> RgbaImage {
 
 fn cast_ray(scene: &Scene, ray: &Ray) -> Color {
     match get_closest_hit(scene, ray) {
-        Some(hit) => apply_lighting(hit, scene),
+        Some(hit) => apply_lighting(hit, scene, ray),
         None => Color::new(0., 0., 0.)
     }
 }
