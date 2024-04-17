@@ -9,5 +9,9 @@ pub fn apply_lighting(hit: Hit, scene: &Scene) -> Color {
             material.color(point.0, point.1)
         }
     };
-    color
+	let mut light_color: Color = scene.ambient_light().intensity() * scene.ambient_light().color();
+	for light in scene.lights() {
+		light_color = light_color + light.get_diffuse(&hit);
+	}
+	color * light_color
 }

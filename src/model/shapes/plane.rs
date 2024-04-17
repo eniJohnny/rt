@@ -17,6 +17,9 @@ impl Shape for Plane {
     fn projection(&self, hit: &Hit) -> (i32, i32) {
         unimplemented!()
     }
+    fn norm(&self, _: &Vec3) -> Vec3 {
+		self.dir.clone()
+	}
 }
 
 impl Plane {
