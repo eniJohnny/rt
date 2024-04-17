@@ -1,4 +1,7 @@
-use crate::model::{materials::Color, maths::vec3::Vec3};
+use winit::event::ElementState;
+
+use crate::model::{materials::Color, maths::{ hit::Hit, vec3::Vec3}};
+use std::cmp::min;
 
 #[derive(Debug)]
 pub struct Light {
@@ -22,6 +25,15 @@ impl Light {
     pub fn new(pos: Vec3, intensity: f64, color: Color) -> Self {
         self::Light { pos, intensity, color }
     }
+
+	pub fn get_diffuse(&self, hit: &Hit) -> Color {
+		let to_light = (self.pos() - hit.pos()).normalize();
+		let ratio = to_light.dot(hit.norm());
+		if ratio < 0. {
+			return Color::new(0., 0., 0.);
+		}
+		(1. / (self.pos() - hit.pos()).length().powf(2.)) * self.intensity().powf(2.) * ratio * self.color()
+	}
 }
 
 #[derive(Debug)]

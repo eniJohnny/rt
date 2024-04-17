@@ -6,7 +6,7 @@ pub struct Hit<'a> {
     element: &'a Element,
     dist: f64,
     pos: Vec3,
-    norm: Option<Vec3>,
+    norm: Vec3,
     projected_pos: Option<(i32, i32)>
 }
 
@@ -15,8 +15,8 @@ impl<'a> Hit<'a> {
         Hit {
             element, 
             dist,
+            norm: element.shape().norm(&pos),
             pos,
-            norm :None,
             projected_pos: None
         }
     }
@@ -29,11 +29,12 @@ impl<'a> Hit<'a> {
         &self.dist
     }
 
+    pub fn pos(&self) -> &Vec3 {
+        &self.pos
+    }
+
     pub fn norm(&self) -> &Vec3 {
-        match &self.norm {
-            Some(vec) => vec,
-            None => unimplemented!()
-        }
+		&self.norm
     }
 
 }
