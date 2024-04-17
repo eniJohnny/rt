@@ -12,8 +12,10 @@ pub fn apply_lighting(hit: Hit, scene: &Scene, ray: &Ray) -> Color {
 	let mut light_color: Color = Color::new(0., 0., 0.);
 	light_color = light_color + scene.ambient_light().intensity() * scene.ambient_light().color() * &color;
 	for light in scene.lights() {
-		light_color = light_color + light.get_diffuse(&hit) * &color;
-		light_color = light_color + light.get_specular(&hit, ray);
+		if (!light.is_shadowed(scene, &hit)) {
+			light_color = light_color + light.get_diffuse(&hit) * &color;
+			light_color = light_color + light.get_specular(&hit, ray);
+		}
 	}
 	(light_color).clamp(0., 1.)
 }
