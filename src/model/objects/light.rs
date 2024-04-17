@@ -1,4 +1,4 @@
-use crate::model::{materials::Color, maths::{ hit::Hit, ray::Ray, vec3::Vec3}};
+use crate::model::{materials::Color, maths::{ hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene};
 
 #[derive(Debug)]
 pub struct Light {
@@ -43,6 +43,19 @@ impl Light {
 		ratio = ratio.powf(25.);
 		ratio *= 0_f64.max(1. - (self.pos() - hit.pos()).length().powf(2.) / (self.intensity().powf(2.)));
 		ratio * self.color()
+	}
+
+	pub fn is_shadowed(&self, scene: &Scene, hit: &Hit) -> bool {
+		let to_light = (self.pos() - hit.pos()).normalize();
+		let shadow_ray = Ray::new(hit.pos() + hit.norm() * 0.001, to_light, 0);
+		for element in scene.elements() {
+			if let Some(t) = element.shape().intersect(&shadow_ray) {
+				if t[0] < (self.pos() - hit.pos()).length() {
+					return true;
+				}
+			}
+		}
+		false
 	}
 }
 
