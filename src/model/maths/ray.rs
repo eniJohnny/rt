@@ -2,6 +2,7 @@ use std::fmt::{Display, Formatter, Result};
 
 use super::vec3::Vec3;
 
+#[derive(Clone, Debug)]
 pub struct Ray {
     pos: Vec3,
     dir: Vec3,

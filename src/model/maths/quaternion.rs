@@ -470,7 +470,6 @@ impl Neg for Quaternion {
 
 #[cfg(test)]
 mod tests {
-	use std::f32::consts::E;
 
 use super::Quaternion;
 

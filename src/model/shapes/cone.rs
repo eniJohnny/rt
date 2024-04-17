@@ -9,6 +9,9 @@ pub struct Cone {
     height: f64
 }
 
+unsafe impl Send for Cone {
+}
+
 impl Shape for Cone {
     fn distance(&self, vec: &Vec3) -> f64 {
         unimplemented!()

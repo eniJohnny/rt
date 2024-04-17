@@ -30,7 +30,7 @@ impl Color {
         Self { r, g, b }
     }
 	
-    pub fn toRgba(self) -> Rgba<u8> {
+    pub fn to_rgba(self) -> Rgba<u8> {
         Rgba([(self.r * 255.) as u8, (self.g * 255.) as u8, (self.b * 255.) as u8, 255])
     }
 }
@@ -167,7 +167,7 @@ impl Mul<&Color> for f64 {
 	}
 }
 
-pub trait Material: Debug {
+pub trait Material: Debug + Sync{
     fn color(&self, x: i32, y: i32) -> Color;
     fn norm(&self, x: i32, y: i32) -> Vec3;
     fn reflection_coef(&self) -> f64;

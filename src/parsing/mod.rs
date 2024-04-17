@@ -1,5 +1,5 @@
 use crate::error;
-use crate::model::materials::{Color, Material};
+use crate::model::materials::Color;
 use crate::model::materials::unicolor::Unicolor;
 use crate::model::maths::vec3::Vec3;
 use crate::model::Element;
@@ -37,7 +37,7 @@ pub fn get_scene() -> Scene {
                 let color = get_color(&object);
 
                 let shape = Box::new(Plane::new(pos, dir));
-                let material = <dyn Material>::new(color);
+                let material = Box::new(Unicolor::from(color));
 
                 let element = Element::new(shape, material);
                 scene.add_element(element)
