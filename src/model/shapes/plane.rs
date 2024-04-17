@@ -30,6 +30,7 @@ impl Shape for Plane {
     fn norm(&self, _: &Vec3) -> Vec3 {
 		self.dir.clone()
 	}
+    fn as_plane(&self) -> Option<&Plane> { Some(self) }
 }
 
 impl Plane {

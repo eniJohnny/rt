@@ -36,6 +36,8 @@ impl Shape for Sphere {
     fn norm(&self, hit_position: &Vec3) -> Vec3 {
 		(hit_position - self.pos()).normalize()
     }
+
+    fn as_sphere(&self) -> Option<&Sphere> { Some(self) }
 }
 
 impl Sphere {

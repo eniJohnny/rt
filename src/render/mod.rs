@@ -8,9 +8,7 @@ pub mod lighting;
 
 pub fn render_scene(scene: &Scene) -> RgbaImage {
     let camera = scene.camera();
-    let perf_timer = std::time::Instant::now();
     let rays = camera.get_rays();
-    println!("Ray generation time: {:?}", perf_timer.elapsed());
     let width = SCREEN_WIDTH - GUI_WIDTH;
     let mut img = RgbaImage::new(SCREEN_WIDTH, SCREEN_HEIGHT);
 
