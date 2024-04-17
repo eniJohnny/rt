@@ -2,12 +2,11 @@ use image::Rgba;
 
 use crate::GUI_WIDTH;
 
-pub fn draw_gui (img: image::ImageBuffer<Rgba<u8>, Vec<u8>>) -> image::ImageBuffer<Rgba<u8>, Vec<u8>>{
+pub fn draw_gui (mut img: image::ImageBuffer<Rgba<u8>, Vec<u8>>) -> image::ImageBuffer<Rgba<u8>, Vec<u8>>{
     // Create a new RGBA image
     let width = img.width();
     let x_start = width - GUI_WIDTH;
     let height = img.height();
-    let mut img = img;
 
     // Draw the GUI
     for x in x_start..width {

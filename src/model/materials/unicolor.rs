@@ -21,6 +21,8 @@ impl Unicolor {
     }
 }
 
+unsafe impl Send for Unicolor {}
+
 impl Material for Unicolor {
     fn color(&self, _: i32, _: i32) -> Color {
         Color::new(self.color.r(), self.color.g(), self.color.b())
