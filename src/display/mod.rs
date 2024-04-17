@@ -2,8 +2,7 @@ extern crate image;
 extern crate pixels;
 extern crate winit;
 
-use crate::{gui::draw_gui, model::scene::Scene, render::render_scene, GUI_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH};
-use image::{Rgba, RgbaImage};
+use crate::{gui::draw_gui, model::scene::Scene, render::raycasting::render_scene_threadpool, SCREEN_HEIGHT, SCREEN_WIDTH};
 use pixels::{Pixels, SurfaceTexture};
 use winit::{
     dpi::LogicalSize,
@@ -12,7 +11,7 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
-pub fn display_scene(scene: &Scene) {
+pub fn display_scene(scene: Scene) {
 
     // DUMMY DATA FOR TESTING 
     // let mut rgb = [128,128,128];
@@ -22,7 +21,7 @@ pub fn display_scene(scene: &Scene) {
     // Set up window and event loop
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
-        .with_inner_size(LogicalSize::new(SCREEN_WIDTH, SCREEN_HEIGHT))
+        .with_inner_size(LogicalSize::new(SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32))
         .with_title("Image Viewer")
         .build(&event_loop)
         .unwrap();
@@ -31,10 +30,10 @@ pub fn display_scene(scene: &Scene) {
     let mut pixels = {
         let window_size = window.inner_size();
         let surface_texture = SurfaceTexture::new(window_size.width, window_size.height, &window);
-        Pixels::new(SCREEN_WIDTH, SCREEN_HEIGHT, surface_texture).unwrap()
+        Pixels::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32, surface_texture).unwrap()
     };
 
-    display(&mut pixels, scene);
+    display(&mut pixels, &scene);
 
     // Event loop
     event_loop.run(move |event, _, control_flow| {
@@ -76,7 +75,7 @@ pub fn display_scene(scene: &Scene) {
             }
 
             Event::RedrawRequested(_) => {
-                pixels.render().unwrap();
+                // pixels.render().unwrap();
             }
 
             _ => (),
@@ -88,7 +87,7 @@ fn display (pixels: &mut Pixels<Window>, scene: &Scene) {
 
     let perf_timer = std::time::Instant::now();
     // Render the scene
-    let img = render_scene(scene);
+    let img = render_scene_threadpool(scene);
     println!("Render time: {}ms", perf_timer.elapsed().as_millis());
 
     let perf_timer = std::time::Instant::now();
