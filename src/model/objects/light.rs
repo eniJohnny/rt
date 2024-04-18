@@ -3,16 +3,41 @@ use std::fmt::Debug;
 use crate::model::{materials::Color, maths::{ hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene};
 
 #[derive(Debug)]
-pub struct PointLight {
-    pos: Vec3,
+pub struct AmbientLight {
     intensity: f64,
     color: Color
 }
+
+impl AmbientLight {
+    // Accessors
+    pub fn intensity(&self) -> f64 { self.intensity }
+    pub fn color(&self) -> &Color { &self.color }
+
+    // Constructor
+    pub fn new(intensity: f64, color: Color) -> Self {
+        self::AmbientLight { intensity, color }
+    }
+    pub fn default() -> Self {
+        Self {
+            intensity: 0.5,
+            color: Color::new(1., 1., 1.)
+        }
+    }
+}
+
 
 pub trait Light: Debug + Sync {
 	fn get_diffuse(&self, hit: &Hit) -> Color;
 	fn get_specular(&self, hit: &Hit, ray: &Ray) -> Color;
 	fn is_shadowed(&self, scene: &Scene, hit: &Hit) -> bool;
+}
+
+
+#[derive(Debug)]
+pub struct PointLight {
+    pos: Vec3,
+    intensity: f64,
+    color: Color
 }
 
 impl PointLight {
@@ -67,29 +92,6 @@ impl Light for PointLight {
 		}
 		false
 	}
-}
-
-#[derive(Debug)]
-pub struct AmbientLight {
-    intensity: f64,
-    color: Color
-}
-
-impl AmbientLight {
-    // Accessors
-    pub fn intensity(&self) -> f64 { self.intensity }
-    pub fn color(&self) -> &Color { &self.color }
-
-    // Constructor
-    pub fn new(intensity: f64, color: Color) -> Self {
-        self::AmbientLight { intensity, color }
-    }
-    pub fn default() -> Self {
-        Self {
-            intensity: 0.5,
-            color: Color::new(1., 1., 1.)
-        }
-    }
 }
 
 #[derive(Debug)]
