@@ -36,6 +36,8 @@ impl Shape for Sphere {
     fn norm(&self, hit_position: &Vec3) -> Vec3 {
 		(hit_position - self.pos()).normalize()
     }
+
+    fn as_sphere(&self) -> Option<&Sphere> { Some(self) }
 }
 
 impl Sphere {
@@ -52,6 +54,13 @@ impl Sphere {
     // Constructor
     pub fn new(pos: Vec3, dir: Vec3, radius: f64) -> Sphere{
         self::Sphere { pos, dir, radius }
+    }
+
+    // Methods
+    pub fn clone (&self) -> Sphere {
+        let pos = Vec3::new(*self.pos.x(), *self.pos.y(), *self.pos.z());
+        let dir = Vec3::new(*self.dir.x(), *self.dir.y(), *self.dir.z());
+        self::Sphere { pos: pos, dir: dir, radius: self.radius }
     }
 
 }
