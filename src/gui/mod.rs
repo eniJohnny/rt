@@ -2,7 +2,7 @@ use std::io;
 
 use image::{Rgba, RgbaImage};
 
-use crate::{display::draw_text, model::{maths::{hit, vec2::Vec2, vec3::Vec3}, scene::{self, Scene}, shapes::{sphere::{self, Sphere}, Shape}, Element}, render::cast_ray, SCREEN_WIDTH};
+use crate::{display::draw_text, model::{maths::{hit, vec2::Vec2, vec3::Vec3}, scene::{self, Scene}, shapes::{sphere::{self, Sphere}, Shape}, Element}, render::cast_ray, SCREEN_WIDTH, SCREEN_WIDTH_U32};
 
 pub fn get_line_position (i: u32, size: &Vec2) -> Vec2 {
     let x = SCREEN_WIDTH as f64 - size.x();
@@ -16,11 +16,11 @@ pub fn hide_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, scene: &scene:
     let x_start = img.width() - width;
     let height = 800;
 
-    let rays = scene.camera().get_rays();
+    let rays = scene.camera().rays();
 
     for x in x_start..img.width() {
         for y in 0..height {
-            img.put_pixel(x, y, cast_ray(scene, &rays[x as usize][y as usize]).toRgba());
+            img.put_pixel(x, y, cast_ray(scene, &rays[x as usize][y as usize]).to_rgba());
         }
     }
 }
@@ -92,7 +92,7 @@ pub fn gui_clicked(pos: (f64, f64), gui: &Gui) -> bool {
     let x = pos.0 as u32;
     let y = pos.1 as u32;
 
-    if x >= SCREEN_WIDTH - 400 && x <= SCREEN_WIDTH {
+    if x >= SCREEN_WIDTH_U32 - 400 && x <= SCREEN_WIDTH_U32 {
         if y <= 400 {
             return true;
         }

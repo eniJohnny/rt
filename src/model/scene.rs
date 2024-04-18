@@ -58,10 +58,6 @@ impl Scene {
         &mut self.camera
     }
 
-    pub fn camera_mut(&mut self) -> &mut Camera {
-        &mut self.camera
-    }
-
     pub fn lights(&self) -> &Vec<Light> {
         &self.lights
     }

@@ -8,7 +8,7 @@ use std::{clone, default, ops::Sub};
 use image::{ImageBuffer, Rgba, RgbaImage};
 use rusttype::{Font, Scale};
 use pixels::{Pixels, SurfaceTexture};
-use crate::{gui::{gui_clicked, hitbox_contains, Gui}, model::{maths::vec3::Vec3, shapes::{self, sphere::{self, Sphere}, Shape}}, parsing::get_scene};
+use crate::{gui::{gui_clicked, hitbox_contains, Gui}, model::{maths::vec3::Vec3, scene::Scene, shapes::{self, sphere::{self, Sphere}, Shape}}, parsing::get_scene};
 use winit::{
     dpi::LogicalSize,
     event::{Event, VirtualKeyCode, WindowEvent},
@@ -18,7 +18,7 @@ use winit::{
 use crate::{
     gui::{draw_sphere_gui, hide_gui, TextFormat},
     model::{maths::vec2::Vec2, Element},
-    render::{get_closest_hit, render_scene, raycasting::render_scene_threadpool},
+    render::{get_closest_hit, raycasting::render_scene_threadpool},
     SCREEN_HEIGHT,
     SCREEN_WIDTH
 };
@@ -44,7 +44,7 @@ pub fn display_scene() {
         Pixels::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32, surface_texture).unwrap()
     };
 
-    let mut img = render_scene(&scene);
+    let mut img = render_scene_threadpool(&scene);
 
     // Display the scene
     display(&mut pixels, &mut img);
@@ -71,7 +71,7 @@ pub fn display_scene() {
                         let x = mouse_position.0 as u32;
                         let y = mouse_position.1 as u32;
 
-                        let rays = scene.camera().get_rays();
+                        let rays = scene.camera().rays();
                         let ray = &rays[x as usize][y as usize];
                         let hit = get_closest_hit(&scene, ray);
                         if hit.is_some() {
@@ -86,6 +86,7 @@ pub fn display_scene() {
 
                             scene.gui = display_element_infos(element, &mut img);
                             scene.gui.set_element_index(element_index);
+
                             display(&mut pixels, &mut img);
                         } else if gui_clicked(mouse_position, &scene.gui) {
                             // If the GUI is clicked
@@ -284,7 +285,7 @@ pub fn display_scene() {
                                     
                                     scene.elements_as_mut()[element_index].set_shape(Box::new(sphere));
                                     
-                                    img = render_scene(&scene);
+                                    img = render_scene_threadpool(&scene);
                                     draw_sphere_gui(&mut img, &sphere_for_gui);
                                     display(&mut pixels, &mut img);
                                 }
@@ -296,22 +297,14 @@ pub fn display_scene() {
                 _ => (),
             }
             Event::RedrawRequested(_) => {
-                pixels.render().unwrap();
+                // pixels.render().unwrap();
             }
             _ => (),
         }
     });
 }
 
-fn display (pixels: &mut Pixels<Window>, scene: &Scene) {
-
-    let perf_timer = std::time::Instant::now();
-    // Render the scene
-    let img = render_scene_threadpool(scene);
-    println!("Render time: {}ms", perf_timer.elapsed().as_millis());
-
-    let perf_timer = std::time::Instant::now();
-    // Draw the GUI
+fn display (pixels: &mut Pixels<Window>, img: &mut RgbaImage) {
 
     // Copy image data to pixels buffer
     pixels.get_frame().copy_from_slice(&img);

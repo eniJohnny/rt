@@ -1,31 +1,30 @@
 use image::RgbaImage;
 
-use crate::{model::{materials::Color, maths::{hit::Hit, ray::Ray}, scene::Scene, Element}, SCREEN_HEIGHT, SCREEN_WIDTH, GUI_WIDTH};
+use crate::{model::{materials::Color, maths::{hit::Hit, ray::Ray}, scene::Scene, Element}, GUI_WIDTH, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32};
 
 use self::lighting::apply_lighting;
 
 pub mod lighting;
+pub mod raycasting;
 
 pub fn render_scene(scene: &Scene) -> RgbaImage {
     let camera = scene.camera();
-    let rays = camera.get_rays();
+    let rays = camera.rays();
     let width = SCREEN_WIDTH - GUI_WIDTH;
-    let mut img = RgbaImage::new(SCREEN_WIDTH, SCREEN_HEIGHT);
+    let mut img = RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32);
 
-    let perf_timer = std::time::Instant::now();
     for x in 0..width {
         for y in 0..SCREEN_HEIGHT {
-            img.put_pixel(x as u32, y as u32, cast_ray(scene, &rays[x as usize][y as usize]).toRgba());
+            img.put_pixel(x as u32, y as u32, cast_ray(scene, &rays[x as usize][y as usize]).to_rgba());
         }
     }
-    println!("Image building time: {:?}", perf_timer.elapsed());
     img
 }
 
 pub fn cast_ray(scene: &Scene, ray: &Ray) -> Color {
     match get_closest_hit(scene, ray) {
-        Some(hit) => apply_lighting(hit, scene),
-        None => Color::new(0, 0, 0)
+        Some(hit) => apply_lighting(hit, scene, ray),
+        None => Color::new(0., 0., 0.)
     }
 }
 

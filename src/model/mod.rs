@@ -28,11 +28,11 @@ impl Element {
         self.shape.as_ref()
     }
 
-    pub fn set_material(&mut self, material: Box<dyn Material>) {
+    pub fn set_material(&mut self, material: Box<dyn Sync + Material>) {
         self.material = material;
     }
 
-    pub fn set_shape(&mut self, shape: Box<dyn Shape>) {
+    pub fn set_shape(&mut self, shape: Box<dyn Sync + Shape>) {
         self.shape = shape;
     }
 }
