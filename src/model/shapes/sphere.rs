@@ -57,7 +57,7 @@ impl Sphere {
     }
 
     // Methods
-    pub fn copy (&self) -> Sphere {
+    pub fn clone (&self) -> Sphere {
         let pos = Vec3::new(*self.pos.x(), *self.pos.y(), *self.pos.z());
         let dir = Vec3::new(*self.dir.x(), *self.dir.y(), *self.dir.z());
         self::Sphere { pos: pos, dir: dir, radius: self.radius }

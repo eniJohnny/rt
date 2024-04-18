@@ -281,7 +281,7 @@ pub fn display_scene() {
                                         _ => (),
                                     }
                                     let sphere = sphere::Sphere::new(pos, dir, radius);
-                                    let sphere_for_gui = sphere.copy();
+                                    let sphere_for_gui = sphere.clone();
                                     
                                     scene.elements_as_mut()[element_index].set_shape(Box::new(sphere));
                                     
