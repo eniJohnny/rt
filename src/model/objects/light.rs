@@ -93,13 +93,13 @@ impl AmbientLight {
 }
 
 #[derive(Debug)]
-pub struct ParrallelLight {
+pub struct ParallelLight {
 	dir: Vec3,
 	intensity: f64,
 	color: Color
 }
 
-impl ParrallelLight {
+impl ParallelLight {
 	// Accessors
 	pub fn dir(&self) -> &Vec3 { &self.dir }
 	pub fn intensity(&self) -> f64 { self.intensity }
@@ -112,11 +112,11 @@ impl ParrallelLight {
 
 	// Constructor
 	pub fn new(dir: Vec3, intensity: f64, color: Color) -> Self {
-		self::ParrallelLight { dir, intensity, color }
+		self::ParallelLight { dir, intensity, color }
 	}
 }
 
-impl Light for ParrallelLight {
+impl Light for ParallelLight {
 	fn get_diffuse(&self, hit: &Hit) -> Color {
 		let mut ratio = (-self.dir()).dot(hit.norm());
 		if ratio < 0. {
