@@ -2,13 +2,9 @@ extern crate image;
 extern crate pixels;
 extern crate winit;
 
-use core::num;
-use std::{clone, default, ops::Sub};
-
 use image::{ImageBuffer, Rgba, RgbaImage};
 use rusttype::{Font, Scale};
 use pixels::{Pixels, SurfaceTexture};
-use crate::{gui::{gui_clicked, hitbox_contains, Gui}, model::{maths::vec3::Vec3, scene::Scene, shapes::{self, sphere::{self, Sphere}, Shape}}, parsing::get_scene};
 use winit::{
     dpi::LogicalSize,
     event::{Event, VirtualKeyCode, WindowEvent},
@@ -16,8 +12,13 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 use crate::{
-    gui::{draw_sphere_gui, hide_gui, TextFormat},
-    model::{maths::vec2::Vec2, Element},
+    gui::{draw_sphere_gui, hide_gui, TextFormat, gui_clicked, hitbox_contains, Gui},
+    parsing::get_scene,
+    model::{
+        maths::{vec2::Vec2, vec3::Vec3},
+        shapes::{sphere, Shape},
+        Element
+    },
     render::raycasting::{get_closest_hit, render_scene_threadpool},
     SCREEN_HEIGHT,
     SCREEN_WIDTH
