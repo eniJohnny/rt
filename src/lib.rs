@@ -17,8 +17,8 @@ const GUI_WIDTH: usize = 400;
 const MAX_THREADS: usize = 16;
 
 pub fn run() {
-    let mut scene = get_scene();
-    generate_rays(scene.camera_mut());
+    get_scene();
+
     display_scene();
 }
 
