@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{char::ToLowercase, fmt::Debug};
 
 use crate::model::{materials::Color, maths::{ hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene};
 
@@ -115,6 +115,7 @@ impl Light for ParallelLight {
 		ratio *= 0_f64.max(self.intensity());
 		(ratio * self.color()).clamp(0., 1.)
 	}
+
 	fn get_specular(&self, hit: &Hit, ray: &Ray) -> Color {
 		let to_light = -self.dir();
 		let reflected = (-(&to_light) - hit.norm().dot(&-to_light) * 2. * hit.norm()).normalize();
@@ -126,6 +127,7 @@ impl Light for ParallelLight {
 		ratio *= self.intensity().powi(2);
 		(ratio * self.color()).clamp(0., 1.)
 	}
+
 	fn is_shadowed(&self, scene: &Scene, hit: &Hit) -> bool {
 		let shadow_ray = Ray::new(hit.pos() + hit.norm() * 0.001, -self.dir(), 0);
 		for element in scene.elements() {
@@ -164,14 +166,44 @@ impl SpotLight {
 
 impl Light for SpotLight {
 	fn get_diffuse(&self, hit: &Hit) -> Color {
-		unimplemented!()
+		let to_light = (self.pos() - hit.pos()).normalize();
+		let angle = self.dir().dot(&-&to_light).acos();
+		if angle > self.fov() / 2. {
+			return Color::new(0., 0., 0.);
+		}
+		let mut ratio = to_light.dot(hit.norm());
+		ratio *= 0_f64.max(1. - (self.pos() - hit.pos()).length().powf(2.) / (self.intensity().powf(2.)));
+		if ratio < 0. {
+			return Color::new(0., 0., 0.);
+		}
+		ratio *= 1. - angle / (self.fov() / 2.);
+		ratio * self.color()
 	}
 
 	fn get_specular(&self, hit: &Hit, ray: &Ray) -> Color {
-		unimplemented!()
+		let to_light = (self.pos() - hit.pos()).normalize();
+		let angle = self.dir().dot(&-&to_light).acos();
+		let reflected = (-(&to_light) - hit.norm().dot(&-to_light) * 2. * hit.norm()).normalize();
+		let mut ratio = (-ray.get_dir()).normalize().dot(&reflected);
+		if ratio < 0. {
+			return Color::new(0., 0., 0.);
+		}
+		ratio = ratio.powf(25.);
+		ratio *= 0_f64.max(1. - (self.pos() - hit.pos()).length().powf(2.) / (self.intensity().powf(2.)));
+		ratio *= 1. - angle / (self.fov() / 2.);
+		ratio * self.color()
 	}
 
 	fn is_shadowed(&self, scene: &Scene, hit: &Hit) -> bool {
-		unimplemented!()
+		let to_light = (self.pos() - hit.pos()).normalize();
+		let shadow_ray = Ray::new(hit.pos() + hit.norm() * 0.001, to_light, 0);
+		for element in scene.elements() {
+			if let Some(t) = element.shape().intersect(&shadow_ray) {
+				if t[0] < (self.pos() - hit.pos()).length() {
+					return true;
+				}
+			}
+		}
+		false
 	}
 }
