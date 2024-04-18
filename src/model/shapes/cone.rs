@@ -25,6 +25,7 @@ impl Shape for Cone {
     fn norm(&self, hit_position: &Vec3) -> Vec3 {
         unimplemented!()
     }
+    fn as_cone(&self) -> Option<&Cone> { Some(self) }
 }
 
 impl Cone {

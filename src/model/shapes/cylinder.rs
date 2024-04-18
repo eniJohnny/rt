@@ -22,6 +22,7 @@ impl Shape for Cylinder {
     fn norm(&self, hit_position: &Vec3) -> Vec3 {
         unimplemented!()
     }
+    fn as_cylinder(&self) -> Option<&Cylinder> { Some(self) }
 }
 
 impl Cylinder {

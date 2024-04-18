@@ -1,4 +1,4 @@
-use self::{materials::Material, shapes::Shape};
+use self::{materials::Material, maths::vec3::Vec3, shapes::Shape};
 
 pub mod materials;
 pub mod shapes;
@@ -26,5 +26,13 @@ impl Element {
 
     pub fn shape(&self) -> &dyn Shape {
         self.shape.as_ref()
+    }
+
+    pub fn set_material(&mut self, material: Box<dyn Sync + Material>) {
+        self.material = material;
+    }
+
+    pub fn set_shape(&mut self, shape: Box<dyn Sync + Shape>) {
+        self.shape = shape;
     }
 }

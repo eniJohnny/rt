@@ -16,6 +16,11 @@ pub fn generate_rays(camera: &mut Camera) {
     // U et V sont les vecteurs unitaires de l'ecran projete.
     let u = Vec3::new(*camera.dir().z(), 0., - *camera.dir().x()).normalize();
     let v = - camera.dir().cross(&u).normalize();
+
+    // Ajout de U et V a la camera
+    camera.set_u(&u);
+    camera.set_v(&v);
+
     // Tailles de l'ecran
     let width = (camera.fov()/2.).tan() * 2.;
     let height = width * SCREEN_HEIGHT as f64 / SCREEN_WIDTH as f64;
@@ -106,7 +111,7 @@ fn build_image(rx: Receiver<(usize, Vec<Color>)>) -> RgbaImage {
     img
 }
 
-fn cast_ray(scene: &Scene, ray: &Ray) -> Color {
+pub fn cast_ray(scene: &Scene, ray: &Ray) -> Color {
     match get_closest_hit(scene, ray) {
         Some(hit) => apply_lighting(hit, scene, ray),
         None => Color::new(0., 0., 0.)
@@ -114,7 +119,7 @@ fn cast_ray(scene: &Scene, ray: &Ray) -> Color {
 }
 
 
-fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
+pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     let mut closest: Option<(f64, &Element)> = None;
     for element in scene.elements().iter() {
         if let Some(t) = element.shape().intersect(ray) {
