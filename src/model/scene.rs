@@ -47,6 +47,10 @@ impl Scene {
         &self.elements
     }
 
+    pub fn elements_as_mut(&mut self) -> &mut Vec<Element> {
+        &mut self.elements
+    }
+
     pub fn camera(&self) -> &Camera {
         &self.camera
     }

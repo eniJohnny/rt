@@ -2,7 +2,7 @@ use std::io;
 
 use image::{Rgba, RgbaImage};
 
-use crate::{display::draw_text, model::{maths::{vec2::Vec2, vec3::Vec3}, scene::{self, Scene}, shapes::{sphere::{self, Sphere}, Shape}, Element}, render::cast_ray, SCREEN_WIDTH};
+use crate::{display::draw_text, model::{maths::{hit, vec2::Vec2, vec3::Vec3}, scene::{self, Scene}, shapes::{sphere::{self, Sphere}, Shape}, Element}, render::cast_ray, SCREEN_WIDTH};
 
 pub fn get_line_position (i: u32, size: &Vec2) -> Vec2 {
     let x = SCREEN_WIDTH as f64 - size.x();
@@ -57,6 +57,8 @@ pub fn draw_sphere_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, sphere:
         values: Vec::new(),
         hitboxes: Vec::new(),
         element_index: 0,
+        updating: false,
+        updating_index: 0,
     };
 
     gui.keys.push("posx".to_string());
@@ -136,6 +138,15 @@ impl TextFormat {
     pub fn font_color(&self) -> &Rgba<u8> { &self.font_color }
     pub fn background_color(&self) -> &Rgba<u8> { &self.background_color }
 
+    pub fn new(size: Vec2, font_size: f32, font_color: Rgba<u8>, background_color: Rgba<u8>) -> Self {
+        Self {
+            size,
+            font_size,
+            font_color,
+            background_color,
+        }
+    }
+
     pub fn get_spacer(&self, text: &str, value: &str) -> String {
         let text_len = text.len();
         let value_len = value.len();
@@ -183,6 +194,8 @@ pub struct Gui {
     values: Vec<String>,
     hitboxes: Vec<(Vec2, Vec2)>,
     element_index: usize,
+    updating: bool,
+    updating_index: usize,
 }
 
 impl Gui {
@@ -192,6 +205,8 @@ impl Gui {
             values: Vec::new(),
             hitboxes: Vec::new(),
             element_index: 0,
+            updating: false,
+            updating_index: 0,
         }
     }
 
@@ -199,142 +214,20 @@ impl Gui {
     pub fn values(&self) -> &Vec<String> { &self.values }
     pub fn hitboxes(&self) -> &Vec<(Vec2, Vec2)> { &self.hitboxes }
     pub fn element_index(&self) -> usize { self.element_index }
+    pub fn updating(&self) -> bool { self.updating }
+    pub fn updating_index(&self) -> usize { self.updating_index }
 
     pub fn set_element_index(&mut self, index: usize) {
         self.element_index = index;
     }
-}
-
-pub fn get_input(prompt: &str) -> String{
-    println!("{}",prompt);
-    let mut input = String::new();
-    match io::stdin().read_line(&mut input) {
-        Ok(_goes_into_input_above) => {},
-        Err(_no_updates_is_fine) => {},
+    pub fn set_updating(&mut self, updating: bool) {
+        self.updating = updating;
     }
-    input.trim().to_string()
-}
-
-pub fn update_element(shape: &mut &dyn Shape, key: String, value: String) {
-    
-    if shape.as_sphere().is_some() {
-        update_sphere(shape, key, value);
+    pub fn set_updating_index(&mut self, index: usize) {
+        self.updating_index = index;
     }
-    // else if element.shape().as_cylinder().is_some() {
-    //     update_cylinder(&mut element, key, value);
-    // } else if element.shape().as_plane().is_some() {
-    //     update_plane(&mut element, key, value);
-    // } else if element.shape().as_cone().is_some() {
-    //     update_cone(&mut element, key, value);
-    // }
-}
-
-pub fn update_sphere (shape: &mut &dyn Shape, key: String, value: String) {
-    let mut sphere = shape.as_sphere().unwrap();
-    if key == "posx" {
-        let x: f64 = value.parse().unwrap();
-        sphere.set_pos(Vec3::new(x, *sphere.pos().y(), *sphere.pos().z()));
-    } else if key == "posy" {
-        let y: f64 = value.parse().unwrap();
-        sphere.set_pos(Vec3::new(*sphere.pos().x(), y, *sphere.pos().z()));
-    } else if key == "posz" {
-        let z: f64 = value.parse().unwrap();
-        sphere.set_pos(Vec3::new(*sphere.pos().x(), *sphere.pos().y(), z));
-    } else if key == "radius" {
-        sphere.set_radius(value.parse().unwrap());
-    } else if key == "radius" {
-        sphere.set_radius(value.parse().unwrap());
+    pub fn set_updates(&mut self, index: usize, value: &String, hitbox: &(Vec2, Vec2)) {
+        self.values[index] = value.to_string();
+        self.hitboxes[index] = hitbox.clone();
     }
 }
-
-// pub fn update_cylinder (element: &mut Element, key: String, value: String) -> Element {
-//     let mut cylinder = element.shape().as_cylinder().unwrap().clone();
-
-//     if key == "posx" {
-//         let x: f64 = value.parse().unwrap();
-//         cylinder.set_pos(Vec3::new(x, *cylinder.pos().y(), *cylinder.pos().z()));
-//     } else if key == "posy" {
-//         let y: f64 = value.parse().unwrap();
-//         cylinder.set_pos(Vec3::new(*cylinder.pos().x(), y, *cylinder.pos().z()));
-//     } else if key == "posz" {
-//         let z: f64 = value.parse().unwrap();
-//         cylinder.set_pos(Vec3::new(*cylinder.pos().x(), *cylinder.pos().y(), z));
-//     } else if key == "dirx" {
-//         let x: f64 = value.parse().unwrap();
-//         cylinder.set_dir(Vec3::new(x, *cylinder.dir().y(), *cylinder.dir().z()));
-//     } else if key == "diry" {
-//         let y: f64 = value.parse().unwrap();
-//         cylinder.set_dir(Vec3::new(*cylinder.dir().x(), y, *cylinder.dir().z()));
-//     } else if key == "dirz" {
-//         let z: f64 = value.parse().unwrap();
-//         cylinder.set_dir(Vec3::new(*cylinder.dir().x(), *cylinder.dir().y(), z));
-//     } else if key == "radius" {
-//         cylinder.set_radius(value.parse().unwrap());
-//     } else if key == "height" {
-//         cylinder.set_height(value.parse().unwrap());
-//     }
-
-//     element.set_shape(Box::new(*cylinder));
-
-//     *element
-// }
-
-// pub fn update_plane (element: &mut Element, key: String, value: String) -> Element {
-//     let mut plane = element.shape().as_plane().unwrap().clone();
-
-//     if key == "posx" {
-//         let x: f64 = value.parse().unwrap();
-//         plane.set_pos(Vec3::new(x, *plane.pos().y(), *plane.pos().z()));
-//     } else if key == "posy" {
-//         let y: f64 = value.parse().unwrap();
-//         plane.set_pos(Vec3::new(*plane.pos().x(), y, *plane.pos().z()));
-//     } else if key == "posz" {
-//         let z: f64 = value.parse().unwrap();
-//         plane.set_pos(Vec3::new(*plane.pos().x(), *plane.pos().y(), z));
-//     } else if key == "dirx" {
-//         let x: f64 = value.parse().unwrap();
-//         plane.set_dir(Vec3::new(x, *plane.dir().y(), *plane.dir().z()));
-//     } else if key == "diry" {
-//         let y: f64 = value.parse().unwrap();
-//         plane.set_dir(Vec3::new(*plane.dir().x(), y, *plane.dir().z()));
-//     } else if key == "dirz" {
-//         let z: f64 = value.parse().unwrap();
-//         plane.set_dir(Vec3::new(*plane.dir().x(), *plane.dir().y(), z));
-//     }
-
-//     element.set_shape(Box::new(*plane));
-
-//     *element
-// }
-
-// pub fn update_cone (element: &mut Element, key: String, value: String) -> Element {
-//     let mut cone = element.shape().as_cone().unwrap().clone();
-
-//     if key == "posx" {
-//         let x: f64 = value.parse().unwrap();
-//         cone.set_pos(Vec3::new(x, *cone.pos().y(), *cone.pos().z()));
-//     } else if key == "posy" {
-//         let y: f64 = value.parse().unwrap();
-//         cone.set_pos(Vec3::new(*cone.pos().x(), y, *cone.pos().z()));
-//     } else if key == "posz" {
-//         let z: f64 = value.parse().unwrap();
-//         cone.set_pos(Vec3::new(*cone.pos().x(), *cone.pos().y(), z));
-//     } else if key == "dirx" {
-//         let x: f64 = value.parse().unwrap();
-//         cone.set_dir(Vec3::new(x, *cone.dir().y(), *cone.dir().z()));
-//     } else if key == "diry" {
-//         let y: f64 = value.parse().unwrap();
-//         cone.set_dir(Vec3::new(*cone.dir().x(), y, *cone.dir().z()));
-//     } else if key == "dirz" {
-//         let z: f64 = value.parse().unwrap();
-//         cone.set_dir(Vec3::new(*cone.dir().x(), *cone.dir().y(), z));
-//     } else if key == "radius" {
-//         cone.set_radius(value.parse().unwrap());
-//     } else if key == "height" {
-//         cone.set_height(value.parse().unwrap());
-//     }
-
-//     element.set_shape(Box::new(*cone));
-
-//     *element
-// }

@@ -2,10 +2,13 @@ extern crate image;
 extern crate pixels;
 extern crate winit;
 
+use core::num;
+use std::{clone, default, ops::Sub};
+
 use image::{ImageBuffer, Rgba, RgbaImage};
 use rusttype::{Font, Scale};
 use pixels::{Pixels, SurfaceTexture};
-use crate::{gui::{gui_clicked, hitbox_contains, update_element, Gui}, model::shapes::Shape, parsing::get_scene};
+use crate::{gui::{gui_clicked, hitbox_contains, Gui}, model::{maths::vec3::Vec3, shapes::{self, sphere::{self, Sphere}, Shape}}, parsing::get_scene};
 use winit::{
     dpi::LogicalSize,
     event::{Event, VirtualKeyCode, WindowEvent},
@@ -23,6 +26,8 @@ use crate::{
 pub fn display_scene() {
     // Load scene
     let mut scene = get_scene();
+    let format = TextFormat::new(Vec2::new(400., 400.), 24., Rgba([255, 255, 255, 255]), Rgba([89, 89, 89, 255]));
+    let editing_format = TextFormat::new(Vec2::new(400., 400.), 24., Rgba([0, 0, 0, 255]), Rgba([255, 255, 255, 255]));
 
     // Set up window and event loop (can't move them elsewhere because of the borrow checker)
     let event_loop = EventLoop::new();
@@ -84,23 +89,55 @@ pub fn display_scene() {
                             display(&mut pixels, &mut img);
                         } else if gui_clicked(mouse_position, &scene.gui) {
                             // If the GUI is clicked
-                            let gui = &scene.gui;
-                            let element = scene.elements().get(gui.element_index()).unwrap();
-                            println!("Element: {:?}", element);
                             
-                            if gui.keys().len() > 0 {
-                                for i in 0..gui.keys().len() {
-                                    let key = gui.keys()[i].clone();
-                                    let value = gui.values()[i].clone();
-                                    let hitbox = gui.hitboxes()[i].clone();
+                            let mut editing = false;
+                            
+                            if scene.gui.keys().len() > 0 {
+                                for i in 0..scene.gui.keys().len() {
+                                    let hitbox = scene.gui.hitboxes()[i].clone();
                                     if hitbox_contains(&hitbox, mouse_position) {
-                                        // Update element
-                                        let shape = &mut element.shape();
-                                        update_element(shape, key, value);
+                                        // Reset previous value formatting
+                                        if scene.gui.updating() {
+                                            let index = scene.gui.updating_index();
+                                            let value = scene.gui.values()[index].clone().replace("_", "");
+                                            let hitbox = scene.gui.hitboxes()[index].clone();
+                                            let pos = Vec2::new(*hitbox.0.x() as f64, *hitbox.0.y() as f64);
+                                            let background_pos = Vec2::new(*hitbox.0.x() as f64 - 10., *hitbox.0.y() as f64);
 
+                                            let text = format!("{}", value);
+                                            draw_text(&mut img, &background_pos, " ".to_string(), &format);
+                                            draw_text(&mut img, &pos, text, &format);
+                                        }
+
+                                        // Update value
+                                        scene.gui.set_updating(true);
+                                        scene.gui.set_updating_index(i);
+                                        editing = true;
                                     }
                                 }
+                                if editing == false {
+                                    let index = scene.gui.updating_index();
+                                    let value = scene.gui.values()[index].clone().replace("_", "");
+                                    let hitbox = scene.gui.hitboxes()[index].clone();
+                                    let pos = Vec2::new(*hitbox.0.x() as f64 - 10., *hitbox.0.y() as f64);
+
+                                    let text = format!("{}", value);
+                                    draw_text(&mut img, &pos, text, &format);
+                                    scene.gui.set_updating(false);
+                                }
                             }
+                            
+                            if scene.gui.updating() {
+                                let index = scene.gui.updating_index();
+                                let value = scene.gui.values()[index].clone().replace("_", "");
+                                let hitbox = scene.gui.hitboxes()[index].clone();
+                                let pos = Vec2::new(*hitbox.0.x() as f64 - 10., *hitbox.0.y() as f64);
+
+                                let text = format!("{}_", value);
+                                draw_text(&mut img, &pos, text, &editing_format);
+                                display(&mut pixels, &mut img);
+                            }
+
                         } else {
                             hide_gui(&mut img, &scene);
                             scene.gui = Gui::new();
@@ -118,6 +155,139 @@ pub fn display_scene() {
                             Some(VirtualKeyCode::Down) => {}
                             Some(VirtualKeyCode::Escape) => {
                                 *control_flow = ControlFlow::Exit;
+                            }
+                            x if x >= Some(VirtualKeyCode::Numpad0) && x <= Some(VirtualKeyCode::Numpad9) => {
+                                // Add x to the edited value
+                                let index = scene.gui.updating_index();
+                                let hitbox = scene.gui.hitboxes()[index].clone();
+                                let new_hitbox = (Vec2::new(*hitbox.0.x() - 10., *hitbox.0.y()), hitbox.1.clone());
+                                let pos = new_hitbox.0.clone();
+                                // -10 for the _
+                                let pos = Vec2::new(*pos.x() as f64 - 10., *pos.y() as f64);
+                                let value = scene.gui.values()[index].clone().replace("_", "");
+                                let number = x.unwrap() as u8 - VirtualKeyCode::Numpad0 as u8;
+
+                                let value = format!("{}{:?}_", value, number);
+
+                                scene.gui.set_updates(index, &value, &new_hitbox);
+
+                                draw_text(&mut img, &pos, value, &editing_format);
+                                display(&mut pixels, &mut img);
+                            }
+                            Some(VirtualKeyCode::Back) => {
+                                // Remove last character from the edited value
+                                let index = scene.gui.updating_index();
+                                let hitbox = scene.gui.hitboxes()[index].clone();
+                                let new_hitbox = (Vec2::new(*hitbox.0.x() + 10., *hitbox.0.y()), hitbox.1.clone());
+                                let pos = new_hitbox.0.clone();
+                                // -10 for the _
+                                let pos = Vec2::new(*pos.x() as f64 - 10., *pos.y() as f64);
+                                let background_pos = Vec2::new(*hitbox.0.x() as f64 - 10., *hitbox.0.y() as f64);
+                                let value = scene.gui.values()[index].clone().replace("_", "");
+
+                                if value.len() > 0 {
+                                    let value = value.chars().take(value.len() - 1).collect::<String>();
+                                    let value = format!("{}_", value);
+
+                                    scene.gui.set_updates(index, &value, &new_hitbox);
+
+                                    draw_text(&mut img, &background_pos, " ".to_string(), &format);
+                                    draw_text(&mut img, &pos, value, &editing_format);
+                                    display(&mut pixels, &mut img);
+                                }
+                            }
+                            Some(VirtualKeyCode::NumpadDecimal) => {
+                                // Add a comma to the edited value
+                                let index = scene.gui.updating_index();
+                                let hitbox = scene.gui.hitboxes()[index].clone();
+                                let new_hitbox = (Vec2::new(*hitbox.0.x() - 10., *hitbox.0.y()), hitbox.1.clone());
+                                let pos = new_hitbox.0.clone();
+                                // -10 for the _
+                                let pos = Vec2::new(*pos.x() as f64 - 10., *pos.y() as f64);
+                                let mut value = scene.gui.values()[index].clone().replace("_", "");
+
+                                if value.contains(".") {
+                                    return;
+                                }
+                                
+                                if value.len() == 0 {
+                                    value = "0._".to_string();
+                                } else {
+                                    value = format!("{}._", value);
+                                }
+                                scene.gui.set_updates(index, &value, &new_hitbox);
+
+                                draw_text(&mut img, &pos, value, &editing_format);
+                                display(&mut pixels, &mut img);
+                            }
+                            Some(VirtualKeyCode::NumpadSubtract) => {
+                                // Add a minus to the edited value
+                                let index = scene.gui.updating_index();
+                                let hitbox = scene.gui.hitboxes()[index].clone();
+                                let mut offset = -10.;
+                                if scene.gui.values()[index].contains("-") {
+                                    offset = 10.;
+                                }
+                                let new_hitbox = (Vec2::new(*hitbox.0.x() + offset, *hitbox.0.y()), hitbox.1.clone());
+                                let pos = new_hitbox.0.clone();
+                                // -10 for the _
+                                let pos = Vec2::new(*pos.x() as f64 - 10., *pos.y() as f64);
+                                let mut value = scene.gui.values()[index].clone().replace("_", "");
+
+                                value.push('_');
+                                if value.contains("-") {
+                                    value = value.replace("-", "");
+                                } else {
+                                    value = format!("-{}", value);
+                                }
+
+                                scene.gui.set_updates(index, &value, &new_hitbox);
+
+                                draw_text(&mut img, &pos, value, &editing_format);
+                                display(&mut pixels, &mut img);
+                            }
+                            Some(VirtualKeyCode::NumpadEnter) => {
+                                // Exit editing mode and update the scene
+                                let index = scene.gui.updating_index();
+                                let element_index = scene.gui.element_index();
+                                let value = scene.gui.values()[index].clone().replace("_", "");
+
+                                scene.gui.set_updating(false);
+                                let test = &scene.elements()[element_index];
+                                let shape = test.shape();
+
+                                if shape.as_sphere().is_some() {
+                                    let sphere = shape.as_sphere().unwrap();
+                                    let key = scene.gui.keys()[index].clone();
+
+                                    let mut pos = sphere.pos().clone();
+                                    let mut radius = sphere.radius();
+                                    let dir = sphere.dir().clone();
+                                    
+                                    match key.as_str() {
+                                        "posx" => {
+                                            pos = Vec3::new(value.parse::<f64>().unwrap(), *pos.y(), *pos.z());
+                                        }
+                                        "posy" => {
+                                            pos = Vec3::new(*pos.x(), value.parse::<f64>().unwrap(), *pos.z());
+                                        }
+                                        "posz" => {
+                                            pos = Vec3::new(*pos.x(), *pos.y(), value.parse::<f64>().unwrap());
+                                        }
+                                        "radius" => {
+                                            radius = value.parse::<f64>().unwrap();
+                                        }
+                                        _ => (),
+                                    }
+                                    let sphere = sphere::Sphere::new(pos, dir, radius);
+                                    let sphere_for_gui = sphere.copy();
+                                    
+                                    scene.elements_as_mut()[element_index].set_shape(Box::new(sphere));
+                                    
+                                    img = render_scene(&scene);
+                                    draw_sphere_gui(&mut img, &sphere_for_gui);
+                                    display(&mut pixels, &mut img);
+                                }
                             }
                             _ => (),
                         }
