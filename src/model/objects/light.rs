@@ -25,13 +25,11 @@ impl AmbientLight {
     }
 }
 
-
 pub trait Light: Debug + Sync {
 	fn get_diffuse(&self, hit: &Hit) -> Color;
 	fn get_specular(&self, hit: &Hit, ray: &Ray) -> Color;
 	fn is_shadowed(&self, scene: &Scene, hit: &Hit) -> bool;
 }
-
 
 #[derive(Debug)]
 pub struct PointLight {
@@ -45,11 +43,6 @@ impl PointLight {
     pub fn pos(&self) -> &Vec3 { &self.pos }
     pub fn intensity(&self) -> f64 { self.intensity }
     pub fn color(&self) -> &Color { &self.color }
-
-    // Mutators
-    pub fn set_pos(&mut self, pos: Vec3) { self.pos = pos }
-    pub fn set_intensity(&mut self, intensity: f64) { self.intensity = intensity }
-    pub fn set_color(&mut self, color: Color) { self.color = color }
 
     // Constructor
     pub fn new(pos: Vec3, intensity: f64, color: Color) -> Self {
@@ -107,11 +100,6 @@ impl ParallelLight {
 	pub fn intensity(&self) -> f64 { self.intensity }
 	pub fn color(&self) -> &Color { &self.color }
 
-	// Mutators
-	pub fn set_dir(&mut self, dir: Vec3) { self.dir = dir }
-	pub fn set_intensity(&mut self, intensity: f64) { self.intensity = intensity }
-	pub fn set_color(&mut self, color: Color) { self.color = color }
-
 	// Constructor
 	pub fn new(dir: Vec3, intensity: f64, color: Color) -> Self {
 		self::ParallelLight { dir, intensity, color }
@@ -148,5 +136,42 @@ impl Light for ParallelLight {
 			}
 		}
 		false
+	}
+}
+
+#[derive(Debug)]
+pub struct SpotLight {
+	pos: Vec3,
+	dir: Vec3,
+	intensity: f64,
+	color: Color,
+	fov: f64
+}
+
+impl SpotLight {
+	// Accessors
+	pub fn pos(&self) -> &Vec3 { &self.pos }
+	pub fn dir(&self) -> &Vec3 { &self.dir }
+	pub fn intensity(&self) -> f64 { self.intensity }
+	pub fn color(&self) -> &Color { &self.color }
+	pub fn fov(&self) -> f64 { self.fov }
+
+	// Constructor
+	pub fn new(pos: Vec3, dir: Vec3, intensity: f64, color: Color, fov: f64) -> Self {
+		self::SpotLight { pos, dir, intensity, color, fov }
+	}
+}
+
+impl Light for SpotLight {
+	fn get_diffuse(&self, hit: &Hit) -> Color {
+		unimplemented!()
+	}
+
+	fn get_specular(&self, hit: &Hit, ray: &Ray) -> Color {
+		unimplemented!()
+	}
+
+	fn is_shadowed(&self, scene: &Scene, hit: &Hit) -> bool {
+		unimplemented!()
 	}
 }
