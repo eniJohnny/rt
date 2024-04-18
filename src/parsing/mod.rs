@@ -119,7 +119,7 @@ pub fn get_scene() -> Scene {
 }
 
 fn parse_json() -> Vec<HashMap<String, String>> {
-    let content = std::fs::read_to_string("scenes/sphere.json").expect("Error reading file");
+    let content = std::fs::read_to_string("scenes/room.json").expect("Error reading file");
     let mut objects: Vec<HashMap<String, String>> = Vec::new();
     let mut i = 0;
 

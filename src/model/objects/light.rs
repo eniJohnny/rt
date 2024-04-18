@@ -183,14 +183,17 @@ impl Light for SpotLight {
 	fn get_specular(&self, hit: &Hit, ray: &Ray) -> Color {
 		let to_light = (self.pos() - hit.pos()).normalize();
 		let angle = self.dir().dot(&-&to_light).acos();
+		if angle > self.fov() / 2. {
+			return Color::new(0., 0., 0.);
+		}
 		let reflected = (-(&to_light) - hit.norm().dot(&-to_light) * 2. * hit.norm()).normalize();
 		let mut ratio = (-ray.get_dir()).normalize().dot(&reflected);
+		ratio *= 1. - angle / (self.fov() / 2.);
 		if ratio < 0. {
 			return Color::new(0., 0., 0.);
 		}
 		ratio = ratio.powf(25.);
 		ratio *= 0_f64.max(1. - (self.pos() - hit.pos()).length().powf(2.) / (self.intensity().powf(2.)));
-		ratio *= 1. - angle / (self.fov() / 2.);
 		ratio * self.color()
 	}
 
