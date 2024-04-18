@@ -16,6 +16,11 @@ pub fn generate_rays(camera: &mut Camera) {
     // U et V sont les vecteurs unitaires de l'ecran projete.
     let u = Vec3::new(*camera.dir().z(), 0., - *camera.dir().x()).normalize();
     let v = - camera.dir().cross(&u).normalize();
+
+    // Ajout de U et V a la camera
+    camera.set_u(&u);
+    camera.set_v(&v);
+
     // Tailles de l'ecran
     let width = (camera.fov()/2.).tan() * 2.;
     let height = width * SCREEN_HEIGHT as f64 / SCREEN_WIDTH as f64;

@@ -12,21 +12,13 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 use crate::{
-    gui::{draw_sphere_gui, hide_gui, TextFormat, gui_clicked, hitbox_contains, Gui},
-    parsing::get_scene,
-    model::{
-        maths::{vec2::Vec2, vec3::Vec3},
-        shapes::{sphere, Shape},
-        Element
-    },
-    render::raycasting::{get_closest_hit, render_scene_threadpool},
-    SCREEN_HEIGHT,
-    SCREEN_WIDTH
+    gui::{draw_sphere_gui, gui_clicked, hide_gui, hitbox_contains, Gui, TextFormat}, model::{
+        maths::{vec2::Vec2, vec3::Vec3}, scene::{self, Scene}, shapes::{sphere, Shape}, Element
+    }, render::raycasting::{generate_rays, get_closest_hit, render_scene_threadpool}, SCREEN_HEIGHT, SCREEN_WIDTH
 };
 
-pub fn display_scene() {
-    // Load scene
-    let mut scene = get_scene();
+pub fn display_scene(scene: Scene) {
+    let mut scene = scene;
     let format = TextFormat::new(Vec2::new(400., 400.), 24., Rgba([255, 255, 255, 255]), Rgba([89, 89, 89, 255]));
     let editing_format = TextFormat::new(Vec2::new(400., 400.), 24., Rgba([0, 0, 0, 255]), Rgba([255, 255, 255, 255]));
 
@@ -151,10 +143,40 @@ pub fn display_scene() {
                     // If a key is pressed
                     if input.state == winit::event::ElementState::Released{
                         match input.virtual_keycode {
-                            Some(VirtualKeyCode::Left) => {}
-                            Some(VirtualKeyCode::Right) => {}
-                            Some(VirtualKeyCode::Up) => {}
-                            Some(VirtualKeyCode::Down) => {}
+                            Some(VirtualKeyCode::W) => {
+                                // Move camera forward
+
+                                // Get camera position
+                                let cam = scene.camera_mut();
+                                let pos = cam.pos();
+
+                                // u and v are the camera's basis vectors
+                                let v = cam.v();
+
+                                // Calculate the new position
+                                let new_pos = Vec3::new(*pos.x() + *v.x(), *pos.y() + *v.y(), *pos.z() + *v.z());
+
+                                // Update the camera's position
+                                cam.set_pos(new_pos);
+
+                                generate_rays(cam);
+                                display(&mut pixels, &mut img);
+                            }
+                            Some(VirtualKeyCode::A) => {
+                                // Move camera left
+                            }
+                            Some(VirtualKeyCode::S) => {
+                                // Move camera backward
+                            }
+                            Some(VirtualKeyCode::D) => {
+                                // Move camera right
+                            }
+                            Some(VirtualKeyCode::Space) => {
+                                // Move camera up
+                            }
+                            Some(VirtualKeyCode::LShift) => {
+                                // Move camera down
+                            }
                             Some(VirtualKeyCode::Escape) => {
                                 *control_flow = ControlFlow::Exit;
                             }
@@ -255,8 +277,8 @@ pub fn display_scene() {
                                 let value = scene.gui.values()[index].clone().replace("_", "");
 
                                 scene.gui.set_updating(false);
-                                let test = &scene.elements()[element_index];
-                                let shape = test.shape();
+                                let elem = &scene.elements()[element_index];
+                                let shape = elem.shape();
 
                                 if shape.as_sphere().is_some() {
                                     let sphere = shape.as_sphere().unwrap();

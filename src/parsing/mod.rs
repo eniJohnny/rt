@@ -5,7 +5,6 @@ use crate::model::maths::vec3::Vec3;
 use crate::model::Element;
 use crate::model::{scene::Scene, shapes::sphere::Sphere, shapes::plane::Plane, shapes::cylinder::Cylinder, shapes::cone::Cone};
 use crate::model::objects::{camera::Camera, light::Light, light::AmbientLight};
-use crate::render::raycasting::generate_rays;
 use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::io::Write;
@@ -75,8 +74,7 @@ pub fn get_scene() -> Scene {
                 let dir = get_direction(&object);
                 let fov = get_fov(&object) * 2. * PI / 360.;
 
-                let mut new_camera = Camera::new(pos, dir, fov);
-                generate_rays(&mut new_camera);
+                let new_camera = Camera::new(pos, dir, fov);
                 scene.add_camera(new_camera);
             },
             "light" => {
