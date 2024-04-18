@@ -98,7 +98,7 @@ pub fn get_scene() -> Scene {
                 let dir = get_direction(&object);
                 let color = get_color(&object);
 
-                let new_light = Box::new(ParrallelLight::new(dir, intensity, color)) as Box<dyn Light>;
+                let new_light = Box::new(ParallelLight::new(dir, intensity, color)) as Box<dyn Light>;
                 scene.add_light(new_light);
             },
             _ => {}
