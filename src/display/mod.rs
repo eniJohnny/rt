@@ -143,39 +143,52 @@ pub fn display_scene(scene: Scene) {
                     // If a key is pressed
                     if input.state == winit::event::ElementState::Released{
                         match input.virtual_keycode {
-                            Some(VirtualKeyCode::W) => {
-                                // Move camera forward
-
+                            c if (
+                                c == Some(VirtualKeyCode::W) ||
+                                c == Some(VirtualKeyCode::A) ||
+                                c == Some(VirtualKeyCode::S) ||
+                                c == Some(VirtualKeyCode::D) ||
+                                c == Some(VirtualKeyCode::Space) ||
+                                c == Some(VirtualKeyCode::LShift)
+                            ) => {
                                 // Get camera position
                                 let cam = scene.camera_mut();
                                 let pos = cam.pos();
+                                let dir = cam.dir(); // Go forward / backward
+                                let u = cam.u(); // Go left / right
+                                let v = cam.v(); // Go up / down
+                                let ratio = 0.1;
+                                let new_pos: Vec3;
 
-                                // u and v are the camera's basis vectors
-                                let v = cam.v();
-
-                                // Calculate the new position
-                                let new_pos = Vec3::new(*pos.x() + *v.x(), *pos.y() + *v.y(), *pos.z() + *v.z());
+                                match c {
+                                    Some(VirtualKeyCode::W) => {
+                                        new_pos = Vec3::new(*pos.x() + *dir.x() * ratio, *pos.y() + *dir.y() * ratio, *pos.z() + *dir.z() * ratio);
+                                    }
+                                    Some(VirtualKeyCode::A) => {
+                                        new_pos = Vec3::new(*pos.x() - *u.x() * ratio, *pos.y() - *u.y() * ratio, *pos.z() - *u.z() * ratio);
+                                    }
+                                    Some(VirtualKeyCode::S) => {
+                                        new_pos = Vec3::new(*pos.x() - *dir.x() * ratio, *pos.y() - *dir.y() * ratio, *pos.z() - *dir.z() * ratio);
+                                    }
+                                    Some(VirtualKeyCode::D) => {
+                                        new_pos = Vec3::new(*pos.x() + *u.x() * ratio, *pos.y() + *u.y() * ratio, *pos.z() + *u.z() * ratio);
+                                    }
+                                    Some(VirtualKeyCode::LShift) => {
+                                        new_pos = Vec3::new(*pos.x() + *v.x() * ratio, *pos.y() + *v.y() * ratio, *pos.z() + *v.z() * ratio);
+                                    }
+                                    Some(VirtualKeyCode::Space) => {
+                                        new_pos = Vec3::new(*pos.x() - *v.x() * ratio, *pos.y() - *v.y() * ratio, *pos.z() - *v.z() * ratio);
+                                    }
+                                    _ => {
+                                        new_pos = Vec3::new(*pos.x(), *pos.y(), *pos.z());
+                                    }
+                                }
 
                                 // Update the camera's position
                                 cam.set_pos(new_pos);
-
                                 generate_rays(cam);
+                                let mut img = render_scene_threadpool(&scene);
                                 display(&mut pixels, &mut img);
-                            }
-                            Some(VirtualKeyCode::A) => {
-                                // Move camera left
-                            }
-                            Some(VirtualKeyCode::S) => {
-                                // Move camera backward
-                            }
-                            Some(VirtualKeyCode::D) => {
-                                // Move camera right
-                            }
-                            Some(VirtualKeyCode::Space) => {
-                                // Move camera up
-                            }
-                            Some(VirtualKeyCode::LShift) => {
-                                // Move camera down
                             }
                             Some(VirtualKeyCode::Escape) => {
                                 *control_flow = ControlFlow::Exit;
