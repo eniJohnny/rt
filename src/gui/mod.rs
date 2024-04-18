@@ -2,7 +2,7 @@ use std::io;
 
 use image::{Rgba, RgbaImage};
 
-use crate::{display::draw_text, model::{maths::{hit, vec2::Vec2, vec3::Vec3}, scene::{self, Scene}, shapes::{sphere::{self, Sphere}, Shape}, Element}, render::cast_ray, SCREEN_WIDTH, SCREEN_WIDTH_U32};
+use crate::{display::draw_text, model::{maths::{hit, vec2::Vec2, vec3::Vec3}, scene::{self, Scene}, shapes::{sphere::{self, Sphere}, Shape}, Element}, render::raycasting::cast_ray, SCREEN_WIDTH, SCREEN_WIDTH_U32};
 
 pub fn get_line_position (i: u32, size: &Vec2) -> Vec2 {
     let x = SCREEN_WIDTH as f64 - size.x();

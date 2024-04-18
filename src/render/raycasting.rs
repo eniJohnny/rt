@@ -106,7 +106,7 @@ fn build_image(rx: Receiver<(usize, Vec<Color>)>) -> RgbaImage {
     img
 }
 
-fn cast_ray(scene: &Scene, ray: &Ray) -> Color {
+pub fn cast_ray(scene: &Scene, ray: &Ray) -> Color {
     match get_closest_hit(scene, ray) {
         Some(hit) => apply_lighting(hit, scene, ray),
         None => Color::new(0., 0., 0.)
@@ -114,7 +114,7 @@ fn cast_ray(scene: &Scene, ray: &Ray) -> Color {
 }
 
 
-fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
+pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     let mut closest: Option<(f64, &Element)> = None;
     for element in scene.elements().iter() {
         if let Some(t) = element.shape().intersect(ray) {

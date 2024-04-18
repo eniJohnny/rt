@@ -18,7 +18,7 @@ use winit::{
 use crate::{
     gui::{draw_sphere_gui, hide_gui, TextFormat},
     model::{maths::vec2::Vec2, Element},
-    render::{get_closest_hit, raycasting::render_scene_threadpool},
+    render::raycasting::{get_closest_hit, render_scene_threadpool},
     SCREEN_HEIGHT,
     SCREEN_WIDTH
 };
