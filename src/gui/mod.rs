@@ -1,8 +1,7 @@
-use std::io;
-
 use image::{Rgba, RgbaImage};
+pub mod draw;
 
-use crate::{display::draw_text, model::{maths::{hit, vec2::Vec2, vec3::Vec3}, scene::{self, Scene}, shapes::{sphere::{self, Sphere}, Shape}, Element}, render::raycasting::cast_ray, SCREEN_WIDTH, SCREEN_WIDTH_U32};
+use crate::{display::draw_text, model::{maths::{hit, vec2::Vec2, vec3::Vec3}, scene::{self, Scene}, shapes::{sphere::{self, Sphere}, Shape}, Element}, render::raycasting::cast_ray, GUI_HEIGHT, GUI_WIDTH, SCREEN_WIDTH, SCREEN_WIDTH_U32};
 
 pub fn get_line_position (i: u32, size: &Vec2) -> Vec2 {
     let x = SCREEN_WIDTH as f64 - size.x();
@@ -12,9 +11,9 @@ pub fn get_line_position (i: u32, size: &Vec2) -> Vec2 {
 }
 
 pub fn hide_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, scene: &scene::Scene) {
-    let width = 400;
+    let width = GUI_WIDTH;
     let x_start = img.width() - width;
-    let height = 800;
+    let height = GUI_HEIGHT;
 
     let rays = scene.camera().rays();
 
@@ -25,63 +24,6 @@ pub fn hide_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, scene: &scene:
     }
 }
 
-pub fn draw_sphere_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, sphere: &sphere::Sphere) -> Gui {
-    let height: u32 = 400;
-    let width: u32 = 400;
-    let size: Vec2 = Vec2::new(width as f64, height as f64);
-
-    let x_start: u32 = (img.width() - width) as u32;
-    let x_end: u32 = img.width();
-    let y_start: u32 = 0;
-    let y_end: u32 = height;
-
-    for x in x_start..x_end {
-        for y in y_start..y_end {
-            img.put_pixel(x, y, Rgba([50, 50, 50, 255]));
-        }
-    }
-
-    let mut titles = TextFormat {
-        size: size.clone(),
-        ..Default::default()
-    };
-
-    let mut params = TextFormat {
-        size: size.clone(),
-        background_color: Rgba([89, 89, 89, 255]),
-        ..Default::default()
-    };
-
-    let mut gui = Gui {
-        keys: Vec::new(),
-        values: Vec::new(),
-        hitboxes: Vec::new(),
-        element_index: 0,
-        updating: false,
-        updating_index: 0,
-    };
-
-    gui.keys.push("posx".to_string());
-    gui.keys.push("posy".to_string());
-    gui.keys.push("posz".to_string());
-    gui.keys.push("radius".to_string());
-
-    gui.values.push(sphere.pos().x().to_string());
-    gui.values.push(sphere.pos().y().to_string());
-    gui.values.push(sphere.pos().z().to_string());
-    gui.values.push(sphere.radius().to_string());
-
-    titles.parse_and_draw_text(img, 0, "Sphere", "");
-    titles.parse_and_draw_text(img, 1, "Position", "");
-    titles.parse_and_draw_text(img, 5, "Misc", "");
-
-    gui.hitboxes.push(params.parse_and_draw_text(img, 2, " X:", &sphere.pos().x().to_string()));
-    gui.hitboxes.push(params.parse_and_draw_text(img, 3, " Y:", &sphere.pos().y().to_string()));
-    gui.hitboxes.push(params.parse_and_draw_text(img, 4, " Z:", &sphere.pos().z().to_string()));
-    gui.hitboxes.push(params.parse_and_draw_text(img, 6, " Radius:", &sphere.radius().to_string()));
-
-    gui
-}
 
 pub fn gui_clicked(pos: (f64, f64), gui: &Gui) -> bool {
 
@@ -92,8 +34,8 @@ pub fn gui_clicked(pos: (f64, f64), gui: &Gui) -> bool {
     let x = pos.0 as u32;
     let y = pos.1 as u32;
 
-    if x >= SCREEN_WIDTH_U32 - 400 && x <= SCREEN_WIDTH_U32 {
-        if y <= 400 {
+    if x >= SCREEN_WIDTH_U32 - GUI_WIDTH && x <= SCREEN_WIDTH_U32 {
+        if y <= GUI_HEIGHT {
             return true;
         }
     }
@@ -193,6 +135,8 @@ pub struct Gui {
     keys: Vec<String>,
     values: Vec<String>,
     hitboxes: Vec<(Vec2, Vec2)>,
+    apply_hitbox: (Vec2, Vec2),
+    cancel_hitbox: (Vec2, Vec2),
     element_index: usize,
     updating: bool,
     updating_index: usize,
@@ -204,6 +148,8 @@ impl Gui {
             keys: Vec::new(),
             values: Vec::new(),
             hitboxes: Vec::new(),
+            apply_hitbox: (Vec2::new(1250., 540.), Vec2::new(1350., 580.)),
+            cancel_hitbox: (Vec2::new(1440., 540.), Vec2::new(1550., 580.)),
             element_index: 0,
             updating: false,
             updating_index: 0,
@@ -213,6 +159,8 @@ impl Gui {
     pub fn keys(&self) -> &Vec<String> { &self.keys }
     pub fn values(&self) -> &Vec<String> { &self.values }
     pub fn hitboxes(&self) -> &Vec<(Vec2, Vec2)> { &self.hitboxes }
+    pub fn apply_hitbox(&self) -> &(Vec2, Vec2) { &self.apply_hitbox }
+    pub fn cancel_hitbox(&self) -> &(Vec2, Vec2) { &self.cancel_hitbox }
     pub fn element_index(&self) -> usize { self.element_index }
     pub fn updating(&self) -> bool { self.updating }
     pub fn updating_index(&self) -> usize { self.updating_index }

@@ -2,6 +2,8 @@ extern crate image;
 extern crate pixels;
 extern crate winit;
 
+pub mod utils;
+
 use image::{ImageBuffer, Rgba, RgbaImage};
 use rusttype::{Font, Scale};
 use pixels::{Pixels, SurfaceTexture};
@@ -12,14 +14,25 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 use crate::{
-    gui::{draw_sphere_gui, gui_clicked, hide_gui, hitbox_contains, Gui, TextFormat}, model::{
+    gui::{draw::{draw_plane_gui, draw_sphere_gui}, gui_clicked, hide_gui, hitbox_contains, Gui, TextFormat}, model::{
         maths::{vec2::Vec2, vec3::Vec3}, scene::{self, Scene}, shapes::{sphere, Shape}, Element
-    }, render::raycasting::{generate_rays, get_closest_hit, render_scene_threadpool}, SCREEN_HEIGHT, SCREEN_WIDTH
+    }, render::raycasting::{generate_rays, get_closest_hit, render_scene_threadpool}, GUI_HEIGHT, GUI_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH
 };
+
+use self::utils::{move_camera, update_shape};
+
+const CAM_MOVE_KEYS: [VirtualKeyCode; 6] = [
+    VirtualKeyCode::W,
+    VirtualKeyCode::A,
+    VirtualKeyCode::S,
+    VirtualKeyCode::D,
+    VirtualKeyCode::Space,
+    VirtualKeyCode::LShift
+];
 
 pub fn display_scene(scene: Scene) {
     let mut scene = scene;
-    let format = TextFormat::new(Vec2::new(400., 400.), 24., Rgba([255, 255, 255, 255]), Rgba([89, 89, 89, 255]));
+    let format = TextFormat::new(Vec2::new(GUI_WIDTH as f64, GUI_HEIGHT as f64), 24., Rgba([255, 255, 255, 255]), Rgba([89, 89, 89, 255]));
     let editing_format = TextFormat::new(Vec2::new(400., 400.), 24., Rgba([0, 0, 0, 255]), Rgba([255, 255, 255, 255]));
 
     // Set up window and event loop (can't move them elsewhere because of the borrow checker)
@@ -67,25 +80,45 @@ pub fn display_scene(scene: Scene) {
                         let rays = scene.camera().rays();
                         let ray = &rays[x as usize][y as usize];
                         let hit = get_closest_hit(&scene, ray);
-                        if hit.is_some() {
-                            let hit = hit.unwrap();
-                            let element = hit.element();
-
-                            let element_index: usize = scene.elements().iter().position(|e| {
-                                let e_shape = e.shape();
-                                let element_shape = element.shape();
-                                get_shape(e_shape) == get_shape(element_shape)
-                            }).unwrap() as usize;
-
-                            scene.gui = display_element_infos(element, &mut img);
-                            scene.gui.set_element_index(element_index);
-
-                            display(&mut pixels, &mut img);
-                        } else if gui_clicked(mouse_position, &scene.gui) {
+                        
+                        if gui_clicked(mouse_position, &scene.gui) {
                             // If the GUI is clicked
                             
                             let mut editing = false;
                             
+                            if hitbox_contains(scene.gui.cancel_hitbox(), mouse_position) {
+                                // Close GUI
+                                hide_gui(&mut img, &scene);
+                                scene.gui = Gui::new();
+                                display(&mut pixels, &mut img);
+                            } else if hitbox_contains(scene.gui.apply_hitbox(), mouse_position) {
+                                // Apply changes for every key
+                                for i in 0..scene.gui.keys().len() {
+                                    let key = scene.gui.keys()[i].clone();
+                                    let value = scene.gui.values()[i].clone().replace("_", "");
+                                    let element_index = scene.gui.element_index();
+                                    let elem = &scene.elements()[element_index];
+                                    let shape = elem.shape();
+
+                                    let new_shape = update_shape(shape, key, value);
+                                    if new_shape.is_some() {
+                                        scene.elements_as_mut()[element_index].set_shape(new_shape.unwrap());
+                                    }
+                                }
+                                img = render_scene_threadpool(&scene);
+                                display(&mut pixels, &mut img);
+                            } else {
+                                let index = scene.gui.updating_index();
+                                let value = scene.gui.values()[index].clone().replace("_", "");
+                                let hitbox = scene.gui.hitboxes()[index].clone();
+                                let pos = Vec2::new(*hitbox.0.x() as f64, *hitbox.0.y() as f64);
+                                let background_pos = Vec2::new(*hitbox.0.x() as f64 - 10., *hitbox.0.y() as f64);
+
+                                let text = format!("{}", value);
+                                draw_text(&mut img, &background_pos, " ".to_string(), &format);
+                                draw_text(&mut img, &pos, text, &format);
+                                display(&mut pixels, &mut img);
+                            }
                             if scene.gui.keys().len() > 0 {
                                 for i in 0..scene.gui.keys().len() {
                                     let hitbox = scene.gui.hitboxes()[i].clone();
@@ -132,6 +165,20 @@ pub fn display_scene(scene: Scene) {
                                 display(&mut pixels, &mut img);
                             }
 
+                        } else if hit.is_some() {
+                            let hit = hit.unwrap();
+                            let element = hit.element();
+
+                            let element_index: usize = scene.elements().iter().position(|e| {
+                                let e_shape = e.shape();
+                                let element_shape = element.shape();
+                                get_shape(e_shape) == get_shape(element_shape)
+                            }).unwrap() as usize;
+
+                            scene.gui = display_element_infos(element, &mut img);
+                            scene.gui.set_element_index(element_index);
+
+                            display(&mut pixels, &mut img);
                         } else {
                             hide_gui(&mut img, &scene);
                             scene.gui = Gui::new();
@@ -143,66 +190,28 @@ pub fn display_scene(scene: Scene) {
                     // If a key is pressed
                     if input.state == winit::event::ElementState::Released{
                         match input.virtual_keycode {
-                            c if (
-                                c == Some(VirtualKeyCode::W) ||
-                                c == Some(VirtualKeyCode::A) ||
-                                c == Some(VirtualKeyCode::S) ||
-                                c == Some(VirtualKeyCode::D) ||
-                                c == Some(VirtualKeyCode::Space) ||
-                                c == Some(VirtualKeyCode::LShift)
-                            ) => {
-                                // Get camera position
-                                let cam = scene.camera_mut();
-                                let pos = cam.pos();
-                                let dir = cam.dir(); // Go forward / backward
-                                let u = cam.u(); // Go left / right
-                                let v = cam.v(); // Go up / down
-                                let ratio = 0.1;
-                                let new_pos: Vec3;
-
-                                match c {
-                                    Some(VirtualKeyCode::W) => {
-                                        new_pos = Vec3::new(*pos.x() + *dir.x() * ratio, *pos.y() + *dir.y() * ratio, *pos.z() + *dir.z() * ratio);
-                                    }
-                                    Some(VirtualKeyCode::A) => {
-                                        new_pos = Vec3::new(*pos.x() - *u.x() * ratio, *pos.y() - *u.y() * ratio, *pos.z() - *u.z() * ratio);
-                                    }
-                                    Some(VirtualKeyCode::S) => {
-                                        new_pos = Vec3::new(*pos.x() - *dir.x() * ratio, *pos.y() - *dir.y() * ratio, *pos.z() - *dir.z() * ratio);
-                                    }
-                                    Some(VirtualKeyCode::D) => {
-                                        new_pos = Vec3::new(*pos.x() + *u.x() * ratio, *pos.y() + *u.y() * ratio, *pos.z() + *u.z() * ratio);
-                                    }
-                                    Some(VirtualKeyCode::LShift) => {
-                                        new_pos = Vec3::new(*pos.x() + *v.x() * ratio, *pos.y() + *v.y() * ratio, *pos.z() + *v.z() * ratio);
-                                    }
-                                    Some(VirtualKeyCode::Space) => {
-                                        new_pos = Vec3::new(*pos.x() - *v.x() * ratio, *pos.y() - *v.y() * ratio, *pos.z() - *v.z() * ratio);
-                                    }
-                                    _ => {
-                                        new_pos = Vec3::new(*pos.x(), *pos.y(), *pos.z());
-                                    }
-                                }
-
-                                // Update the camera's position
-                                cam.set_pos(new_pos);
-                                generate_rays(cam);
+                            c if CAM_MOVE_KEYS.contains(&c.expect("Wrong key")) => {
+                                // Camera movements
+                                let camera = scene.camera_mut();
+                                move_camera(camera, c);
+                                generate_rays(camera);
                                 let mut img = render_scene_threadpool(&scene);
                                 display(&mut pixels, &mut img);
                             }
                             Some(VirtualKeyCode::Escape) => {
                                 *control_flow = ControlFlow::Exit;
                             }
-                            x if x >= Some(VirtualKeyCode::Numpad0) && x <= Some(VirtualKeyCode::Numpad9) => {
-                                // Add x to the edited value
+                            c if c >= Some(VirtualKeyCode::Numpad0) && c <= Some(VirtualKeyCode::Numpad9) => {
+                                // Add c to the edited value
                                 let index = scene.gui.updating_index();
                                 let hitbox = scene.gui.hitboxes()[index].clone();
                                 let new_hitbox = (Vec2::new(*hitbox.0.x() - 10., *hitbox.0.y()), hitbox.1.clone());
                                 let pos = new_hitbox.0.clone();
-                                // -10 for the _
+
+                                // -10 px for the _ character
                                 let pos = Vec2::new(*pos.x() as f64 - 10., *pos.y() as f64);
                                 let value = scene.gui.values()[index].clone().replace("_", "");
-                                let number = x.unwrap() as u8 - VirtualKeyCode::Numpad0 as u8;
+                                let number = c.unwrap() as u8 - VirtualKeyCode::Numpad0 as u8;
 
                                 let value = format!("{}{:?}_", value, number);
 
@@ -283,49 +292,6 @@ pub fn display_scene(scene: Scene) {
                                 draw_text(&mut img, &pos, value, &editing_format);
                                 display(&mut pixels, &mut img);
                             }
-                            Some(VirtualKeyCode::NumpadEnter) => {
-                                // Exit editing mode and update the scene
-                                let index = scene.gui.updating_index();
-                                let element_index = scene.gui.element_index();
-                                let value = scene.gui.values()[index].clone().replace("_", "");
-
-                                scene.gui.set_updating(false);
-                                let elem = &scene.elements()[element_index];
-                                let shape = elem.shape();
-
-                                if shape.as_sphere().is_some() {
-                                    let sphere = shape.as_sphere().unwrap();
-                                    let key = scene.gui.keys()[index].clone();
-
-                                    let mut pos = sphere.pos().clone();
-                                    let mut radius = sphere.radius();
-                                    let dir = sphere.dir().clone();
-                                    
-                                    match key.as_str() {
-                                        "posx" => {
-                                            pos = Vec3::new(value.parse::<f64>().unwrap(), *pos.y(), *pos.z());
-                                        }
-                                        "posy" => {
-                                            pos = Vec3::new(*pos.x(), value.parse::<f64>().unwrap(), *pos.z());
-                                        }
-                                        "posz" => {
-                                            pos = Vec3::new(*pos.x(), *pos.y(), value.parse::<f64>().unwrap());
-                                        }
-                                        "radius" => {
-                                            radius = value.parse::<f64>().unwrap();
-                                        }
-                                        _ => (),
-                                    }
-                                    let sphere = sphere::Sphere::new(pos, dir, radius);
-                                    let sphere_for_gui = sphere.clone();
-                                    
-                                    scene.elements_as_mut()[element_index].set_shape(Box::new(sphere));
-                                    
-                                    img = render_scene_threadpool(&scene);
-                                    draw_sphere_gui(&mut img, &sphere_for_gui);
-                                    display(&mut pixels, &mut img);
-                                }
-                            }
                             _ => (),
                         }
                     }
@@ -333,7 +299,7 @@ pub fn display_scene(scene: Scene) {
                 _ => (),
             }
             Event::RedrawRequested(_) => {
-                // pixels.render().unwrap();
+                pixels.render().unwrap();
             }
             _ => (),
         }
@@ -356,32 +322,12 @@ fn display_element_infos(element: &Element, img: &mut ImageBuffer<Rgba<u8>, Vec<
     if shape.as_sphere().is_some() {
         let sphere = shape.as_sphere().unwrap();
         return draw_sphere_gui(img, sphere);
+    } else if shape.as_plane().is_some() {
+        let plane = shape.as_plane().unwrap();
+        return draw_plane_gui(img, plane);
     } else {
         return Gui::new();
     }
-    // else if shape.as_plane().is_some() {
-    //     let plane = shape.as_plane().unwrap();
-    //     let pos = plane.pos();
-    //     let dir = plane.dir();
-
-    //     println!("Plane: pos: {:?}, dir: {:?}", pos, dir);
-    // } else if shape.as_cylinder().is_some() {
-    //     let cylinder = shape.as_cylinder().unwrap();
-    //     let pos = cylinder.pos();
-    //     let dir = cylinder.dir();
-    //     let radius = cylinder.radius();
-    //     let height = cylinder.height();
-
-    //     println!("Cylinder: pos: {:?}, dir: {:?}, radius: {}, height: {}", pos, dir, radius, height);
-    // } else if shape.as_cone().is_some() {
-    //     let cone = shape.as_cone().unwrap();
-    //     let pos = cone.pos();
-    //     let dir = cone.dir();
-    //     let radius = cone.radius();
-    //     let height = cone.height();
-
-    //     println!("Cone: pos: {:?}, dir: {:?}, radius: {}, height: {}", pos, dir, radius, height);
-    // }
 }
 
 pub fn draw_text (image: &mut RgbaImage, pos: &Vec2, text: String, format: &TextFormat) {
