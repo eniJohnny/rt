@@ -216,7 +216,6 @@ pub fn display_scene(scene: Scene) {
                         match input.virtual_keycode {
                             c if CAM_MOVE_KEYS.contains(&c.expect("Wrong key")) => {
                                 // Camera movements
-                                println!("Camera pos: {}", scene.camera().pos());
                                 let camera = scene.camera_mut();
                                 move_camera(camera, c);
                                 generate_rays(camera);
