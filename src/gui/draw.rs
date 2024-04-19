@@ -1,11 +1,11 @@
 use image::Rgba;
 
-use crate::{display::draw_text, model::{maths::vec2::Vec2, shapes::{plane, sphere}}, GUI_HEIGHT, GUI_WIDTH};
+use crate::{display::draw_text, model::{materials::Material, maths::vec2::Vec2, shapes::{plane, sphere}}, GUI_HEIGHT, GUI_WIDTH};
 
 use super::{Gui, TextFormat};
 
 
-pub fn draw_sphere_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, sphere: &sphere::Sphere) -> Gui {
+pub fn draw_sphere_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, sphere: &sphere::Sphere, material: &dyn Material) -> Gui {
     let height: u32 = GUI_HEIGHT;
     let width: u32 = GUI_WIDTH;
     let size: Vec2 = Vec2::new(width as f64, height as f64);
@@ -33,6 +33,7 @@ pub fn draw_sphere_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, sphere:
     };
 
     let mut gui = Gui::new();
+    let color = material.color(0, 0);
 
     gui.keys.push("posx".to_string());
     gui.keys.push("posy".to_string());
@@ -40,6 +41,9 @@ pub fn draw_sphere_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, sphere:
     gui.keys.push("dirx".to_string());
     gui.keys.push("diry".to_string());
     gui.keys.push("dirz".to_string());
+    gui.keys.push("colr".to_string());
+    gui.keys.push("colg".to_string());
+    gui.keys.push("colb".to_string());
     gui.keys.push("radius".to_string());
 
     gui.values.push(sphere.pos().x().to_string());
@@ -48,12 +52,16 @@ pub fn draw_sphere_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, sphere:
     gui.values.push(sphere.dir().x().to_string());
     gui.values.push(sphere.dir().y().to_string());
     gui.values.push(sphere.dir().z().to_string());
+    gui.values.push((color.r() * 255.).to_string());
+    gui.values.push((color.g() * 255.).to_string());
+    gui.values.push((color.b() * 255.).to_string());
     gui.values.push(sphere.radius().to_string());
 
     titles.parse_and_draw_text(img, 0, "Sphere", "");
     titles.parse_and_draw_text(img, 1, "Position:", "");
     titles.parse_and_draw_text(img, 5, "Direction:", "");
-    titles.parse_and_draw_text(img, 9, "Misc:", "");
+    titles.parse_and_draw_text(img, 9, "Color:", "");
+    titles.parse_and_draw_text(img, 13, "Misc:", "");
 
     gui.hitboxes.push(params.parse_and_draw_text(img, 2, " X:", &sphere.pos().x().to_string()));
     gui.hitboxes.push(params.parse_and_draw_text(img, 3, " Y:", &sphere.pos().y().to_string()));
@@ -61,14 +69,17 @@ pub fn draw_sphere_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, sphere:
     gui.hitboxes.push(params.parse_and_draw_text(img, 6, " X:", &sphere.dir().x().to_string()));
     gui.hitboxes.push(params.parse_and_draw_text(img, 7, " Y:", &sphere.dir().y().to_string()));
     gui.hitboxes.push(params.parse_and_draw_text(img, 8, " Z:", &sphere.dir().z().to_string()));
-    gui.hitboxes.push(params.parse_and_draw_text(img, 10, " Radius:", &sphere.radius().to_string()));
+    gui.hitboxes.push(params.parse_and_draw_text(img, 10, " R:", &format!("{:.0}", color.r() * 255.)));
+    gui.hitboxes.push(params.parse_and_draw_text(img, 11, " G:", &format!("{:.0}", color.g() * 255.)));
+    gui.hitboxes.push(params.parse_and_draw_text(img, 12, " B:", &format!("{:.0}", color.b() * 255.)));
+    gui.hitboxes.push(params.parse_and_draw_text(img, 14, " Radius:", &sphere.radius().to_string()));
 
     draw_gui_buttons(img, &gui);
 
     gui
 }
 
-pub fn draw_plane_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, plane: &plane::Plane) -> Gui {
+pub fn draw_plane_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, plane: &plane::Plane, material: &dyn Material) -> Gui {
     let height: u32 = GUI_HEIGHT;
     let width: u32 = GUI_WIDTH;
     let size: Vec2 = Vec2::new(width as f64, height as f64);
@@ -96,6 +107,7 @@ pub fn draw_plane_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, plane: &
     };
 
     let mut gui = Gui::new();
+    let color = material.color(0,0);
 
     gui.keys.push("posx".to_string());
     gui.keys.push("posy".to_string());
@@ -103,6 +115,9 @@ pub fn draw_plane_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, plane: &
     gui.keys.push("dirx".to_string());
     gui.keys.push("diry".to_string());
     gui.keys.push("dirz".to_string());
+    gui.keys.push("colr".to_string());
+    gui.keys.push("colg".to_string());
+    gui.keys.push("colb".to_string());
 
     gui.values.push(plane.pos().x().to_string());
     gui.values.push(plane.pos().y().to_string());
@@ -110,10 +125,14 @@ pub fn draw_plane_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, plane: &
     gui.values.push(plane.dir().x().to_string());
     gui.values.push(plane.dir().y().to_string());
     gui.values.push(plane.dir().z().to_string());
+    gui.values.push((color.r() * 255.).to_string());
+    gui.values.push((color.g() * 255.).to_string());
+    gui.values.push((color.b() * 255.).to_string());
 
     titles.parse_and_draw_text(img, 0, "Plane", "");
     titles.parse_and_draw_text(img, 1, "Position:", "");
     titles.parse_and_draw_text(img, 5, "Direction:", "");
+    titles.parse_and_draw_text(img, 9, "Color:", "");
     
     gui.hitboxes.push(params.parse_and_draw_text(img, 2, " X:", &plane.pos().x().to_string()));
     gui.hitboxes.push(params.parse_and_draw_text(img, 3, " Y:", &plane.pos().y().to_string()));
@@ -121,6 +140,9 @@ pub fn draw_plane_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, plane: &
     gui.hitboxes.push(params.parse_and_draw_text(img, 6, " X:", &format!("{:.3}", plane.dir().x())));
     gui.hitboxes.push(params.parse_and_draw_text(img, 7, " Y:", &format!("{:.3}", plane.dir().y())));
     gui.hitboxes.push(params.parse_and_draw_text(img, 8, " Z:", &format!("{:.3}", plane.dir().z())));
+    gui.hitboxes.push(params.parse_and_draw_text(img, 10, " R:", &format!("{:.0}", color.r() * 255.)));
+    gui.hitboxes.push(params.parse_and_draw_text(img, 11, " G:", &format!("{:.0}", color.g() * 255.)));
+    gui.hitboxes.push(params.parse_and_draw_text(img, 12, " B:", &format!("{:.0}", color.b() * 255.)));
 
     draw_gui_buttons(img, &gui);
 

@@ -318,13 +318,14 @@ fn display (pixels: &mut Pixels<Window>, img: &mut RgbaImage) {
 fn display_element_infos(element: &Element, img: &mut ImageBuffer<Rgba<u8>, Vec<u8>>) -> Gui {
     let img = img;
     let shape = element.shape();
+    let material = element.material();
 
     if shape.as_sphere().is_some() {
         let sphere = shape.as_sphere().unwrap();
-        return draw_sphere_gui(img, sphere);
+        return draw_sphere_gui(img, sphere, material);
     } else if shape.as_plane().is_some() {
         let plane = shape.as_plane().unwrap();
-        return draw_plane_gui(img, plane);
+        return draw_plane_gui(img, plane, material);
     } else {
         return Gui::new();
     }
