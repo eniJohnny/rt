@@ -14,13 +14,28 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 use crate::{
-    gui::{draw::{draw_plane_gui, draw_sphere_gui}, gui_clicked, hide_gui, hitbox_contains, Gui, TextFormat}, model::{
-        maths::{vec2::Vec2, vec3::Vec3}, scene::{self, Scene}, shapes::{sphere, Shape}, Element
-    }, render::raycasting::{generate_rays, get_closest_hit, render_scene_threadpool}, GUI_HEIGHT, GUI_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH
+    gui::{
+        draw::{draw_plane_gui, draw_sphere_gui},
+        gui_clicked, hide_gui, hitbox_contains, Gui, TextFormat
+    },
+    model::{
+        materials::Color,
+        maths::vec2::Vec2,
+        scene::{self, Scene},
+        shapes::{sphere, Shape},
+        Element
+    },
+    render::raycasting::{
+        generate_rays,
+        get_closest_hit,
+        render_scene_threadpool
+    },
+    GUI_HEIGHT, GUI_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH
 };
 
-use self::utils::{move_camera, update_shape};
+use self::utils::{move_camera, update_color, update_shape};
 
+const RGB_KEYS: [&str; 3] = ["colr", "colg", "colb"];
 const CAM_MOVE_KEYS: [VirtualKeyCode; 6] = [
     VirtualKeyCode::W,
     VirtualKeyCode::A,
@@ -99,10 +114,19 @@ pub fn display_scene(scene: Scene) {
                                     let element_index = scene.gui.element_index();
                                     let elem = &scene.elements()[element_index];
                                     let shape = elem.shape();
+                                    let material = elem.material();
 
-                                    let new_shape = update_shape(shape, key, value);
-                                    if new_shape.is_some() {
-                                        scene.elements_as_mut()[element_index].set_shape(new_shape.unwrap());
+                                    if RGB_KEYS.contains(&key.as_str()) {
+                                        let color: Color = material.color(0, 0);
+                                        let new_material = update_color(key, value, color);
+                                        if new_material.is_some() {
+                                            scene.elements_as_mut()[element_index].set_material(new_material.unwrap());
+                                        }
+                                    } else {
+                                        let new_shape = update_shape(shape, key, value);
+                                        if new_shape.is_some() {
+                                            scene.elements_as_mut()[element_index].set_shape(new_shape.unwrap());
+                                        }
                                     }
                                 }
                                 img = render_scene_threadpool(&scene);

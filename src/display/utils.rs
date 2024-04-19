@@ -1,5 +1,5 @@
 use winit::event::VirtualKeyCode;
-use crate::model::{maths::vec3::Vec3, objects::camera::Camera, scene::Scene, shapes::{sphere, Shape}};
+use crate::model::{materials::{unicolor::Unicolor, Color, Material}, maths::vec3::Vec3, objects::camera::Camera,  shapes::{sphere, Shape}};
 
 pub fn move_camera(camera: &mut Camera, c: Option<VirtualKeyCode>) {
 
@@ -12,6 +12,24 @@ pub fn move_camera(camera: &mut Camera, c: Option<VirtualKeyCode>) {
         Some(VirtualKeyCode::LShift) => camera.move_down(),
         _ => (),
     }
+}
+
+pub fn update_color(key: String, value: String, color: Color) -> Option<Box<dyn Sync + Material>> {
+    let mut new_color: (u8, u8, u8) = ((color.r() * 255.) as u8, (color.g() * 255.) as u8, (color.b() * 255.) as u8);
+    match key.as_str() {
+        "colr" => {
+            new_color.0 = value.parse::<u8>().unwrap();
+        }
+        "colg" => {
+            new_color.1 = value.parse::<u8>().unwrap();
+        }
+        "colb" => {
+            new_color.2 = value.parse::<u8>().unwrap();
+        }
+        _ => (),
+    }
+    let new_material = Unicolor::new(new_color.0 as f64 / 255., new_color.1 as f64 / 255., new_color.2 as f64 / 255.);
+    Some(Box::new(new_material))
 }
 
 pub fn update_shape(shape: &dyn Shape, key: String, value: String) -> Option<Box<dyn Sync + Shape>> {    
