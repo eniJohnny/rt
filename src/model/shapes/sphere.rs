@@ -13,12 +13,13 @@ impl Shape for Sphere {
     fn distance(&self, vec: &Vec3) -> f64 {
         unimplemented!()
     }
-    
+
     fn intersect(&self, r: &Ray) -> Option<Vec<f64>> {
         // intersection rayon/sphere
         let dist = &self.pos - r.get_pos();
         let dot_product = r.get_dir().dot(&dist);
-        let discriminant = &dot_product * &dot_product - &dist.dot(&dist) + &self.radius * &self.radius;
+        let discriminant =
+            &dot_product * &dot_product - &dist.dot(&dist) + &self.radius * &self.radius;
         if discriminant < 0.0 {
             return None;
         }
@@ -34,43 +35,72 @@ impl Shape for Sphere {
         unimplemented!()
     }
     fn norm(&self, hit_position: &Vec3) -> Vec3 {
-		(hit_position - self.pos()).normalize()
+        (hit_position - self.pos()).normalize()
     }
 
-    fn as_sphere(&self) -> Option<&Sphere> { Some(self) }
+    fn as_sphere(&self) -> Option<&Sphere> {
+        Some(self)
+    }
+
+    fn as_plane(&self) -> Option<&super::plane::Plane> {
+        None
+    }
+
+    fn as_cylinder(&self) -> Option<&super::cylinder::Cylinder> {
+        None
+    }
+
+    fn as_cone(&self) -> Option<&super::cone::Cone> {
+        None
+    }
 }
 
 impl Sphere {
     // Accessors
-    pub fn pos(&self) -> &Vec3 { &self.pos }
-    pub fn dir(&self) -> &Vec3 { &self.dir }
-    pub fn radius(&self) -> f64 { self.radius }
+    pub fn pos(&self) -> &Vec3 {
+        &self.pos
+    }
+    pub fn dir(&self) -> &Vec3 {
+        &self.dir
+    }
+    pub fn radius(&self) -> f64 {
+        self.radius
+    }
 
     // Mutators
-    pub fn set_pos(&mut self, pos: Vec3) { self.pos = pos }
-    pub fn set_dir(&mut self, dir: Vec3) { self.dir = dir }
-    pub fn set_radius(&mut self, radius: f64) { self.radius = radius }
+    pub fn set_pos(&mut self, pos: Vec3) {
+        self.pos = pos
+    }
+    pub fn set_dir(&mut self, dir: Vec3) {
+        self.dir = dir
+    }
+    pub fn set_radius(&mut self, radius: f64) {
+        self.radius = radius
+    }
 
     // Constructor
-    pub fn new(pos: Vec3, dir: Vec3, radius: f64) -> Sphere{
+    pub fn new(pos: Vec3, dir: Vec3, radius: f64) -> Sphere {
         self::Sphere { pos, dir, radius }
     }
 
     // Methods
-    pub fn clone (&self) -> Sphere {
+    pub fn clone(&self) -> Sphere {
         let pos = Vec3::new(*self.pos.x(), *self.pos.y(), *self.pos.z());
         let dir = Vec3::new(*self.dir.x(), *self.dir.y(), *self.dir.z());
-        self::Sphere { pos: pos, dir: dir, radius: self.radius }
+        self::Sphere {
+            pos: pos,
+            dir: dir,
+            radius: self.radius,
+        }
     }
-
 }
 
 #[cfg(test)]
 mod tests {
     use crate::model::maths::ray::Ray;
     use crate::model::maths::vec3::Vec3;
-    use crate::model::shapes::Shape;
     use crate::model::shapes::sphere::Sphere;
+    use crate::model::shapes::Shape;
 
     #[test]
     fn test_intersect() {

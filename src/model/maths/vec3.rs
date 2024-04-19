@@ -55,11 +55,15 @@ impl Vec3 {
 		Quaternion::new(self.x, self.y, self.z, w)
     }
 
-	pub fn rotate(&self, angle: f64, axis: &Self) -> Self {
-		let q = Quaternion::new_from_axis_angle(axis, angle);
+	pub fn rotate(&self, q : &Quaternion) -> Self {
 		let q_conj = q.conjugate();
 		let p = self.to_quaternion(0.);
 		(q * p * q_conj).to_vec3()
+	}
+
+	pub fn rotate_from_axis_angle(&self, angle: f64, axis: &Self) -> Self {
+		let q = Quaternion::new_from_axis_angle(axis, angle);
+		self.rotate(&q)
 	}
 }
 
@@ -556,7 +560,7 @@ mod tests {
 	fn test_rotate() {
 		let v1: Vec3 = Vec3::new(1., 0., 0.);
 		let axis: Vec3 = Vec3::new(0., 0., 1.);
-		let rotated = v1.rotate(std::f64::consts::PI / 2., &axis);
+		let rotated = v1.rotate_from_axis_angle(std::f64::consts::PI / 2., &axis);
 		assert!((rotated.x() - 0.).abs() <= f64::EPSILON);
 		assert!((rotated.y() - 1.).abs() <= f64::EPSILON);
 		assert!((rotated.z() - 0.).abs() <= f64::EPSILON);
