@@ -147,7 +147,7 @@ fn is_corner(x: u32, y: u32, x_start: u32, y_start: u32, x_end: u32, y_end: u32)
     false
 }
 
-pub fn draw_button_background(img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, hitbox: &(Vec2, Vec2)) {
+pub fn draw_button_background(img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, hitbox: &(Vec2, Vec2), color: Rgba<u8>) {
     let upper_left_corner = &hitbox.0;
     let lower_right_corner = &hitbox.1;
 
@@ -156,7 +156,6 @@ pub fn draw_button_background(img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, h
     let y_start = *upper_left_corner.y() as u32;
     let y_end = *lower_right_corner.y() as u32;
 
-    let color = Rgba([70, 70, 70, 255]);
     for x in x_start..x_end {
         for y in y_start..y_end {
             if is_corner(x, y, x_start, y_start, x_end, y_end) == false {
@@ -176,8 +175,8 @@ pub fn draw_gui_buttons (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, gui: &
     let apply_pos = &gui.apply_hitbox().0;
     let cancel_pos = &gui.cancel_hitbox().0;
 
-    draw_button_background(img, gui.apply_hitbox());
-    draw_button_background(img, gui.cancel_hitbox());
+    draw_button_background(img, gui.apply_hitbox(), Rgba([70, 125, 70, 255]));
+    draw_button_background(img, gui.cancel_hitbox(), Rgba([125, 70, 70, 255]));
     draw_text(img, apply_pos, "Apply".to_string(), &buttons);
     draw_text(img, cancel_pos, "Cancel".to_string(), &buttons);
 }
