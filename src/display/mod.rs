@@ -216,10 +216,11 @@ pub fn display_scene(scene: Scene) {
                         match input.virtual_keycode {
                             c if CAM_MOVE_KEYS.contains(&c.expect("Wrong key")) => {
                                 // Camera movements
+                                println!("Camera pos: {}", scene.camera().pos());
                                 let camera = scene.camera_mut();
                                 move_camera(camera, c);
                                 generate_rays(camera);
-                                let mut img = render_scene_threadpool(&scene);
+                                img = render_scene_threadpool(&scene);
                                 display(&mut pixels, &mut img);
                             }
                             Some(VirtualKeyCode::Escape) => {
