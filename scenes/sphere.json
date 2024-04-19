@@ -8,6 +8,14 @@
         "metalness": 0.7
     },
     {
+        "type": "cylinder",
+        "pos": [0,4, 0],
+        "dir": [1, 0, 0],
+        "color": [255, 0, 0],
+        "radius": 0.5,
+        "height": 5
+    },
+    {
         "type": "sphere",
         "pos": [1, 0, 0],
         "dir": [1, 0, 0],
