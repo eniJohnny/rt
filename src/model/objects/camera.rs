@@ -1,5 +1,7 @@
 use crate::model::maths::{ray::Ray, vec3::Vec3};
 
+const STEP: f64 = 0.1;
+
 #[derive(Debug)]
 pub struct Camera {
     pos: Vec3,
@@ -42,4 +44,13 @@ impl Camera {
             v: Vec3::new(0., 0., 0.),
         }
     }
+
+    // Movement methods
+    pub fn move_forward(&mut self) { self.pos += self.dir() * STEP; }
+    pub fn move_backward(&mut self) { self.pos -= self.dir() * STEP; }
+    pub fn move_left(&mut self) { self.pos -= self.u() * STEP; }
+    pub fn move_right(&mut self) { self.pos += self.u() * STEP; }
+    pub fn move_up(&mut self) { self.pos -= self.v() * STEP; }
+    pub fn move_down(&mut self) { self.pos += self.v() * STEP; }
+
 }
