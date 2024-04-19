@@ -2,7 +2,7 @@ use crate::error;
 use crate::model::materials::Color;
 use crate::model::materials::unicolor::Unicolor;
 use crate::model::maths::vec3::Vec3;
-use crate::model::objects::light::{ParallelLight, PointLight};
+use crate::model::objects::light::{ParallelLight, PointLight, SpotLight};
 use crate::model::Element;
 use crate::model::{scene::Scene, shapes::sphere::Sphere, shapes::plane::Plane, shapes::cylinder::Cylinder, shapes::cone::Cone};
 use crate::model::objects::{camera::Camera, light::Light, light::AmbientLight};
@@ -99,6 +99,16 @@ pub fn get_scene() -> Scene {
                 let color = get_color(&object);
 
                 let new_light = Box::new(ParallelLight::new(dir, intensity, color)) as Box<dyn Light>;
+                scene.add_light(new_light);
+            },
+            "spot" => {
+                let intensity = get_intensity(&object);
+                let pos = get_position(&object);
+                let dir = get_direction(&object);
+                let color = get_color(&object);
+                let fov = get_fov(&object) * 2. * PI / 360.;
+
+                let new_light = Box::new(SpotLight::new(pos, dir, intensity, color, fov)) as Box<dyn Light>;
                 scene.add_light(new_light);
             },
             _ => {}
