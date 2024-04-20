@@ -18,7 +18,7 @@ const MAX_THREADS: usize = 16;
 const BASE_SIMPLIFICATION: usize = 64;
 
 pub fn run() {
-    let mut scene = get_scene();
+    let scene = get_scene();
     display_scene(scene);
 }
 

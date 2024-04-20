@@ -1,6 +1,6 @@
 use crate::{
+    gui::Gui,
     model::objects::light::{AmbientLight, Light},
-    gui::Gui
 };
 
 use super::{maths::vec3::Vec3, objects::camera::Camera, Element};
@@ -11,7 +11,7 @@ pub struct Scene {
     camera: Camera,
     lights: Vec<Box<dyn Light>>,
     ambient_light: AmbientLight,
-    pub gui: Gui
+    pub gui: Gui,
 }
 
 impl Scene {
@@ -21,7 +21,7 @@ impl Scene {
             camera: Camera::default(),
             lights: Vec::new(),
             ambient_light: AmbientLight::default(),
-            gui: Gui::new()
+            gui: Gui::new(),
         }
     }
 
@@ -83,5 +83,4 @@ impl Scene {
     pub fn set_ambient_light(&mut self, ambient_light: AmbientLight) {
         self.ambient_light = ambient_light;
     }
-
 }

@@ -26,6 +26,20 @@ use crate::{
     GUI_HEIGHT, GUI_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 use image::{ImageBuffer, Rgba, RgbaImage};
+use std::{
+    sync::{
+        mpsc::{Receiver, Sender},
+        Arc, RwLock,
+    },
+    thread,
+    time::{Duration, Instant},
+};
+
+use crate::{
+    gui::draw_gui, model::scene::Scene, render::render_threads::start_render_threads,
+    SCREEN_HEIGHT, SCREEN_WIDTH,
+};
+use image::RgbaImage;
 use pixels::{Pixels, SurfaceTexture};
 use rusttype::{Font, Scale};
 use winit::{
@@ -77,7 +91,13 @@ pub fn display_scene(scene: Scene) {
         Pixels::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32, surface_texture).unwrap()
     };
 
-    let mut img = render_scene_threadpool(&scene);
+    // Setting up the render_threads and asking for the first image
+    let scene = Arc::new(RwLock::new(scene));
+    let (ra, tb) = start_render_threads(Arc::clone(&scene));
+    let mut scene_change = false;
+    let mut image_requested = true;
+    let mut final_image = false;
+    tb.send(scene_change).unwrap();
 
     // Display the scene
     display(&mut pixels, &mut img);
@@ -85,8 +105,7 @@ pub fn display_scene(scene: Scene) {
     // Event loop (can't move it elsewhere because of the borrow checker)
     let mut mouse_position = (0.0, 0.0);
     event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Wait;
-
+        *control_flow = ControlFlow::WaitUntil(Instant::now() + Duration::from_millis(10));
         match event {
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::CloseRequested => {
@@ -372,9 +391,23 @@ pub fn display_scene(scene: Scene) {
                 _ => (),
             },
             Event::RedrawRequested(_) => {
-                pixels.render().unwrap();
+                image_requested = true;
             }
             _ => (),
+        }
+        if scene_change {
+            final_image = false;
+        }
+        if image_requested {
+            if let Ok((img, final_img)) = ra.try_recv() {
+                display(&mut pixels, &mut img);
+                final_image = final_img;
+                image_requested = false;
+            }
+        } else if !final_image {
+            tb.send(scene_change).unwrap();
+            scene_change = false;
+            image_requested = true;
         }
     });
 }
