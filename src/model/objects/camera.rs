@@ -3,7 +3,7 @@ use crate::{
     SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 
-const STEP: f64 = 0.1;
+const STEP: f64 = 0.2;
 
 #[derive(Debug)]
 pub struct Camera {
@@ -11,7 +11,6 @@ pub struct Camera {
     dir: Vec3,
     fov: f64,
     vfov: f64,
-    rays: Vec<Vec<Ray>>,
     u: Vec3,
     v: Vec3,
 }
@@ -26,9 +25,6 @@ impl Camera {
     }
     pub fn fov(&self) -> f64 {
         self.fov
-    }
-    pub fn rays(&self) -> &Vec<Vec<Ray>> {
-        &self.rays
     }
     pub fn vfov(&self) -> f64 {
         self.vfov
@@ -66,7 +62,6 @@ impl Camera {
             u,
             v,
             vfov,
-            rays: vec![],
         }
     }
 
@@ -78,7 +73,6 @@ impl Camera {
             u: Vec3::new(0.0, 0.0, 0.0),
             v: Vec3::new(0.0, 0.0, 0.0),
             vfov: 0.,
-            rays: vec![],
         }
     }
 

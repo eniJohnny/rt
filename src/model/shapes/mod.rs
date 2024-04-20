@@ -5,7 +5,6 @@ use self::sphere::Sphere;
 use std::fmt::Debug;
 
 use super::maths::{hit::Hit, ray::Ray, vec3::Vec3};
-use std::fmt::Debug;
 
 pub mod cone;
 pub mod cylinder;
@@ -30,5 +29,4 @@ pub trait Shape: Debug + Sync + Send {
     fn as_cone(&self) -> Option<&Cone> {
         None
     }
-    fn norm(&self, hit_position: &Vec3) -> Vec3;
 }

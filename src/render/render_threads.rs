@@ -20,7 +20,7 @@ use crate::{
     BASE_SIMPLIFICATION, MAX_THREADS, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 
-use super::raycasting::cast_ray;
+use super::raycasting::{cast_ray, get_ray};
 
 #[derive(Clone)]
 struct Tile {
@@ -64,10 +64,6 @@ fn generate_tiles_for(queue: &Arc<Mutex<VecDeque<Tile>>>, simplification_factor:
     cpt
 }
 
-fn get_angle_to(fov: f64, pos: f64, length: f64) -> f64 {
-    (pos / length - 0.5) * fov
-}
-
 pub fn start_render_threads(
     scene: Arc<RwLock<Scene>>,
 ) -> (Receiver<(RgbaImage, bool)>, Sender<bool>) {
@@ -108,14 +104,7 @@ pub fn start_render_threads(
                     // 4 rays seront lancers (4 x 32x32 = 64x64)
                     for_each_uncalculated_pixel(&tile, |x, y| {
                         // On calcule le ray et on le cast
-                        let roll = get_angle_to(camera.fov(), x as f64, SCREEN_WIDTH as f64);
-                        let pitch = get_angle_to(camera.vfov(), y as f64, SCREEN_HEIGHT as f64);
-                        let quat = Quaternion::from_euler_angles(pitch, roll, 0.);
-                        let ray = Ray::new(
-                            camera.pos().clone(),
-                            camera.dir().clone().rotate(&quat).normalize(),
-                            0,
-                        );
+                        let ray = get_ray(&scene, x, y);
                         colors.push(cast_ray(&scene, &ray));
                     });
                     // Envoi de la tile
@@ -151,6 +140,29 @@ fn build_image_from_tilesets(
     let mut img = RgbaImage::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32);
     loop {
         // On recoit les demandes d'images du main_thread (une seule a la fois, pas de nouvelle demande tant qu'on a pas envoye une image)
+        loop {
+            // Reception des tiles render par les worker_threads
+            if let Ok((tile, colors)) = rc.try_recv() {
+                let mut index = 0;
+                // Meme chose que dans render_tilesets, on ne remplit que les zones necessaires par tile et par resolution.
+                for_each_uncalculated_pixel(&tile, |x, y| {
+                    let color = colors[index].clone().to_rgba();
+                    index += 1;
+                    for x in x..min(x + &tile.factor, SCREEN_WIDTH) {
+                        for y in y..min(y + &tile.factor, SCREEN_HEIGHT) {
+                            img.put_pixel(x as u32, y as u32, color);
+                        }
+                    }
+                });
+                // On retient les tile de la plus basse resolution qui passent par la
+                if tile.factor == BASE_SIMPLIFICATION {
+                    low_res_to_do -= 1;
+                }
+            }
+            if low_res_to_do == 0 {
+                break;
+            }
+        }
         if let Ok(scene_change) = rb.try_recv() {
             // Si la scene a change entre temps depuis le GUI, on reset tout
             if scene_change {
@@ -161,33 +173,9 @@ fn build_image_from_tilesets(
                 low_res_to_do = generate_tiles_for(&work_queue, BASE_SIMPLIFICATION);
                 //TODO: Actuellement les worker_threads en cours de render vont probablement envoyer la tile qu'ils sont en train de render
                 //      au moment du reset. Il faut trouver un moyen de les empecher.
-            } else if low_res_to_do == 0 {
-                // Si aucun changement n'a ete detecte, et qu'on a AU MOINS une image de la plus basse resolution, on l'envoie
-                ta.send((img.clone(), work_queue.lock().unwrap().is_empty()))
-                    .unwrap();
-            }
-        }
-        // Reception des tiles render par les worker_threads
-        if let Ok((tile, colors)) = rc.try_recv() {
-            let mut index = 0;
-            // Meme chose que dans render_tilesets, on ne remplit que les zones necessaires par tile et par resolution.
-            for_each_uncalculated_pixel(&tile, |x, y| {
-                let color = colors[index].clone().to_rgba();
-                index += 1;
-                for x in x..min(x + &tile.factor, SCREEN_WIDTH) {
-                    for y in y..min(y + &tile.factor, SCREEN_HEIGHT) {
-                        img.put_pixel(x as u32, y as u32, color);
-                    }
-                }
-            });
-            // On retient les tile de la plus basse resolution qui passent par la
-            if tile.factor == BASE_SIMPLIFICATION {
-                low_res_to_do -= 1;
-                if low_res_to_do == 0 {
-                    // Aucun autre check necessaire, si on genere une image et qu'on vient a peine de finir la plus basse resolution,
-                    // c'est forcement qu'on doit l'envoyer a l'UI.
-                    ta.send((img.clone(), false)).unwrap();
-                }
+            } else {
+                // Si aucun changement n'a ete detecte on envoie l'image actuelle
+                ta.send((img.clone(), work_queue.lock().unwrap().is_empty()));
             }
         }
     }

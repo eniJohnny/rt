@@ -5,41 +5,23 @@ extern crate winit;
 pub mod utils;
 
 use crate::{
-    gui::draw_gui,
-    model::scene::Scene,
-    render::raycasting::{render_scene, render_scene_threadpool},
-    SCREEN_HEIGHT, SCREEN_WIDTH,
-};
-use crate::{
     gui::{
         draw::{draw_plane_gui, draw_sphere_gui},
         gui_clicked, hide_gui, hitbox_contains, Gui, TextFormat,
     },
-    model::{
-        materials::Color,
-        maths::vec2::Vec2,
-        scene::{self, Scene},
-        shapes::{sphere, Shape},
-        Element,
-    },
-    render::raycasting::{generate_rays, get_closest_hit, render_scene_threadpool},
-    GUI_HEIGHT, GUI_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH,
+    model::{materials::Color, maths::vec2::Vec2, scene::Scene, shapes::Shape, Element},
+    render::raycasting::{get_closest_hit, get_ray},
+    FPS, GUI_HEIGHT, GUI_WIDTH, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32,
 };
 use image::{ImageBuffer, Rgba, RgbaImage};
 use std::{
-    sync::{
-        mpsc::{Receiver, Sender},
-        Arc, RwLock,
-    },
+    collections::HashMap,
+    sync::{Arc, RwLock},
     thread,
     time::{Duration, Instant},
 };
 
-use crate::{
-    gui::draw_gui, model::scene::Scene, render::render_threads::start_render_threads,
-    SCREEN_HEIGHT, SCREEN_WIDTH,
-};
-use image::RgbaImage;
+use crate::render::render_threads::start_render_threads;
 use pixels::{Pixels, SurfaceTexture};
 use rusttype::{Font, Scale};
 use winit::{
@@ -99,13 +81,27 @@ pub fn display_scene(scene: Scene) {
     let mut final_image = false;
     tb.send(scene_change).unwrap();
 
+    let mut img = RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32);
+
     // Display the scene
     display(&mut pixels, &mut img);
 
+    let mut current_input: Option<VirtualKeyCode> = None;
+    let mut time_of_last_move = Instant::now();
+    let time_between_move = Duration::from_millis(1000 / FPS);
+
     // Event loop (can't move it elsewhere because of the borrow checker)
     let mut mouse_position = (0.0, 0.0);
-    event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::WaitUntil(Instant::now() + Duration::from_millis(10));
+    event_loop.run(move |event, _, control_flow: &mut ControlFlow| {
+        *control_flow = ControlFlow::WaitUntil(Instant::now() + Duration::from_millis(20));
+        if scene_change {
+            thread::sleep(Duration::from_millis(10));
+            tb.send(false).unwrap();
+            let (render_img, _) = ra.recv().unwrap();
+            img = render_img;
+            display(&mut pixels, &mut img);
+            scene_change = false;
+        }
         match event {
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::CloseRequested => {
@@ -123,9 +119,14 @@ pub fn display_scene(scene: Scene) {
                         let x = mouse_position.0 as u32;
                         let y = mouse_position.1 as u32;
 
-                        let rays = scene.camera().rays();
-                        let ray = &rays[x as usize][y as usize];
-                        let hit = get_closest_hit(&scene, ray);
+                        /////////////////////////////////////////////////////////////////////
+                        /////////////////////////// ATTENTION ///////////////////////////////
+                        /////////////////////////////////////////////////////////////////////
+                        // Tant que l'on maintiens une reference write du RwLock(Sorte de mutex),
+                        // tous les threads de render seront bloques.
+                        let mut scene = scene.write().unwrap();
+                        let ray = get_ray(&scene, x as usize, y as usize);
+                        let hit = get_closest_hit(&scene, &ray);
 
                         if gui_clicked(mouse_position, &scene.gui) {
                             // If the GUI is clicked
@@ -161,8 +162,8 @@ pub fn display_scene(scene: Scene) {
                                                 .set_shape(new_shape.unwrap());
                                         }
                                     }
+                                    scene_change = true;
                                 }
-                                img = render_scene_threadpool(&scene);
                                 display(&mut pixels, &mut img);
                             } else {
                                 let index = scene.gui.updating_index();
@@ -253,7 +254,6 @@ pub fn display_scene(scene: Scene) {
 
                             scene.gui = display_element_infos(element, &mut img);
                             scene.gui.set_element_index(element_index);
-
                             display(&mut pixels, &mut img);
                         } else {
                             hide_gui(&mut img, &scene);
@@ -265,127 +265,9 @@ pub fn display_scene(scene: Scene) {
                 WindowEvent::KeyboardInput { input, .. } => {
                     // If a key is pressed
                     if input.state == winit::event::ElementState::Released {
-                        match input.virtual_keycode {
-                            c if CAM_MOVE_KEYS.contains(&c.expect("Wrong key")) => {
-                                // Camera movements
-                                let camera = scene.camera_mut();
-                                move_camera(camera, c);
-                                generate_rays(camera);
-                                img = render_scene_threadpool(&scene);
-                                display(&mut pixels, &mut img);
-                            }
-                            Some(VirtualKeyCode::Escape) => {
-                                *control_flow = ControlFlow::Exit;
-                            }
-                            c if c >= Some(VirtualKeyCode::Numpad0)
-                                && c <= Some(VirtualKeyCode::Numpad9) =>
-                            {
-                                // Add c to the edited value
-                                let index = scene.gui.updating_index();
-                                let hitbox = scene.gui.hitboxes()[index].clone();
-                                let new_hitbox = (
-                                    Vec2::new(*hitbox.0.x() - 10., *hitbox.0.y()),
-                                    hitbox.1.clone(),
-                                );
-                                let pos = new_hitbox.0.clone();
-
-                                // -10 px for the _ character
-                                let pos = Vec2::new(*pos.x() as f64 - 10., *pos.y() as f64);
-                                let value = scene.gui.values()[index].clone().replace("_", "");
-                                let number = c.unwrap() as u8 - VirtualKeyCode::Numpad0 as u8;
-
-                                let value = format!("{}{:?}_", value, number);
-
-                                scene.gui.set_updates(index, &value, &new_hitbox);
-
-                                draw_text(&mut img, &pos, value, &editing_format);
-                                display(&mut pixels, &mut img);
-                            }
-                            Some(VirtualKeyCode::Back) => {
-                                // Remove last character from the edited value
-                                let index = scene.gui.updating_index();
-                                let hitbox = scene.gui.hitboxes()[index].clone();
-                                let new_hitbox = (
-                                    Vec2::new(*hitbox.0.x() + 10., *hitbox.0.y()),
-                                    hitbox.1.clone(),
-                                );
-                                let pos = new_hitbox.0.clone();
-                                // -10 for the _
-                                let pos = Vec2::new(*pos.x() as f64 - 10., *pos.y() as f64);
-                                let background_pos =
-                                    Vec2::new(*hitbox.0.x() as f64 - 10., *hitbox.0.y() as f64);
-                                let value = scene.gui.values()[index].clone().replace("_", "");
-
-                                if value.len() > 0 {
-                                    let value =
-                                        value.chars().take(value.len() - 1).collect::<String>();
-                                    let value = format!("{}_", value);
-
-                                    scene.gui.set_updates(index, &value, &new_hitbox);
-
-                                    draw_text(&mut img, &background_pos, " ".to_string(), &format);
-                                    draw_text(&mut img, &pos, value, &editing_format);
-                                    display(&mut pixels, &mut img);
-                                }
-                            }
-                            Some(VirtualKeyCode::NumpadDecimal) => {
-                                // Add a comma to the edited value
-                                let index = scene.gui.updating_index();
-                                let hitbox = scene.gui.hitboxes()[index].clone();
-                                let new_hitbox = (
-                                    Vec2::new(*hitbox.0.x() - 10., *hitbox.0.y()),
-                                    hitbox.1.clone(),
-                                );
-                                let pos = new_hitbox.0.clone();
-                                // -10 for the _
-                                let pos = Vec2::new(*pos.x() as f64 - 10., *pos.y() as f64);
-                                let mut value = scene.gui.values()[index].clone().replace("_", "");
-
-                                if value.contains(".") {
-                                    return;
-                                }
-
-                                if value.len() == 0 {
-                                    value = "0._".to_string();
-                                } else {
-                                    value = format!("{}._", value);
-                                }
-                                scene.gui.set_updates(index, &value, &new_hitbox);
-
-                                draw_text(&mut img, &pos, value, &editing_format);
-                                display(&mut pixels, &mut img);
-                            }
-                            Some(VirtualKeyCode::NumpadSubtract) => {
-                                // Add a minus to the edited value
-                                let index = scene.gui.updating_index();
-                                let hitbox = scene.gui.hitboxes()[index].clone();
-                                let mut offset = -10.;
-                                if scene.gui.values()[index].contains("-") {
-                                    offset = 10.;
-                                }
-                                let new_hitbox = (
-                                    Vec2::new(*hitbox.0.x() + offset, *hitbox.0.y()),
-                                    hitbox.1.clone(),
-                                );
-                                let pos = new_hitbox.0.clone();
-                                // -10 for the _
-                                let pos = Vec2::new(*pos.x() as f64 - 10., *pos.y() as f64);
-                                let mut value = scene.gui.values()[index].clone().replace("_", "");
-
-                                value.push('_');
-                                if value.contains("-") {
-                                    value = value.replace("-", "");
-                                } else {
-                                    value = format!("-{}", value);
-                                }
-
-                                scene.gui.set_updates(index, &value, &new_hitbox);
-
-                                draw_text(&mut img, &pos, value, &editing_format);
-                                display(&mut pixels, &mut img);
-                            }
-                            _ => (),
-                        }
+                        current_input = None;
+                    } else if input.state == winit::event::ElementState::Pressed {
+                        current_input = input.virtual_keycode;
                     }
                 }
                 _ => (),
@@ -395,18 +277,142 @@ pub fn display_scene(scene: Scene) {
             }
             _ => (),
         }
+        if Instant::now() - time_of_last_move > time_between_move {
+            if let Some(key_code) = current_input {
+                let mut scene = scene.write().unwrap();
+                match Some(key_code) {
+                    c if CAM_MOVE_KEYS.contains(&c.expect("Wrong key")) => {
+                        // Camera movements
+                        let camera = scene.camera_mut();
+                        move_camera(camera, c);
+                        scene_change = true;
+                    }
+                    Some(VirtualKeyCode::Escape) => {
+                        *control_flow = ControlFlow::Exit;
+                    }
+                    c if c >= Some(VirtualKeyCode::Numpad0)
+                        && c <= Some(VirtualKeyCode::Numpad9) =>
+                    {
+                        // Add c to the edited value
+                        let index = scene.gui.updating_index();
+                        let hitbox = scene.gui.hitboxes()[index].clone();
+                        let new_hitbox = (
+                            Vec2::new(*hitbox.0.x() - 10., *hitbox.0.y()),
+                            hitbox.1.clone(),
+                        );
+                        let pos = new_hitbox.0.clone();
+
+                        // -10 px for the _ character
+                        let pos = Vec2::new(*pos.x() as f64 - 10., *pos.y() as f64);
+                        let value = scene.gui.values()[index].clone().replace("_", "");
+                        let number = c.unwrap() as u8 - VirtualKeyCode::Numpad0 as u8;
+
+                        let value = format!("{}{:?}_", value, number);
+
+                        scene.gui.set_updates(index, &value, &new_hitbox);
+
+                        draw_text(&mut img, &pos, value, &editing_format);
+                        display(&mut pixels, &mut img);
+                    }
+                    Some(VirtualKeyCode::Back) => {
+                        // Remove last character from the edited value
+                        let index = scene.gui.updating_index();
+                        let hitbox = scene.gui.hitboxes()[index].clone();
+                        let new_hitbox = (
+                            Vec2::new(*hitbox.0.x() + 10., *hitbox.0.y()),
+                            hitbox.1.clone(),
+                        );
+                        let pos = new_hitbox.0.clone();
+                        // -10 for the _
+                        let pos = Vec2::new(*pos.x() as f64 - 10., *pos.y() as f64);
+                        let background_pos =
+                            Vec2::new(*hitbox.0.x() as f64 - 10., *hitbox.0.y() as f64);
+                        let value = scene.gui.values()[index].clone().replace("_", "");
+
+                        if value.len() > 0 {
+                            let value = value.chars().take(value.len() - 1).collect::<String>();
+                            let value = format!("{}_", value);
+
+                            scene.gui.set_updates(index, &value, &new_hitbox);
+
+                            draw_text(&mut img, &background_pos, " ".to_string(), &format);
+                            draw_text(&mut img, &pos, value, &editing_format);
+                            display(&mut pixels, &mut img);
+                        }
+                    }
+                    Some(VirtualKeyCode::NumpadDecimal) => {
+                        // Add a comma to the edited value
+                        let index = scene.gui.updating_index();
+                        let hitbox = scene.gui.hitboxes()[index].clone();
+                        let new_hitbox = (
+                            Vec2::new(*hitbox.0.x() - 10., *hitbox.0.y()),
+                            hitbox.1.clone(),
+                        );
+                        let pos = new_hitbox.0.clone();
+                        // -10 for the _
+                        let pos = Vec2::new(*pos.x() as f64 - 10., *pos.y() as f64);
+                        let mut value = scene.gui.values()[index].clone().replace("_", "");
+
+                        if value.contains(".") {
+                            return;
+                        }
+
+                        if value.len() == 0 {
+                            value = "0._".to_string();
+                        } else {
+                            value = format!("{}._", value);
+                        }
+                        scene.gui.set_updates(index, &value, &new_hitbox);
+
+                        draw_text(&mut img, &pos, value, &editing_format);
+                        display(&mut pixels, &mut img);
+                    }
+                    Some(VirtualKeyCode::NumpadSubtract) => {
+                        // Add a minus to the edited value
+                        let index = scene.gui.updating_index();
+                        let hitbox = scene.gui.hitboxes()[index].clone();
+                        let mut offset = -10.;
+                        if scene.gui.values()[index].contains("-") {
+                            offset = 10.;
+                        }
+                        let new_hitbox = (
+                            Vec2::new(*hitbox.0.x() + offset, *hitbox.0.y()),
+                            hitbox.1.clone(),
+                        );
+                        let pos = new_hitbox.0.clone();
+                        // -10 for the _
+                        let pos = Vec2::new(*pos.x() as f64 - 10., *pos.y() as f64);
+                        let mut value = scene.gui.values()[index].clone().replace("_", "");
+
+                        value.push('_');
+                        if value.contains("-") {
+                            value = value.replace("-", "");
+                        } else {
+                            value = format!("-{}", value);
+                        }
+
+                        scene.gui.set_updates(index, &value, &new_hitbox);
+
+                        draw_text(&mut img, &pos, value, &editing_format);
+                        display(&mut pixels, &mut img);
+                    }
+                    _ => (),
+                }
+            }
+            time_of_last_move = Instant::now();
+        }
         if scene_change {
             final_image = false;
-        }
-        if image_requested {
-            if let Ok((img, final_img)) = ra.try_recv() {
+            tb.send(true).unwrap();
+        } else if image_requested {
+            if let Ok((render_img, final_img)) = ra.try_recv() {
+                img = render_img;
                 display(&mut pixels, &mut img);
                 final_image = final_img;
                 image_requested = false;
             }
         } else if !final_image {
-            tb.send(scene_change).unwrap();
-            scene_change = false;
+            tb.send(false).unwrap();
             image_requested = true;
         }
     });
