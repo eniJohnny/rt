@@ -5,6 +5,7 @@ use self::sphere::Sphere;
 use std::fmt::Debug;
 
 use super::maths::{hit::Hit, ray::Ray, vec3::Vec3};
+use std::fmt::Debug;
 
 pub mod cone;
 pub mod cylinder;
