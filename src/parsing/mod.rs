@@ -112,7 +112,7 @@ pub fn get_scene() -> Scene {
                 let color = get_color(&object);
                 let fov = get_fov(&object) * 2. * PI / 360.;
 
-                let new_light = Box::new(SpotLight::new(pos, dir, intensity, color, fov)) as Box<dyn Light>;
+                let new_light = Box::new(SpotLight::new(pos, dir, intensity, color, fov)) as Box<dyn Light + Sync + Send>;
                 scene.add_light(new_light);
             },
             _ => {}
