@@ -15,3 +15,5 @@ Cargo.lock
 
 # Visual Studio Code workspace file
 .vscode/
+
+scenes/johnny.json

@@ -15,7 +15,7 @@ impl Shape for Plane {
 
         let dist = &self.pos - r.get_pos();
         let dot_product = r.get_dir().dot(&self.dir);
-        if (dot_product >0. ) {
+        if dot_product >0.  {
             return None;
         }
         let t = dist.dot(&self.dir) / dot_product;
@@ -27,7 +27,11 @@ impl Shape for Plane {
     fn projection(&self, hit: &Hit) -> (i32, i32) {
         unimplemented!()
     }
-    fn norm(&self, _: &Vec3) -> Vec3 {
+    fn norm(&self, ray: &Vec3) -> Vec3 {
+        // On doit aussi prendre on compte quand on tape de l'autre cote du plane
+        if ray.dot(&self.dir) > 0. {
+            return - self.dir.clone();
+        }
 		self.dir.clone()
 	}
     fn as_plane(&self) -> Option<&Plane> { Some(self) }
