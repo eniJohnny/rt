@@ -34,7 +34,7 @@ impl Shape for Sphere {
     fn projection(&self, hit: &Hit) -> (i32, i32) {
         unimplemented!()
     }
-    fn norm(&self, hit_position: &Vec3) -> Vec3 {
+    fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {
         (hit_position - self.pos()).normalize()
     }
 
