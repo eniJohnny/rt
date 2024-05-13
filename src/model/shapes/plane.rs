@@ -73,7 +73,7 @@ mod tests {
     fn test_plane_intersect1() {
         let plane = super::Plane::new(Vec3::new(0., 0., 1.), Vec3::new(0., 0., 1.));
         let ray = Ray::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 0.0, 1.0), 5);
-        assert_eq!(plane.intersect(&ray), None);
+        assert_eq!(plane.intersect(&ray), Some(Vec::from([1.0])));
     }
 
     #[test]
