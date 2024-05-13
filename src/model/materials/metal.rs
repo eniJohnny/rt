@@ -3,24 +3,20 @@ use crate::model::maths::vec3::Vec3;
 use super::{Color, Material};
 
 #[derive(Clone, Debug)]
-pub struct Unicolor {
+pub struct Metal {
     color: Color,
+    reflection: f64,
 }
 
-impl Unicolor {
-    pub fn new(r: f64, g: f64, b: f64) -> Self {
-        Self {
-            color: Color::new(r, g, b),
-        }
-    }
-    pub fn from(color: Color) -> Self {
-        Self { color }
+impl Metal {
+    pub fn new(color: Color, reflection: f64) -> Self {
+        Self { color, reflection }
     }
 }
 
-unsafe impl Send for Unicolor {}
+unsafe impl Send for Metal {}
 
-impl Material for Unicolor {
+impl Material for Metal {
     fn color(&self, _: i32, _: i32) -> Color {
         Color::new(self.color.r(), self.color.g(), self.color.b())
     }
@@ -28,7 +24,7 @@ impl Material for Unicolor {
         Vec3::new(0., 0., 1.)
     }
     fn reflection_coef(&self) -> f64 {
-        0.
+        self.reflection
     }
     fn refraction_coef(&self) -> f64 {
         0.

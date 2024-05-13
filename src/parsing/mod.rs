@@ -1,8 +1,9 @@
+use crate::model::materials::metal::Metal;
 use crate::model::materials::unicolor::Unicolor;
-use crate::model::materials::Color;
+use crate::model::materials::{Color, Material};
 use crate::model::maths::vec3::Vec3;
-use crate::model::objects::{camera::Camera, light::AmbientLight, light::Light};
-use crate::model::objects::light::{ParallelLight, PointLight, SpotLight};
+use crate::model::objects::camera::Camera;
+use crate::model::objects::light::{AmbientLight, Light, ParallelLight, PointLight};
 use crate::model::Element;
 use crate::model::{
     scene::Scene, shapes::cone::Cone, shapes::cylinder::Cylinder, shapes::plane::Plane,
@@ -30,7 +31,7 @@ pub fn get_scene() -> Scene {
                 let dir = get_direction(&object);
 
                 let shape = Box::new(Sphere::new(pos, dir, radius));
-                let material = Box::new(Unicolor::from(color));
+                let material = get_material(&object, color);
 
                 let element = Element::new(shape, material);
                 scene.add_element(element)
@@ -41,7 +42,7 @@ pub fn get_scene() -> Scene {
                 let color = get_color(&object);
 
                 let shape = Box::new(Plane::new(pos, dir));
-                let material = Box::new(Unicolor::from(color));
+                let material = get_material(&object, color);
 
                 let element = Element::new(shape, material);
                 scene.add_element(element)
@@ -54,7 +55,7 @@ pub fn get_scene() -> Scene {
                 let dir: Vec3 = Vec3::new(1.0, 0.0, 0.0);
 
                 let shape = Box::new(Cylinder::new(pos, dir, radius, height));
-                let material = Box::new(Unicolor::from(color));
+                let material = get_material(&object, color);
 
                 let element = Element::new(shape, material);
                 scene.add_element(element)
@@ -67,7 +68,7 @@ pub fn get_scene() -> Scene {
                 let dir: Vec3 = Vec3::new(1.0, 0.0, 0.0);
 
                 let shape = Box::new(Cone::new(pos, dir, radius, height));
-                let material = Box::new(Unicolor::from(color));
+                let material = get_material(&object, color);
 
                 let element = Element::new(shape, material);
                 scene.add_element(element)
@@ -101,20 +102,9 @@ pub fn get_scene() -> Scene {
                 let dir = get_direction(&object);
                 let color = get_color(&object);
 
-                let new_light = Box::new(ParallelLight::new(dir, intensity, color))
-                    as Box<dyn Light + Sync + Send>;
+                let new_light = Box::new(ParallelLight::new(dir, intensity, color));
                 scene.add_light(new_light);
-            },
-            "spot" => {
-                let intensity = get_intensity(&object);
-                let pos = get_position(&object);
-                let dir = get_direction(&object);
-                let color = get_color(&object);
-                let fov = get_fov(&object) * 2. * PI / 360.;
-
-                let new_light = Box::new(SpotLight::new(pos, dir, intensity, color, fov)) as Box<dyn Light + Sync + Send>;
-                scene.add_light(new_light);
-            },
+            }
             _ => {}
         }
     }
@@ -247,6 +237,19 @@ fn get_direction(object: &HashMap<String, String>) -> Vec3 {
         dir[2].parse::<f64>().expect("Error parsing direction"),
     )
     .normalize()
+}
+
+fn get_material(object: &HashMap<String, String>, color: Color) -> Box<dyn Material + Sync + Send> {
+    if let Some(mat_str) = object.get("metalness") {
+        if let Ok(metalness) = mat_str.parse::<f64>() {
+            Box::new(Metal::new(color, metalness))
+        } else {
+            error("Metalness must be a float");
+            Box::new(Unicolor::from(color))
+        }
+    } else {
+        Box::new(Unicolor::from(color))
+    }
 }
 
 fn get_radius(object: &HashMap<String, String>) -> f64 {
