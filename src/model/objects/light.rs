@@ -6,6 +6,33 @@ use crate::model::{
     scene::Scene,
 };
 
+#[derive(Debug)]
+pub struct AmbientLight {
+    intensity: f64,
+    color: Color,
+}
+
+impl AmbientLight {
+    // Accessors
+    pub fn intensity(&self) -> f64 {
+        self.intensity
+    }
+    pub fn color(&self) -> &Color {
+        &self.color
+    }
+
+    // Constructor
+    pub fn new(intensity: f64, color: Color) -> Self {
+        self::AmbientLight { intensity, color }
+    }
+    pub fn default() -> Self {
+        Self {
+            intensity: 0.5,
+            color: Color::new(1., 1., 1.),
+        }
+    }
+}
+
 pub trait Light: Debug + Sync {
     fn get_diffuse(&self, hit: &Hit) -> Color;
     fn get_specular(&self, hit: &Hit, ray: &Ray) -> Color;
@@ -29,17 +56,6 @@ impl PointLight {
     }
     pub fn color(&self) -> &Color {
         &self.color
-    }
-
-    // Mutators
-    pub fn set_pos(&mut self, pos: Vec3) {
-        self.pos = pos
-    }
-    pub fn set_intensity(&mut self, intensity: f64) {
-        self.intensity = intensity
-    }
-    pub fn set_color(&mut self, color: Color) {
-        self.color = color
     }
 
     // Constructor
@@ -92,33 +108,6 @@ impl Light for PointLight {
 }
 
 #[derive(Debug)]
-pub struct AmbientLight {
-    intensity: f64,
-    color: Color,
-}
-
-impl AmbientLight {
-    // Accessors
-    pub fn intensity(&self) -> f64 {
-        self.intensity
-    }
-    pub fn color(&self) -> &Color {
-        &self.color
-    }
-
-    // Constructor
-    pub fn new(intensity: f64, color: Color) -> Self {
-        self::AmbientLight { intensity, color }
-    }
-    pub fn default() -> Self {
-        Self {
-            intensity: 0.5,
-            color: Color::new(1., 1., 1.),
-        }
-    }
-}
-
-#[derive(Debug)]
 pub struct ParallelLight {
     dir: Vec3,
     intensity: f64,
@@ -135,17 +124,6 @@ impl ParallelLight {
     }
     pub fn color(&self) -> &Color {
         &self.color
-    }
-
-    // Mutators
-    pub fn set_dir(&mut self, dir: Vec3) {
-        self.dir = dir
-    }
-    pub fn set_intensity(&mut self, intensity: f64) {
-        self.intensity = intensity
-    }
-    pub fn set_color(&mut self, color: Color) {
-        self.color = color
     }
 
     // Constructor
@@ -167,6 +145,7 @@ impl Light for ParallelLight {
         ratio *= 0_f64.max(self.intensity());
         (ratio * self.color()).clamp(0., 1.)
     }
+
     fn get_specular(&self, hit: &Hit, ray: &Ray) -> Color {
         let to_light = -self.dir();
         let reflected = (-(&to_light) - hit.norm().dot(&-to_light) * 2. * hit.norm()).normalize();
@@ -178,11 +157,100 @@ impl Light for ParallelLight {
         ratio *= self.intensity().powi(2);
         (ratio * self.color()).clamp(0., 1.)
     }
+
     fn is_shadowed(&self, scene: &Scene, hit: &Hit) -> bool {
         let shadow_ray = Ray::new(hit.pos() + hit.norm() * 0.001, -self.dir(), 0);
         for element in scene.elements() {
             if let Some(t) = element.shape().intersect(&shadow_ray) {
                 if t[0] > 0. {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+}
+
+#[derive(Debug)]
+pub struct SpotLight {
+    pos: Vec3,
+    dir: Vec3,
+    intensity: f64,
+    color: Color,
+    fov: f64,
+}
+
+impl SpotLight {
+    // Accessors
+    pub fn pos(&self) -> &Vec3 {
+        &self.pos
+    }
+    pub fn dir(&self) -> &Vec3 {
+        &self.dir
+    }
+    pub fn intensity(&self) -> f64 {
+        self.intensity
+    }
+    pub fn color(&self) -> &Color {
+        &self.color
+    }
+    pub fn fov(&self) -> f64 {
+        self.fov
+    }
+
+    // Constructor
+    pub fn new(pos: Vec3, dir: Vec3, intensity: f64, color: Color, fov: f64) -> Self {
+        self::SpotLight {
+            pos,
+            dir,
+            intensity,
+            color,
+            fov,
+        }
+    }
+}
+
+impl Light for SpotLight {
+    fn get_diffuse(&self, hit: &Hit) -> Color {
+        let to_light = (self.pos() - hit.pos()).normalize();
+        let angle = self.dir().dot(&-&to_light).acos();
+        if angle > self.fov() / 2. {
+            return Color::new(0., 0., 0.);
+        }
+        let mut ratio = to_light.dot(hit.norm());
+        ratio *= 0_f64
+            .max(1. - (self.pos() - hit.pos()).length().powf(2.) / (self.intensity().powf(2.)));
+        if ratio < 0. {
+            return Color::new(0., 0., 0.);
+        }
+        ratio *= 1. - angle / (self.fov() / 2.);
+        ratio * self.color()
+    }
+
+    fn get_specular(&self, hit: &Hit, ray: &Ray) -> Color {
+        let to_light = (self.pos() - hit.pos()).normalize();
+        let angle = self.dir().dot(&-&to_light).acos();
+        if angle > self.fov() / 2. {
+            return Color::new(0., 0., 0.);
+        }
+        let reflected = (-(&to_light) - hit.norm().dot(&-to_light) * 2. * hit.norm()).normalize();
+        let mut ratio = (-ray.get_dir()).normalize().dot(&reflected);
+        ratio *= 1. - angle / (self.fov() / 2.);
+        if ratio < 0. {
+            return Color::new(0., 0., 0.);
+        }
+        ratio = ratio.powf(25.);
+        ratio *= 0_f64
+            .max(1. - (self.pos() - hit.pos()).length().powf(2.) / (self.intensity().powf(2.)));
+        ratio * self.color()
+    }
+
+    fn is_shadowed(&self, scene: &Scene, hit: &Hit) -> bool {
+        let to_light = (self.pos() - hit.pos()).normalize();
+        let shadow_ray = Ray::new(hit.pos() + hit.norm() * 0.001, to_light, 0);
+        for element in scene.elements() {
+            if let Some(t) = element.shape().intersect(&shadow_ray) {
+                if t[0] < (self.pos() - hit.pos()).length() {
                     return true;
                 }
             }
