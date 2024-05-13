@@ -12,11 +12,11 @@ pub struct Hit<'a> {
 }
 
 impl<'a> Hit<'a> {
-    pub fn new(element: &'a Element, dist: f64, pos: Vec3) -> Self {
+    pub fn new(element: &'a Element, dist: f64, pos: Vec3, ray_dir: &Vec3) -> Self {
         Hit {
             element, 
             dist,
-            norm: element.shape().norm(&pos),
+            norm: element.shape().norm(&pos, ray_dir),
             pos,
             projected_pos: None
         }
