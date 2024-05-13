@@ -3,6 +3,7 @@ use image::Rgba;
 use super::maths::vec3::Vec3;
 use crate::model::materials::unicolor::Unicolor;
 use std::fmt::Debug;
+pub mod metal;
 pub mod unicolor;
 use std::ops::{Add, Mul};
 
@@ -45,6 +46,12 @@ impl Color {
             g: self.g.clamp(min, max),
             b: self.b.clamp(min, max),
         }
+    }
+
+    pub fn apply_gamma(&mut self) {
+        self.r = self.r.sqrt();
+        self.g = self.g.sqrt();
+        self.b = self.b.sqrt();
     }
 }
 

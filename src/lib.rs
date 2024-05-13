@@ -16,6 +16,7 @@ const GUI_WIDTH: u32 = 400;
 const GUI_HEIGHT: u32 = 600;
 const MAX_THREADS: usize = 2;
 const BASE_SIMPLIFICATION: usize = 32;
+const MAX_DEPTH: u8 = 3;
 
 const SCENE: &str = "scenes/johnny.json";
 const FPS: u64 = 20;

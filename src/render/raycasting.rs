@@ -1,3 +1,5 @@
+use std::f32::EPSILON;
+
 use crate::{
     model::{
         materials::Color,
@@ -5,7 +7,7 @@ use crate::{
         scene::Scene,
         Element,
     },
-    SCREEN_HEIGHT, SCREEN_WIDTH,
+    MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 
 use super::lighting::apply_lighting;
@@ -27,7 +29,22 @@ pub fn get_ray(scene: &Scene, x: usize, y: usize) -> Ray {
 
 pub fn cast_ray(scene: &Scene, ray: &Ray) -> Color {
     match get_closest_hit(scene, ray) {
-        Some(hit) => apply_lighting(hit, scene, ray),
+        Some(hit) => {
+            let material = hit.element().material();
+            let absorbed = 1.0 - material.reflection_coef() - material.refraction_coef();
+            let mut color = apply_lighting(&hit, scene, ray) * absorbed;
+
+            if hit.element().material().reflection_coef() > f64::EPSILON {
+                if ray.get_depth() < MAX_DEPTH {
+                    let dir = (ray.get_dir() - 2. * ray.get_dir().dot(hit.norm()) * hit.norm())
+                        .normalize();
+                    let ray = Ray::new(hit.pos().clone() + &dir * 0.01, dir, ray.get_depth() + 1);
+                    color = color + cast_ray(scene, &ray) * material.reflection_coef();
+                }
+            }
+            color.apply_gamma();
+            color
+        }
         None => Color::new(0., 0., 0.),
     }
 }
@@ -47,6 +64,10 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     }
     match closest {
         None => None,
-        Some((t, elem)) => Some(Hit::new(elem, t, ray.get_pos() + ray.get_dir() * t)),
+        Some((t, elem)) => Some(Hit::new(
+            elem,
+            t,
+            ray.get_pos() + ray.get_dir() * (t - f64::EPSILON),
+        )),
     }
 }

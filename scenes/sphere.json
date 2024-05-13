@@ -4,63 +4,72 @@
         "pos": [0, 0, 0],
         "dir": [1, 0, 0],
         "color": [255, 0, 0],
-        "radius": 0.5
+        "radius": 0.5,
+        "metalness": 0.7
     },
     {
         "type": "sphere",
         "pos": [1, 0, 0],
         "dir": [1, 0, 0],
         "color": [0, 255, 0],
-        "radius": 0.5
+        "radius": 0.5,
+        "metalness": 0.7
     },
     {
         "type": "sphere",
         "pos": [0, 1, 0],
         "dir": [1, 0, 0],
         "color": [0, 0, 255],
-        "radius": 0.5
+        "radius": 0.5,
+        "metalness": 0.7
     },
     {
         "type": "sphere",
         "pos": [0, -1, 0],
         "dir": [1, 0, 0],
         "color": [255, 255, 0],
-        "radius": 0.5
+        "radius": 0.5,
+        "metalness": 0.7
     },
     {
         "type": "sphere",
         "pos": [-1, 0, 0],
         "dir": [1, 0, 0],
         "color": [255, 0, 255],
-        "radius": 0.5
+        "radius": 0.5,
+        "metalness": 0.7
     },
     {
         "type": "sphere",
         "pos": [1, 1, 0],
         "dir": [1, 0, 0],
         "color": [0, 255, 255],
-        "radius": 0.5
+        "radius": 0.5,
+        "metalness": 0.7
     },
     {
         "type": "sphere",
         "pos": [1, -1, 0],
         "dir": [1, 0, 0],
         "color": [100, 200, 100],
-        "radius": 0.5
+        "radius": 0.5,
+        "metalness": 0.7
     },
     {
         "type": "sphere",
         "pos": [-1, -1, 0],
         "dir": [1, 0, 0],
         "color": [200, 100, 100],
-        "radius": 0.5
+        "radius": 0.5,
+        "metalness": 0.7
     },
     {
         "type": "sphere",
         "pos": [-1, 1, 0],
         "dir": [1, 0, 0],
         "color": [100, 100, 200],
-        "radius": 0.5
+        "radius": 0.5,
+        "metalness": 0.7
     },
     {
         "type": "light",
