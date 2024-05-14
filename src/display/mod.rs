@@ -34,13 +34,11 @@ use winit::{
 use self::utils::{move_camera, update_color, update_shape};
 
 const RGB_KEYS: [&str; 3] = ["colr", "colg", "colb"];
-const CAM_MOVE_KEYS: [VirtualKeyCode; 12] = [
+const CAM_MOVE_KEYS: [VirtualKeyCode; 10] = [
     VirtualKeyCode::W,
     VirtualKeyCode::A,
     VirtualKeyCode::S,
     VirtualKeyCode::D,
-    VirtualKeyCode::Q,
-    VirtualKeyCode::E,
     VirtualKeyCode::Up,
     VirtualKeyCode::Left,
     VirtualKeyCode::Down,
