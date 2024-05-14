@@ -10,6 +10,8 @@ pub fn move_camera(camera: &mut Camera, c: Option<VirtualKeyCode>) {
         Some(VirtualKeyCode::S) => camera.move_backward(),
         Some(VirtualKeyCode::A) => camera.move_left(),
         Some(VirtualKeyCode::D) => camera.move_right(),
+        Some(VirtualKeyCode::Q) => camera.roll_left(),
+        Some(VirtualKeyCode::E) => camera.roll_right(),
         Some(VirtualKeyCode::Up) => camera.look_up(),
         Some(VirtualKeyCode::Down) => camera.look_down(),
         Some(VirtualKeyCode::Left) => camera.look_left(),

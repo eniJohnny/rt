@@ -80,7 +80,7 @@ impl Quaternion {
 
 	pub fn rotate(&self, v: &Vec3) -> Vec3 {
 		let qv = Quaternion::new(*v.x(), *v.y(), *v.z(), 0.);
-		let result = self.clone() * qv * self.conjugate();
+		let result = self * qv * self.conjugate();
 		result.to_vec3()
 	}
 
