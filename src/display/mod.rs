@@ -17,7 +17,7 @@ use image::{ImageBuffer, Rgba, RgbaImage};
 use std::{
     collections::HashMap,
     sync::{Arc, RwLock},
-    thread,
+    thread::{self, sleep},
     time::{Duration, Instant},
 };
 
@@ -34,11 +34,15 @@ use winit::{
 use self::utils::{move_camera, update_color, update_shape};
 
 const RGB_KEYS: [&str; 3] = ["colr", "colg", "colb"];
-const CAM_MOVE_KEYS: [VirtualKeyCode; 6] = [
+const CAM_MOVE_KEYS: [VirtualKeyCode; 10] = [
     VirtualKeyCode::W,
     VirtualKeyCode::A,
     VirtualKeyCode::S,
     VirtualKeyCode::D,
+    VirtualKeyCode::Up,
+    VirtualKeyCode::Left,
+    VirtualKeyCode::Down,
+    VirtualKeyCode::Right,
     VirtualKeyCode::Space,
     VirtualKeyCode::LShift,
 ];
@@ -290,9 +294,13 @@ pub fn display_scene(scene: Scene) {
                     Some(VirtualKeyCode::Escape) => {
                         *control_flow = ControlFlow::Exit;
                     }
-                    c if c >= Some(VirtualKeyCode::Numpad0)
-                        && c <= Some(VirtualKeyCode::Numpad9) =>
+                    c if (c >= Some(VirtualKeyCode::Numpad0)
+                        && c <= Some(VirtualKeyCode::Numpad9)) || (c >= Some(VirtualKeyCode::Key1) && c <= Some(VirtualKeyCode::Key0)) =>
                     {
+                        if scene.gui.updating() == false {
+                            return;
+                        }
+
                         // Add c to the edited value
                         let index = scene.gui.updating_index();
                         let hitbox = scene.gui.hitboxes()[index].clone();
@@ -305,7 +313,14 @@ pub fn display_scene(scene: Scene) {
                         // -10 px for the _ character
                         let pos = Vec2::new(*pos.x() as f64 - 10., *pos.y() as f64);
                         let value = scene.gui.values()[index].clone().replace("_", "");
-                        let number = c.unwrap() as u8 - VirtualKeyCode::Numpad0 as u8;
+                        let mut number = c.unwrap() as u8;
+                        if c.unwrap() >= VirtualKeyCode::Key1 && c.unwrap() <= VirtualKeyCode::Key9{
+                            number = number + 1;
+                        } else if c.unwrap() == VirtualKeyCode::Key0 {
+                            number = 0;
+                        } else {
+                            number = number - VirtualKeyCode::Numpad0 as u8;
+                        }
 
                         let value = format!("{}{:?}_", value, number);
 
@@ -313,6 +328,7 @@ pub fn display_scene(scene: Scene) {
 
                         draw_text(&mut img, &pos, value, &editing_format);
                         display(&mut pixels, &mut img);
+                        sleep(Duration::from_millis(50));
                     }
                     Some(VirtualKeyCode::Back) => {
                         // Remove last character from the edited value

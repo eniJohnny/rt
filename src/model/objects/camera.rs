@@ -4,6 +4,7 @@ use crate::{
 };
 
 const STEP: f64 = 0.2;
+const LOOK_STEP: f64 = 0.05;
 
 #[derive(Debug)]
 pub struct Camera {
@@ -94,5 +95,21 @@ impl Camera {
     }
     pub fn move_down(&mut self) {
         self.pos += self.v() * STEP;
+    }
+    pub fn look_up(&mut self) {
+        let q = Quaternion::new_from_axis_angle(&self.u(), -LOOK_STEP);
+        self.dir = q.rotate(&self.dir());
+    }
+    pub fn look_down(&mut self) {
+        let q = Quaternion::new_from_axis_angle(&self.u(), LOOK_STEP);
+        self.dir = q.rotate(&self.dir());
+    }
+    pub fn look_left(&mut self) {
+        let q = Quaternion::new_from_axis_angle(&Vec3::new(0., 1., 0.), -LOOK_STEP);
+        self.dir = q.rotate(&self.dir());
+    }
+    pub fn look_right(&mut self) {
+        let q = Quaternion::new_from_axis_angle(&Vec3::new(0., 1., 0.), LOOK_STEP);
+        self.dir = q.rotate(&self.dir());
     }
 }

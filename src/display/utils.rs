@@ -1,3 +1,5 @@
+use std::cmp::min;
+
 use winit::event::VirtualKeyCode;
 use crate::model::{materials::{unicolor::Unicolor, Color, Material}, maths::vec3::Vec3, objects::camera::Camera,  shapes::{sphere, Shape}};
 
@@ -8,23 +10,28 @@ pub fn move_camera(camera: &mut Camera, c: Option<VirtualKeyCode>) {
         Some(VirtualKeyCode::S) => camera.move_backward(),
         Some(VirtualKeyCode::A) => camera.move_left(),
         Some(VirtualKeyCode::D) => camera.move_right(),
-        Some(VirtualKeyCode::Space) => camera.move_up(),
-        Some(VirtualKeyCode::LShift) => camera.move_down(),
+        Some(VirtualKeyCode::Up) => camera.look_up(),
+        Some(VirtualKeyCode::Down) => camera.look_down(),
+        Some(VirtualKeyCode::Left) => camera.look_left(),
+        Some(VirtualKeyCode::Right) => camera.look_right(),
+        Some(VirtualKeyCode::LShift) => camera.move_up(),
+        Some(VirtualKeyCode::Space) => camera.move_down(),
         _ => (),
     }
 }
 
 pub fn update_color(key: String, value: String, color: Color) -> Option<Box<dyn Sync + Material>> {
     let mut new_color: (u8, u8, u8) = ((color.r() * 255.) as u8, (color.g() * 255.) as u8, (color.b() * 255.) as u8);
+    let new_value = min(value.parse::<u32>().unwrap(), 255) as u8;
     match key.as_str() {
         "colr" => {
-            new_color.0 = value.parse::<u8>().unwrap();
+            new_color.0 = new_value;
         }
         "colg" => {
-            new_color.1 = value.parse::<u8>().unwrap();
+            new_color.1 = new_value;
         }
         "colb" => {
-            new_color.2 = value.parse::<u8>().unwrap();
+            new_color.2 = new_value;
         }
         _ => (),
     }
