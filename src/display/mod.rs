@@ -50,7 +50,7 @@ const CAM_MOVE_KEYS: [VirtualKeyCode; 12] = [
 ];
 
 pub fn display_scene(scene: Scene) {
-    let mut scene = scene;
+    let scene = scene;
     let format = TextFormat::new(
         Vec2::new(GUI_WIDTH as f64, GUI_HEIGHT as f64),
         24.,
@@ -358,7 +358,7 @@ pub fn display_scene(scene: Scene) {
                             display(&mut pixels, &mut img);
                         }
                     }
-                    Some(VirtualKeyCode::NumpadDecimal) => {
+                    Some(VirtualKeyCode::NumpadDecimal) | Some(VirtualKeyCode::Period) => {
                         // Add a comma to the edited value
                         let index = scene.gui.updating_index();
                         let hitbox = scene.gui.hitboxes()[index].clone();
