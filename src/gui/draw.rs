@@ -157,7 +157,7 @@ pub fn draw_cylinder_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, cylin
     gui.hitboxes.push(params.parse_and_draw_text(img, 13, " Metalness:", &metalness.to_string()));
     gui.hitboxes.push(params.parse_and_draw_text(img, 14, " Roughness:", &roughness.to_string()));
     gui.hitboxes.push(params.parse_and_draw_text(img, 16, " Radius:", &cylinder.radius().to_string()));
-    gui.hitboxes.push(params.parse_and_draw_text(img, 16, " Height:", &cylinder.height().to_string()));
+    gui.hitboxes.push(params.parse_and_draw_text(img, 17, " Height:", &cylinder.height().to_string()));
 
     draw_gui_buttons(img, &gui);
 
@@ -312,7 +312,7 @@ pub fn draw_cone_gui(img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, cone: &con
     gui.hitboxes.push(params.parse_and_draw_text(img, 13, " Metalness:", &metalness.to_string()));
     gui.hitboxes.push(params.parse_and_draw_text(img, 14, " Roughness:", &roughness.to_string()));
     gui.hitboxes.push(params.parse_and_draw_text(img, 16, " Radius:", &cone.radius().to_string()));
-    gui.hitboxes.push(params.parse_and_draw_text(img, 16, " Height:", &cone.height().to_string()));
+    gui.hitboxes.push(params.parse_and_draw_text(img, 17, " Height:", &cone.height().to_string()));
 
     draw_gui_buttons(img, &gui);
 

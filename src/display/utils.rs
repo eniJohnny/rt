@@ -2,7 +2,7 @@ use image::{ImageBuffer, Rgba, RgbaImage};
 use rusttype::{Font, Scale};
 use winit::event::VirtualKeyCode;
 use crate::{
-    gui::{draw::{draw_plane_gui, draw_sphere_gui}, Gui, textformat::TextFormat},
+    gui::{draw::{draw_cone_gui, draw_cylinder_gui, draw_plane_gui, draw_sphere_gui}, textformat::TextFormat, Gui},
     model::{maths::vec2::Vec2, objects::camera::Camera, shapes::Shape, Element}
 };
 
@@ -35,6 +35,11 @@ pub fn display_element_infos(element: &Element, img: &mut ImageBuffer<Rgba<u8>, 
     } else if shape.as_plane().is_some() {
         let plane = shape.as_plane().unwrap();
         return draw_plane_gui(img, plane, material);
+    } else if shape.as_cylinder().is_some() {
+        let cylinder = shape.as_cylinder().unwrap();
+        return draw_cylinder_gui(img, cylinder, material);
+    } else if shape.as_cone().is_some() {
+        return draw_cone_gui(img, shape.as_cone().unwrap(), material);
     } else {
         return Gui::new();
     }
