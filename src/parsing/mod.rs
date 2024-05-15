@@ -52,7 +52,7 @@ pub fn get_scene() -> Scene {
                 let radius = get_radius(&object);
                 let height = get_height(&object);
                 let color = get_color(&object);
-                let dir: Vec3 = Vec3::new(1.0, 0.0, 0.0);
+                let dir: Vec3 = get_direction(&object);
 
                 let shape = Box::new(Cylinder::new(pos, dir, radius, height));
                 let material = get_material(&object, color);
@@ -65,7 +65,7 @@ pub fn get_scene() -> Scene {
                 let radius = get_radius(&object);
                 let height = get_height(&object);
                 let color = get_color(&object);
-                let dir: Vec3 = Vec3::new(1.0, 0.0, 0.0);
+                let dir: Vec3 = get_direction(&object);
 
                 let shape = Box::new(Cone::new(pos, dir, radius, height));
                 let material = get_material(&object, color);
