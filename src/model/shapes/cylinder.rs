@@ -16,28 +16,36 @@ impl Shape for Cylinder {
         unimplemented!()
     }
     fn intersect(&self, r: &Ray) -> Option<Vec<f64>> {
-        let sd = r.get_dir().cross(&self.dir);
-        let cod = (r.get_pos() - &self.pos).cross(&self.dir);
-        let a = sd.dot(&sd);
-        let b = cod.dot(&sd) * 2.0;
-        let c = cod.dot(&cod) - (self.radius * self.radius);
+        //d:    direction du rayon
+        //co:   vecteur entre la postion du cylindre et le point d'origine du rayon
+        //abc:  les coefficients
+        let dv = r.get_dir().cross(&self.dir);
+        let cov = (r.get_pos() - &self.pos).cross(&self.dir);
+        let a = dv.dot(&dv);
+        let b = cov.dot(&dv) * 2.0;
+        let c = cov.dot(&cov) - (self.radius * self.radius);
 
-        let mut disc = b * b - 4.0 * a * c;
-        if (disc < 0.0) {
+        let mut delta = b * b - 4.0 * a * c;
+        if (delta < 0.0) {
             return None;
         }
-        disc = disc.sqrt();
-        let mut intersections = Vec::from([(-b - disc) / (2.0 * a), (-b + disc) / (2.0 * a)]);
+        delta = delta.sqrt();
 
+        //On calcule la distance avec les deux intersections
+        let mut intersections = Vec::from([(-b - delta) / (2.0 * a), (-b + delta) / (2.0 * a)]);
+
+        //On vérifie si les intersections sont bien sur le cylindre (delimité par la hauteur)
         let projection1 = (intersections[0] * r.get_dir() + r.get_pos() - &self.pos).dot(&self.dir);
         let projection2 = (intersections[1] * r.get_dir() + r.get_pos() - &self.pos).dot(&self.dir);
 
-        if (projection2 < 0.0 || projection2 > self.height) || intersections[1] < 0. || disc == 0.{
+        if (projection2 < 0.0 || projection2 > self.height) || intersections[1] < 0. || delta == 0.{
             intersections.remove(1);
         }
         if (projection1 < 0.0 ||  projection1 > self.height) || intersections[0] < 0.{
             intersections.remove(0);
         }
+
+        //On vérifie si le rayon intersecte les plans du cylindre
         match self.plane[0].intersect(r) {
             Some(intersection) => {
                 let position = intersection[0]  * r.get_dir() + r.get_pos();
@@ -68,15 +76,24 @@ impl Shape for Cylinder {
             return None;
         }
 
-        intersections.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        //On retourne les intersections triées
+        intersections.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
         return Some(intersections);
     }
     fn projection(&self, hit: &Hit) -> (i32, i32) {
         unimplemented!()
     }
-    fn norm(&self, hit: &Vec3) -> Vec3 {
+    fn norm(&self, hit: &Vec3, ray_dir: &Vec3) -> Vec3 {
         let pc = hit - &self.pos;
-        let projection = &self.dir * pc.dot(&self.dir);
+        let coef = pc.dot(&self.dir);
+        let projection = &self.dir * coef;
+
+        if coef == 0. {
+            return self.plane[0].norm(hit, ray_dir);
+        }
+        if coef == self.height {
+            return self.plane[1].norm(hit, ray_dir);
+        }
 
         return (hit - (&self.pos + &projection)).normalize();
     }
@@ -99,7 +116,7 @@ impl Cylinder {
     // Constructor
     pub fn new(pos: Vec3, dir: Vec3, radius: f64, height: f64) -> Cylinder {
         let plane1 = Plane::new(pos.clone(), -dir.clone());
-        let plane2 = Plane::new(pos.clone() * height, dir.clone());
+        let plane2 = Plane::new(pos.clone() + dir.clone() * height, dir.clone());
         self::Cylinder { pos, dir, radius, height, plane: [plane1, plane2] }
     }
 

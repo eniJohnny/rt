@@ -1,16 +1,8 @@
 [
 	{
-        "type": "sphere",
-        "pos": [0, 0, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 0, 0],
-        "radius": 0.5,
-        "metalness": 0.7
-    },
-    {
-        "type": "cylinder",
-        "pos": [0,4, 0],
-        "dir": [1, 0, 0],
+        "type": "cone",
+        "pos": [-2, 2, 0],
+        "dir": [0, -1, 0],
         "color": [255, 0, 0],
         "radius": 0.5,
         "height": 5
@@ -79,44 +71,15 @@
     },
     {
         "type": "camera",
-        "pos": [0, 0, -15],
+        "pos": [0, 0, -6],
         "dir": [0, 0, 1],
-        "fov": 70
+        "fov": 130
     },
     {
         "type": "plane",
-        "pos": [-5, 0, 0],
-        "dir": [1, 0, 0],
-        "color": [120, 200, 120],
-        "metalness": 0.7
-    },
-    {
-        "type": "plane",
-        "pos": [5, 0, 0],
-        "dir": [-1, 0, 0],
-        "color": [120, 200, 120],
-        "metalness": 0.7
-    },
-    {
-        "type": "plane",
-        "pos": [0, -5, 0],
-        "dir": [0, 1, 0],
-        "color": [200, 120, 200],
-        "metalness": 0.7
-    },
-    {
-        "type": "plane",
-        "pos": [0, 5, 0],
-        "dir": [0, -1, 0],
-        "color": [200, 120, 200],
-        "metalness": 0.7
-    },
-    {
-        "type": "plane",
-        "pos": [0, 0, 5],
-        "dir": [0, 0, -1],
-        "color": [100, 100, 100],
-        "metalness": 0.7
+        "pos": [0, 0, 0],
+        "dir": [0, 0, 1],
+        "color": [255, 255, 255]
     },
     {
         "type": "light",
