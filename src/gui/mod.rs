@@ -1,18 +1,9 @@
-use image::{Rgba, RgbaImage};
+use image::{Pixel, Rgba, RgbaImage};
 pub mod draw;
 
 use crate::{
-    display::draw_text,
-    model::{
-        maths::{hit, vec2::Vec2, vec3::Vec3},
-        scene::{self, Scene},
-        shapes::{
-            sphere::{self, Sphere},
-            Shape,
-        },
-        Element,
-    },
-    render::raycasting::{cast_ray, get_ray},
+    display::utils::draw_text,
+    model::maths::vec2::Vec2,
     GUI_HEIGHT, GUI_WIDTH, SCREEN_WIDTH, SCREEN_WIDTH_U32,
 };
 
@@ -23,22 +14,18 @@ pub fn get_line_position(i: u32, size: &Vec2) -> Vec2 {
     Vec2::new(x, y)
 }
 
-pub fn hide_gui(img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, scene: &scene::Scene) {
+pub fn hide_gui(img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, full_img: &RgbaImage) {
     let width = GUI_WIDTH;
     let x_start = img.width() - width;
     let height = GUI_HEIGHT;
 
     for x in x_start..img.width() {
         for y in 0..height {
-            // TODO
-            // A CHANGER IMPERATIVEMENT !! On ne devrait pas avoir a recalculer les rays pour le gui, on est cense garder en memoire
-            // l'image envoyee par le render_thread et prendre les couleurs de la. La c'est tres inneficace, et on ne
-            // profite pas du tout des opti faites pour le multithreading, et pire encore on block les events arrivants
-            // pendant ce temps
+            let pixel = full_img.get_pixel(x, y).to_rgba();
             img.put_pixel(
                 x,
                 y,
-                cast_ray(scene, &get_ray(scene, x as usize, y as usize)).to_rgba(),
+                pixel,
             );
         }
     }
@@ -117,6 +104,23 @@ impl TextFormat {
             font_size,
             font_color,
             background_color,
+        }
+    }
+
+    pub fn new_base_format() -> Self {
+        Self {
+            size: Vec2::new(GUI_WIDTH as f64, GUI_HEIGHT as f64),
+            font_size: 24.,
+            font_color: Rgba([255, 255, 255, 255]),
+            background_color: Rgba([89, 89, 89, 255]),
+        }
+    }
+    pub fn new_editing_format() -> Self {
+        Self {
+            size: Vec2::new(400., 400.),
+            font_size: 24.,
+            font_color: Rgba([0, 0, 0, 255]),
+            background_color: Rgba([255, 255, 255, 255]),
         }
     }
 

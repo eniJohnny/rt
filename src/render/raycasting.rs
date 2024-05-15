@@ -1,5 +1,3 @@
-use std::f32::EPSILON;
-
 use crate::{
     model::{
         materials::Color,

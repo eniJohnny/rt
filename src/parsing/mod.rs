@@ -1,5 +1,4 @@
-use crate::model::materials::metal::{self, Metal};
-use crate::model::materials::unicolor::Unicolor;
+use crate::model::materials::metal::Metal;
 use crate::model::materials::{Color, Material};
 use crate::model::maths::vec3::Vec3;
 use crate::model::objects::camera::Camera;

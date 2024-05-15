@@ -1,7 +1,6 @@
 use image::Rgba;
 
 use super::maths::vec3::Vec3;
-use crate::model::materials::unicolor::Unicolor;
 use crate::model::materials::metal::Metal;
 use std::fmt::Debug;
 pub mod metal;

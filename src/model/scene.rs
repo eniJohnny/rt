@@ -3,7 +3,7 @@ use crate::{
     model::objects::light::{AmbientLight, Light},
 };
 
-use super::{maths::vec3::Vec3, objects::camera::Camera, Element};
+use super::{objects::camera::Camera, Element};
 
 #[derive(Debug)]
 pub struct Scene {
