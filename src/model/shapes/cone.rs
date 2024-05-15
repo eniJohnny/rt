@@ -21,6 +21,7 @@ impl Shape for Cone {
     fn intersect(&self, r: &Ray) -> Option<Vec<f64>> {
         //d:    direction du rayon
         //co:   vecteur entre la postion du cone et le point d'origine du rayon
+        //v:    vecteur directeur du cone
         //abc:  les coefficients
         let dv = r.get_dir().dot(&self.dir);
         let co = r.get_pos() - &self.pos;

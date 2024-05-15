@@ -18,6 +18,7 @@ impl Shape for Cylinder {
     fn intersect(&self, r: &Ray) -> Option<Vec<f64>> {
         //d:    direction du rayon
         //co:   vecteur entre la postion du cylindre et le point d'origine du rayon
+        //v:    vecteur directeur du cylindre
         //abc:  les coefficients
         let dv = r.get_dir().cross(&self.dir);
         let cov = (r.get_pos() - &self.pos).cross(&self.dir);
