@@ -2,7 +2,7 @@ use image::Rgba;
 
 use crate::{display::utils::draw_text, model::{materials::Material, maths::vec2::Vec2, shapes::{plane, sphere}}, GUI_HEIGHT, GUI_WIDTH};
 
-use super::{Gui, TextFormat};
+use super::{Gui, textformat::TextFormat};
 
 
 pub fn draw_sphere_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, sphere: &sphere::Sphere, material: &dyn Material) -> Gui {
@@ -21,16 +21,12 @@ pub fn draw_sphere_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, sphere:
         }
     }
 
-    let mut titles = TextFormat {
-        size: size.clone(),
-        ..Default::default()
-    };
+    let mut titles = TextFormat::default();
+    let mut params = TextFormat::default();
 
-    let mut params = TextFormat {
-        size: size.clone(),
-        background_color: Rgba([89, 89, 89, 255]),
-        ..Default::default()
-    };
+    titles.set_size(size.clone());
+    params.set_size(size.clone());
+    params.set_background_color(Rgba([89, 89, 89, 255]));
 
     let mut gui = Gui::new();
     let color = material.color(0, 0);
@@ -103,16 +99,13 @@ pub fn draw_plane_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, plane: &
         }
     }
 
-    let mut titles = TextFormat {
-        size: size.clone(),
-        ..Default::default()
-    };
+    
+    let mut titles = TextFormat::default();
+    let mut params = TextFormat::default();
 
-    let mut params = TextFormat {
-        size: size.clone(),
-        background_color: Rgba([89, 89, 89, 255]),
-        ..Default::default()
-    };
+    titles.set_size(size.clone());
+    params.set_size(size.clone());
+    params.set_background_color(Rgba([89, 89, 89, 255]));
 
     let mut gui = Gui::new();
     let color = material.color(0,0);
@@ -204,11 +197,9 @@ pub fn draw_button_background(img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, h
 }
 
 pub fn draw_gui_buttons (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, gui: &Gui) {
-    let buttons = TextFormat {
-        size: Vec2::new(GUI_WIDTH as f64, GUI_HEIGHT as f64),
-        font_size: 36.,
-        ..Default::default()
-    };
+    let mut buttons = TextFormat::default();
+    buttons.set_size(Vec2::new(GUI_WIDTH as f64, GUI_HEIGHT as f64));
+    buttons.set_font_size(36.);
 
     let apply_pos = &gui.apply_hitbox().0;
     let cancel_pos = &gui.cancel_hitbox().0;
