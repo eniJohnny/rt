@@ -1,7 +1,7 @@
 use std::cmp::min;
 
 use winit::event::VirtualKeyCode;
-use crate::model::{materials::{unicolor::Unicolor, Color, Material}, maths::vec3::Vec3, objects::camera::Camera,  shapes::{sphere, Shape}};
+use crate::model::{materials::{unicolor::Unicolor, Color, Material}, maths::vec3::Vec3, objects::camera::Camera,  shapes::{plane, sphere, cylinder, cone, Shape}};
 
 pub fn move_camera(camera: &mut Camera, c: Option<VirtualKeyCode>) {
 
@@ -10,8 +10,6 @@ pub fn move_camera(camera: &mut Camera, c: Option<VirtualKeyCode>) {
         Some(VirtualKeyCode::S) => camera.move_backward(),
         Some(VirtualKeyCode::A) => camera.move_left(),
         Some(VirtualKeyCode::D) => camera.move_right(),
-        Some(VirtualKeyCode::Q) => camera.roll_left(),
-        Some(VirtualKeyCode::E) => camera.roll_right(),
         Some(VirtualKeyCode::Up) => camera.look_up(),
         Some(VirtualKeyCode::Down) => camera.look_down(),
         Some(VirtualKeyCode::Left) => camera.look_left(),
@@ -20,6 +18,7 @@ pub fn move_camera(camera: &mut Camera, c: Option<VirtualKeyCode>) {
         Some(VirtualKeyCode::Space) => camera.move_down(),
         _ => (),
     }
+    // camera.debug_print();
 }
 
 pub fn update_color(key: String, value: String, color: Color) -> Option<Box<dyn Sync + Material>> {
@@ -45,11 +44,11 @@ pub fn update_shape(shape: &dyn Shape, key: String, value: String) -> Option<Box
     if shape.as_sphere().is_some() {
         return update_sphere(shape, key, value);
     } else if shape.as_plane().is_some() {
-        return update_plane();
+        return update_plane(shape, key, value);
     } else if shape.as_cylinder().is_some() {
-        return update_cylinder();
+        return update_cylinder(shape, key, value);
     } else if shape.as_cone().is_some() {
-        return update_cone();
+        return update_cone(shape, key, value);
     } else {
         return None;
     }
@@ -90,14 +89,111 @@ fn update_sphere(shape: &dyn Shape, key: String, value: String) -> Option<Box<dy
         Some(Box::new(sphere))
 }
 
-fn update_plane() -> Option<Box<dyn Sync + Shape>> {
-    None
+fn update_plane(shape: &dyn Shape, key: String, value: String) -> Option<Box<dyn Sync + Shape>> {
+    let plane = shape.as_plane().unwrap();
+
+    let mut pos = plane.pos().clone();
+    let mut dir = plane.dir().clone();
+
+    match key.as_str() {
+        "posx" => {
+            pos = Vec3::new(value.parse::<f64>().unwrap(), *pos.y(), *pos.z());
+        }
+        "posy" => {
+            pos = Vec3::new(*pos.x(), value.parse::<f64>().unwrap(), *pos.z());
+        }
+        "posz" => {
+            pos = Vec3::new(*pos.x(), *pos.y(), value.parse::<f64>().unwrap());
+        }
+        "dirx" => {
+            dir = Vec3::new(value.parse::<f64>().unwrap(), *dir.y(), *dir.z());
+        }
+        "diry" => {
+            dir = Vec3::new(*dir.x(), value.parse::<f64>().unwrap(), *dir.z());
+        }
+        "dirz" => {
+            dir = Vec3::new(*dir.x(), *dir.y(), value.parse::<f64>().unwrap());
+        }
+        _ => (),
+    }
+    let plane = plane::Plane::new(pos, dir);
+    Some(Box::new(plane))
 }
 
-fn update_cylinder() -> Option<Box<dyn Sync + Shape>> {
-    None
+fn update_cylinder(shape: &dyn Shape, key: String, value: String) -> Option<Box<dyn Sync + Shape>> {
+    let cylinder = shape.as_cylinder().unwrap();
+
+    let mut pos = cylinder.pos().clone();
+    let mut radius = cylinder.radius();
+    let mut dir = cylinder.dir().clone();
+    let mut height = cylinder.height();
+
+    match key.as_str() {
+        "posx" => {
+            pos = Vec3::new(value.parse::<f64>().unwrap(), *pos.y(), *pos.z());
+        }
+        "posy" => {
+            pos = Vec3::new(*pos.x(), value.parse::<f64>().unwrap(), *pos.z());
+        }
+        "posz" => {
+            pos = Vec3::new(*pos.x(), *pos.y(), value.parse::<f64>().unwrap());
+        }
+        "dirx" => {
+            dir = Vec3::new(value.parse::<f64>().unwrap(), *dir.y(), *dir.z());
+        }
+        "diry" => {
+            dir = Vec3::new(*dir.x(), value.parse::<f64>().unwrap(), *dir.z());
+        }
+        "dirz" => {
+            dir = Vec3::new(*dir.x(), *dir.y(), value.parse::<f64>().unwrap());
+        }
+        "radius" => {
+            radius = value.parse::<f64>().unwrap();
+        }
+        "height" => {
+            height = value.parse::<f64>().unwrap();
+        }
+        _ => (),
+    }
+    let cylinder = cylinder::Cylinder::new(pos, dir, radius, height);
+    Some(Box::new(cylinder))
 }
 
-fn update_cone() -> Option<Box<dyn Sync + Shape>> {
-    None
+fn update_cone(shape: &dyn Shape, key: String, value: String) -> Option<Box<dyn Sync + Shape>> {
+    let cone = shape.as_cone().unwrap();
+
+    let mut pos = cone.pos().clone();
+    let mut radius = cone.radius();
+    let mut dir = cone.dir().clone();
+    let mut height = cone.height();
+
+    match key.as_str() {
+        "posx" => {
+            pos = Vec3::new(value.parse::<f64>().unwrap(), *pos.y(), *pos.z());
+        }
+        "posy" => {
+            pos = Vec3::new(*pos.x(), value.parse::<f64>().unwrap(), *pos.z());
+        }
+        "posz" => {
+            pos = Vec3::new(*pos.x(), *pos.y(), value.parse::<f64>().unwrap());
+        }
+        "dirx" => {
+            dir = Vec3::new(value.parse::<f64>().unwrap(), *dir.y(), *dir.z());
+        }
+        "diry" => {
+            dir = Vec3::new(*dir.x(), value.parse::<f64>().unwrap(), *dir.z());
+        }
+        "dirz" => {
+            dir = Vec3::new(*dir.x(), *dir.y(), value.parse::<f64>().unwrap());
+        }
+        "radius" => {
+            radius = value.parse::<f64>().unwrap();
+        }
+        "height" => {
+            height = value.parse::<f64>().unwrap();
+        }
+        _ => (),
+    }
+    let cone = cone::Cone::new(pos, dir, radius, height);
+    Some(Box::new(cone))
 }
