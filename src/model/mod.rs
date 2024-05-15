@@ -1,4 +1,4 @@
-use self::{materials::Material, maths::vec3::Vec3, shapes::Shape};
+use self::{materials::Material, shapes::Shape};
 
 pub mod materials;
 pub mod shapes;

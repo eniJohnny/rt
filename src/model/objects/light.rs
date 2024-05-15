@@ -1,4 +1,4 @@
-use std::{char::ToLowercase, fmt::Debug};
+use std::fmt::Debug;
 
 use crate::model::{
     materials::Color,

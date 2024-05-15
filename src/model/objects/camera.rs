@@ -1,5 +1,5 @@
 use crate::{
-    model::maths::{quaternion::Quaternion, ray::Ray, vec3::Vec3},
+    model::maths::{quaternion::Quaternion, vec3::Vec3},
     SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 

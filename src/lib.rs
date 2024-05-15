@@ -1,6 +1,7 @@
 extern crate image;
 use display::display_scene;
 use parsing::get_scene;
+use winit::event::VirtualKeyCode;
 
 pub mod display;
 pub mod gui;
@@ -20,6 +21,20 @@ const MAX_DEPTH: u8 = 3;
 
 const SCENE: &str = "scenes/sphere.json";
 const FPS: u64 = 20;
+
+const RGB_KEYS: [&str; 3] = ["colr", "colg", "colb"];
+const CAM_MOVE_KEYS: [VirtualKeyCode; 10] = [
+    VirtualKeyCode::W,
+    VirtualKeyCode::A,
+    VirtualKeyCode::S,
+    VirtualKeyCode::D,
+    VirtualKeyCode::Up,
+    VirtualKeyCode::Left,
+    VirtualKeyCode::Down,
+    VirtualKeyCode::Right,
+    VirtualKeyCode::Space,
+    VirtualKeyCode::LShift,
+];
 
 pub fn run() {
     let scene = get_scene();

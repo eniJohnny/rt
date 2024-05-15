@@ -14,7 +14,6 @@ use image::RgbaImage;
 use crate::{
     model::{
         materials::Color,
-        maths::{quaternion::Quaternion, ray::Ray},
         scene::Scene,
     },
     BASE_SIMPLIFICATION, MAX_THREADS, SCREEN_HEIGHT, SCREEN_WIDTH,
@@ -98,7 +97,6 @@ pub fn start_render_threads(
                 } {
                     let mut colors = Vec::new();
                     let scene = scene.read().unwrap();
-                    let camera = scene.camera();
                     // Pour chaque pixel de cette tile qui n'a pas deja ete calcule par une taille de plus haut factor
                     // Sur une tile 64x64 avec un factor de 64, il n'y aura qu'un ray de lance. Pour un factor de 32
                     // 4 rays seront lancers (4 x 32x32 = 64x64)

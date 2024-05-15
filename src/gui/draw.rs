@@ -1,6 +1,6 @@
 use image::Rgba;
 
-use crate::{display::draw_text, model::{materials::Material, maths::vec2::Vec2, shapes::{plane, sphere}}, GUI_HEIGHT, GUI_WIDTH};
+use crate::{display::utils::draw_text, model::{materials::Material, maths::vec2::Vec2, shapes::{plane, sphere}}, GUI_HEIGHT, GUI_WIDTH};
 
 use super::{Gui, TextFormat};
 
