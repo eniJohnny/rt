@@ -224,7 +224,10 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
                                 .unwrap()
                                 as usize;
 
-                            full_img = img.clone();
+                            if scene.gui.keys().len() == 0 {
+                                full_img = img.clone();
+                            }
+                            
                             scene.gui = display_element_infos(element, &mut img);
                             scene.gui.set_element_index(element_index);
                             display(&mut pixels, &mut img);
@@ -395,6 +398,12 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
                 display(&mut pixels, &mut img);
                 final_image = final_img;
                 image_requested = false;
+
+                let mut scene = scene.write().unwrap();
+                if scene.gui.keys().len() == 0 {
+                    full_img = img.clone();
+                }
+                scene.gui = Gui::new();
             }
         } else if !final_image {
             tb.send(false).unwrap();
