@@ -1,5 +1,4 @@
 use crate::model::materials::metal::Metal;
-use crate::model::materials::unicolor::Unicolor;
 use crate::model::materials::{Color, Material};
 use crate::model::maths::vec3::Vec3;
 use crate::model::objects::camera::Camera;
@@ -240,16 +239,33 @@ fn get_direction(object: &HashMap<String, String>) -> Vec3 {
 }
 
 fn get_material(object: &HashMap<String, String>, color: Color) -> Box<dyn Material + Sync + Send> {
-    if let Some(mat_str) = object.get("metalness") {
-        if let Ok(metalness) = mat_str.parse::<f64>() {
-            Box::new(Metal::new(color, metalness))
-        } else {
-            error("Metalness must be a float");
-            Box::new(Unicolor::from(color))
-        }
-    } else {
-        Box::new(Unicolor::from(color))
+    let default: &String = &"0.0".to_string();
+    let metalness_string = object.get("metalness").unwrap_or(default);
+    let roughness_string = object.get("roughness").unwrap_or(default);
+
+    let mut metalness = 0.0;
+    let mut roughness = 0.0;
+
+    if let Ok(value) = metalness_string.parse::<f64>() {
+        metalness = value;
     }
+
+    if let Ok(value) = roughness_string.parse::<f64>() {
+        roughness = value;
+    }
+
+    Box::new(Metal::new(color, metalness, roughness))
+
+    // if let Some(mat_str) = object.get("metalness") {
+    //     if let Ok(metalness) = mat_str.parse::<f64>() {
+    //         Box::new(Metal::new(color, metalness))
+    //     } else {
+    //         error("Metalness must be a float");
+    //         Box::new(Unicolor::from(color))
+    //     }
+    // } else {
+    //     Box::new(Unicolor::from(color))
+    // }
 }
 
 fn get_radius(object: &HashMap<String, String>) -> f64 {

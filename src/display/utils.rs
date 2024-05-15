@@ -1,7 +1,10 @@
-use std::cmp::min;
-
+use image::{ImageBuffer, Rgba, RgbaImage};
+use rusttype::{Font, Scale};
 use winit::event::VirtualKeyCode;
-use crate::model::{materials::{unicolor::Unicolor, Color, Material}, maths::vec3::Vec3, objects::camera::Camera,  shapes::{sphere, Shape}};
+use crate::{
+    gui::{draw::{draw_cone_gui, draw_cylinder_gui, draw_plane_gui, draw_sphere_gui}, textformat::TextFormat, Gui},
+    model::{maths::vec2::Vec2, objects::camera::Camera, shapes::Shape, Element}
+};
 
 pub fn move_camera(camera: &mut Camera, c: Option<VirtualKeyCode>) {
 
@@ -10,8 +13,6 @@ pub fn move_camera(camera: &mut Camera, c: Option<VirtualKeyCode>) {
         Some(VirtualKeyCode::S) => camera.move_backward(),
         Some(VirtualKeyCode::A) => camera.move_left(),
         Some(VirtualKeyCode::D) => camera.move_right(),
-        Some(VirtualKeyCode::Q) => camera.roll_left(),
-        Some(VirtualKeyCode::E) => camera.roll_right(),
         Some(VirtualKeyCode::Up) => camera.look_up(),
         Some(VirtualKeyCode::Down) => camera.look_down(),
         Some(VirtualKeyCode::Left) => camera.look_left(),
@@ -20,84 +21,130 @@ pub fn move_camera(camera: &mut Camera, c: Option<VirtualKeyCode>) {
         Some(VirtualKeyCode::Space) => camera.move_down(),
         _ => (),
     }
+    // camera.debug_print();
 }
 
-pub fn update_color(key: String, value: String, color: Color) -> Option<Box<dyn Sync + Material>> {
-    let mut new_color: (u8, u8, u8) = ((color.r() * 255.) as u8, (color.g() * 255.) as u8, (color.b() * 255.) as u8);
-    let new_value = min(value.parse::<u32>().unwrap(), 255) as u8;
-    match key.as_str() {
-        "colr" => {
-            new_color.0 = new_value;
-        }
-        "colg" => {
-            new_color.1 = new_value;
-        }
-        "colb" => {
-            new_color.2 = new_value;
-        }
-        _ => (),
-    }
-    let new_material = Unicolor::new(new_color.0 as f64 / 255., new_color.1 as f64 / 255., new_color.2 as f64 / 255.);
-    Some(Box::new(new_material))
-}
+pub fn display_element_infos(element: &Element, img: &mut ImageBuffer<Rgba<u8>, Vec<u8>>) -> Gui {
+    let img = img;
+    let shape = element.shape();
+    let material = element.material();
 
-pub fn update_shape(shape: &dyn Shape, key: String, value: String) -> Option<Box<dyn Sync + Shape>> {    
     if shape.as_sphere().is_some() {
-        return update_sphere(shape, key, value);
+        let sphere = shape.as_sphere().unwrap();
+        return draw_sphere_gui(img, sphere, material);
     } else if shape.as_plane().is_some() {
-        return update_plane();
+        let plane = shape.as_plane().unwrap();
+        return draw_plane_gui(img, plane, material);
     } else if shape.as_cylinder().is_some() {
-        return update_cylinder();
+        let cylinder = shape.as_cylinder().unwrap();
+        return draw_cylinder_gui(img, cylinder, material);
     } else if shape.as_cone().is_some() {
-        return update_cone();
+        return draw_cone_gui(img, shape.as_cone().unwrap(), material);
     } else {
-        return None;
+        return Gui::new();
     }
 }
 
-fn update_sphere(shape: &dyn Shape, key: String, value: String) -> Option<Box<dyn Sync + Shape>> {
-        let sphere = shape.as_sphere().unwrap();
+pub fn draw_text(image: &mut RgbaImage, pos: &Vec2, text: String, format: &TextFormat) {
+    let x = *pos.x() as u32 + 8;
+    let y = *pos.y() as u32;
 
-        let mut pos = sphere.pos().clone();
-        let mut radius = sphere.radius();
-        let mut dir = sphere.dir().clone();
-        
-        match key.as_str() {
-            "posx" => {
-                pos = Vec3::new(value.parse::<f64>().unwrap(), *pos.y(), *pos.z());
-            }
-            "posy" => {
-                pos = Vec3::new(*pos.x(), value.parse::<f64>().unwrap(), *pos.z());
-            }
-            "posz" => {
-                pos = Vec3::new(*pos.x(), *pos.y(), value.parse::<f64>().unwrap());
-            }
-            "dirx" => {
-                dir = Vec3::new(value.parse::<f64>().unwrap(), *dir.y(), *dir.z());
-            }
-            "diry" => {
-                dir = Vec3::new(*dir.x(), value.parse::<f64>().unwrap(), *dir.z());
-            }
-            "dirz" => {
-                dir = Vec3::new(*dir.x(), *dir.y(), value.parse::<f64>().unwrap());
-            }
-            "radius" => {
-                radius = value.parse::<f64>().unwrap();
-            }
-            _ => (),
+    // Load font
+    let font_data = include_bytes!("../assets/JetBrainsMono-Regular.ttf");
+    let font = &Font::try_from_bytes(font_data as &[u8]).expect("Error loading font");
+
+    // Set font size and color
+    let scale = Scale::uniform(format.font_size());
+    let background_color = *format.background_color();
+    let color = format.font_color();
+
+    if background_color != Rgba([50, 50, 50, 255]) {
+        draw_text_background(
+            image,
+            pos,
+            format.size(),
+            background_color,
+            format.font_size() as u32,
+        );
+    }
+
+    // Draw text
+    let v_metrics = font.v_metrics(scale);
+    let offset = rusttype::point(x as f32, y as f32 + v_metrics.ascent);
+
+    for glyph in font.layout(&text, scale, offset) {
+        if let Some(bb) = glyph.pixel_bounding_box() {
+            glyph.draw(|x, y, v| {
+                let x = x as i32 + bb.min.x;
+                let y = y as i32 + bb.min.y;
+                if x >= 0 && x < image.width() as i32 && y >= 0 && y < image.height() as i32 {
+                    let pixel = image.get_pixel_mut(x as u32, y as u32);
+                    *pixel = blend(color, pixel, v);
+                }
+            });
         }
-        let sphere = sphere::Sphere::new(pos, dir, radius);
-        Some(Box::new(sphere))
+    }
 }
 
-fn update_plane() -> Option<Box<dyn Sync + Shape>> {
-    None
+// Blend function to combine text color with background color
+pub fn blend(text_color: &Rgba<u8>, background_color: &Rgba<u8>, alpha: f32) -> Rgba<u8> {
+    let inv_alpha = 1.0 - alpha;
+    let r = (text_color[0] as f32 * alpha + background_color[0] as f32 * inv_alpha) as u8;
+    let g = (text_color[1] as f32 * alpha + background_color[1] as f32 * inv_alpha) as u8;
+    let b = (text_color[2] as f32 * alpha + background_color[2] as f32 * inv_alpha) as u8;
+    let a = (text_color[3] as f32 * alpha + background_color[3] as f32 * inv_alpha) as u8;
+    Rgba([r, g, b, a])
 }
 
-fn update_cylinder() -> Option<Box<dyn Sync + Shape>> {
-    None
+pub fn draw_text_background(
+    image: &mut RgbaImage,
+    pos: &Vec2,
+    size: &Vec2,
+    color: Rgba<u8>,
+    height: u32,
+) {
+    let mut width = *size.x() as u32;
+
+    if *pos.x() as u32 + width > image.width() as u32 {
+        width = image.width() - *pos.x() as u32;
+    }
+
+    let x = image.width() - width;
+    let y = *pos.y() as u32;
+
+    for x in x..x + width {
+        for y in y..y + height {
+            image.put_pixel(x, y, color);
+        }
+    }
 }
 
-fn update_cone() -> Option<Box<dyn Sync + Shape>> {
-    None
+pub fn get_shape(shape: &dyn Shape) -> String {
+    if let Some(sphere) = shape.as_sphere() {
+        return format!(
+            "Sphere: pos: {:#?}, radius: {}",
+            sphere.pos(),
+            sphere.radius()
+        );
+    } else if let Some(plane) = shape.as_plane() {
+        return format!("Plane: pos: {:#?}, dir: {:#?}", plane.pos(), plane.dir());
+    } else if let Some(cylinder) = shape.as_cylinder() {
+        return format!(
+            "Cylinder: pos: {:#?}, dir: {:#?}, radius: {}, height: {}",
+            cylinder.pos(),
+            cylinder.dir(),
+            cylinder.radius(),
+            cylinder.height()
+        );
+    } else if let Some(cone) = shape.as_cone() {
+        return format!(
+            "Cone: pos: {:#?}, dir: {:#?}, radius: {}, height: {}",
+            cone.pos(),
+            cone.dir(),
+            cone.radius(),
+            cone.height()
+        );
+    } else {
+        return String::from("Unknown shape");
+    }
 }

@@ -1,7 +1,6 @@
 use crate::model::{
     materials::Color,
     maths::{hit::Hit, ray::Ray},
-    objects::light,
     scene::Scene,
 };
 

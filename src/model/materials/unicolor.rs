@@ -33,6 +33,9 @@ impl Material for Unicolor {
     fn refraction_coef(&self) -> f64 {
         0.
     }
+    fn roughness(&self) -> f64 {
+        0.
+    }
     fn needs_projection(&self) -> bool {
         false
     }

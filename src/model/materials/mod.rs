@@ -1,7 +1,7 @@
 use image::Rgba;
 
 use super::maths::vec3::Vec3;
-use crate::model::materials::unicolor::Unicolor;
+use crate::model::materials::metal::Metal;
 use std::fmt::Debug;
 pub mod metal;
 pub mod unicolor;
@@ -192,14 +192,15 @@ pub trait Material: Debug + Sync + Send {
     fn norm(&self, x: i32, y: i32) -> Vec3;
     fn reflection_coef(&self) -> f64;
     fn refraction_coef(&self) -> f64;
+    fn roughness(&self) -> f64;
     fn needs_projection(&self) -> bool;
 }
 
 impl dyn Material {
     pub fn new(color: Color) -> Box<Self> {
-        Box::new(Unicolor::new(color.r(), color.g(), color.b()))
+        Box::new(Metal::new(color, 0., 0.))
     }
     pub fn default() -> Box<Self> {
-        Box::new(Unicolor::new(0., 0., 0.))
+        Box::new(Metal::new(Color::new(0., 0., 0.), 0., 0.))
     }
 }

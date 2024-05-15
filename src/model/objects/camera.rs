@@ -1,5 +1,5 @@
 use crate::{
-    model::maths::{quaternion::Quaternion, ray::Ray, vec3::Vec3},
+    model::maths::{quaternion::Quaternion, vec3::Vec3},
     SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 
@@ -12,9 +12,10 @@ pub struct Camera {
     dir: Vec3,
     fov: f64,
     vfov: f64,
-    yaw: f64,
     u: Vec3,
     v: Vec3,
+    q_up: Quaternion,
+    q_down: Quaternion,
     q_left: Quaternion,
     q_right: Quaternion,
 }
@@ -33,9 +34,6 @@ impl Camera {
     pub fn vfov(&self) -> f64 {
         self.vfov
     }
-    pub fn yaw(&self) -> f64 {
-        self.yaw
-    }
     pub fn u(&self) -> &Vec3 {
         &self.u
     }
@@ -50,7 +48,7 @@ impl Camera {
     pub fn set_dir(&mut self, dir: Vec3) {
         self.u = Vec3::new(*dir.z(), 0., -*dir.x()).normalize();
         self.v = dir.cross(&self.u).normalize();
-        self.dir = dir;
+        self.dir = dir.normalize();
     }
     pub fn set_fov(&mut self, fov: f64) {
         self.fov = fov;
@@ -62,9 +60,11 @@ impl Camera {
         let u = Vec3::new(*dir.z(), 0., -*dir.x()).normalize();
         let v = dir.cross(&u).normalize();
         let vfov = fov * SCREEN_HEIGHT as f64 / SCREEN_WIDTH as f64;
-        let yaw = 0.;
+        let q_up = Quaternion::new_from_axis_angle(&Vec3::new(1., 0., 0.), -LOOK_STEP);
+        let q_down = Quaternion::new_from_axis_angle(&Vec3::new(1., 0., 0.), LOOK_STEP);
         let q_left = Quaternion::new_from_axis_angle(&Vec3::new(0., 1., 0.), -LOOK_STEP);
         let q_right = Quaternion::new_from_axis_angle(&Vec3::new(0., 1., 0.), LOOK_STEP);
+
         self::Camera {
             pos,
             dir,
@@ -72,9 +72,10 @@ impl Camera {
             u,
             v,
             vfov,
-            yaw,
             q_left,
             q_right,
+            q_up,
+            q_down,
         }
     }
 
@@ -86,7 +87,8 @@ impl Camera {
             u: Vec3::new(0.0, 0.0, 0.0),
             v: Vec3::new(0.0, 0.0, 0.0),
             vfov: 0.,
-            yaw: 0.,
+            q_up: Quaternion::new_from_axis_angle(&Vec3::new(1., 0., 0.), -LOOK_STEP),
+            q_down: Quaternion::new_from_axis_angle(&Vec3::new(1., 0., 0.), LOOK_STEP),
             q_left: Quaternion::new_from_axis_angle(&Vec3::new(0., 1., 0.), -LOOK_STEP),
             q_right: Quaternion::new_from_axis_angle(&Vec3::new(0., 1., 0.), LOOK_STEP),
         }
@@ -112,29 +114,22 @@ impl Camera {
         self.pos += self.v() * STEP;
     }
     pub fn look_up(&mut self) {
-        let q = Quaternion::new_from_axis_angle(&self.u(), -LOOK_STEP);
-        self.dir = q.rotate(&self.dir());
+        self.set_dir(self.q_up.rotate(&self.dir()));
     }
     pub fn look_down(&mut self) {
-        let q = Quaternion::new_from_axis_angle(&self.u(), LOOK_STEP);
-        self.dir = q.rotate(&self.dir());
+        self.set_dir(self.q_down.rotate(&self.dir()));
     }
     pub fn look_left(&mut self) {
-        self.dir = self.q_left.rotate(&self.dir());
+        self.set_dir(self.q_left.rotate(&self.dir()));
     }
     pub fn look_right(&mut self) {
-        self.dir = self.q_right.rotate(&self.dir());
+        self.set_dir(self.q_right.rotate(&self.dir()));
     }
-    pub fn roll_left(&mut self) {
-        self.yaw += LOOK_STEP;
-        self.u = self.u().rotate_from_axis_angle(LOOK_STEP, &self.dir()).normalize();
-        // self.u = Vec3::new(*self.dir.z(), self.yaw(), -*self.dir.x()).normalize();
-        self.v = self.dir().cross(&self.u).normalize();
-    }
-    pub fn roll_right(&mut self) {
-        self.yaw -= LOOK_STEP;
-        self.u = self.u().rotate_from_axis_angle(-LOOK_STEP, &self.dir()).normalize();
-        // self.u = Vec3::new(*self.dir.z(), self.yaw(), -*self.dir.x()).normalize();
-        self.v = self.dir().cross(&self.u).normalize();
+    pub fn debug_print(&self) {
+        println!();
+        println!("pos: {:.2} {:.2} {:.2}", self.pos.x(), self.pos.y(), self.pos.z());
+        println!("dir: {:.2} {:.2} {:.2}", self.dir.x(), self.dir.y(), self.dir.z());
+        println!("u: {:.2} {:.2} {:.2}", self.u.x(), self.u.y(), self.u.z());
+        println!("v: {:.2} {:.2} {:.2}", self.v.x(), self.v.y(), self.v.z());
     }
 }
