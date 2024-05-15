@@ -16,13 +16,13 @@ impl Quaternion {
 		Self { x, y, z, w }
 	}
 
-	pub fn from_euler_angles(roll: f64, pitch: f64, yaw: f64) -> Self {
-		let cr = (roll * 0.5).cos();
-    	let sr = (roll * 0.5).sin();
-    	let cp = (pitch * 0.5).cos();
-    	let sp = (pitch * 0.5).sin();
-    	let cy = (yaw * 0.5).cos();
-    	let  sy = (yaw * 0.5).sin();
+	pub fn from_euler_angles(pitch: f64, yaw: f64, roll: f64) -> Self {
+		let cr = (pitch * 0.5).cos();
+    	let sr = (pitch * 0.5).sin();
+    	let cp = (yaw * 0.5).cos();
+    	let sp = (yaw * 0.5).sin();
+    	let cy = (roll * 0.5).cos();
+    	let  sy = (roll * 0.5).sin();
 		Self {
 			w: cr * cp * cy + sr * sp * sy,
 			x: sr * cp * cy - cr * sp * sy,

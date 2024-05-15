@@ -44,6 +44,7 @@ pub fn draw_sphere_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, sphere:
     gui.keys.push("colr".to_string());
     gui.keys.push("colg".to_string());
     gui.keys.push("colb".to_string());
+    // gui.keys.push("metalness".to_string());
     gui.keys.push("radius".to_string());
 
     gui.values.push(sphere.pos().x().to_string());

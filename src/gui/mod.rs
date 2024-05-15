@@ -30,6 +30,7 @@ pub fn hide_gui(img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, scene: &scene::
 
     for x in x_start..img.width() {
         for y in 0..height {
+            // TODO
             // A CHANGER IMPERATIVEMENT !! On ne devrait pas avoir a recalculer les rays pour le gui, on est cense garder en memoire
             // l'image envoyee par le render_thread et prendre les couleurs de la. La c'est tres inneficace, et on ne
             // profite pas du tout des opti faites pour le multithreading, et pire encore on block les events arrivants

@@ -17,10 +17,10 @@ fn get_angle_to(fov: f64, pos: f64, length: f64) -> f64 {
 }
 
 pub fn get_ray(scene: &Scene, x: usize, y: usize) -> Ray {
-    let roll = get_angle_to(scene.camera().fov(), x as f64, SCREEN_WIDTH as f64);
+    let yaw = get_angle_to(scene.camera().fov(), x as f64, SCREEN_WIDTH as f64);
     let pitch = get_angle_to(scene.camera().vfov(), y as f64, SCREEN_HEIGHT as f64);
-    let yaw = scene.camera().yaw();
-    let quat = Quaternion::from_euler_angles(pitch, roll, yaw);
+    let roll = 0.;
+    let quat = Quaternion::from_euler_angles(pitch, yaw, roll);
     Ray::new(
         scene.camera().pos().clone(),
         scene.camera().dir().clone().rotate(&quat).normalize(),
