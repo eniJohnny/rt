@@ -1,7 +1,7 @@
 use std::cmp::min;
 
 use winit::event::VirtualKeyCode;
-use crate::model::{materials::{unicolor::Unicolor, Color, Material}, maths::vec3::Vec3, objects::camera::Camera,  shapes::{plane, sphere, cylinder, cone, Shape}};
+use crate::model::{materials::{Color, Material, metal::Metal}, maths::vec3::Vec3, objects::camera::Camera,  shapes::{plane, sphere, cylinder, cone, Shape}};
 
 pub fn move_camera(camera: &mut Camera, c: Option<VirtualKeyCode>) {
 
@@ -21,7 +21,7 @@ pub fn move_camera(camera: &mut Camera, c: Option<VirtualKeyCode>) {
     // camera.debug_print();
 }
 
-pub fn update_color(key: String, value: String, color: Color) -> Option<Box<dyn Sync + Material>> {
+pub fn update_color(key: String, value: String, color: Color, metalness: f64, roughness: f64) -> Option<Box<dyn Sync + Material>> {
     let mut new_color: (u8, u8, u8) = ((color.r() * 255.) as u8, (color.g() * 255.) as u8, (color.b() * 255.) as u8);
     let new_value = min(value.parse::<u32>().unwrap(), 255) as u8;
     match key.as_str() {
@@ -36,7 +36,20 @@ pub fn update_color(key: String, value: String, color: Color) -> Option<Box<dyn 
         }
         _ => (),
     }
-    let new_material = Unicolor::new(new_color.0 as f64 / 255., new_color.1 as f64 / 255., new_color.2 as f64 / 255.);
+    let new_color = Color::new(new_color.0 as f64 / 255., new_color.1 as f64 / 255., new_color.2 as f64 / 255.);
+    let new_material = Metal::new(new_color, metalness, roughness);
+    Some(Box::new(new_material))
+}
+
+pub fn update_metalness(value: String, color: Color, roughness: f64) -> Option<Box<dyn Sync + Material>> {
+    let metalness = value.parse::<f64>().unwrap();
+    let new_material = Metal::new(color, metalness, roughness);
+    Some(Box::new(new_material))
+}
+
+pub fn update_roughness(value: String, color: Color, metalness: f64) -> Option<Box<dyn Sync + Material>> {
+    let roughness = value.parse::<f64>().unwrap();
+    let new_material = Metal::new(color, metalness, roughness);
     Some(Box::new(new_material))
 }
 

@@ -15,7 +15,6 @@ use crate::{
 };
 use image::{ImageBuffer, Rgba, RgbaImage};
 use std::{
-    collections::HashMap,
     sync::{Arc, RwLock},
     thread::{self, sleep},
     time::{Duration, Instant},
@@ -31,7 +30,7 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
-use self::utils::{move_camera, update_color, update_shape};
+use self::utils::{move_camera, update_color, update_metalness, update_roughness, update_shape};
 
 const RGB_KEYS: [&str; 3] = ["colr", "colg", "colb"];
 const CAM_MOVE_KEYS: [VirtualKeyCode; 10] = [
@@ -154,7 +153,25 @@ pub fn display_scene(scene: Scene) {
 
                                     if RGB_KEYS.contains(&key.as_str()) {
                                         let color: Color = material.color(0, 0);
-                                        let new_material = update_color(key, value, color);
+                                        let metalness = material.reflection_coef();
+                                        let roughness = material.roughness();
+                                        let new_material = update_color(key, value, color, metalness, roughness);
+                                        if new_material.is_some() {
+                                            scene.elements_as_mut()[element_index]
+                                                .set_material(new_material.unwrap());
+                                        }
+                                    } else if key == "metalness" {
+                                        let color: Color = material.color(0, 0);
+                                        let roughness = material.roughness();
+                                        let new_material = update_metalness(value, color, roughness);
+                                        if new_material.is_some() {
+                                            scene.elements_as_mut()[element_index]
+                                                .set_material(new_material.unwrap());
+                                        }
+                                    } else if key == "roughness" {
+                                        let color: Color = material.color(0, 0);
+                                        let metalness = material.reflection_coef();
+                                        let new_material = update_roughness(value, color, metalness);
                                         if new_material.is_some() {
                                             scene.elements_as_mut()[element_index]
                                                 .set_material(new_material.unwrap());
