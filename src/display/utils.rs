@@ -1,7 +1,10 @@
 use image::{ImageBuffer, Rgba, RgbaImage};
 use rusttype::{Font, Scale};
 use winit::event::VirtualKeyCode;
-use crate::{gui::{draw::{draw_plane_gui, draw_sphere_gui}, Gui, TextFormat}, model::{maths::vec2::Vec2, objects::camera::Camera, shapes::Shape, Element}};
+use crate::{
+    gui::{draw::{draw_plane_gui, draw_sphere_gui}, Gui, textformat::TextFormat},
+    model::{maths::vec2::Vec2, objects::camera::Camera, shapes::Shape, Element}
+};
 
 pub fn move_camera(camera: &mut Camera, c: Option<VirtualKeyCode>) {
 

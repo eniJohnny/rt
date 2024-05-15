@@ -4,8 +4,13 @@ extern crate winit;
 
 use crate::{
     gui::{
-        gui_clicked, hide_gui, hitbox_contains, Gui, TextFormat,
-    }, model::{materials::Color, maths::vec2::Vec2, scene::Scene}, render::raycasting::{get_closest_hit, get_ray}, CAM_MOVE_KEYS, FPS, RGB_KEYS
+        utils::{gui_clicked, hide_gui, hitbox_contains},
+        textformat::TextFormat,
+        Gui,
+    },
+    model::{materials::Color, maths::vec2::Vec2, scene::Scene},
+    render::raycasting::{get_closest_hit, get_ray},
+    CAM_MOVE_KEYS, FPS, RGB_KEYS
 };
 use image::{ImageBuffer, Rgba, RgbaImage};
 use std::{
