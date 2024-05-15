@@ -34,6 +34,8 @@ pub fn draw_sphere_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, sphere:
 
     let mut gui = Gui::new();
     let color = material.color(0, 0);
+    let metalness = material.reflection_coef();
+    let roughness = material.roughness();
 
     gui.keys.push("posx".to_string());
     gui.keys.push("posy".to_string());
@@ -44,7 +46,8 @@ pub fn draw_sphere_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, sphere:
     gui.keys.push("colr".to_string());
     gui.keys.push("colg".to_string());
     gui.keys.push("colb".to_string());
-    // gui.keys.push("metalness".to_string());
+    gui.keys.push("metalness".to_string());
+    gui.keys.push("roughness".to_string());
     gui.keys.push("radius".to_string());
 
     gui.values.push(sphere.pos().x().to_string());
@@ -56,13 +59,15 @@ pub fn draw_sphere_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, sphere:
     gui.values.push((color.r() * 255.).to_string());
     gui.values.push((color.g() * 255.).to_string());
     gui.values.push((color.b() * 255.).to_string());
+    gui.values.push(metalness.to_string());
+    gui.values.push(roughness.to_string());
     gui.values.push(sphere.radius().to_string());
 
     titles.parse_and_draw_text(img, 0, "Sphere", "");
     titles.parse_and_draw_text(img, 1, "Position:", "");
     titles.parse_and_draw_text(img, 5, "Direction:", "");
-    titles.parse_and_draw_text(img, 9, "Color:", "");
-    titles.parse_and_draw_text(img, 13, "Misc:", "");
+    titles.parse_and_draw_text(img, 9, "Material:", "");
+    titles.parse_and_draw_text(img, 15, "Misc:", "");
 
     gui.hitboxes.push(params.parse_and_draw_text(img, 2, " X:", &sphere.pos().x().to_string()));
     gui.hitboxes.push(params.parse_and_draw_text(img, 3, " Y:", &sphere.pos().y().to_string()));
@@ -73,7 +78,9 @@ pub fn draw_sphere_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, sphere:
     gui.hitboxes.push(params.parse_and_draw_text(img, 10, " R:", &format!("{:.0}", color.r() * 255.)));
     gui.hitboxes.push(params.parse_and_draw_text(img, 11, " G:", &format!("{:.0}", color.g() * 255.)));
     gui.hitboxes.push(params.parse_and_draw_text(img, 12, " B:", &format!("{:.0}", color.b() * 255.)));
-    gui.hitboxes.push(params.parse_and_draw_text(img, 14, " Radius:", &sphere.radius().to_string()));
+    gui.hitboxes.push(params.parse_and_draw_text(img, 13, " Metalness:", &metalness.to_string()));
+    gui.hitboxes.push(params.parse_and_draw_text(img, 14, " Roughness:", &roughness.to_string()));
+    gui.hitboxes.push(params.parse_and_draw_text(img, 16, " Radius:", &sphere.radius().to_string()));
 
     draw_gui_buttons(img, &gui);
 
@@ -109,6 +116,8 @@ pub fn draw_plane_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, plane: &
 
     let mut gui = Gui::new();
     let color = material.color(0,0);
+    let metalness = material.reflection_coef();
+    let roughness = material.roughness();
 
     gui.keys.push("posx".to_string());
     gui.keys.push("posy".to_string());
@@ -119,6 +128,8 @@ pub fn draw_plane_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, plane: &
     gui.keys.push("colr".to_string());
     gui.keys.push("colg".to_string());
     gui.keys.push("colb".to_string());
+    gui.keys.push("metalness".to_string());
+    gui.keys.push("roughness".to_string());
 
     gui.values.push(plane.pos().x().to_string());
     gui.values.push(plane.pos().y().to_string());
@@ -129,11 +140,13 @@ pub fn draw_plane_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, plane: &
     gui.values.push((color.r() * 255.).to_string());
     gui.values.push((color.g() * 255.).to_string());
     gui.values.push((color.b() * 255.).to_string());
+    gui.values.push(metalness.to_string());
+    gui.values.push(roughness.to_string());
 
     titles.parse_and_draw_text(img, 0, "Plane", "");
     titles.parse_and_draw_text(img, 1, "Position:", "");
     titles.parse_and_draw_text(img, 5, "Direction:", "");
-    titles.parse_and_draw_text(img, 9, "Color:", "");
+    titles.parse_and_draw_text(img, 9, "Material:", "");
     
     gui.hitboxes.push(params.parse_and_draw_text(img, 2, " X:", &plane.pos().x().to_string()));
     gui.hitboxes.push(params.parse_and_draw_text(img, 3, " Y:", &plane.pos().y().to_string()));
@@ -144,7 +157,9 @@ pub fn draw_plane_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, plane: &
     gui.hitboxes.push(params.parse_and_draw_text(img, 10, " R:", &format!("{:.0}", color.r() * 255.)));
     gui.hitboxes.push(params.parse_and_draw_text(img, 11, " G:", &format!("{:.0}", color.g() * 255.)));
     gui.hitboxes.push(params.parse_and_draw_text(img, 12, " B:", &format!("{:.0}", color.b() * 255.)));
-
+    gui.hitboxes.push(params.parse_and_draw_text(img, 13, " Metalness:", &metalness.to_string()));
+    gui.hitboxes.push(params.parse_and_draw_text(img, 14, " Roughness:", &roughness.to_string()));
+    
     draw_gui_buttons(img, &gui);
 
     gui
