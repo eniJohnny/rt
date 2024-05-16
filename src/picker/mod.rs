@@ -113,7 +113,6 @@ fn draw_files_and_update_hitboxes(start: usize, files: &Vec<String>, pixels: &mu
     draw_text(&mut img, &Vec2::new(860., 770.0), "Choose a scene".to_string(), &format);
     draw_text(&mut img, &Vec2::new(860., 790.0), "Use the mouse wheel to scroll".to_string(), &format);
     draw_text(&mut img, &Vec2::new(860., 810.0), "Press Enter to load the scene".to_string(), &format);
-    draw_text(&mut img, &Vec2::new(860., 830.0), "Click on the scene again if the preview is too pixelated".to_string(), &format);
     display(pixels, &mut img);
     return (hitboxes, img);
 }
@@ -138,7 +137,6 @@ fn display_files(files: Vec<String>) -> String {
     let mut hitboxes: Vec<(Vec2, Vec2)>;
     let mut img: RgbaImage;
     let mut file_clicked = "".to_string();
-    let mut file_chosen = false;
 
     // Draw the list of files and update the hitboxes
     let mut start = 0;
@@ -170,7 +168,7 @@ fn display_files(files: Vec<String>) -> String {
                         if file_clicked != "" {
                             // Display a preview of the scene
                             let path = format!("{}/{}", SCENE_FOLDER, file_clicked);
-                            let scene = get_scene(path);
+                            let scene = get_scene(&path);
                             render_preview(scene, &mut img, &mut pixels);
                         }
                     }
@@ -202,7 +200,6 @@ fn display_files(files: Vec<String>) -> String {
                             *control_flow = ControlFlow::Exit;
                         } else if key_code == winit::event::VirtualKeyCode::Return {
                             if file_clicked != "" {
-                                file_chosen = true;
                                 sender.send(file_clicked.clone()).unwrap();
                                 *control_flow = ControlFlow::Exit;
                             }
@@ -212,9 +209,6 @@ fn display_files(files: Vec<String>) -> String {
                 _ => (),
             },
             _ => (),
-        }
-        if file_chosen {
-            *control_flow = ControlFlow::Exit;
         }
     });
 
@@ -270,34 +264,25 @@ fn render_preview(scene: Scene, img: &mut RgbaImage, pixels: &mut Pixels<Window>
     // Setting up the render_threads and asking for the first image
     let scene = Arc::new(RwLock::new(scene));
     let (ra, tb) = start_render_threads(Arc::clone(&scene));
-    let scene_change = false;
-    tb.send(scene_change).unwrap();
+    tb.send(true).unwrap();
     let mut final_image = false;
-    let mut image_requested = true;
-    let mut preview_img = RgbaImage::new(1600, 900);
+    let mut preview_img: image::ImageBuffer<Rgba<u8>, Vec<u8>>;
+    
     thread::sleep(Duration::from_millis(10));
     tb.send(false).unwrap();
+    let (render_img, _) = ra.recv().unwrap();
+    preview_img = render_img;
 
     while !final_image {
-        if scene_change {
-            thread::sleep(Duration::from_millis(10));
-            tb.send(false).unwrap();
-            let (render_img, _) = ra.recv().unwrap();
+
+        if let Ok((render_img, final_img)) = ra.try_recv() {
             preview_img = render_img;
-            break;
+            final_image = final_img;
         }
-        if scene_change {
-            final_image = false;
-            tb.send(true).unwrap();
-        } else if image_requested {
-            if let Ok((render_img, final_img)) = ra.try_recv() {
-                preview_img = render_img;
-                final_image = final_img;
-                image_requested = false;
-            }
-        } else if !final_image {
+
+        if !final_image {
+            thread::sleep(Duration::from_millis(20));
             tb.send(false).unwrap();
-            image_requested = true;
         }
     }
 

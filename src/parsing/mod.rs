@@ -8,7 +8,8 @@ use crate::model::{
     scene::Scene, shapes::cone::Cone, shapes::cylinder::Cylinder, shapes::plane::Plane,
     shapes::sphere::Sphere,
 };
-use crate::{error, SCENE};
+use crate::error;
+// use crate::{error, SCENE};
 use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::io::Write;
@@ -17,9 +18,9 @@ pub fn print_scene(scene: &Scene) {
     write!(std::io::stdout(), "{:#?}\n", scene).expect("Error printing scene");
 }
 
-pub fn get_scene(scene_file: String) -> Scene {
+pub fn get_scene(scene_file: &String) -> Scene {
     let mut scene = Scene::new();
-    let objects = parse_json(scene_file);
+    let objects = parse_json(scene_file.clone());
 
     for object in objects {
         match object["type"].as_str() {

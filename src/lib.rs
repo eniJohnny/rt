@@ -22,7 +22,7 @@ const MAX_DEPTH: u8 = 3;
 
 const SCENE_FOLDER: &str = "scenes";
 const PICKER_LINE_HEIGHT: f64 = 30.0;
-const SCENE: &str = "scenes/sphere.json";
+// const SCENE: &str = "scenes/sphere.json";
 const FPS: u64 = 20;
 
 const RGB_KEYS: [&str; 3] = ["colr", "colg", "colb"];
@@ -42,7 +42,7 @@ const CAM_MOVE_KEYS: [VirtualKeyCode; 10] = [
 pub fn run() {
     let path = picker::pick_scene();
     if path != "" {
-        let scene = get_scene(path);
+        let scene = get_scene(&path);
         display_scene(scene);
     }
 }
