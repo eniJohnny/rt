@@ -5,6 +5,7 @@ extern crate winit;
 pub mod utils;
 pub mod update;
 pub mod events;
+pub mod stereo;
 
 use crate::{
     model::scene::Scene,

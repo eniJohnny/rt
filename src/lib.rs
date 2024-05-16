@@ -1,6 +1,7 @@
 extern crate image;
 use display::display_scene;
 use parsing::get_scene;
+use display::stereo::display_stereo_scene;
 use winit::event::VirtualKeyCode;
 
 pub mod display;
