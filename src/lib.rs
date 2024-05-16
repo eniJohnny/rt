@@ -8,6 +8,7 @@ pub mod gui;
 pub mod model;
 pub mod parsing;
 pub mod render;
+pub mod picker;
 
 const SCREEN_WIDTH: usize = 1600;
 const SCREEN_HEIGHT: usize = 900;
@@ -19,6 +20,8 @@ const MAX_THREADS: usize = 2;
 const BASE_SIMPLIFICATION: usize = 32;
 const MAX_DEPTH: u8 = 3;
 
+const SCENE_FOLDER: &str = "scenes";
+const PICKER_LINE_HEIGHT: f64 = 30.0;
 const SCENE: &str = "scenes/sphere.json";
 const FPS: u64 = 20;
 
@@ -37,8 +40,11 @@ const CAM_MOVE_KEYS: [VirtualKeyCode; 10] = [
 ];
 
 pub fn run() {
-    let scene = get_scene();
-    display_scene(scene);
+    let path = picker::pick_scene();
+    if path != "" {
+        let scene = get_scene(path);
+        display_scene(scene);
+    }
 }
 
 pub fn error(msg: &str) {

@@ -17,9 +17,9 @@ pub fn print_scene(scene: &Scene) {
     write!(std::io::stdout(), "{:#?}\n", scene).expect("Error printing scene");
 }
 
-pub fn get_scene() -> Scene {
+pub fn get_scene(scene_file: String) -> Scene {
     let mut scene = Scene::new();
-    let objects = parse_json();
+    let objects = parse_json(scene_file);
 
     for object in objects {
         match object["type"].as_str() {
@@ -111,8 +111,8 @@ pub fn get_scene() -> Scene {
     return scene;
 }
 
-fn parse_json() -> Vec<HashMap<String, String>> {
-    let content = std::fs::read_to_string(SCENE).expect("Error reading file");
+fn parse_json(scene_file: String) -> Vec<HashMap<String, String>> {
+    let content = std::fs::read_to_string(scene_file).expect("Error reading file");
     let mut objects: Vec<HashMap<String, String>> = Vec::new();
     let mut i = 0;
 
