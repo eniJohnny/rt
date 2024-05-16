@@ -1,7 +1,7 @@
 use crate::{
     model::{
         materials::Color,
-        maths::{hit::Hit, quaternion::Quaternion, ray::Ray},
+        maths::{hit::Hit, quaternion::Quaternion, ray::Ray, vec3::Vec3},
         scene::Scene,
         Element,
     },
@@ -15,13 +15,15 @@ fn get_angle_to(fov: f64, pos: f64, length: f64) -> f64 {
 }
 
 pub fn get_ray(scene: &Scene, x: usize, y: usize) -> Ray {
-    let yaw = get_angle_to(scene.camera().fov(), x as f64, SCREEN_WIDTH as f64);
-    let pitch = get_angle_to(scene.camera().vfov(), y as f64, SCREEN_HEIGHT as f64);
-    let roll = 0.;
-    let quat = Quaternion::from_euler_angles(pitch, yaw, roll);
+    let roll = - f64::atan2(- scene.camera().dir().x(), *scene.camera().dir().z());
+    let pitch = scene.camera().dir().y().asin();
+    let roll = roll + get_angle_to(scene.camera().fov(), x as f64, SCREEN_WIDTH as f64);
+    let pitch = pitch + get_angle_to(scene.camera().vfov(), y as f64, SCREEN_HEIGHT as f64);
+    let yaw = 0.;
+    let quat = Quaternion::from_euler_angles(pitch, roll, yaw);
     Ray::new(
         scene.camera().pos().clone(),
-        scene.camera().dir().clone().rotate(&quat).normalize(),
+        Vec3::new(0., 0., 1.).rotate(&quat).normalize(),
         0,
     )
 }
@@ -38,7 +40,7 @@ pub fn cast_ray(scene: &Scene, ray: &Ray) -> Color {
                     let dir = (ray.get_dir() - 2. * ray.get_dir().dot(hit.norm()) * hit.norm())
                         .normalize();
                     let ray = Ray::new(hit.pos().clone() + &dir * 0.01, dir, ray.get_depth() + 1);
-                    color = color + cast_ray(scene, &ray) * material.reflection_coef();
+                    color = color + cast_ray(scene, &ray) * material.reflection_coef() * material.color(0, 0);
                 }
             }
             color.apply_gamma();
