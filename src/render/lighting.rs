@@ -12,7 +12,7 @@ pub fn reflect_dir(dir: &Vec3, normal: &Vec3) -> Vec3 {
 
 pub fn random_bounce_dir(dir: &Vec3, normal: &Vec3, roughness: f64) -> Vec3 {
 	let reflect: Vec3 = reflect_dir(dir, normal);
-	if (roughness == 0.) {
+	if roughness == 0. {
 		return reflect;
 	}
 	loop {
@@ -20,7 +20,10 @@ pub fn random_bounce_dir(dir: &Vec3, normal: &Vec3, roughness: f64) -> Vec3 {
 		let roll: f64 = rng.gen_range((0.)..(2. * std::f64::consts::PI));
 		let yaw: f64 = rng.gen_range((-std::f64::consts::PI * roughness)..(std::f64::consts::PI * roughness));
 
-		let axis = normal.cross(&reflect);
+		let mut axis = normal.cross(&Vec3::new(1., 0., 0.));
+		if axis == Vec3::new(0., 0., 0.) {
+			axis = normal.cross(&Vec3::new(0., 1., 0.));
+		}
 		let mut random = reflect.rotate(&quaternion::Quaternion::new_from_axis_angle(&axis, yaw));
 		random = random.rotate(&quaternion::Quaternion::new_from_axis_angle(&reflect, roll));
 		if random.dot(&normal) >= 0. {
@@ -75,7 +78,7 @@ pub fn get_reflected_light(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
 					ray.get_depth() + 1),
 		weight: 0.,
 	};
-	let sample_nb = 1;
+	let sample_nb = 100;
 	if hit.element().material().roughness() > f64::EPSILON {
 		for i in 0..sample_nb {
 			let random_bounce = random_bounce(&ray, hit.norm(), hit.element().material().roughness());
@@ -97,29 +100,33 @@ pub fn get_reflected_light(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
 }
 
 
-// pub fn get_indirect_light(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
-// 	let mut bucket: Bucket = Bucket {
-// 		ray: Ray::new(ray.get_pos() + hit.norm() * 0.001,
-// 					ray.get_dir().clone(),
-// 					ray.get_depth() + 1),
-// 		weight: 0.,
-// 	};
-// 	let sample_nb = 1;
-// 	if hit.element().material().roughness() > f64::EPSILON {
-// 		for _ in 0..sample_nb {
-// 			let random_bounce = random_bounce(&ray, hit.norm(), hit.element().material().roughness());
-// 			let bounce_color = get_bounce_color(scene, &random_bounce);
-// 			let weight = bounce_color.r() + bounce_color.g() + bounce_color.b();
-// 			let rand: f64 = rand::thread_rng().gen_range((0.)..(bucket.weight + weight));
-// 			bucket.weight += weight;
-// 			if rand > bucket.weight {
-// 				bucket.ray = random_bounce;
-// 			}
-// 		}
-// 	}
 
-// 	cast_ray(scene, &bucket.ray)
-// }
+
+pub fn get_indirect_light(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
+	let mut bucket: Bucket = Bucket {
+		ray: Ray::new(ray.get_pos() + hit.norm() * 0.001,
+					ray.get_dir().clone(),
+					ray.get_depth() + 1),
+		weight: 0.,
+	};
+	let sample_nb = 1;
+	for i in 0..sample_nb {
+		let random_bounce = random_bounce(&ray, hit.norm(), 1.);
+		let bounce_color = get_bounce_color(scene, &random_bounce);
+		let weight = bounce_color.r() + bounce_color.g() + bounce_color.b();
+		bucket.weight += weight;
+		if i == 0 {
+			bucket.ray = random_bounce;
+		} else {
+			let rand: f64 = rand::thread_rng().gen_range((0.)..(bucket.weight + weight));
+			if rand > bucket.weight {
+				bucket.ray = random_bounce;
+			}	
+		}
+	}
+
+	cast_ray(scene, &bucket.ray)
+}
 
 pub fn apply_lighting(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
 
@@ -133,7 +140,6 @@ pub fn apply_lighting(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
     };
 
     let mut light_color: Color = Color::new(0., 0., 0.);
-	
 	// Basic Diffuse
 	for light in scene.lights() {
 	    if !light.is_shadowed(scene, &hit) {
@@ -142,17 +148,21 @@ pub fn apply_lighting(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
 	    }
 	}
 
-	// // Indirect light
-	// if ray.get_depth() < MAX_DEPTH {
-	// 	light_color = light_color + get_indirect_light(&hit, scene, ray);
-	// }
+	// Indirect light
+	if ray.get_depth() < MAX_DEPTH {
+		light_color = light_color + get_indirect_light(&hit, scene, ray);
+	}
 	
 	(light_color).clamp(0., 1.);
 
 	// Reflection
 	let absorbed = 1.0 - material.reflection_coef() - material.refraction_coef();
 	if ray.get_depth() < MAX_DEPTH {
-		light_color = light_color * absorbed + get_reflected_light(&hit, scene, ray) * material.reflection_coef();
+		let reflected_light = get_reflected_light(&hit, scene, ray);
+		light_color = light_color + &reflected_light * 0.1;
+		if material.reflection_coef() > 0. {
+			light_color = light_color * absorbed + reflected_light * material.reflection_coef();
+		}
 	} else {
 		light_color = light_color * absorbed;
 	}
