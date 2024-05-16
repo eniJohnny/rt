@@ -101,6 +101,12 @@ impl Camera {
     pub fn move_backward(&mut self) {
         self.pos -= self.dir() * STEP;
     }
+    pub fn move_left_stereo(&mut self) {
+        self.pos -= self.u() * 0.05;
+    }
+    pub fn move_right_stereo(&mut self) {
+        self.pos += self.u() * 0.05;
+    }
     pub fn move_left(&mut self) {
         self.pos -= self.u() * STEP;
     }
