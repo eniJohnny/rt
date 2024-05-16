@@ -18,7 +18,7 @@ const GUI_WIDTH: u32 = 400;
 const GUI_HEIGHT: u32 = 600;
 const MAX_THREADS: usize = 2;
 const BASE_SIMPLIFICATION: usize = 32;
-const MAX_DEPTH: u8 = 3;
+const MAX_DEPTH: u8 = 1;
 
 const SCENE_FOLDER: &str = "scenes";
 const PICKER_LINE_HEIGHT: f64 = 30.0;
