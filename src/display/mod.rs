@@ -56,7 +56,7 @@ pub fn display_scene(scene: Scene) {
     events::event_manager(event_loop, scene, img, pixels, ra, tb);
 }
 
-fn display(pixels: &mut Pixels<Window>, img: &mut RgbaImage) {
+pub fn display(pixels: &mut Pixels<Window>, img: &mut RgbaImage) {
     // Copy image data to pixels buffer
     pixels.get_frame().copy_from_slice(&img);
 

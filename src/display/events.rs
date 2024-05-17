@@ -4,13 +4,8 @@ extern crate winit;
 
 use crate::{
     gui::{
-        utils::{gui_clicked, hide_gui, hitbox_contains},
-        textformat::TextFormat,
-        Gui,
-    },
-    model::{materials::Color, maths::vec2::Vec2, scene::Scene},
-    render::raycasting::{get_closest_hit, get_ray},
-    CAM_MOVE_KEYS, FPS, RGB_KEYS
+        textformat::TextFormat, utils::{gui_clicked, hide_gui, hitbox_contains}, Gui
+    }, model::{materials::Color, maths::vec2::Vec2, scene::Scene}, render::raycasting::{get_closest_hit, get_ray}, CAM_MOVE_KEYS, FPS, RGB_KEYS
 };
 use image::{ImageBuffer, Rgba, RgbaImage};
 use std::{
@@ -21,12 +16,10 @@ use std::{
 
 use pixels::Pixels;
 use winit::{
-    event::{Event, VirtualKeyCode, WindowEvent},
-    event_loop::{ControlFlow, EventLoop},
-    window::Window,
+    event::{Event, VirtualKeyCode, WindowEvent}, event_loop::{ControlFlow, EventLoop}, window::Window
 };
 
-use super::utils::{move_camera, display_element_infos, draw_text, get_shape};
+use super::utils::{display_element_infos, draw_text, get_shape, move_camera};
 use super::update::{update_color, update_metalness, update_roughness, update_shape};
 
 use super::display;
@@ -38,7 +31,6 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
     let format = TextFormat::new_base_format();
     let editing_format = TextFormat::new_editing_format();
     let mut full_img: RgbaImage = img.clone();
-
 
     let mut current_input: Option<VirtualKeyCode> = None;
     let mut time_of_last_move = Instant::now();
