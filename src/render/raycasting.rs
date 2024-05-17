@@ -8,7 +8,7 @@ use crate::{
     MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 
-use super::lighting::apply_lighting;
+use super::lighting::{apply_lighting, random_bounce};
 
 fn get_angle_to(fov: f64, pos: f64, length: f64) -> f64 {
     (pos / length - 0.5) * fov
@@ -31,19 +31,8 @@ pub fn get_ray(scene: &Scene, x: usize, y: usize) -> Ray {
 pub fn cast_ray(scene: &Scene, ray: &Ray) -> Color {
     match get_closest_hit(scene, ray) {
         Some(hit) => {
-            let material = hit.element().material();
-            let absorbed = 1.0 - material.reflection_coef() - material.refraction_coef();
-            let mut color = apply_lighting(&hit, scene, ray) * absorbed;
-
-            if hit.element().material().reflection_coef() > f64::EPSILON {
-                if ray.get_depth() < MAX_DEPTH {
-                    let dir = (ray.get_dir() - 2. * ray.get_dir().dot(hit.norm()) * hit.norm())
-                        .normalize();
-                    let ray = Ray::new(hit.pos().clone() + &dir * 0.01, dir, ray.get_depth() + 1);
-                    color = color + cast_ray(scene, &ray) * material.reflection_coef() * material.color(0, 0);
-                }
-            }
-            color.apply_gamma();
+            let mut color = apply_lighting(&hit, scene, ray);
+            // color.apply_gamma();
             color
         }
         None => Color::new(0., 0., 0.),

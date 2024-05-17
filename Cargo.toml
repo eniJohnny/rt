@@ -10,6 +10,7 @@ image = "0.23.14"
 pixels = "0.2.0"
 winit = "0.25.0"
 rusttype = "0.9.3"
+rand = "0.8.5"
 
 [profile.dev]
 opt-level = 3
