@@ -1,3 +1,5 @@
+use core::str;
+
 use crate::{model::{
     materials::Color, maths::{hit::{self, Hit}, quaternion, ray::Ray, vec3::Vec3}, objects::light, scene::Scene
 }, MAX_DEPTH};
@@ -78,8 +80,8 @@ pub fn get_reflected_light(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
 					ray.get_depth() + 1),
 		weight: 0.,
 	};
-	let sample_nb = 100;
-	if hit.element().material().roughness() > f64::EPSILON {
+	if scene.imperfect_reflections() || hit.element().material().roughness() <= f64::EPSILON {
+		let sample_nb = 1;
 		for i in 0..sample_nb {
 			let random_bounce = random_bounce(&ray, hit.norm(), hit.element().material().roughness());
 			let bounce_color = get_bounce_color(scene, &random_bounce);
@@ -94,9 +96,9 @@ pub fn get_reflected_light(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
 				}	
 			}
 		}
-	}
-
-	cast_ray(scene, &bucket.ray)
+		return cast_ray(scene, &bucket.ray);
+	} 
+	Color::new(0., 0., 0.)
 }
 
 
@@ -109,7 +111,7 @@ pub fn get_indirect_light(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
 					ray.get_depth() + 1),
 		weight: 0.,
 	};
-	let sample_nb = 1;
+	let sample_nb = 100;
 	for i in 0..sample_nb {
 		let random_bounce = random_bounce(&ray, hit.norm(), 1.);
 		let bounce_color = get_bounce_color(scene, &random_bounce);
@@ -149,7 +151,7 @@ pub fn apply_lighting(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
 	}
 
 	// Indirect light
-	if ray.get_depth() < MAX_DEPTH {
+	if scene.indirect_lightning() && ray.get_depth() < MAX_DEPTH {
 		light_color = light_color + get_indirect_light(&hit, scene, ray);
 	}
 	
@@ -159,7 +161,7 @@ pub fn apply_lighting(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
 	let absorbed = 1.0 - material.reflection_coef() - material.refraction_coef();
 	if ray.get_depth() < MAX_DEPTH {
 		let reflected_light = get_reflected_light(&hit, scene, ray);
-		light_color = light_color + &reflected_light * 0.1;
+		light_color = light_color + &reflected_light * 0.2;
 		if material.reflection_coef() > 0. {
 			light_color = light_color * absorbed + reflected_light * material.reflection_coef();
 		}
