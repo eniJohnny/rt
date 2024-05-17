@@ -44,20 +44,20 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
     let mut mouse_position = (0.0, 0.0);
     event_loop.run(move |event, _, control_flow: &mut ControlFlow| {
         *control_flow = ControlFlow::WaitUntil(Instant::now() + Duration::from_millis(20));
-        if scene_change {
-            thread::sleep(Duration::from_millis(10));
-            tb.send(false).unwrap();
-            let (render_img, _) = ra.recv().unwrap();
-            if anaglyphic {
-                let stereo_image = get_stereo_image(Arc::clone(&scene));
-                img = stereo_image;
-            } else {
-                img = render_img;
-            }
+        // if scene_change {
+        //     thread::sleep(Duration::from_millis(10));
+        //     tb.send(false).unwrap();
+        //     let (render_img, _) = ra.recv().unwrap();
+        //     // if anaglyphic {
+        //     //     let stereo_image = get_stereo_image(Arc::clone(&scene), &ra, &tb);
+        //     //     img = stereo_image;
+        //     // } else {
+        //     img = render_img;
+        //     // }
 
-            display(&mut pixels, &mut img);
-            scene_change = false;
-        }
+        //     display(&mut pixels, &mut img);
+        //     scene_change = false;
+        // }
         match event {
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::CloseRequested => {
@@ -251,7 +251,8 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
                 _ => (),
             },
             Event::RedrawRequested(_) => {
-                image_requested = true;
+                // image_requested = true;
+                scene_change = true;
             }
             _ => (),
         }
@@ -271,7 +272,8 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
                     Some(VirtualKeyCode::Tab) => {
                         // Anaglyphic mode
                         let delta = Instant::now() - last_mode_change;
-                        if delta < Duration::from_millis(5000) {
+                        println!("{:?}", delta.as_millis());
+                        if delta < Duration::from_millis(3000) {
                             return;
                         }
                         
@@ -282,6 +284,7 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
                         anaglyphic = !anaglyphic;
                         scene_change = true;
                         last_mode_change = Instant::now();
+                        println!("Anaglyphic mode: {}", anaglyphic);
                     }
                     c if (c >= Some(VirtualKeyCode::Numpad0)
                         && c <= Some(VirtualKeyCode::Numpad9)) || (c >= Some(VirtualKeyCode::Key1) && c <= Some(VirtualKeyCode::Key0)) =>
@@ -407,16 +410,19 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
             time_of_last_move = Instant::now();
         }
         if scene_change {
-            final_image = false;
-            tb.send(true).unwrap();
+            if anaglyphic {
+                // img = get_stereo_image(Arc::clone(&scene), &ra, &tb);
+                final_image = true;
+                image_requested = false;
+                display(&mut pixels, &mut get_stereo_image(Arc::clone(&scene), &ra, &tb));
+            } else {
+                final_image = false;
+                tb.send(true).unwrap();
+            }
+            scene_change = false;
         } else if image_requested {
             if let Ok((render_img, final_img)) = ra.try_recv() {
-                if anaglyphic {
-                    let stereo_image = get_stereo_image(Arc::clone(&scene));
-                    img = stereo_image;
-                } else {
-                    img = render_img;
-                }
+                img = render_img;
                 display(&mut pixels, &mut img);
                 final_image = final_img;
                 image_requested = false;
