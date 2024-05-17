@@ -5,14 +5,16 @@
         "dir": [1, 0, 0],
         "color": [255, 0, 0],
         "radius": 0.5,
+        "roughness": 0.1,
         "metalness": 0.7
     },
     {
         "type": "sphere",
         "pos": [1, 0, 0],
         "dir": [1, 0, 0],
-        "color": [0, 255, 0],
-        "radius": 0.5
+        "color": [255, 255, 0],
+        "radius": 0.5,
+        "roughness": 0.1
     },
     {
         "type": "sphere",
@@ -39,7 +41,7 @@
         "type": "sphere",
         "pos": [1, 1, 0],
         "dir": [1, 0, 0],
-        "color": [0, 255, 255],
+        "color": [0, 0, 255],
         "radius": 0.5
     },
     {
@@ -64,22 +66,16 @@
         "radius": 0.5
     },
     {
-        "type": "light",
-        "pos": [-4, 4, -4],
-        "color": [255, 255, 255],
-        "intensity": 10
-    },
-    {
         "type": "camera",
         "pos": [0, 0, -15],
         "dir": [0, 0, 1],
-        "fov": 70
+        "fov": 45
     },
     {
         "type": "plane",
         "pos": [-5, 0, 0],
         "dir": [1, 0, 0],
-        "color": [120, 200, 120],
+        "color": [255, 255, 0],
         "metalness": 0.7
     },
     {
@@ -112,8 +108,19 @@
     },
     {
         "type": "light",
-        "pos": [100, 100, -100],
+        "pos": [0, 0, -15],
         "color": [255, 255, 255],
-        "intensity": 150
+        "intensity": 20
+    },
+    {
+        "type": "light",
+        "pos": [0, 0, 4.5],
+        "color": [255, 255, 255],
+        "intensity": 5
+    },
+    {
+        "type": "ambient",
+        "color": [255, 255, 255],
+        "intensity": 0.2
     }
 ]
