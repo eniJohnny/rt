@@ -19,9 +19,7 @@ use std::
 use crate::render::render_threads::start_render_threads;
 use pixels::{Pixels, SurfaceTexture};
 use winit::{
-    dpi::LogicalSize,
-    event_loop::EventLoop,
-    window::{Window, WindowBuilder},
+    dpi::LogicalSize, event_loop::EventLoop, platform::unix::WindowBuilderExtUnix, window::{Window, WindowBuilder}
 };
 
 pub fn display_scene(scene: Scene) {
@@ -31,6 +29,8 @@ pub fn display_scene(scene: Scene) {
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
         .with_inner_size(LogicalSize::new(SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32))
+        .with_resizable(false)
+        .with_base_size(LogicalSize::new(SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32))
         .with_title("Image Viewer")
         .build(&event_loop)
         .unwrap();

@@ -1,10 +1,10 @@
 pub mod draw;
 pub mod utils;
 pub mod textformat;
-
-use crate::
-    model::maths::vec2::Vec2
-;
+use crate::{
+    model::maths::vec2::Vec2,
+    SCREEN_WIDTH,
+};
 
 #[derive(Debug, PartialEq)]
 pub struct Gui {
@@ -24,8 +24,8 @@ impl Gui {
             keys: Vec::new(),
             values: Vec::new(),
             hitboxes: Vec::new(),
-            apply_hitbox: (Vec2::new(1250., 540.), Vec2::new(1350., 580.)),
-            cancel_hitbox: (Vec2::new(1440., 540.), Vec2::new(1550., 580.)),
+            apply_hitbox: (Vec2::new((SCREEN_WIDTH - 350) as f64, 540.), Vec2::new((SCREEN_WIDTH - 250) as f64, 580.)),
+            cancel_hitbox: (Vec2::new((SCREEN_WIDTH - 160) as f64, 540.), Vec2::new((SCREEN_WIDTH - 50) as f64, 580.)),
             element_index: 0,
             updating: false,
             updating_index: 0,

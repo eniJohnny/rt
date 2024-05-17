@@ -19,7 +19,7 @@ use winit::{
     event::{Event, VirtualKeyCode, WindowEvent}, event_loop::{ControlFlow, EventLoop}, window::Window
 };
 
-use super::utils::{display_element_infos, draw_text, get_shape, move_camera};
+use super::{stereo::get_stereo_image, utils::{move_camera, display_element_infos, draw_text, get_shape}};
 use super::update::{update_color, update_metalness, update_roughness, update_shape};
 
 use super::display;
@@ -31,6 +31,10 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
     let format = TextFormat::new_base_format();
     let editing_format = TextFormat::new_editing_format();
     let mut full_img: RgbaImage = img.clone();
+
+    let mut anaglyphic = false;
+    let mut last_mode_change = Instant::now();
+
 
     let mut current_input: Option<VirtualKeyCode> = None;
     let mut time_of_last_move = Instant::now();
@@ -44,7 +48,13 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
             thread::sleep(Duration::from_millis(10));
             tb.send(false).unwrap();
             let (render_img, _) = ra.recv().unwrap();
-            img = render_img;
+            if anaglyphic {
+                let stereo_image = get_stereo_image(Arc::clone(&scene));
+                img = stereo_image;
+            } else {
+                img = render_img;
+            }
+
             display(&mut pixels, &mut img);
             scene_change = false;
         }
@@ -258,6 +268,21 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
                     Some(VirtualKeyCode::Escape) => {
                         *control_flow = ControlFlow::Exit;
                     }
+                    Some(VirtualKeyCode::Tab) => {
+                        // Anaglyphic mode
+                        let delta = Instant::now() - last_mode_change;
+                        if delta < Duration::from_millis(5000) {
+                            return;
+                        }
+                        
+                        if anaglyphic {
+                            img = full_img.clone();
+                        }
+
+                        anaglyphic = !anaglyphic;
+                        scene_change = true;
+                        last_mode_change = Instant::now();
+                    }
                     c if (c >= Some(VirtualKeyCode::Numpad0)
                         && c <= Some(VirtualKeyCode::Numpad9)) || (c >= Some(VirtualKeyCode::Key1) && c <= Some(VirtualKeyCode::Key0)) =>
                     {
@@ -386,13 +411,18 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
             tb.send(true).unwrap();
         } else if image_requested {
             if let Ok((render_img, final_img)) = ra.try_recv() {
-                img = render_img;
+                if anaglyphic {
+                    let stereo_image = get_stereo_image(Arc::clone(&scene));
+                    img = stereo_image;
+                } else {
+                    img = render_img;
+                }
                 display(&mut pixels, &mut img);
                 final_image = final_img;
                 image_requested = false;
 
                 let mut scene = scene.write().unwrap();
-                if scene.gui.keys().len() == 0 {
+                if scene.gui.keys().len() == 0 && !anaglyphic {
                     full_img = img.clone();
                 }
                 scene.gui = Gui::new();
