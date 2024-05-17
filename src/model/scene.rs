@@ -24,7 +24,7 @@ impl Scene {
             lights: Vec::new(),
             ambient_light: AmbientLight::default(),
             gui: Gui::new(),
-			indirect_lightning: false,
+			indirect_lightning: true,
 			imperfect_reflections: true,
         }
     }

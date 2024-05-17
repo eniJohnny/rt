@@ -66,9 +66,9 @@ pub fn get_bounce_color(scene: &Scene, ray: &Ray) -> Color {
     }
 }
 
-pub fn random_bounce(ray: &Ray, normal: &Vec3, roughness: f64) -> Ray {
+pub fn random_bounce(hit: &Hit, ray: &Ray, normal: &Vec3, roughness: f64) -> Ray {
 	let random_dir = random_bounce_dir(ray.get_dir(), normal, roughness);
-	let random_bounce = Ray::new(ray.get_pos() + normal * 0.001, random_dir, ray.get_depth() + 1);
+	let random_bounce = Ray::new(hit.pos() + normal * 0.001, random_dir, ray.get_depth() + 1);
 	random_bounce
 }
 
@@ -81,11 +81,11 @@ pub fn get_reflected_light(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
 		weight: 0.,
 	};
 	if scene.imperfect_reflections() || hit.element().material().roughness() <= f64::EPSILON {
-		let sample_nb = 1;
+		let sample_nb = 10;
 		for i in 0..sample_nb {
-			let random_bounce = random_bounce(&ray, hit.norm(), hit.element().material().roughness());
+			let random_bounce = random_bounce(hit, &ray, hit.norm(), hit.element().material().roughness());
 			let bounce_color = get_bounce_color(scene, &random_bounce);
-			let weight = bounce_color.r() + bounce_color.g() + bounce_color.b();
+			let weight = bounce_color.r() + bounce_color.g() + bounce_color.b() + 0.01;
 			bucket.weight += weight;
 			if i == 0 {
 				bucket.ray = random_bounce;
@@ -106,16 +106,16 @@ pub fn get_reflected_light(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
 
 pub fn get_indirect_light(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
 	let mut bucket: Bucket = Bucket {
-		ray: Ray::new(ray.get_pos() + hit.norm() * 0.001,
+		ray: Ray::new(hit.pos() + hit.norm() * 0.001,
 					ray.get_dir().clone(),
 					ray.get_depth() + 1),
 		weight: 0.,
 	};
 	let sample_nb = 100;
 	for i in 0..sample_nb {
-		let random_bounce = random_bounce(&ray, hit.norm(), 1.);
+		let random_bounce = random_bounce(hit, &ray, hit.norm(), 1.);
 		let bounce_color = get_bounce_color(scene, &random_bounce);
-		let weight = bounce_color.r() + bounce_color.g() + bounce_color.b();
+		let weight = bounce_color.r() + bounce_color.g() + bounce_color.b() + 0.01;
 		bucket.weight += weight;
 		if i == 0 {
 			bucket.ray = random_bounce;
@@ -161,9 +161,9 @@ pub fn apply_lighting(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
 	let absorbed = 1.0 - material.reflection_coef() - material.refraction_coef();
 	if ray.get_depth() < MAX_DEPTH {
 		let reflected_light = get_reflected_light(&hit, scene, ray);
-		light_color = light_color + &reflected_light * 0.2;
+		light_color = light_color + &reflected_light;
 		if material.reflection_coef() > 0. {
-			light_color = light_color * absorbed + reflected_light * material.reflection_coef();
+			light_color = light_color * absorbed + reflected_light * material.reflection_coef() * material.color(0, 0);
 		}
 	} else {
 		light_color = light_color * absorbed;
