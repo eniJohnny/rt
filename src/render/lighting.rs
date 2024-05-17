@@ -5,7 +5,7 @@ use crate::{model::{
 }, MAX_DEPTH};
 use rand::Rng;
 
-use super::raycasting::{cast_ray, get_closest_hit};
+use super::{raycasting::{cast_ray, get_closest_hit}, restir::{PathBucket}};
 
 pub fn reflect_dir(dir: &Vec3, normal: &Vec3) -> Vec3 {
 	(dir - 2. * dir.dot(normal) * normal)
@@ -33,106 +33,9 @@ pub fn random_bounce_dir(dir: &Vec3, normal: &Vec3, roughness: f64) -> Vec3 {
 		}
 	}
 }
-struct Bucket {
-	ray: Ray,
-	weight: f64,
-}
 
-
-pub fn apply_lighting_bounce(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
-    let material = hit.element().material();
-    let color = match material.needs_projection() {
-        false => material.color(0, 0),
-        true => {
-            let point = hit.element().shape().projection(&hit);
-            material.color(point.0, point.1)
-        }
-    };
-    let mut light_color: Color = Color::new(0., 0., 0.);
-    light_color =
-		light_color + scene.ambient_light().intensity() * scene.ambient_light().color() * &color;
-	for light in scene.lights() {
-		light_color = light_color + light.as_ref().get_diffuse(&hit) * &color;
-	}
-	(light_color).clamp(0., 1.)
-}
-
-pub fn get_bounce_color(scene: &Scene, ray: &Ray) -> Color {
-    match get_closest_hit(scene, ray) {
-        Some(hit) => {
-            apply_lighting_bounce(&hit, scene, ray)
-        }
-        None => Color::new(0., 0., 0.),
-    }
-}
-
-pub fn random_bounce(hit: &Hit, ray: &Ray, normal: &Vec3, roughness: f64) -> Ray {
-	let random_dir = random_bounce_dir(ray.get_dir(), normal, roughness);
-	let random_bounce = Ray::new(hit.pos() + normal * 0.001, random_dir, ray.get_depth() + 1);
-	random_bounce
-}
-
-
-pub fn get_reflected_light(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
-	let mut bucket: Bucket = Bucket {
-		ray: Ray::new(hit.pos() + hit.norm() * 0.001,
-					reflect_dir(ray.get_dir(), hit.norm()),
-					ray.get_depth() + 1),
-		weight: 0.,
-	};
-	if scene.imperfect_reflections() || hit.element().material().roughness() <= f64::EPSILON {
-		let sample_nb = 10;
-		for i in 0..sample_nb {
-			let random_bounce = random_bounce(hit, &ray, hit.norm(), hit.element().material().roughness());
-			let bounce_color = get_bounce_color(scene, &random_bounce);
-			let weight = bounce_color.r() + bounce_color.g() + bounce_color.b() + 0.01;
-			bucket.weight += weight;
-			if i == 0 {
-				bucket.ray = random_bounce;
-			} else {
-				let rand: f64 = rand::thread_rng().gen_range((0.)..(bucket.weight + weight));
-				if rand > bucket.weight {
-					bucket.ray = random_bounce;
-				}	
-			}
-		}
-		return cast_ray(scene, &bucket.ray);
-	} 
-	Color::new(0., 0., 0.)
-}
-
-
-
-
-pub fn get_indirect_light(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
-	let mut bucket: Bucket = Bucket {
-		ray: Ray::new(hit.pos() + hit.norm() * 0.001,
-					ray.get_dir().clone(),
-					ray.get_depth() + 1),
-		weight: 0.,
-	};
-	let sample_nb = 100;
-	for i in 0..sample_nb {
-		let random_bounce = random_bounce(hit, &ray, hit.norm(), 1.);
-		let bounce_color = get_bounce_color(scene, &random_bounce);
-		let weight = bounce_color.r() + bounce_color.g() + bounce_color.b() + 0.01;
-		bucket.weight += weight;
-		if i == 0 {
-			bucket.ray = random_bounce;
-		} else {
-			let rand: f64 = rand::thread_rng().gen_range((0.)..(bucket.weight + weight));
-			if rand > bucket.weight {
-				bucket.ray = random_bounce;
-			}	
-		}
-	}
-
-	cast_ray(scene, &bucket.ray)
-}
-
-pub fn apply_lighting(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
-
-    let material = hit.element().material();
+pub fn diffuse_lighting(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
+	let material = hit.element().material();
     let color = match material.needs_projection() {
         false => material.color(0, 0),
         true => {
@@ -146,13 +49,97 @@ pub fn apply_lighting(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
 	for light in scene.lights() {
 	    if !light.is_shadowed(scene, &hit) {
 			light_color = light_color + light.as_ref().get_diffuse(&hit) * &color;
-			// light_color = light_color + light.as_ref().get_specular(&hit, ray);
 	    }
+	}
+	(light_color).clamp(0., 1.)
+}
+
+pub fn get_bounce_color<'a>(scene: &Scene, ray: &Ray, attenuation: bool, path: Vec<Hit<'a>>) -> PathBucket<'a> {
+    match get_closest_hit(scene, ray) {
+        Some(hit) => {
+            let mut path_bucket = sampling_lighting(&hit, scene, ray, path);
+			if attenuation {
+				path_bucket.weight /= hit.dist() * hit.dist();
+				path_bucket.pathWeight /= hit.dist() * hit.dist();
+			}
+			path_bucket
+        }
+		//TODO: Background color
+        None => PathBucket {
+			path: path,
+			weight: 0.,
+			pathWeight: 0.,
+			nbElements: 0
+		},
+    }
+}
+
+pub fn random_bounce(hit: &Hit, ray: &Ray, normal: &Vec3, roughness: f64) -> Ray {
+	let random_dir = random_bounce_dir(ray.get_dir(), normal, roughness);
+	let random_bounce = Ray::new(hit.pos() + normal * 0.001, random_dir, ray.get_depth() + 1);
+	random_bounce
+}
+
+
+pub fn get_reflected_light<'a>(hit: &Hit, scene: &Scene, ray: &Ray, path: Vec<Hit<'a>>) -> PathBucket<'a> {
+	let mut bucket: PathBucket = PathBucket {
+		path,
+		weight: 0.,
+		pathWeight: 0.,
+		nbElements: 0
+	};
+	let sample_nb = 10;
+	for i in 0..sample_nb {
+		let random_bounce = random_bounce(hit, &ray, hit.norm(), hit.element().material().roughness());
+		bucket.combine(get_bounce_color(scene, &random_bounce, false, path));
+	}
+	bucket
+}
+
+pub fn get_indirect_light<'a>(hit: &Hit, scene: &Scene, ray: &Ray, path: Vec<Hit<'a>>) -> PathBucket<'a> {
+	let mut bucket: PathBucket = PathBucket {
+		path,
+		weight: 0.,
+		pathWeight: 0.,
+		nbElements: 0
+	};
+	let sample_nb = 100;
+	for i in 0..sample_nb {
+		let random_bounce = random_bounce(hit, &ray, hit.norm(), 1.);
+		bucket.combine(get_bounce_color(scene, &random_bounce, true, path));
+	}
+	bucket
+}
+
+pub fn sampling_lighting<'a>(hit: &Hit, scene: &Scene, ray: &Ray, path: Vec<Hit<'a>>) -> PathBucket<'a> {
+	let mut bucket: PathBucket = PathBucket {
+		path,
+		weight: 0.,
+		pathWeight: 0.,
+		nbElements: 0
+	};
+
+    let material = hit.element().material();
+	let mut light_color: Color = Color::new(0., 0., 0.);
+    let color = match material.needs_projection() {
+        false => material.color(0, 0),
+        true => {
+            let point = hit.element().shape().projection(&hit);
+            material.color(point.0, point.1)
+        }
+    };
+
+	if ray.get_depth() > 0 {
+		for light in scene.lights() {
+			light_color = light_color + light.as_ref().get_diffuse(&hit) * &color;
+		}
+		let weight: f64 = light_color.r() + light_color.g() + light_color.b();
+		bucket.add(bucket.path, weight);
 	}
 
 	// Indirect light
 	if scene.indirect_lightning() && ray.get_depth() < MAX_DEPTH {
-		light_color = light_color + get_indirect_light(&hit, scene, ray);
+		bucket.combine(get_indirect_light(&hit, scene, ray, path));
 	}
 	
 	(light_color).clamp(0., 1.);
@@ -160,13 +147,18 @@ pub fn apply_lighting(hit: &Hit, scene: &Scene, ray: &Ray) -> Color {
 	// Reflection
 	let absorbed = 1.0 - material.reflection_coef() - material.refraction_coef();
 	if ray.get_depth() < MAX_DEPTH {
-		let reflected_light = get_reflected_light(&hit, scene, ray);
-		light_color = light_color + &reflected_light;
-		if material.reflection_coef() > 0. {
-			light_color = light_color * absorbed + reflected_light * material.reflection_coef() * material.color(0, 0);
+		if scene.imperfect_reflections() || hit.element().material().roughness() >= f64::EPSILON {
+			let mut reflect_bucket = get_reflected_light(&hit, scene, ray, path);
+			let color_weight = color.r() + color.g() + color.b();
+			bucket.weight *= absorbed;
+			bucket.pathWeight *= absorbed;
+			reflect_bucket.weight *= material.reflection_coef() * color_weight + absorbed;
+			reflect_bucket.weight *= material.reflection_coef() * color_weight + absorbed;
+			bucket.combine(reflect_bucket);
 		}
 	} else {
-		light_color = light_color * absorbed;
+		bucket.weight *= absorbed;
+		bucket.pathWeight *= absorbed;
 	}
-	light_color
+	bucket
 }

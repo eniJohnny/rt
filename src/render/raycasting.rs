@@ -8,7 +8,7 @@ use crate::{
     MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 
-use super::lighting::{apply_lighting, random_bounce};
+use super::lighting::{sampling_lighting, random_bounce};
 
 fn get_angle_to(fov: f64, pos: f64, length: f64) -> f64 {
     (pos / length - 0.5) * fov
@@ -31,7 +31,7 @@ pub fn get_ray(scene: &Scene, x: usize, y: usize) -> Ray {
 pub fn cast_ray(scene: &Scene, ray: &Ray) -> Color {
     match get_closest_hit(scene, ray) {
         Some(hit) => {
-            let mut color = apply_lighting(&hit, scene, ray);
+            let mut color = sampling_lighting(&hit, scene, ray);
             // color.apply_gamma();
             color
         }

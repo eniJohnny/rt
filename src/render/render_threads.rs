@@ -19,18 +19,20 @@ use crate::{
     BASE_SIMPLIFICATION, MAX_THREADS, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 
-use super::raycasting::{cast_ray, get_ray};
+use super::{raycasting::{cast_ray, get_ray}, restir::Bucket};
 
 #[derive(Clone)]
-struct Tile {
+struct Tile<'a> {
     pub x: usize,
     pub y: usize,
     pub width: usize,
     pub height: usize,
     pub factor: usize,
+    pub sampling: bool,
+    pub previousIteration: Vec<Vec<Bucket<'a>>>
 }
 
-fn generate_tiles_for(queue: &Arc<Mutex<VecDeque<Tile>>>, simplification_factor: usize) -> u32 {
+fn generate_tiles_for(queue: &Arc<Mutex<VecDeque<Tile>>>, sampling: bool, simplification_factor: usize) -> u32 {
     let mut cpt = 0;
     let mut factor = simplification_factor;
     // Pour chaque resolution possible on genere les demandes de render de tiles, en commencant
@@ -53,6 +55,8 @@ fn generate_tiles_for(queue: &Arc<Mutex<VecDeque<Tile>>>, simplification_factor:
                     width,
                     height,
                     factor,
+                    sampling,
+                    previousIteration: Vec::new()
                 });
                 y += simplification_factor;
             }
@@ -70,8 +74,11 @@ pub fn start_render_threads(
     let (ta, ra) = mpsc::channel();
     // Channel main_thread -> render_thread pour recevoir les demandes d'images du main thread, avec ou sans changement de scene
     let (tb, rb) = mpsc::channel();
-    // Channel worker_threads[] -> render_thread pour recevoir les tiles renderees par les worker thread qui travaillent constamment en fond
+    // Channels worker_threads[] -> render_thread pour recevoir les tiles renderees par les worker thread qui travaillent constamment en fond
+    // Communication de couleur finale des pixels
     let (tc, rc) = mpsc::channel();
+    // Communication des echantillons des pixels pour ReSTIR
+    let (td, rd) = mpsc::channel();
 
     // La work_queue contient toutes les tiles en attente de render, dans toutes leurs versions de resolution(de 64x64:1 a 1x1:1)
     // Elle est protegee par un mutex car les worker threads vont constemment prendre du travail de cette queue, et le render thread
@@ -134,7 +141,10 @@ fn build_image_from_tilesets(
     // La fonction renvoie le nombre de tile d'une resolution donnee.
     // Cela nous permet de traquer quand est-ce que l'image de la plus basse resolution possible est completee, car c'est le
     // point ou on peux l'envoyer au main_thread.
-    let mut low_res_to_do = generate_tiles_for(&work_queue, BASE_SIMPLIFICATION);
+
+    let mut samplingMode = true;
+    let mut low_res_to_do = generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
+    let mut max_res_to_do = low_res_to_do;
     let mut img = RgbaImage::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32);
     loop {
         // On recoit les demandes d'images du main_thread (une seule a la fois, pas de nouvelle demande tant qu'on a pas envoye une image)
@@ -155,7 +165,12 @@ fn build_image_from_tilesets(
                 // On retient les tile de la plus basse resolution qui passent par la
                 if tile.factor == BASE_SIMPLIFICATION {
                     low_res_to_do -= 1;
+                } else if tile.factor == 1 {
+                    max_res_to_do -= 1;
                 }
+            }
+            if max_res_to_do == 0 {
+                samplingMode == false;
             }
             if low_res_to_do == 0 {
                 break;
@@ -168,12 +183,13 @@ fn build_image_from_tilesets(
                 work_queue.lock().unwrap().clear();
                 // On vide egalement le channel.
                 while let Ok(_) = rc.try_recv() {}
-                low_res_to_do = generate_tiles_for(&work_queue, BASE_SIMPLIFICATION);
+                samplingMode = true;
+                low_res_to_do = generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
                 //TODO: Actuellement les worker_threads en cours de render vont probablement envoyer la tile qu'ils sont en train de render
                 //      au moment du reset. Il faut trouver un moyen de les empecher.
             } else {
                 // Si aucun changement n'a ete detecte on envoie l'image actuelle
-                ta.send((img.clone(), work_queue.lock().unwrap().is_empty()));
+                ta.send((img.clone(), max_res_to_do == 0));
             }
         }
     }

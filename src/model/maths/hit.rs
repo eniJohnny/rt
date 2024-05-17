@@ -2,7 +2,7 @@ use crate::model::Element;
 
 use super::vec3::Vec3;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Hit<'a> {
     element: &'a Element,
     dist: f64,
