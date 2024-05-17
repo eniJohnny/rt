@@ -12,6 +12,8 @@ pub struct Scene {
     lights: Vec<Box<dyn Light + Sync + Send>>,
     ambient_light: AmbientLight,
     pub gui: Gui,
+    indirect_lighting: bool,
+    imperfect_reflections: bool,
 }
 
 impl Scene {
@@ -22,6 +24,8 @@ impl Scene {
             lights: Vec::new(),
             ambient_light: AmbientLight::default(),
             gui: Gui::new(),
+            indirect_lighting: false,
+            imperfect_reflections: false,
         }
     }
 
@@ -66,6 +70,21 @@ impl Scene {
         &self.ambient_light
     }
 
+    pub fn indirect_lighting(&self) -> bool {
+        self.indirect_lighting
+    }
+
+    pub fn imperfect_reflections(&self) -> bool {
+        self.imperfect_reflections
+    }
+
+    pub fn get_value(&self, key: &str) -> bool {
+        match key {
+            "indirect_lighting" => self.indirect_lighting(),
+            "imperfect_reflections" => self.imperfect_reflections(),
+            _ => false,
+        }
+    }
     // Mutators
 
     pub fn set_elements(&mut self, elements: Vec<Element>) {

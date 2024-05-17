@@ -4,9 +4,7 @@ extern crate winit;
 
 use crate::{
     gui::{
-        utils::{gui_clicked, hide_gui, hitbox_contains},
-        textformat::TextFormat,
-        Gui,
+        modes::draw_modes_menu, textformat::TextFormat, utils::{gui_clicked, hide_gui, hitbox_contains}, Gui
     },
     model::{materials::Color, maths::vec2::Vec2, scene::Scene},
     render::raycasting::{get_closest_hit, get_ray},
@@ -265,6 +263,10 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
                     }
                     Some(VirtualKeyCode::Escape) => {
                         *control_flow = ControlFlow::Exit;
+                    }
+                    Some(VirtualKeyCode::M) => {
+                        draw_modes_menu(scene, &mut img);
+                        display(&mut pixels, &mut img);
                     }
                     c if (c >= Some(VirtualKeyCode::Numpad0)
                         && c <= Some(VirtualKeyCode::Numpad9)) || (c >= Some(VirtualKeyCode::Key1) && c <= Some(VirtualKeyCode::Key0)) =>

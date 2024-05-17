@@ -1,6 +1,7 @@
 pub mod draw;
 pub mod utils;
 pub mod textformat;
+pub mod modes;
 
 use crate::
     model::maths::vec2::Vec2

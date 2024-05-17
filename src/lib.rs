@@ -23,6 +23,8 @@ const SCENE: &str = "scenes/sphere.json";
 const FPS: u64 = 20;
 
 const RGB_KEYS: [&str; 3] = ["colr", "colg", "colb"];
+const MODES_KEYS: [&str; 2] = ["indirect_lighting", "imperfect_reflections"];
+const MODES_LABELS: [&str; 2] = ["Indirect Lighting", "Imperfect Reflections"];
 const CAM_MOVE_KEYS: [VirtualKeyCode; 10] = [
     VirtualKeyCode::W,
     VirtualKeyCode::A,
