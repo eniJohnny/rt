@@ -4,27 +4,45 @@ extern crate winit;
 
 use crate::{
     gui::{
-        self, draw::draw_gui, textformat::TextFormat, utils::{gui_clicked, hide_gui, hitbox_contains}, Gui
-    }, model::{materials::Color, maths::vec2::Vec2, objects::light::Light, scene::Scene}, render::raycasting::{get_closest_hit, get_ray}, CAM_MOVE_KEYS, FPS, RGB_KEYS
+        draw::draw_gui, textformat::TextFormat, utils::{gui_clicked, hide_gui, hitbox_contains}, Gui
+    },
+    model::{materials::Color, maths::vec2::Vec2, scene::Scene},
+    render::{
+        lighting_real::get_real_lighting,
+        raycasting::{get_closest_hit, get_ray, sampling_ray},
+    },
+    CAM_MOVE_KEYS, FPS, RGB_KEYS,
 };
 use image::{ImageBuffer, Rgba, RgbaImage};
 use std::{
-    sync::{mpsc::{Receiver, Sender}, Arc, RwLock},
+    sync::{
+        mpsc::{Receiver, Sender},
+        Arc, RwLock,
+    },
     thread::{self, sleep},
     time::{Duration, Instant},
 };
 
 use pixels::Pixels;
 use winit::{
-    event::{Event, VirtualKeyCode, WindowEvent}, event_loop::{ControlFlow, EventLoop}, window::Window
+    event::{Event, VirtualKeyCode, WindowEvent},
+    event_loop::{ControlFlow, EventLoop},
+    window::Window,
 };
 
-use super::utils::{display_element_infos, draw_text, get_shape, move_camera};
 use super::update::{update_color, update_metalness, update_roughness, update_shape};
+use super::utils::{display_element_infos, draw_text, get_shape, move_camera};
 
 use super::display;
 
-pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut img: RgbaImage, mut pixels: Pixels<Window>, ra: Receiver<(ImageBuffer<Rgba<u8>, Vec<u8>>, bool)>, tb: Sender<bool>) {
+pub fn event_manager(
+    event_loop: EventLoop<()>,
+    scene: Arc<RwLock<Scene>>,
+    mut img: RgbaImage,
+    mut pixels: Pixels<Window>,
+    ra: Receiver<(ImageBuffer<Rgba<u8>, Vec<u8>>, bool)>,
+    tb: Sender<bool>,
+) {
     let mut scene_change = false;
     let mut image_requested = true;
     let mut final_image = false;
@@ -86,7 +104,14 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
                         // Tant que l'on maintiens une reference write du RwLock(Sorte de mutex),
                         // tous les threads de render seront bloques.
                         let mut scene = scene.write().unwrap();
-                        let ray = get_ray(&scene, x as usize, y as usize);
+                        let mut ray = get_ray(&scene, x as usize, y as usize);
+                        ray.debug = true;
+                        let bucket = sampling_ray(&scene, &ray);
+                        if let Some(mut sample) = bucket.sample {
+                            sample.weight =
+                                bucket.weight / (sample.weight * bucket.nbSamples as f64);
+                            get_real_lighting(&scene, &sample, &ray);
+                        }
                         let hit = get_closest_hit(&scene, &ray);
 
                         if gui_clicked(mouse_position, &scene.gui) {
@@ -113,7 +138,8 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
                                         let color: Color = material.color(0, 0);
                                         let metalness = material.reflection_coef();
                                         let roughness = material.roughness();
-                                        let new_material = update_color(key, value, color, metalness, roughness);
+                                        let new_material =
+                                            update_color(key, value, color, metalness, roughness);
                                         if new_material.is_some() {
                                             scene.elements_as_mut()[element_index]
                                                 .set_material(new_material.unwrap());
@@ -121,7 +147,8 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
                                     } else if key == "metalness" {
                                         let color: Color = material.color(0, 0);
                                         let roughness = material.roughness();
-                                        let new_material = update_metalness(value, color, roughness);
+                                        let new_material =
+                                            update_metalness(value, color, roughness);
                                         if new_material.is_some() {
                                             scene.elements_as_mut()[element_index]
                                                 .set_material(new_material.unwrap());
@@ -129,7 +156,8 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
                                     } else if key == "roughness" {
                                         let color: Color = material.color(0, 0);
                                         let metalness = material.reflection_coef();
-                                        let new_material = update_roughness(value, color, metalness);
+                                        let new_material =
+                                            update_roughness(value, color, metalness);
                                         if new_material.is_some() {
                                             scene.elements_as_mut()[element_index]
                                                 .set_material(new_material.unwrap());
@@ -234,8 +262,9 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
                             if scene.gui.keys().len() == 0 {
                                 full_img = img.clone();
                             }
-                            
-                            scene.gui = draw_gui(&mut img, Some(element), None, element_index); // If element is clicked, then it can't be a light
+
+                            scene.gui = display_element_infos(element, &mut img);
+                            scene.gui.set_element_index(element_index);
                             display(&mut pixels, &mut img);
                         } else {
                             hide_gui(&mut img, &full_img);
@@ -279,7 +308,8 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
                         }
                     }
                     c if (c >= Some(VirtualKeyCode::Numpad0)
-                        && c <= Some(VirtualKeyCode::Numpad9)) || (c >= Some(VirtualKeyCode::Key1) && c <= Some(VirtualKeyCode::Key0)) =>
+                        && c <= Some(VirtualKeyCode::Numpad9))
+                        || (c >= Some(VirtualKeyCode::Key1) && c <= Some(VirtualKeyCode::Key0)) =>
                     {
                         if scene.gui.updating() == false {
                             return;
@@ -298,7 +328,8 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
                         let pos = Vec2::new(*pos.x() as f64 - 10., *pos.y() as f64);
                         let value = scene.gui.values()[index].clone().replace("_", "");
                         let mut number = c.unwrap() as u8;
-                        if c.unwrap() >= VirtualKeyCode::Key1 && c.unwrap() <= VirtualKeyCode::Key9{
+                        if c.unwrap() >= VirtualKeyCode::Key1 && c.unwrap() <= VirtualKeyCode::Key9
+                        {
                             number = number + 1;
                         } else if c.unwrap() == VirtualKeyCode::Key0 {
                             number = 0;

@@ -12,14 +12,16 @@ use std::{
 use image::RgbaImage;
 
 use crate::{
-    model::{
-        materials::Color,
-        scene::Scene,
-    },
+    model::{materials::Color, scene::Scene},
     BASE_SIMPLIFICATION, MAX_THREADS, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 
-use super::{raycasting::{cast_ray, get_ray}, restir::Bucket};
+use super::{
+    lighting_real::get_real_lighting,
+    lighting_sampling::{get_indirect_light_sample, sampling_lighting},
+    raycasting::{get_closest_hit, get_ray, sampling_ray},
+    restir::PathBucket,
+};
 
 #[derive(Clone)]
 struct Tile<'a> {
@@ -29,10 +31,15 @@ struct Tile<'a> {
     pub height: usize,
     pub factor: usize,
     pub sampling: bool,
-    pub previousIteration: Vec<Vec<Bucket<'a>>>
+    pub iteration: u32,
+    pub previousIteration: Vec<Vec<PathBucket<'a>>>,
 }
 
-fn generate_tiles_for(queue: &Arc<Mutex<VecDeque<Tile>>>, sampling: bool, simplification_factor: usize) -> u32 {
+fn generate_tiles_for(
+    queue: &Arc<Mutex<VecDeque<Tile>>>,
+    sampling: bool,
+    simplification_factor: usize,
+) -> u32 {
     let mut cpt = 0;
     let mut factor = simplification_factor;
     // Pour chaque resolution possible on genere les demandes de render de tiles, en commencant
@@ -55,8 +62,9 @@ fn generate_tiles_for(queue: &Arc<Mutex<VecDeque<Tile>>>, sampling: bool, simpli
                     width,
                     height,
                     factor,
+                    iteration: 0,
                     sampling,
-                    previousIteration: Vec::new()
+                    previousIteration: Vec::new(),
                 });
                 y += simplification_factor;
             }
@@ -78,12 +86,12 @@ pub fn start_render_threads(
     // Communication de couleur finale des pixels
     let (tc, rc) = mpsc::channel();
     // Communication des echantillons des pixels pour ReSTIR
-    let (td, rd) = mpsc::channel();
+    // let (td, rd) = mpsc::channel();
 
     // La work_queue contient toutes les tiles en attente de render, dans toutes leurs versions de resolution(de 64x64:1 a 1x1:1)
     // Elle est protegee par un mutex car les worker threads vont constemment prendre du travail de cette queue, et le render thread
     // va en rajouter a chaque demande d'image
-    let work_queue = Arc::new(Mutex::new(VecDeque::new()));
+    let work_queue = Arc::new(Mutex::new(VecDeque::<Tile>::new()));
 
     // Reference a la scene thread-safe protegee par un RwLock : une sorte de Mutex qui autorise les threads qui ne font que de la lecture
     // a pouvoir tous consulter de maniere concurrente, tant que personne ne tente de prendre les droits d'ecriture.
@@ -95,6 +103,7 @@ pub fn start_render_threads(
         for _ in 0..MAX_THREADS {
             // Chaque worker_thread a son propre emetteur de channel, mais il n'existe qu'un seul receiver (le render_thread)
             let cur_tx = tc.clone();
+            // let cur_td = td.clone();
             let work_queue_clone = Arc::clone(&work_queue);
             let scene = Arc::clone(&scene);
             thread::spawn(move || loop {
@@ -102,17 +111,29 @@ pub fn start_render_threads(
                     let mut wq = work_queue_clone.lock().unwrap();
                     wq.pop_front()
                 } {
-                    let mut colors = Vec::new();
                     let scene = scene.read().unwrap();
                     // Pour chaque pixel de cette tile qui n'a pas deja ete calcule par une taille de plus haut factor
                     // Sur une tile 64x64 avec un factor de 64, il n'y aura qu'un ray de lance. Pour un factor de 32
                     // 4 rays seront lancers (4 x 32x32 = 64x64)
+
+                    // let mut buckets = Vec::new();
+                    let mut colors = Vec::new();
                     for_each_uncalculated_pixel(&tile, |x, y| {
                         // On calcule le ray et on le cast
                         let ray = get_ray(&scene, x, y);
-                        colors.push(cast_ray(&scene, &ray));
+
+                        // println!("Sampling some shit");
+                        let bucket = sampling_ray(&scene, &ray);
+                        // println!("Sampling done");
+                        // dbg!(bucket.sample);
+                        if let Some(mut sample) = bucket.sample {
+                            sample.weight =
+                                bucket.weight / (sample.weight * bucket.nbSamples as f64);
+                            colors.push(get_real_lighting(&scene, &sample, &ray));
+                        } else {
+                            colors.push(Color::new(0., 0., 0.));
+                        }
                     });
-                    // Envoi de la tile
                     cur_tx.send((tile, colors)).unwrap();
                 }
                 // Lorsqu'il n'y a plus de travail de disponible pour le moment, on ne surcharge pas la queue avec des reads constants.
@@ -169,9 +190,6 @@ fn build_image_from_tilesets(
                     max_res_to_do -= 1;
                 }
             }
-            if max_res_to_do == 0 {
-                samplingMode == false;
-            }
             if low_res_to_do == 0 {
                 break;
             }
@@ -183,8 +201,8 @@ fn build_image_from_tilesets(
                 work_queue.lock().unwrap().clear();
                 // On vide egalement le channel.
                 while let Ok(_) = rc.try_recv() {}
-                samplingMode = true;
-                low_res_to_do = generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
+                // samplingMode = true;
+                // low_res_to_do = generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
                 //TODO: Actuellement les worker_threads en cours de render vont probablement envoyer la tile qu'ils sont en train de render
                 //      au moment du reset. Il faut trouver un moyen de les empecher.
             } else {
