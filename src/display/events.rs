@@ -135,7 +135,7 @@ pub fn event_manager(
                                     let material = elem.material();
 
                                     if RGB_KEYS.contains(&key.as_str()) {
-                                        let color: Color = material.color(0, 0);
+                                        let color = Color::new(0., 0., 0.);
                                         let metalness = material.reflection_coef();
                                         let roughness = material.roughness();
                                         let new_material =
@@ -145,7 +145,7 @@ pub fn event_manager(
                                                 .set_material(new_material.unwrap());
                                         }
                                     } else if key == "metalness" {
-                                        let color: Color = material.color(0, 0);
+                                        let color = Color::new(0., 0., 0.);
                                         let roughness = material.roughness();
                                         let new_material =
                                             update_metalness(value, color, roughness);
@@ -154,7 +154,7 @@ pub fn event_manager(
                                                 .set_material(new_material.unwrap());
                                         }
                                     } else if key == "roughness" {
-                                        let color: Color = material.color(0, 0);
+                                        let color = Color::new(0., 0., 0.);
                                         let metalness = material.reflection_coef();
                                         let new_material =
                                             update_roughness(value, color, metalness);

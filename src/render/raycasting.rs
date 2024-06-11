@@ -1,11 +1,12 @@
+use rand::Rng;
+
 use crate::{
     model::{
         materials::Color,
         maths::{hit::Hit, quaternion::Quaternion, ray::Ray, vec3::Vec3},
         scene::Scene,
         Element,
-    },
-    MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH,
+    }, ANTIALIASING, MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH
 };
 
 use super::{
@@ -18,10 +19,11 @@ fn get_angle_to(fov: f64, pos: f64, length: f64) -> f64 {
 }
 
 pub fn get_ray(scene: &Scene, x: usize, y: usize) -> Ray {
+    let mut rng = rand::thread_rng();
     let roll = -f64::atan2(-scene.camera().dir().x(), *scene.camera().dir().z());
     let pitch = scene.camera().dir().y().asin();
-    let roll = roll + get_angle_to(scene.camera().fov(), x as f64, SCREEN_WIDTH as f64);
-    let pitch = pitch + get_angle_to(scene.camera().vfov(), y as f64, SCREEN_HEIGHT as f64);
+    let roll = roll + get_angle_to(scene.camera().fov(), x as f64, SCREEN_WIDTH as f64) + rng.gen_range((0.)..(ANTIALIASING));
+    let pitch = pitch + get_angle_to(scene.camera().vfov(), y as f64, SCREEN_HEIGHT as f64) + rng.gen_range((0.)..(ANTIALIASING));
     let yaw = 0.;
     let quat = Quaternion::from_euler_angles(pitch, roll, yaw);
     Ray::new(
@@ -45,7 +47,7 @@ pub fn sampling_ray<'a>(scene: &'a Scene, ray: &Ray) -> PathBucket<'a> {
                 weight = sample.weight;
                 path.indirect = Some(Box::new(sample));
             }
-            bucket.sample = Some(Sample { path, weight });
+            bucket.sample = Some(Sample { path, color: Color::new(0., 0., 0.),weight });
             bucket
         }
         None => PathBucket {

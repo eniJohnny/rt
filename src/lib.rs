@@ -16,9 +16,10 @@ const SCREEN_WIDTH_U32: u32 = SCREEN_WIDTH as u32;
 const SCREEN_HEIGHT_U32: u32 = SCREEN_HEIGHT as u32;
 const GUI_WIDTH: u32 = 400;
 const GUI_HEIGHT: u32 = 600;
-const MAX_THREADS: usize = 2;
+const MAX_THREADS: usize = 16;
 const BASE_SIMPLIFICATION: usize = 32;
 const MAX_DEPTH: u8 = 1;
+const ANTIALIASING: f64 = 0.002;
 
 const SCENE_FOLDER: &str = "scenes";
 const PICKER_LINE_HEIGHT: f64 = 30.0;
@@ -40,8 +41,7 @@ const CAM_MOVE_KEYS: [VirtualKeyCode; 10] = [
 ];
 
 pub fn run() {
-    // let path = picker::pick_scene();
-    let path = "scenes/sphere.json".to_string(); // DEBUG - Skip the scene picker
+    let path = String::from("scenes/metalrough.json");
     if path != "" {
         let scene = get_scene(&path);
         display_scene(scene);

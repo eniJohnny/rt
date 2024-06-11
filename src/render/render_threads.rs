@@ -9,7 +9,7 @@ use std::{
     time::Duration,
 };
 
-use image::RgbaImage;
+use image::{GenericImageView, Rgba, RgbaImage};
 
 use crate::{
     model::{materials::Color, scene::Scene},
@@ -122,10 +122,8 @@ pub fn start_render_threads(
                         // On calcule le ray et on le cast
                         let ray = get_ray(&scene, x, y);
 
-                        // println!("Sampling some shit");
                         let bucket = sampling_ray(&scene, &ray);
-                        // println!("Sampling done");
-                        // dbg!(bucket.sample);
+
                         if let Some(mut sample) = bucket.sample {
                             sample.weight =
                                 bucket.weight / (sample.weight * bucket.nbSamples as f64);
@@ -158,17 +156,18 @@ fn build_image_from_tilesets(
 ) {
     // Bon c'est un peu le bordel, je pense que je pourrais faire un truc mieux que ca, je previens, la c'est un peu fouillis
 
-    // On remplit la work queue avec les toutes les tiles, pour chaque resolution possible, de la toute premiere image.
+    // On remplit la work queue avec toutes les tiles, pour chaque resolution possible, de la toute premiere image.
     // La fonction renvoie le nombre de tile d'une resolution donnee.
     // Cela nous permet de traquer quand est-ce que l'image de la plus basse resolution possible est completee, car c'est le
     // point ou on peux l'envoyer au main_thread.
-
+    let max_iterations = 100;
     let mut samplingMode = true;
     let mut low_res_to_do = generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
     let mut max_res_to_do = low_res_to_do;
+    let mut final_img = RgbaImage::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32);
     let mut img = RgbaImage::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32);
+    let mut iterations_done = 0;
     loop {
-        // On recoit les demandes d'images du main_thread (une seule a la fois, pas de nouvelle demande tant qu'on a pas envoye une image)
         loop {
             // Reception des tiles render par les worker_threads
             if let Ok((tile, colors)) = rc.try_recv() {
@@ -189,28 +188,65 @@ fn build_image_from_tilesets(
                 } else if tile.factor == 1 {
                     max_res_to_do -= 1;
                 }
+
+                if max_res_to_do == 0 {
+                    iterations_done += 1;
+                    final_img = add_iteration_to_final_img(img, final_img, iterations_done);
+                    if iterations_done < max_iterations {
+                        low_res_to_do = generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
+                        max_res_to_do = low_res_to_do;
+                    }
+                    img = RgbaImage::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32);
+                    println!("{} iterations done", iterations_done);
+                }
             }
             if low_res_to_do == 0 {
                 break;
             }
         }
+
+        // On recoit les demandes d'images du main_thread (une seule a la fois, pas de nouvelle demande tant qu'on a pas envoye une image)
         if let Ok(scene_change) = rb.try_recv() {
             // Si la scene a change entre temps depuis le GUI, on reset tout
             if scene_change {
                 img = RgbaImage::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32);
+                final_img = RgbaImage::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32);
+                iterations_done = 0;
                 work_queue.lock().unwrap().clear();
                 // On vide egalement le channel.
                 while let Ok(_) = rc.try_recv() {}
                 // samplingMode = true;
-                // low_res_to_do = generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
+                low_res_to_do = generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
+                max_res_to_do = low_res_to_do;
                 //TODO: Actuellement les worker_threads en cours de render vont probablement envoyer la tile qu'ils sont en train de render
                 //      au moment du reset. Il faut trouver un moyen de les empecher.
             } else {
                 // Si aucun changement n'a ete detecte on envoie l'image actuelle
-                ta.send((img.clone(), max_res_to_do == 0));
+                if iterations_done > 0 {
+                    ta.send((final_img.clone(), iterations_done == max_iterations));
+                } else {
+                    ta.send((img.clone(), false));
+                }
             }
         }
     }
+}
+
+fn add_iteration_to_final_img(iteration: RgbaImage, mut final_img: RgbaImage, iterations_done: i32) -> RgbaImage {
+    if iterations_done > 1 {
+        for x in 0..SCREEN_WIDTH as u32 {
+            for y in 0..SCREEN_HEIGHT as u32 {
+                let mut base_color = Color::from_rgba(final_img.get_pixel(x, y));
+                let iterations_done = iterations_done as f64;
+                base_color = base_color * ((iterations_done - 1.) / iterations_done) as f64 + (Color::from_rgba(iteration.get_pixel(x, y)) * (1. / iterations_done as f64));
+                final_img.put_pixel(x, y, base_color.to_rgba());
+            }
+        }
+    }
+    else {
+        return iteration;
+    }
+    final_img
 }
 
 fn for_each_uncalculated_pixel<F>(tile: &Tile, mut f: F)

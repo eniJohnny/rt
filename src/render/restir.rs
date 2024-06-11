@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use crate::model::maths::hit::Hit;
+use crate::model::{materials::Color, maths::hit::Hit};
 
 #[derive(Debug, Clone)]
 pub struct Path<'a> {
@@ -12,6 +12,7 @@ pub struct Path<'a> {
 #[derive(Debug, Clone)]
 pub struct Sample<'a> {
     pub path: Path<'a>,
+    pub color: Color,
     pub weight: f64,
 }
 
