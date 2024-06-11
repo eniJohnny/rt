@@ -234,14 +234,14 @@
         "type": "plane",
         "pos": [-5, 0, 0],
         "dir": [1, 0, 0],
-        "color": [0, 0, 255],
+        "color": [150, 100, 255],
         "roughness": 1.0
     },
     {
         "type": "plane",
         "pos": [5, 0, 0],
         "dir": [-1, 0, 0],
-        "color": [0, 255, 0],
+        "color": [150, 255, 100],
         "roughness": 1.0
     },
     {
@@ -276,19 +276,19 @@
     {
         "type": "light",
         "pos": [-3, -3, -4],
-        "color": [255, 255, 255],
-        "intensity": 9
+        "color": [255, 50, 50],
+        "intensity": 7
     },
     {
         "type": "light",
         "pos": [3, -3, -4],
-        "color": [255, 255, 255],
-        "intensity": 9
+        "color": [50, 50, 255],
+        "intensity": 7
     },
     {
         "type": "light",
         "pos": [0, 4, -4],
-        "color": [255, 255, 255],
-        "intensity": 8
+        "color": [50, 255, 50],
+        "intensity": 6
     }
 ]
