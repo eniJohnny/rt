@@ -269,8 +269,7 @@ pub fn event_manager(
                                 full_img = img.clone();
                             }
 
-                            scene.gui = display_element_infos(element, &mut img);
-                            scene.gui.set_element_index(element_index);
+                            scene.gui = draw_gui(&mut img, Some(element), None, element_index); // If element is clicked, then it can't be a light
                             display(&mut pixels, &mut img);
                         } else {
                             hide_gui(&mut img, &full_img);
