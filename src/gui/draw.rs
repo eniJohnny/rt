@@ -1,6 +1,6 @@
 use image::Rgba;
 
-use crate::{display::utils::draw_text, model::{materials::Material, maths::vec2::Vec2, shapes::{plane, sphere, cylinder, cone}}, GUI_HEIGHT, GUI_WIDTH};
+use crate::{display::utils::{display_element_infos, display_light_infos, draw_text}, model::{materials::Material, maths::vec2::Vec2, objects::light::{AmbientLight, Light, PointLight}, shapes::{cone, cylinder, plane, sphere}, Element}, GUI_HEIGHT, GUI_WIDTH};
 
 use super::{Gui, textformat::TextFormat};
 
@@ -319,6 +319,69 @@ pub fn draw_cone_gui(img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, cone: &con
     gui
 }
 
+pub fn draw_pointlight_gui(img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, pointlight: &PointLight) -> Gui {
+    let height: u32 = GUI_HEIGHT;
+    let width: u32 = GUI_WIDTH;
+    let size: Vec2 = Vec2::new(width as f64, height as f64);
+
+    let x_start: u32 = (img.width() - width) as u32;
+    let x_end: u32 = img.width();
+    let y_start: u32 = 0;
+    let y_end: u32 = height;
+
+    for x in x_start..x_end {
+        for y in y_start..y_end {
+            img.put_pixel(x, y, Rgba([50, 50, 50, 255]));
+        }
+    }
+
+    let mut titles = TextFormat::default();
+    let mut params = TextFormat::default();
+
+    titles.set_size(size.clone());
+    params.set_size(size.clone());
+    params.set_background_color(Rgba([89, 89, 89, 255]));
+
+    let mut gui = Gui::new();
+
+    gui.keys.push("posx".to_string());
+    gui.keys.push("posy".to_string());
+    gui.keys.push("posz".to_string());
+    gui.keys.push("intensity".to_string());
+    gui.keys.push("colorr".to_string());
+    gui.keys.push("colorg".to_string());
+    gui.keys.push("colorb".to_string());
+
+    let pos = pointlight.pos();
+    let intensity = pointlight.intensity();
+    let color = pointlight.color();
+
+    gui.values.push(pos.x().to_string());
+    gui.values.push(pos.y().to_string());
+    gui.values.push(pos.z().to_string());
+    gui.values.push(intensity.to_string());
+    gui.values.push((color.r() * 255.).to_string());
+    gui.values.push((color.g() * 255.).to_string());
+    gui.values.push((color.b() * 255.).to_string());
+
+    titles.parse_and_draw_text(img, 0, "Light", "");
+    titles.parse_and_draw_text(img, 1, "Position:", "");
+    titles.parse_and_draw_text(img, 5, "Intensity:", "");
+    titles.parse_and_draw_text(img, 9, "Color:", "");
+
+    gui.hitboxes.push(params.parse_and_draw_text(img, 2, " X:", &pos.x().to_string()));
+    gui.hitboxes.push(params.parse_and_draw_text(img, 3, " Y:", &pos.y().to_string()));
+    gui.hitboxes.push(params.parse_and_draw_text(img, 4, " Z:", &pos.z().to_string()));
+    gui.hitboxes.push(params.parse_and_draw_text(img, 6, " Intensity:", &intensity.to_string()));
+    gui.hitboxes.push(params.parse_and_draw_text(img, 10, " R:", &format!("{:.0}", color.r() * 255.)));
+    gui.hitboxes.push(params.parse_and_draw_text(img, 11, " G:", &format!("{:.0}", color.g() * 255.)));
+    gui.hitboxes.push(params.parse_and_draw_text(img, 12, " B:", &format!("{:.0}", color.b() * 255.)));
+
+    draw_gui_buttons(img, &gui);
+
+    gui
+}
+
 fn is_corner(x: u32, y: u32, x_start: u32, y_start: u32, x_end: u32, y_end: u32) -> bool {
     let start_offset = 2;
     let end_offset = 3;
@@ -358,15 +421,47 @@ pub fn draw_button_background(img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, h
 }
 
 pub fn draw_gui_buttons (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, gui: &Gui) {
-    let mut buttons = TextFormat::default();
-    buttons.set_size(Vec2::new(GUI_WIDTH as f64, GUI_HEIGHT as f64));
-    buttons.set_font_size(36.);
+    let mut info_format = TextFormat::default();
+    let mut buttons_format = TextFormat::default();
+    buttons_format.set_size(Vec2::new(GUI_WIDTH as f64, GUI_HEIGHT as f64));
+    buttons_format.set_font_size(36.);
+    info_format.set_font_size(20.);
 
     let apply_pos = &gui.apply_hitbox().0;
     let cancel_pos = &gui.cancel_hitbox().0;
+    let info_msg_pos_l1 = Vec2::new(1230., 480.);
+    let info_msg_pos_l2 = Vec2::new(1260., 500.);
 
     draw_button_background(img, gui.apply_hitbox(), Rgba([70, 125, 70, 255]));
     draw_button_background(img, gui.cancel_hitbox(), Rgba([125, 70, 70, 255]));
-    draw_text(img, apply_pos, "Apply".to_string(), &buttons);
-    draw_text(img, cancel_pos, "Cancel".to_string(), &buttons);
+    draw_text(img, apply_pos, "Apply".to_string(), &buttons_format);
+    draw_text(img, cancel_pos, "Cancel".to_string(), &buttons_format);
+    draw_text(img, &info_msg_pos_l1, "Please wait for the image to finish".to_string(), &info_format);
+    draw_text(img, &info_msg_pos_l2, "loading before making changes".to_string(), &info_format);
+}
+
+pub fn draw_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, element: Option<&Element>, light: Option<&Box<dyn Light + Sync + Send>>, index: usize) -> Gui {
+    let is_element = element.is_some();
+
+    if is_element == true {
+        let element = element.unwrap();
+        let mut gui = display_element_infos(element, img);
+        
+        gui.set_element_index(index);
+        gui.set_is_open(true);
+        gui.set_displaying(&"element".to_string());
+    
+        gui
+    } else {
+        let light = light.unwrap();
+        let mut gui = display_light_infos(light, img);
+        
+        gui.set_light_index(index as i32);
+        gui.set_is_open(true);
+        gui.set_displaying(&"light".to_string());
+
+        println!("Light index: {}", index);
+    
+        gui
+    }
 }

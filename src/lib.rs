@@ -40,7 +40,8 @@ const CAM_MOVE_KEYS: [VirtualKeyCode; 10] = [
 ];
 
 pub fn run() {
-    let path = picker::pick_scene();
+    // let path = picker::pick_scene();
+    let path = "scenes/sphere.json".to_string(); // DEBUG - Skip the scene picker
     if path != "" {
         let scene = get_scene(&path);
         display_scene(scene);
