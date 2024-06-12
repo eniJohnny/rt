@@ -2,8 +2,8 @@ use image::{ImageBuffer, Rgba, RgbaImage};
 use rusttype::{Font, Scale};
 use winit::event::VirtualKeyCode;
 use crate::{
-    gui::{draw::{draw_cone_gui, draw_cylinder_gui, draw_plane_gui, draw_sphere_gui}, textformat::TextFormat, Gui},
-    model::{maths::vec2::Vec2, objects::camera::Camera, shapes::Shape, Element}
+    gui::{draw::{draw_cone_gui, draw_cylinder_gui, draw_pointlight_gui, draw_plane_gui, draw_sphere_gui}, textformat::TextFormat, Gui},
+    model::{maths::vec2::Vec2, objects::{camera::Camera, light::Light}, shapes::Shape, Element}
 };
 
 pub fn move_camera(camera: &mut Camera, c: Option<VirtualKeyCode>) {
@@ -43,6 +43,22 @@ pub fn display_element_infos(element: &Element, img: &mut ImageBuffer<Rgba<u8>, 
     } else {
         return Gui::new();
     }
+}
+pub fn display_light_infos(light: &Box<dyn Light + Sync + Send>, img: &mut ImageBuffer<Rgba<u8>, Vec<u8>>) -> Gui {
+    let img = img;
+    
+    if light.as_pointlight().is_some() {
+        let point_light = light.as_pointlight().unwrap();
+        return draw_pointlight_gui(img, point_light);
+    } else if light.as_parallel_light().is_some() {
+        return Gui::new();
+    } else if light.as_spot_light().is_some() {
+        return Gui::new();
+    } else {
+        return Gui::new();
+    }
+    
+    
 }
 
 pub fn draw_text(image: &mut RgbaImage, pos: &Vec2, text: String, format: &TextFormat) {

@@ -4,8 +4,8 @@ extern crate winit;
 
 use crate::{
     gui::{
-        textformat::TextFormat, utils::{gui_clicked, hide_gui, hitbox_contains}, Gui
-    }, model::{materials::Color, maths::vec2::Vec2, scene::Scene}, render::raycasting::{get_closest_hit, get_ray}, CAM_MOVE_KEYS, FPS, RGB_KEYS
+        self, draw::draw_gui, textformat::TextFormat, utils::{gui_clicked, hide_gui, hitbox_contains}, Gui
+    }, model::{materials::Color, maths::vec2::Vec2, objects::light::Light, scene::Scene}, render::raycasting::{get_closest_hit, get_ray}, CAM_MOVE_KEYS, FPS, RGB_KEYS
 };
 use image::{ImageBuffer, Rgba, RgbaImage};
 use std::{
@@ -45,6 +45,21 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
             tb.send(false).unwrap();
             let (render_img, _) = ra.recv().unwrap();
             img = render_img;
+
+            let mut mut_scene = scene.write().unwrap();
+            if mut_scene.gui.is_open() {
+                match mut_scene.gui.displaying().as_str() {
+                    "element" => {
+                        mut_scene.gui = draw_gui(&mut img, Some(&mut_scene.elements()[mut_scene.gui.element_index()]), None, mut_scene.gui.element_index());
+                    }
+                    "light" => {
+                        let index = (mut_scene.gui.light_index() + 1) as usize % mut_scene.lights().len();
+                        mut_scene.gui = draw_gui(&mut img, None, Some(&mut_scene.lights()[index]), index);
+                    }
+                    _ => {}
+                }
+            }
+
             display(&mut pixels, &mut img);
             scene_change = false;
         }
@@ -220,8 +235,7 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
                                 full_img = img.clone();
                             }
                             
-                            scene.gui = display_element_infos(element, &mut img);
-                            scene.gui.set_element_index(element_index);
+                            scene.gui = draw_gui(&mut img, Some(element), None, element_index); // If element is clicked, then it can't be a light
                             display(&mut pixels, &mut img);
                         } else {
                             hide_gui(&mut img, &full_img);
@@ -256,7 +270,13 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
                         scene_change = true;
                     }
                     Some(VirtualKeyCode::Escape) => {
-                        *control_flow = ControlFlow::Exit;
+                        if scene.gui.is_open() {
+                            hide_gui(&mut img, &full_img);
+                            scene.gui = Gui::new();
+                            display(&mut pixels, &mut img);
+                        } else {
+                            *control_flow = ControlFlow::Exit;
+                        }
                     }
                     c if (c >= Some(VirtualKeyCode::Numpad0)
                         && c <= Some(VirtualKeyCode::Numpad9)) || (c >= Some(VirtualKeyCode::Key1) && c <= Some(VirtualKeyCode::Key0)) =>
@@ -376,6 +396,13 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
                         draw_text(&mut img, &pos, value, &editing_format);
                         display(&mut pixels, &mut img);
                     }
+                    Some(VirtualKeyCode::L) => {
+                        let lights = scene.lights();
+                        let light_index = (scene.gui.light_index() + 1) as usize % lights.len();
+
+                        scene.gui = draw_gui(&mut img, None, Some(&lights[light_index]), light_index);
+                        display(&mut pixels, &mut img);
+                    }
                     _ => (),
                 }
             }
@@ -387,15 +414,23 @@ pub fn event_manager(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut i
         } else if image_requested {
             if let Ok((render_img, final_img)) = ra.try_recv() {
                 img = render_img;
+                let mut mut_scene = scene.write().unwrap();
+                if mut_scene.gui.is_open() {
+                    if mut_scene.gui.displaying() == "element" {
+                        mut_scene.gui = draw_gui(&mut img, Some(&mut_scene.elements()[mut_scene.gui.element_index()]), None, mut_scene.gui.element_index());
+                    } else if mut_scene.gui.displaying() == "light" {
+                        let index = mut_scene.gui.light_index() as usize;
+                        mut_scene.gui = draw_gui(&mut img, None, Some(&mut_scene.lights()[index]), index);
+                    }
+                }
+                if mut_scene.gui.keys().len() == 0 {
+                    full_img = img.clone();
+                }
                 display(&mut pixels, &mut img);
                 final_image = final_img;
                 image_requested = false;
 
-                let mut scene = scene.write().unwrap();
-                if scene.gui.keys().len() == 0 {
-                    full_img = img.clone();
-                }
-                scene.gui = Gui::new();
+                // scene.gui = Gui::new();
             }
         } else if !final_image {
             tb.send(false).unwrap();

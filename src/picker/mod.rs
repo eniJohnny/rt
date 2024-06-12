@@ -5,7 +5,7 @@ use pixels::{Pixels, SurfaceTexture};
 use rusttype::{Font, Scale};
 use winit::{dpi::LogicalSize, event::{Event, MouseScrollDelta, WindowEvent}, event_loop::{ControlFlow, EventLoop}, platform::run_return::EventLoopExtRunReturn, window::{Window, WindowBuilder}};
 
-use crate::{display::{display, utils::blend}, gui::{self, textformat::TextFormat}, model::{maths::vec2::Vec2, scene::Scene}, parsing::get_scene, render::render_threads::start_render_threads, PICKER_LINE_HEIGHT, SCENE_FOLDER, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32};
+use crate::{display::{display, utils::blend}, gui::{self, textformat::TextFormat}, model::{maths::{vec2::Vec2, vec3::Vec3}, objects::camera, scene::{self, Scene}}, parsing::get_scene, render::render_threads::start_render_threads, PICKER_LINE_HEIGHT, SCENE_FOLDER, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32};
 
 fn get_files_in_folder() -> io::Result<Vec<String>> {
     let mut files = Vec::new();
@@ -260,20 +260,23 @@ pub fn pick_scene() -> String {
 }
 
 
-fn render_preview(scene: Scene, img: &mut RgbaImage, pixels: &mut Pixels<Window>) {
+fn render_preview(mut scene: Scene, img: &mut RgbaImage, pixels: &mut Pixels<Window>) {
     // Setting up the render_threads and asking for the first image
+    let camera = scene.camera_mut();
+    camera.set_pos(camera.pos() + Vec3::new(0., 0., -10.));
     let scene = Arc::new(RwLock::new(scene));
     let (ra, tb) = start_render_threads(Arc::clone(&scene));
     tb.send(true).unwrap();
     let mut final_image = false;
     let mut preview_img: image::ImageBuffer<Rgba<u8>, Vec<u8>>;
     
-    thread::sleep(Duration::from_millis(10));
+    thread::sleep(Duration::from_millis(2));
     tb.send(false).unwrap();
     let (render_img, _) = ra.recv().unwrap();
     preview_img = render_img;
+    let start = std::time::Instant::now();
 
-    while !final_image {
+    while start.elapsed().as_millis() < 1200 {
 
         if let Ok((render_img, final_img)) = ra.try_recv() {
             preview_img = render_img;
@@ -286,13 +289,17 @@ fn render_preview(scene: Scene, img: &mut RgbaImage, pixels: &mut Pixels<Window>
         }
     }
 
-    let img_x_offset = 862;
+    // let img_x_offset = 862;
+    // let img_y_offset = 37;
+    // let preview_x_offset = 450;
+    // let preview_y_offset = 100;
+    let img_x_offset = 1012;
     let img_y_offset = 37;
-    let preview_x_offset = 450;
-    let preview_y_offset = 100;
+    let preview_x_offset = 600;
+    let preview_y_offset = 250;
 
-    for i in 0..700 {
-        for j in 0..700 {
+    for i in 0..400 {
+        for j in 0..400 {
             let pixel = preview_img.get_pixel(i + preview_x_offset, j + preview_y_offset);
             img.put_pixel(i + img_x_offset, j + img_y_offset, *pixel);
         }
