@@ -1,4 +1,4 @@
-use crate::model::maths::vec3::Vec3;
+use crate::model::maths::{hit::Hit, vec3::Vec3};
 
 use super::{Color, Material};
 
@@ -18,10 +18,10 @@ impl Metal {
 unsafe impl Send for Metal {}
 
 impl Material for Metal {
-    fn color(&self, _: i32, _: i32) -> Color {
+    fn color(&self, _: &Hit) -> Color {
         Color::new(self.color.r(), self.color.g(), self.color.b())
     }
-    fn norm(&self, _: i32, _: i32) -> Vec3 {
+    fn norm(&self, _: &Hit) -> Vec3 {
         Vec3::new(0., 0., 1.)
     }
     fn reflection_coef(&self) -> f64 {
@@ -31,7 +31,7 @@ impl Material for Metal {
         0.
     }
     fn roughness(&self) -> f64 {
-        self.roughness
+        self.roughness * self.roughness
     }
     fn needs_projection(&self) -> bool {
         false

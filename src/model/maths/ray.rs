@@ -7,11 +7,19 @@ pub struct Ray {
     pos: Vec3,
     dir: Vec3,
     depth: u8,
+    sampling: bool,
+    pub debug: bool,
 }
 
 impl Ray {
     pub fn new(pos: Vec3, dir: Vec3, depth: u8) -> Self {
-        Self { pos, dir, depth }
+        Self {
+            pos,
+            dir,
+            depth,
+            sampling: false,
+            debug: false,
+        }
     }
 
     pub fn get_pos(&self) -> &Vec3 {
@@ -22,6 +30,12 @@ impl Ray {
     }
     pub fn get_depth(&self) -> u8 {
         return self.depth;
+    }
+    pub fn set_sampling(&mut self, sampling: bool) {
+        self.sampling = sampling;
+    }
+    pub fn is_sampling(&self) -> bool {
+        self.sampling
     }
 }
 
