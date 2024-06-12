@@ -14,7 +14,7 @@ pub struct Hit<'a> {
     dist: f64,
     pos: Vec3,
     norm: Vec3,
-    projected_pos: Option<(i32, i32)>,
+    projected_pos: Option<(f64, f64)>,
     color: Color,
     metalness: f64,
     roughness: f64,
@@ -74,7 +74,7 @@ impl<'a> Hit<'a> {
         self.emissive
     }
 
-    fn get_projection(&self, projection: Option<(i32, i32)>) -> Option<(i32, i32)> {
+    fn get_projection(&self, projection: Option<(f64, f64)>) -> Option<(f64, f64)> {
         match projection {
             None => Some(self.element().shape().projection(self)),
             Some(xy) => Some(xy)
@@ -82,7 +82,7 @@ impl<'a> Hit<'a> {
     }
 
     fn map(&mut self, ray_dir: &Vec3) {
-        let mut projection: Option<(i32, i32)> = None;
+        let mut projection: Option<(f64, f64)> = None;
         let mat = self.element.material();
 
         self.norm = self.element.shape().norm(&self.pos, ray_dir);

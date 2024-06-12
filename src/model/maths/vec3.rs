@@ -5,7 +5,7 @@ use std::cmp::PartialEq;
 use std::fmt::{Display, Formatter, Result};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct Vec3 {
     x: f64,
     y: f64,
@@ -83,6 +83,14 @@ impl Vec3 {
     pub fn from_color(color: Color) -> Self {
         Vec3::new(color.r(), color.g(), color.b())
     }
+}
+
+impl PartialEq for Vec3 {
+	fn eq(&self, other: &Self) -> bool {
+		(self.x - other.x).abs() <= f64::EPSILON
+			&& (self.y - other.y).abs() <= f64::EPSILON
+			&& (self.z - other.z).abs() <= f64::EPSILON
+	}
 }
 
 impl Add for Vec3 {
