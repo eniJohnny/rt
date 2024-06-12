@@ -253,6 +253,7 @@ pub fn event_manager(
                         } else if hit.is_some() {
                             let hit = hit.unwrap();
                             let element = hit.element();
+                            println!("{:?}", element.shape().aabb()); // DEBUG - Print the element hit
 
                             let element_index: usize = scene
                                 .elements()
