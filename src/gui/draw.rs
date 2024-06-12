@@ -1,6 +1,6 @@
 use image::Rgba;
 
-use crate::{display::utils::{display_element_infos, display_light_infos, draw_text}, model::{materials::Material, maths::vec2::Vec2, objects::light::{AmbientLight, Light, PointLight}, shapes::{cone, cylinder, plane, sphere}, Element}, GUI_HEIGHT, GUI_WIDTH};
+use crate::{display::utils::{display_element_infos, display_light_infos, draw_text}, model::{materials::{Color, Material}, maths::vec2::Vec2, objects::light::{AmbientLight, Light, PointLight}, shapes::{cone, cylinder, plane, sphere}, Element}, GUI_HEIGHT, GUI_WIDTH};
 
 use super::{Gui, textformat::TextFormat};
 
@@ -29,7 +29,7 @@ pub fn draw_sphere_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, sphere:
     params.set_background_color(Rgba([89, 89, 89, 255]));
 
     let mut gui = Gui::new();
-    let color = material.color(0, 0);
+    let color = Color::new(0., 0., 0.);
     let metalness = material.reflection_coef();
     let roughness = material.roughness();
 
@@ -107,7 +107,7 @@ pub fn draw_cylinder_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, cylin
     params.set_background_color(Rgba([89, 89, 89, 255]));
 
     let mut gui = Gui::new();
-    let color = material.color(0, 0);
+    let color = Color::new(0., 0., 0.);
     let metalness = material.reflection_coef();
     let roughness = material.roughness();
 
@@ -188,7 +188,7 @@ pub fn draw_plane_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, plane: &
     params.set_background_color(Rgba([89, 89, 89, 255]));
 
     let mut gui = Gui::new();
-    let color = material.color(0,0);
+    let color = Color::new(0., 0., 0.);
     let metalness = material.reflection_coef();
     let roughness = material.roughness();
 
@@ -262,7 +262,7 @@ pub fn draw_cone_gui(img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, cone: &con
     params.set_background_color(Rgba([89, 89, 89, 255]));
 
     let mut gui = Gui::new();
-    let color = material.color(0, 0);
+    let color = Color::new(0., 0., 0.);
     let metalness = material.reflection_coef();
     let roughness = material.roughness();
 
