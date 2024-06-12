@@ -3,10 +3,10 @@ pub mod utils;
 pub mod textformat;
 
 use crate::
-    model::maths::vec2::Vec2
+    model::{maths::vec2::Vec2, Element}
 ;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Gui {
     keys: Vec<String>,
     values: Vec<String>,
@@ -16,6 +16,9 @@ pub struct Gui {
     element_index: usize,
     updating: bool,
     updating_index: usize,
+    is_open: bool,
+    light_index: i32,
+    displaying: String,
 }
 
 impl Gui {
@@ -29,6 +32,9 @@ impl Gui {
             element_index: 0,
             updating: false,
             updating_index: 0,
+            is_open: false,
+            light_index: -1,
+            displaying: "".to_string(),
         }
     }
 
@@ -56,6 +62,15 @@ impl Gui {
     pub fn updating_index(&self) -> usize {
         self.updating_index
     }
+    pub fn is_open(&self) -> bool {
+        self.is_open
+    }
+    pub fn light_index(&self) -> i32 {
+        self.light_index
+    }
+    pub fn displaying(&self) -> &String {
+        &self.displaying
+    }
 
     pub fn set_element_index(&mut self, index: usize) {
         self.element_index = index;
@@ -70,4 +85,14 @@ impl Gui {
         self.values[index] = value.to_string();
         self.hitboxes[index] = hitbox.clone();
     }
+    pub fn set_is_open(&mut self, is_open: bool) {
+        self.is_open = is_open;
+    }
+    pub fn set_light_index(&mut self, light_index: i32) {
+        self.light_index = light_index;
+    }
+    pub fn set_displaying(&mut self, displaying: &String) {
+        self.displaying = displaying.to_string();
+    }
+
 }

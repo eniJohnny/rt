@@ -37,6 +37,16 @@ pub trait Light: Debug + Sync {
     fn get_diffuse(&self, hit: &Hit) -> Color;
     fn get_specular(&self, hit: &Hit, ray: &Ray) -> Color;
     fn is_shadowed(&self, scene: &Scene, hit: &Hit) -> bool;
+
+    fn as_pointlight(&self) -> Option<&PointLight> {
+        None
+    }
+    fn as_parallel_light(&self) -> Option<&ParallelLight> {
+        None
+    }
+    fn as_spot_light(&self) -> Option<&SpotLight> {
+        None
+    }
 }
 
 #[derive(Debug)]
@@ -105,6 +115,10 @@ impl Light for PointLight {
         }
         false
     }
+
+    fn as_pointlight(&self) -> Option<&PointLight> {
+        Some(self)
+    }
 }
 
 #[derive(Debug)]
@@ -168,6 +182,10 @@ impl Light for ParallelLight {
             }
         }
         false
+    }
+
+    fn as_parallel_light(&self) -> Option<&ParallelLight> {
+        Some(self)
     }
 }
 
@@ -256,5 +274,9 @@ impl Light for SpotLight {
             }
         }
         false
+    }
+
+    fn as_spot_light(&self) -> Option<&SpotLight> {
+        Some(self)
     }
 }
