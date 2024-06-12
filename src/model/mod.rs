@@ -11,14 +11,14 @@ pub mod scene;
 #[derive(Debug)]
 pub struct Element {
     material: Box<dyn Sync + Material>,
-    shape: Box<dyn Sync + Shape>
+    shape: Box<dyn Sync + Shape>,
 }
 
 impl Element {
     pub fn new(shape: Box<dyn Shape + Sync>, material: Box<dyn Material + Sync>) -> Self {
         Self {
             shape,
-            material
+            material,
         }
     }
 
