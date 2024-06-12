@@ -118,17 +118,17 @@ impl Shape for Aabb {
         let y = *hit_position.y();
         let z = *hit_position.z();
     
-        if x == self.x_min() {
+        if (x - self.x_min()).abs() < f64::EPSILON {
             return Vec3::new(-1.0, 0.0, 0.0);
-        } else if x == self.x_max() {
+        } else if (x - self.x_max()).abs() < f64::EPSILON {
             return Vec3::new(1.0, 0.0, 0.0);
-        } else if y == self.y_min() {
+        } else if (y - self.y_min()).abs() < f64::EPSILON {
             return Vec3::new(0.0, -1.0, 0.0);
-        } else if y == self.y_max() {
+        } else if (y - self.y_max()).abs() < f64::EPSILON {
             return Vec3::new(0.0, 1.0, 0.0);
-        } else if z == self.z_min() {
+        } else if (z - self.z_min()).abs() < f64::EPSILON {
             return Vec3::new(0.0, 0.0, -1.0);
-        } else if z == self.z_max() {
+        } else if (z - self.z_max()).abs() < f64::EPSILON {
             return Vec3::new(0.0, 0.0, 1.0);
         } else {
             panic!("Error: hit_position is not on the AABB");
