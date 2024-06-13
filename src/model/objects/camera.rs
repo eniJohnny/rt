@@ -108,10 +108,10 @@ impl Camera {
         self.pos += self.u() * STEP;
     }
     pub fn move_up(&mut self) {
-        self.pos -= self.v() * STEP;
+        self.pos -= Vec3::new(0., 1., 0.) * STEP;
     }
     pub fn move_down(&mut self) {
-        self.pos += self.v() * STEP;
+        self.pos += Vec3::new(0., 1., 0.) * STEP;
     }
     pub fn look_up(&mut self) {
         self.set_dir(self.q_up.rotate(&self.dir()));

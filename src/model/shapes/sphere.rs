@@ -43,8 +43,8 @@ impl Shape for Sphere {
 		} else {
 			constant_axis = Vec3::new(0., 0., 1.);
 		}
-		let	(mut u_ratio, v_ratio): (f64, f64);
-		v_ratio = (self.dir.dot(&-hit.norm()) + 1.) / 2.;
+		let	(u_ratio, v_ratio): (f64, f64);
+		v_ratio = (self.dir.dot(&hit.norm()) + 1.) / 2.;
 		let i: Vec3 = self.dir().cross(&constant_axis).normalize();
 		let j: Vec3 = self.dir().cross(&i).normalize();
 		let i_component: f64 = hit.norm().dot(&i);
@@ -58,6 +58,7 @@ impl Shape for Sphere {
 		}
 		(u_ratio, v_ratio)
     }
+	
     fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {
         (hit_position - self.pos()).normalize()
     }
