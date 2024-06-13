@@ -35,6 +35,9 @@ pub trait Shape: Debug + Sync + Send {
     fn as_cone(&self) -> Option<&Cone> {
         None
     }
+    fn as_aabb(&self) -> Option<&Aabb> {
+        None
+    }
     fn aabb(&self) -> Option<&Aabb> {
         None
     }

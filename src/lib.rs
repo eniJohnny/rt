@@ -10,6 +10,7 @@ pub mod parsing;
 pub mod picker;
 pub mod render;
 
+const DISPLAY_AABB: bool = true;
 const SCREEN_WIDTH: usize = 1600;
 const SCREEN_HEIGHT: usize = 900;
 const SCREEN_WIDTH_U32: u32 = SCREEN_WIDTH as u32;
