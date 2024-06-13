@@ -46,6 +46,9 @@ pub trait Shape: Debug + Sync + Send {
     fn as_triangle(&self) -> Option<&Triangle> {
         None
     }
+    fn as_aabb(&self) -> Option<&Aabb> {
+        None
+    }
     fn aabb(&self) -> Option<&Aabb> {
         None
     }

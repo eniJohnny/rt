@@ -117,18 +117,35 @@ impl Shape for Aabb {
         let x = *hit_position.x();
         let y = *hit_position.y();
         let z = *hit_position.z();
+        let error_margin = 0.000000000000001;
+
+        // DEBUG - print all the diffs
+        // let xmin_diff = (x - self.x_min()).abs();
+        // let xmax_diff = (x - self.x_max()).abs();
+        // let ymin_diff = (y - self.y_min()).abs();
+        // let ymax_diff = (y - self.y_max()).abs();
+        // let zmin_diff = (z - self.z_min()).abs();
+        // let zmax_diff = (z - self.z_max()).abs();
+        // println!("----------------------------------------------------");
+        // println!("xmin_diff: {} - {}", xmin_diff, xmin_diff < error_margin);
+        // println!("xmax_diff: {} - {}", xmax_diff, xmax_diff < error_margin);
+        // println!("ymin_diff: {} - {}", ymin_diff, ymin_diff < error_margin);
+        // println!("ymax_diff: {} - {}", ymax_diff, ymax_diff < error_margin);
+        // println!("zmin_diff: {} - {}", zmin_diff, zmin_diff < error_margin);
+        // println!("zmax_diff: {} - {}", zmax_diff, zmax_diff < error_margin);
+
     
-        if (x - self.x_min()).abs() < f64::EPSILON {
+        if (x - self.x_min()).abs() < error_margin {
             return Vec3::new(-1.0, 0.0, 0.0);
-        } else if (x - self.x_max()).abs() < f64::EPSILON {
+        } else if (x - self.x_max()).abs() < error_margin {
             return Vec3::new(1.0, 0.0, 0.0);
-        } else if (y - self.y_min()).abs() < f64::EPSILON {
+        } else if (y - self.y_min()).abs() < error_margin {
             return Vec3::new(0.0, -1.0, 0.0);
-        } else if (y - self.y_max()).abs() < f64::EPSILON {
+        } else if (y - self.y_max()).abs() < error_margin {
             return Vec3::new(0.0, 1.0, 0.0);
-        } else if (z - self.z_min()).abs() < f64::EPSILON {
+        } else if (z - self.z_min()).abs() < error_margin {
             return Vec3::new(0.0, 0.0, -1.0);
-        } else if (z - self.z_max()).abs() < f64::EPSILON {
+        } else if (z - self.z_max()).abs() < error_margin {
             return Vec3::new(0.0, 0.0, 1.0);
         } else {
             panic!("Error: hit_position is not on the AABB");
@@ -137,6 +154,9 @@ impl Shape for Aabb {
 
     fn pos(&self) -> &Vec3 {
         &self.pos
+    }
+    fn as_aabb(&self) -> Option<&Aabb> {
+        Some(self)
     }
 }
 

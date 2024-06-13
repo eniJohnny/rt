@@ -95,6 +95,9 @@ impl Sphere {
     pub fn radius(&self) -> f64 {
         self.radius
     }
+    pub fn aabb(&self) -> &super::aabb::Aabb {
+        &self.aabb
+    }
 
     // Mutators
     pub fn set_pos(&mut self, pos: Vec3) {
@@ -107,6 +110,9 @@ impl Sphere {
     pub fn set_radius(&mut self, radius: f64) {
         self.radius = radius;
         self.update_aabb();
+    }
+    pub fn set_aabb(&mut self, aabb: super::aabb::Aabb) {
+        self.aabb = aabb
     }
 
     // Constructor

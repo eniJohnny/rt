@@ -14,6 +14,7 @@ pub struct Cylinder {
     radius: f64,
     height: f64,
     plane: [Plane; 2],
+    aabb: super::aabb::Aabb,
 }
 
 impl Shape for Cylinder {
@@ -146,6 +147,10 @@ impl Shape for Cylinder {
     fn pos(&self) -> &Vec3 {
         &self.pos
     }
+
+    fn aabb(&self) -> Option<&super::aabb::Aabb> {
+        Some(&self.aabb)
+    }
 }
 
 impl Cylinder {
@@ -164,29 +169,48 @@ impl Cylinder {
     }
 
     // Mutators
-    pub fn set_pos(&mut self, pos: Vec3) {
-        self.pos = pos
+    pub fn set_pos(&mut self, pos: Vec3) { 
+        self.pos = pos;
+        self.update_aabb();
     }
     pub fn set_dir(&mut self, dir: Vec3) {
-        self.dir = dir
+        self.dir = dir;
+        self.update_aabb();
     }
     pub fn set_radius(&mut self, radius: f64) {
-        self.radius = radius
+        self.radius = radius;
+        self.update_aabb();
     }
     pub fn set_height(&mut self, height: f64) {
-        self.height = height
+        self.height = height;
+        self.update_aabb();
     }
 
     // Constructor
     pub fn new(pos: Vec3, dir: Vec3, radius: f64, height: f64) -> Cylinder {
         let plane1 = Plane::new(pos.clone(), -dir.clone());
         let plane2 = Plane::new(pos.clone() + dir.clone() * height, dir.clone());
-        self::Cylinder {
-            pos,
-            dir,
-            radius,
-            height,
-            plane: [plane1, plane2],
-        }
+        let aabb = Cylinder::compute_aabb(pos.clone(), dir.clone(), height, radius);
+        self::Cylinder { pos, dir, radius, height, plane: [plane1, plane2], aabb }
+    }
+
+    fn update_aabb(&mut self) {
+        self.aabb = Cylinder::compute_aabb(self.pos.clone(), self.dir.clone(), self.height, self.radius);
+    }
+
+    pub fn compute_aabb(pos:Vec3, dir: Vec3, height: f64, radius: f64) -> super::aabb::Aabb {
+        let offset_x = dir.x() * height / 2.0 + radius * (1.0 - dir.x() * dir.x()).sqrt();
+        let offset_y = dir.y() * height / 2.0 + radius * (1.0 - dir.y() * dir.y()).sqrt();
+        let offset_z = dir.z() * height / 2.0 + radius * (1.0 - dir.z() * dir.z()).sqrt();
+        let center = pos + dir * height / 2.0;
+        
+        super::aabb::Aabb::new(
+            center.x() - offset_x,
+            center.x() + offset_x,
+            center.y() - offset_y,
+            center.y() + offset_y,
+            center.z() - offset_z,
+            center.z() + offset_z,
+        )
     }
 }

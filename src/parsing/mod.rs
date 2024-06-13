@@ -35,10 +35,17 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let dir = get_coordinates_value(&object, "dir");
 
                 let shape = Box::new(Sphere::new(pos, dir, radius));
+                let aabb_shape = Box::new(shape.aabb().clone());
+
                 let material = get_material(&object, color);
                 scene.add_textures(&material);
+                let aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
+                
                 let element = Element::new(shape, material);
-                scene.add_element(element)
+                let aabb_element = Element::new(aabb_shape, aabb_material);
+
+                scene.add_element(element);
+                scene.add_element(aabb_element);
             }
             "plane" => {
                 let pos = get_coordinates_value(&object, "pos");
