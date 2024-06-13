@@ -1,7 +1,9 @@
 use std::default;
 
 use super::Shape;
-use crate::model::{materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}};
+use crate::model::materials::material::Projection;
+use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
+use crate::ERROR_MARGIN;
 
 
 #[derive(Debug, Clone)]
@@ -117,38 +119,37 @@ impl Shape for Aabb {
         let x = *hit_position.x();
         let y = *hit_position.y();
         let z = *hit_position.z();
-        let error_margin = 0.000000000000001;
-
-        // DEBUG - print all the diffs
-        // let xmin_diff = (x - self.x_min()).abs();
-        // let xmax_diff = (x - self.x_max()).abs();
-        // let ymin_diff = (y - self.y_min()).abs();
-        // let ymax_diff = (y - self.y_max()).abs();
-        // let zmin_diff = (z - self.z_min()).abs();
-        // let zmax_diff = (z - self.z_max()).abs();
-        // println!("----------------------------------------------------");
-        // println!("xmin_diff: {} - {}", xmin_diff, xmin_diff < error_margin);
-        // println!("xmax_diff: {} - {}", xmax_diff, xmax_diff < error_margin);
-        // println!("ymin_diff: {} - {}", ymin_diff, ymin_diff < error_margin);
-        // println!("ymax_diff: {} - {}", ymax_diff, ymax_diff < error_margin);
-        // println!("zmin_diff: {} - {}", zmin_diff, zmin_diff < error_margin);
-        // println!("zmax_diff: {} - {}", zmax_diff, zmax_diff < error_margin);
-
     
-        if (x - self.x_min()).abs() < error_margin {
+        if (x - self.x_min()).abs() < ERROR_MARGIN {
             return Vec3::new(-1.0, 0.0, 0.0);
-        } else if (x - self.x_max()).abs() < error_margin {
+        } else if (x - self.x_max()).abs() < ERROR_MARGIN {
             return Vec3::new(1.0, 0.0, 0.0);
-        } else if (y - self.y_min()).abs() < error_margin {
+        } else if (y - self.y_min()).abs() < ERROR_MARGIN {
             return Vec3::new(0.0, -1.0, 0.0);
-        } else if (y - self.y_max()).abs() < error_margin {
+        } else if (y - self.y_max()).abs() < ERROR_MARGIN {
             return Vec3::new(0.0, 1.0, 0.0);
-        } else if (z - self.z_min()).abs() < error_margin {
+        } else if (z - self.z_min()).abs() < ERROR_MARGIN {
             return Vec3::new(0.0, 0.0, -1.0);
-        } else if (z - self.z_max()).abs() < error_margin {
+        } else if (z - self.z_max()).abs() < ERROR_MARGIN {
             return Vec3::new(0.0, 0.0, 1.0);
         } else {
-            panic!("Error: hit_position is not on the AABB");
+            // DEBUG - print all the diffs
+            // let xmin_diff = (x - self.x_min()).abs();
+            // let xmax_diff = (x - self.x_max()).abs();
+            // let ymin_diff = (y - self.y_min()).abs();
+            // let ymax_diff = (y - self.y_max()).abs();
+            // let zmin_diff = (z - self.z_min()).abs();
+            // let zmax_diff = (z - self.z_max()).abs();
+            // println!("----------------------------------------------------");
+            // println!("xmin_diff: {} - {}", xmin_diff, xmin_diff < ERROR_MARGIN);
+            // println!("xmax_diff: {} - {}", xmax_diff, xmax_diff < ERROR_MARGIN);
+            // println!("ymin_diff: {} - {}", ymin_diff, ymin_diff < ERROR_MARGIN);
+            // println!("ymax_diff: {} - {}", ymax_diff, ymax_diff < ERROR_MARGIN);
+            // println!("zmin_diff: {} - {}", zmin_diff, zmin_diff < ERROR_MARGIN);
+            // println!("zmax_diff: {} - {}", zmax_diff, zmax_diff < ERROR_MARGIN);
+            // println!("----------------------------------------------------");
+
+            panic!("Error: hit_position is not on the AABB.\nThe problem certainly comes from the error margin.\nYou can use the debug print right above this message (src/model/shapes/aabb.rs:151 atm) to see why it didn't trigger.\nAdjust ERROR_MARGIN (src/lib.rs) if needed.");
         }
     }
 
