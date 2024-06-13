@@ -60,8 +60,8 @@ impl Camera {
         let u = Vec3::new(*dir.z(), 0., -*dir.x()).normalize();
         let v = dir.cross(&u).normalize();
         let vfov = fov * SCREEN_HEIGHT as f64 / SCREEN_WIDTH as f64;
-        let q_up = Quaternion::new_from_axis_angle(&Vec3::new(1., 0., 0.), -LOOK_STEP);
-        let q_down = Quaternion::new_from_axis_angle(&Vec3::new(1., 0., 0.), LOOK_STEP);
+        let q_up = Quaternion::new_from_axis_angle(&u, -LOOK_STEP);
+        let q_down = Quaternion::new_from_axis_angle(&u, LOOK_STEP);
         let q_left = Quaternion::new_from_axis_angle(&Vec3::new(0., 1., 0.), -LOOK_STEP);
         let q_right = Quaternion::new_from_axis_angle(&Vec3::new(0., 1., 0.), LOOK_STEP);
 
@@ -115,15 +115,19 @@ impl Camera {
     }
     pub fn look_up(&mut self) {
         self.set_dir(self.q_up.rotate(&self.dir()));
-    }
+	}
     pub fn look_down(&mut self) {
         self.set_dir(self.q_down.rotate(&self.dir()));
     }
     pub fn look_left(&mut self) {
         self.set_dir(self.q_left.rotate(&self.dir()));
+		self.q_up = Quaternion::new_from_axis_angle(&self.u(), -LOOK_STEP);
+		self.q_down = Quaternion::new_from_axis_angle(&self.u(), LOOK_STEP);
     }
     pub fn look_right(&mut self) {
         self.set_dir(self.q_right.rotate(&self.dir()));
+		self.q_up = Quaternion::new_from_axis_angle(&self.u(), -LOOK_STEP);
+		self.q_down = Quaternion::new_from_axis_angle(&self.u(), LOOK_STEP);
     }
     pub fn debug_print(&self) {
         println!();
