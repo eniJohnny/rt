@@ -66,10 +66,17 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let dir: Vec3 = get_direction(&object);
 
                 let shape = Box::new(Cylinder::new(pos, dir, radius, height));
+                let aabb_shape = Box::new(shape.aabb().clone());
+
                 let material = get_material(&object, color);
                 scene.add_textures(&material);
+                let aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
+
                 let element = Element::new(shape, material);
-                scene.add_element(element)
+                let aabb_element = Element::new(aabb_shape, aabb_material);
+
+                scene.add_element(element);
+                scene.add_element(aabb_element);
             }
             "cone" => {
                 let pos = get_position(&object);

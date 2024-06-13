@@ -155,18 +155,11 @@ impl Shape for Cylinder {
 
 impl Cylinder {
     // Accessors
-    pub fn pos(&self) -> &Vec3 {
-        &self.pos
-    }
-    pub fn dir(&self) -> &Vec3 {
-        &self.dir
-    }
-    pub fn radius(&self) -> f64 {
-        self.radius
-    }
-    pub fn height(&self) -> f64 {
-        self.height
-    }
+    pub fn pos(&self) -> &Vec3 { &self.pos }
+    pub fn dir(&self) -> &Vec3 { &self.dir }
+    pub fn radius(&self) -> f64 { self.radius }
+    pub fn height(&self) -> f64 { self.height }
+    pub fn aabb(&self) -> &super::aabb::Aabb { &self.aabb }
 
     // Mutators
     pub fn set_pos(&mut self, pos: Vec3) { 
@@ -184,6 +177,9 @@ impl Cylinder {
     pub fn set_height(&mut self, height: f64) {
         self.height = height;
         self.update_aabb();
+    }
+    pub fn set_aabb(&mut self, aabb: super::aabb::Aabb) {
+        self.aabb = aabb;
     }
 
     // Constructor
