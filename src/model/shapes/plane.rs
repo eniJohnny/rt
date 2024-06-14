@@ -25,7 +25,7 @@ impl Shape for Plane {
         }
         return None;
     }
-    fn projection(&self, hit: &Hit) -> (i32, i32) {
+    fn projection(&self, hit: &Hit) -> (f64, f64) {
         unimplemented!()
     }
     fn norm(&self, hit_pos: &Vec3, ray_dir: &Vec3) -> Vec3 {
