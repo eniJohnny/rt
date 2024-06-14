@@ -1,4 +1,4 @@
-use crate::model::{materials::{color::Color, texture::Texture}, Element};
+use crate::model::{materials::{color::Color, material::Projection, texture::Texture}, Element};
 
 use super::vec3::Vec3;
 
@@ -74,15 +74,15 @@ impl<'a> Hit<'a> {
         self.emissive
     }
 
-    fn get_projection(&self, projection: Option<(f64, f64)>) -> Option<(f64, f64)> {
+    fn get_projection(&self, projection: Option<Projection>) -> Option<Projection> {
         match projection {
             None => Some(self.element().shape().projection(self)),
-            Some(xy) => Some(xy)
+            Some(p) => Some(p)
         }
     }
 
     fn map(&mut self, ray_dir: &Vec3) {
-        let mut projection: Option<(f64, f64)> = None;
+        let mut projection_opt: Option<Projection> = None;
         let mat = self.element.material();
 
         self.norm = self.element.shape().norm(&self.pos, ray_dir);
@@ -100,9 +100,9 @@ impl<'a> Hit<'a> {
         
         match mat.color() {
             Texture::Texture(file) => {
-                projection = self.get_projection(projection);
-                if let Some((x, y)) = projection {
-                    todo!()
+                projection_opt = self.get_projection(projection_opt);
+                if let Some(projection) = projection_opt {
+					todo!()
                 }
             },
             Texture::Value(color) => {
@@ -112,9 +112,9 @@ impl<'a> Hit<'a> {
 
         match mat.roughness() {
             Texture::Texture(file) => {
-                projection = self.get_projection(projection);
-                if let Some((x, y)) = projection {
-                    todo!()
+                projection_opt = self.get_projection(projection_opt);
+                if let Some(projection) = projection_opt {
+					todo!()
                 }
             },
             Texture::Value(roughness) => {
@@ -124,9 +124,9 @@ impl<'a> Hit<'a> {
 
         match mat.metalness() {
             Texture::Texture(file) => {
-                projection = self.get_projection(projection);
-                if let Some((x, y)) = projection {
-                    todo!()
+                projection_opt = self.get_projection(projection_opt);
+                if let Some(projection) = projection_opt {
+					todo!()
                 }
             },
             Texture::Value(metalness) => {
@@ -136,9 +136,9 @@ impl<'a> Hit<'a> {
 
         match mat.emissive() {
             Texture::Texture(file) => {
-                projection = self.get_projection(projection);
-                if let Some((x, y)) = projection {
-                    todo!()
+                projection_opt = self.get_projection(projection_opt);
+                if let Some(projection) = projection_opt {
+					todo!()
                 }
             },
             Texture::Value(emissive) => {
@@ -148,9 +148,9 @@ impl<'a> Hit<'a> {
 
         match mat.refraction() {
             Texture::Texture(file) => {
-                projection = self.get_projection(projection);
-                if let Some((x, y)) = projection {
-                    todo!()
+                projection_opt = self.get_projection(projection_opt);
+                if let Some(projection) = projection_opt {
+					todo!()
                 }
             },
             Texture::Value(refraction) => {

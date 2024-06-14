@@ -1,5 +1,9 @@
 use super::Shape;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
+use crate::model::{
+    materials::material::Projection,
+    maths::{hit::Hit, ray::Ray, vec3::Vec3},
+};
 
 #[derive(Debug)]
 pub struct Sphere {

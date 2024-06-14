@@ -4,6 +4,15 @@ use crate::model::maths::{hit::Hit, vec3::Vec3};
 
 use super::{color::Color, diffuse::Diffuse, texture::Texture};
 
+#[derive(Default)]
+pub struct Projection {
+	pub u: f64,
+	pub v: f64,
+	pub i: Vec3,
+	pub j: Vec3,
+	pub k: Vec3
+}
+
 pub trait Material: Debug + Sync + Send {
     fn color(&self) -> &Texture;
     fn norm(&self) -> &Texture;
