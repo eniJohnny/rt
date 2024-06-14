@@ -132,21 +132,21 @@ pub fn event_manager(
                                     let elem = &scene.elements()[element_index];
                                     let shape = elem.shape();
 
-                                    // if RGB_KEYS.contains(&key.as_str()) {
-                                    //     update_color(key, value, scene.elements_as_mut()[element_index].material_mut());
-                                    // } else if key == "metalness" {
-                                    //     let metalness = value.parse::<f64>().unwrap();
-                                    //     scene.elements_as_mut()[element_index].material_mut().set_metalness(Texture::Value(Vec3::new(metalness, metalness, metalness)));
-                                    // } else if key == "roughness" {
-                                    //     let roughness = value.parse::<f64>().unwrap();
-                                    //     scene.elements_as_mut()[element_index].material_mut().set_roughness(Texture::Value(Vec3::new(roughness, roughness, roughness)));
-                                    // } else {
-                                    //     let new_shape = update_shape(shape, key, value);
-                                    //     if new_shape.is_some() {
-                                    //         scene.elements_as_mut()[element_index]
-                                    //             .set_shape(new_shape.unwrap());
-                                    //     }
-                                    // }
+                                    if RGB_KEYS.contains(&key.as_str()) {
+                                        update_color(key, value, scene.elements_as_mut()[element_index].material_mut());
+                                    } else if key == "metalness" {
+                                        let metalness = value.parse::<f64>().unwrap();
+                                        scene.elements_as_mut()[element_index].material_mut().set_metalness(Texture::Value(Vec3::new(metalness, metalness, metalness)));
+                                    } else if key == "roughness" {
+                                        let roughness = value.parse::<f64>().unwrap();
+                                        scene.elements_as_mut()[element_index].material_mut().set_roughness(Texture::Value(Vec3::new(roughness, roughness, roughness)));
+                                    } else {
+                                        let new_shape = update_shape(shape, key, value);
+                                        if new_shape.is_some() {
+                                            scene.elements_as_mut()[element_index]
+                                                .set_shape(new_shape.unwrap());
+                                        }
+                                    }
                                     scene_change = true;
                                 }
                                 display(&mut pixels, &mut img);
