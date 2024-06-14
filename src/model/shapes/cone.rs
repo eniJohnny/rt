@@ -72,7 +72,7 @@ impl Shape for Cone {
         intersections.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
         return Some(intersections);
     }
-    fn projection(&self, hit: &Hit) -> (i32, i32) {
+    fn projection(&self, hit: &Hit) -> (f64, f64) {
         unimplemented!()
     }
     fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {

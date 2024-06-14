@@ -29,8 +29,7 @@ pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
     //Indirect Light
     if scene.indirect_lightning() && ray.get_depth() < MAX_DEPTH {
         let indirect_ray = random_bounce(hit, ray, hit.norm(), hit.roughness());
-        light_color += get_lighting_from_ray(scene, &indirect_ray) * hit.color();
-        light_color = light_color * absorbed;
+        light_color += get_lighting_from_ray(scene, &indirect_ray) * hit.color() * absorbed;
     }
 
     //Reflect Light
@@ -59,12 +58,12 @@ pub fn get_real_lighting_old(scene: &Scene, sample: &Sample, ray: &Ray) -> Color
     let absorbed = (1.0 - hit.metalness() - hit.refraction()) * (1.0 - hit.emissive());
 
     let mut light_color: Color = hit.emissive() * color;
-    // for light in scene.lights() {
-    //     if !light.is_shadowed(scene, &hit) {
-    //         let diffuse = light.as_ref().get_diffuse(&hit);
-    //         light_color = light_color + diffuse;
-    //     }
-    // }
+    for light in scene.lights() {
+        if !light.is_shadowed(scene, &hit) {
+            let diffuse = light.as_ref().get_diffuse(&hit);
+            light_color = light_color + diffuse;
+        }
+    }
 
     let mut indirect_sample: Option<Sample> = None;
 

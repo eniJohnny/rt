@@ -1,5 +1,4 @@
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
-
 use super::Shape;
 
 #[derive(Debug)]
@@ -31,9 +30,35 @@ impl Shape for Sphere {
         None
     }
 
-    fn projection(&self, hit: &Hit) -> (i32, i32) {
-        unimplemented!()
+    fn projection(&self, hit: &Hit) -> (f64, f64) {
+		if self.dir == *hit.norm() {
+			return (0., 1.);
+		}
+		else if self.dir == -hit.norm() {
+			return (0., 0.);
+		}
+		let constant_axis: Vec3;
+		if self.dir == Vec3::new(0., 0., 1.) {
+			constant_axis = Vec3::new(0., 1., 0.);
+		} else {
+			constant_axis = Vec3::new(0., 0., 1.);
+		}
+		let	(u_ratio, v_ratio): (f64, f64);
+		v_ratio = (self.dir.dot(&hit.norm()) + 1.) / 2.;
+		let i: Vec3 = self.dir().cross(&constant_axis).normalize();
+		let j: Vec3 = self.dir().cross(&i).normalize();
+		let i_component: f64 = hit.norm().dot(&i);
+		let j_component: f64 = hit.norm().dot(&j);
+		let ij_hit: Vec3 = (i_component * &i + j_component * &j).normalize(); 
+		let is_front: bool = ij_hit.dot(&j) > 0.;
+		if is_front {
+			u_ratio = (ij_hit.dot(&i) + 1.) / 4.;
+		} else {
+			u_ratio = 1. - (ij_hit.dot(&i) + 1.) / 4.;
+		}
+		(u_ratio, v_ratio)
     }
+	
     fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {
         (hit_position - self.pos()).normalize()
     }

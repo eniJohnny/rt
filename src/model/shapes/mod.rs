@@ -14,7 +14,7 @@ pub mod sphere;
 pub trait Shape: Debug + Sync + Send {
     fn distance(&self, vec: &Vec3) -> f64;
     fn intersect(&self, ray: &Ray) -> Option<Vec<f64>>;
-    fn projection(&self, hit: &Hit) -> (i32, i32);
+    fn projection(&self, hit: &Hit) -> (f64, f64);
     fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3;
 
     fn as_sphere(&self) -> Option<&Sphere> {
