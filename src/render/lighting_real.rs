@@ -1,13 +1,20 @@
+use rand::Rng;
+
 use crate::{
     model::{
-        materials::color::Color, maths::{hit::Hit, ray::Ray, vec3::Vec3}, objects::light, scene::Scene, shapes::{cylinder, sphere, Shape}
+        materials::color::Color,
+        maths::{hit::Hit, ray::Ray, vec3::Vec3},
+        objects::light,
+        scene::Scene,
+        shapes::{cylinder, sphere, Shape},
     },
     MAX_DEPTH,
 };
 
 use super::{
     lighting_sampling::{
-        get_indirect_light_bucket, get_indirect_light_sample, get_reflected_light_sample, random_bounce, reflect_dir,
+        get_indirect_light_bucket, get_indirect_light_sample, get_reflected_light_sample,
+        random_bounce, reflect_dir,
     },
     raycasting::{get_closest_hit, get_ray},
     restir::{Path, PathBucket, Sample},
@@ -17,44 +24,44 @@ pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
     match get_closest_hit(scene, ray) {
         Some(hit) => get_lighting_from_hit(scene, &hit, ray),
         //TODO : Handle BG on None
-        None => Color::new(0., 0., 0.)
+        None => Color::new(0., 0., 0.),
     }
 }
 
 pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
-	if let Some(cylinder) = hit.element().shape().as_cylinder() {
-		let projection = cylinder.projection(hit);
-		return Color::from_vec3(&Vec3::new(projection.u, projection.v, 0.));
-	} else if let Some(plane) = hit.element().shape().as_plane() {
-		let projection = plane.projection(hit);
-		return Color::from_vec3(&Vec3::new(projection.u, projection.v, 0.));
-	} else if let Some(sphere) = hit.element().shape().as_sphere() {
-		let projection = sphere.projection(hit);
-		return Color::from_vec3(&Vec3::new(projection.u, projection.v, 0.));
-	}
-    let absorbed = (1.0 - hit.metalness() - hit.refraction()) * (1.0 - hit.emissive());
+    let absorbed = 1.0 - hit.metalness() - hit.refraction();
 
-    let mut light_color: Color = hit.emissive() * hit.color();
-
-    //Indirect Light
-    if scene.indirect_lightning() && ray.get_depth() < MAX_DEPTH {
-        let indirect_ray = random_bounce(hit, ray, hit.norm(), hit.roughness());
-        light_color += get_lighting_from_ray(scene, &indirect_ray) * hit.color() * absorbed;
+    if hit.emissive() > f64::EPSILON {
+        return hit.emissive() * hit.color();
     }
+    let mut light_color = Color::new(0., 0., 0.);
+    let reflected = 1.0 - (-ray.get_dir()).dot(hit.norm()) * absorbed;
 
-    //Reflect Light
-    let reflect_ray;
-    if scene.imperfect_reflections() && ray.get_depth() < MAX_DEPTH {
-        if hit.roughness() < f64::EPSILON {
-            let dir = reflect_dir(ray.get_dir(), hit.norm());
-            reflect_ray = Ray::new(hit.pos().clone(), dir, ray.get_depth() + 1);
-        } else {
-            reflect_ray =
-                random_bounce(&hit, &ray, hit.norm(), hit.roughness());
+    let rand = rand::thread_rng().gen_range((0.)..(1.0));
+
+    if rand > reflected + hit.metalness() {
+        //Indirect Light
+        if scene.indirect_lightning() && ray.get_depth() < MAX_DEPTH {
+            let indirect_ray = random_bounce(hit, ray, hit.norm(), 1.);
+            light_color += get_lighting_from_ray(scene, &indirect_ray) * hit.color();
         }
-        let reflect_color = get_lighting_from_ray(scene, &reflect_ray);
-        light_color += &reflect_color * hit.metalness() * hit.color()
-            + reflect_color * absorbed;
+    } else {
+        //Reflect Light
+        let reflect_ray;
+        if scene.imperfect_reflections() && ray.get_depth() < MAX_DEPTH {
+            if hit.roughness() < f64::EPSILON {
+                let dir = reflect_dir(ray.get_dir(), hit.norm());
+                reflect_ray = Ray::new(hit.pos().clone(), dir, ray.get_depth() + 1);
+            } else {
+                reflect_ray = random_bounce(&hit, &ray, hit.norm(), hit.roughness());
+            }
+            let reflect_color = get_lighting_from_ray(scene, &reflect_ray);
+            if rand > hit.metalness() {
+                light_color += reflect_color;
+            } else {
+                light_color += reflect_color * hit.color();
+            }
+        }
     }
 
     light_color = light_color.clamp(0., 1.);
@@ -91,10 +98,9 @@ pub fn get_real_lighting_old(scene: &Scene, sample: &Sample, ray: &Ray) -> Color
             (sample.path.hit.pos() - hit.pos()).normalize(),
             ray.get_depth() + 1,
         );
-        indirect_ray.debug = ray.debug; 
+        indirect_ray.debug = ray.debug;
         indirect_ray.set_sampling(false);
-        light_color = light_color
-            + get_real_lighting_old(scene, &sample, &indirect_ray);
+        light_color = light_color + get_real_lighting_old(scene, &sample, &indirect_ray);
     }
 
     let mut reflect_sample: Option<Sample> = None;
@@ -115,13 +121,12 @@ pub fn get_real_lighting_old(scene: &Scene, sample: &Sample, ray: &Ray) -> Color
             (sample.path.hit.pos() - hit.pos()).normalize(),
             ray.get_depth() + 1,
         );
-        reflect_ray.debug = ray.debug; 
+        reflect_ray.debug = ray.debug;
         reflect_ray.set_sampling(false);
         let reflect_light = get_real_lighting_old(scene, &sample, &reflect_ray);
 
-        light_color = light_color
-            + &reflect_light * hit.metalness() * color
-            + reflect_light * absorbed;
+        light_color =
+            light_color + &reflect_light * hit.metalness() * color + reflect_light * absorbed;
     }
 
     light_color = light_color.clamp(0., 1.);
