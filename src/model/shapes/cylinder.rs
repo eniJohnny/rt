@@ -81,18 +81,51 @@ impl Shape for Cylinder {
         intersections.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
         return Some(intersections);
     }
+
     fn projection(&self, hit: &Hit) -> (f64, f64) {
-        unimplemented!()
-    }
+        let cam_hit = hit.pos() - &self.pos;
+        let height = cam_hit.dot(&self.dir);
+		let total_height = self.height + self.radius * 2.0;
+
+		let constant_axis: Vec3;
+		if self.dir == Vec3::new(0., 0., 1.) {
+			constant_axis = Vec3::new(0., 1., 0.);
+		} else {
+			constant_axis = Vec3::new(0., 0., 1.);
+		}
+
+		let	(u_ratio, v_ratio): (f64, f64);
+
+		let i: Vec3 = self.dir().cross(&constant_axis).normalize();
+		let j: Vec3 = self.dir().cross(&i).normalize();
+		let i_component: f64 = cam_hit.dot(&i);
+		let j_component: f64 = cam_hit.dot(&j);
+		let ij_hit: Vec3 = (i_component * &i + j_component * &j).normalize(); 
+		let is_front: bool = ij_hit.dot(&j) > 0.;
+		if is_front {
+			u_ratio = (ij_hit.dot(&i) + 1.) / 4.;
+		} else {
+			u_ratio = 1. - (ij_hit.dot(&i) + 1.) / 4.;
+		}
+        if height > -0.000001 && height < 0.000001 {
+			v_ratio = (hit.pos() - &self.pos).length() / total_height;
+        } else if height > self.height - 0.000001 && height < self.height + 0.000001 {
+			v_ratio = (total_height - (hit.pos() - &self.pos - &self.dir * &self.height).length()) / total_height;
+        } else {
+			v_ratio = (height + self.radius) / total_height;
+		}
+		return (u_ratio, v_ratio);
+	}
+
     fn norm(&self, hit: &Vec3, ray_dir: &Vec3) -> Vec3 {
         let pc = hit - &self.pos;
         let coef = pc.dot(&self.dir);
         let projection = &self.dir * coef;
 
-        if coef == 0. {
+        if coef > -0.000001 && coef < 0.000001 {
             return self.plane[0].norm(hit, ray_dir);
         }
-        if coef == self.height {
+        if coef > self.height - 0.000001 && coef < self.height + 0.000001{
             return self.plane[1].norm(hit, ray_dir);
         }
 
