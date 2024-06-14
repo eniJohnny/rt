@@ -1,5 +1,8 @@
 use super::Shape;
-use crate::model::{materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}};
+use crate::model::{
+    materials::material::Projection,
+    maths::{hit::Hit, ray::Ray, vec3::Vec3},
+};
 
 #[derive(Debug)]
 pub struct Plane {
@@ -55,7 +58,7 @@ impl Shape for Plane {
     fn norm(&self, hit_pos: &Vec3, ray_dir: &Vec3) -> Vec3 {
         // On doit aussi prendre on compte quand on tape de l'autre cote du plane
         if ray_dir.dot(&self.dir) > 0. {
-            return - self.dir.clone();
+            return -self.dir.clone();
         }
         self.dir.clone()
     }

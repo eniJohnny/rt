@@ -45,22 +45,23 @@ impl Shape for Cone {
         let projection1 = (intersections[0] * r.get_dir() + r.get_pos() - &self.pos).dot(&self.dir);
         let projection2 = (intersections[1] * r.get_dir() + r.get_pos() - &self.pos).dot(&self.dir);
 
-        if (projection2 < 0.0 || projection2 > self.height) || intersections[1] < 0. || delta == 0.{
+        if (projection2 < 0.0 || projection2 > self.height) || intersections[1] < 0. || delta == 0.
+        {
             intersections.remove(1);
         }
-        if (projection1 < 0.0 ||  projection1 > self.height) || intersections[0] < 0.{
+        if (projection1 < 0.0 || projection1 > self.height) || intersections[0] < 0. {
             intersections.remove(0);
         }
 
         //On vérifie si le rayon intersecte le plan du cone
         match self.plane.intersect(r) {
             Some(intersection) => {
-                let position = intersection[0]  * r.get_dir() + r.get_pos();
+                let position = intersection[0] * r.get_dir() + r.get_pos();
                 let distance = (position - (&self.pos + &self.dir * &self.height)).length();
-                if distance < self.radius{
+                if distance < self.radius {
                     intersections.push(intersection[0]);
                 }
-            },
+            }
             _ => {
                 // Ce bloc sera exécuté pour tous les autres cas, y compris None
             }
@@ -127,7 +128,7 @@ impl Shape for Cone {
             return self.plane.norm(hit_position, ray_dir);
         }
 
-        return ((&self.pos + &projection) -(&self.pos + &self.dir * &self.height)).normalize();
+        return ((&self.pos + &projection) - (&self.pos + &self.dir * &self.height)).normalize();
     }
     fn as_cone(&self) -> Option<&Cone> {
         Some(self)
@@ -173,7 +174,7 @@ impl Cone {
             radius,
             height,
             cos_powed,
-            plane
+            plane,
         }
     }
 }

@@ -4,7 +4,10 @@ use self::plane::Plane;
 use self::sphere::Sphere;
 use std::fmt::Debug;
 
-use super::{materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}};
+use super::{
+    materials::material::Projection,
+    maths::{hit::Hit, ray::Ray, vec3::Vec3},
+};
 
 pub mod cone;
 pub mod cylinder;
