@@ -57,8 +57,14 @@ impl Camera {
 
     // Constructor
     pub fn new(pos: Vec3, dir: Vec3, fov: f64) -> Camera {
-        let u = Vec3::new(*dir.z(), 0., -*dir.x()).normalize();
-        let v = dir.cross(&u).normalize();
+		let u;
+		if *dir.x() == 0. && *dir.z() == 0. {
+			u = Vec3::new(1., 0., 0.);
+		}
+		else {
+			u = Vec3::new(*dir.z(), 0., -*dir.x()).normalize();
+		}
+		let v = dir.cross(&u).normalize();
         let vfov = fov * SCREEN_HEIGHT as f64 / SCREEN_WIDTH as f64;
         let q_up = Quaternion::new_from_axis_angle(&u, -LOOK_STEP);
         let q_down = Quaternion::new_from_axis_angle(&u, LOOK_STEP);
