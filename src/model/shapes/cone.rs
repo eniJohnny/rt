@@ -1,3 +1,4 @@
+use super::aabb::Aabb;
 use super::Shape;
 use crate::model::materials::material::Projection;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
@@ -11,6 +12,7 @@ pub struct Cone {
     height: f64,
     cos_powed: f64,
     plane: Plane,
+    aabb: super::aabb::Aabb,
 }
 
 unsafe impl Send for Cone {}
@@ -146,6 +148,10 @@ impl Shape for Cone {
     fn pos(&self) -> &Vec3 {
         &self.pos
     }
+
+    fn aabb(&self) -> Option<&super::aabb::Aabb> {
+        Some(&self.aabb)
+    }
 }
 
 impl Cone {
@@ -162,25 +168,36 @@ impl Cone {
     pub fn height(&self) -> f64 {
         self.height
     }
+    pub fn aabb(&self) -> &super::aabb::Aabb {
+        &self.aabb
+    }
 
     // Mutators
     pub fn set_pos(&mut self, pos: Vec3) {
-        self.pos = pos
+        self.pos = pos;
+        self.update_aabb();
     }
     pub fn set_dir(&mut self, dir: Vec3) {
-        self.dir = dir
+        self.dir = dir;
+        self.update_aabb();
     }
     pub fn set_radius(&mut self, radius: f64) {
-        self.radius = radius
+        self.radius = radius;
+        self.update_aabb();
     }
     pub fn set_height(&mut self, height: f64) {
-        self.height = height
+        self.height = height;
+        self.update_aabb();
+    }
+    pub fn set_aabb(&mut self, aabb: super::aabb::Aabb) {
+        self.aabb = aabb;
     }
 
     // Constructor
     pub fn new(pos: Vec3, dir: Vec3, radius: f64, height: f64) -> Cone {
         let cos_powed = (radius / height).atan().cos().powi(2);
         let plane = Plane::new(&pos + &dir * height, dir.clone());
+        let aabb = Cone::compute_aabb(pos.clone(), dir.clone(), height, radius);
         self::Cone {
             pos,
             dir,
@@ -188,6 +205,63 @@ impl Cone {
             height,
             cos_powed,
             plane,
+            aabb,
         }
+    }
+
+    fn update_aabb(&mut self) {
+        self.aabb = Cone::compute_aabb(self.pos.clone(), self.dir.clone(), self.height, self.radius);
+    }
+
+    fn get_min(array: &Vec<f64>) -> f64 {
+        let mut min = array[0];
+        for i in 1..array.len() {
+            if array[i] < min {
+                min = array[i];
+            }
+        }
+        min
+    }
+
+    fn get_max(array: &Vec<f64>) -> f64 {
+        let mut max = array[0];
+        for i in 1..array.len() {
+            if array[i] > max {
+                max = array[i];
+            }
+        }
+        max
+    }
+
+    pub fn compute_aabb(pos:Vec3, dir: Vec3, height: f64, radius: f64) -> super::aabb::Aabb {
+        let i;
+        if dir == Vec3::new(0.0, 0.0, 1.0) {
+            i = Vec3::new(1.0, 0.0, 0.0);
+        } else {
+            i = dir.cross(&Vec3::new(0.0, 0.0, 1.0)).normalize();
+        }
+
+        let j = dir.cross(&i).normalize();
+        let base_center = &pos + dir * height;
+
+        let a = &base_center + &i * radius;
+        let b = &base_center - i * radius;
+        let c = &base_center + &j * radius;
+        let d = base_center - j * radius;
+        let e = pos;
+
+        let x_array = vec![*a.x(), *b.x(), *c.x(), *d.x(), *e.x()];
+        let y_array = vec![*a.y(), *b.y(), *c.y(), *d.y(), *e.y()];
+        let z_array = vec![*a.z(), *b.z(), *c.z(), *d.z(), *e.z()];
+
+
+        super::aabb::Aabb::new(
+            Cone::get_min(&x_array),
+            Cone::get_max(&x_array),
+            Cone::get_min(&y_array),
+            Cone::get_max(&y_array),
+            Cone::get_min(&z_array),
+            Cone::get_max(&z_array),
+        )
     }
 }
