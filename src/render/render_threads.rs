@@ -12,7 +12,11 @@ use std::{
 use image::{GenericImageView, Rgba, RgbaImage};
 
 use crate::{
-    model::{materials::color::{self, Color}, scene::Scene}, BASE_SIMPLIFICATION, MAX_ITERATIONS, MAX_THREADS, SCREEN_HEIGHT, SCREEN_WIDTH
+    model::{
+        materials::color::{self, Color},
+        scene::Scene,
+    },
+    BASE_SIMPLIFICATION, MAX_ITERATIONS, MAX_THREADS, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 
 use super::{
@@ -143,6 +147,17 @@ pub fn start_render_threads(
     (ra, tb)
 }
 
+fn vec_to_image(vec: &Vec<Vec<Color>>) -> RgbaImage {
+    let mut image = RgbaImage::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32);
+    for x in 0..SCREEN_WIDTH {
+        for y in 0..SCREEN_HEIGHT {
+            image.put_pixel(x as u32, y as u32, vec[x][y].to_rgba());
+        }
+    }
+
+    image
+}
+
 /**
  * Boucle principale du render thread, qui doit aggreger les tiles rendered par les worker_threads sur une image rgba
  * qu'il se tient pret a tout moment a envoyer au main_thread pour l'affichage. Lorsque la resolution finale (factor = 1)
@@ -164,9 +179,9 @@ fn build_image_from_tilesets(
     let mut samplingMode = true;
     let mut low_res_to_do = generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
     let mut max_res_to_do = low_res_to_do;
-    let mut final_img = RgbaImage::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32);
-    let mut img = RgbaImage::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32);
     let mut iterations_done = 0;
+    let mut img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
+    let mut final_img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
     loop {
         loop {
             // Reception des tiles render par les worker_threads
@@ -176,11 +191,11 @@ fn build_image_from_tilesets(
                 for_each_uncalculated_pixel(&tile, |x, y| {
                     let mut color = (&colors[index]).clone();
                     // color.apply_gamma();
-                    let color = color.to_rgba();
                     index += 1;
                     for x in x..min(x + &tile.factor, SCREEN_WIDTH) {
                         for y in y..min(y + &tile.factor, SCREEN_HEIGHT) {
-                            img.put_pixel(x as u32, y as u32, color);
+                            let vec_mut = img.get_mut(x).unwrap().get_mut(y).unwrap();
+                            color.clone_into(vec_mut);
                         }
                     }
                 });
@@ -195,10 +210,11 @@ fn build_image_from_tilesets(
                     iterations_done += 1;
                     final_img = add_iteration_to_final_img(img, final_img, iterations_done);
                     if iterations_done < max_iterations {
-                        low_res_to_do = generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
+                        low_res_to_do =
+                            generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
                         max_res_to_do = low_res_to_do;
                     }
-                    img = RgbaImage::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32);
+                    img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
                     println!("{} iterations done", iterations_done);
                 }
             }
@@ -211,8 +227,8 @@ fn build_image_from_tilesets(
         if let Ok(scene_change) = rb.try_recv() {
             // Si la scene a change entre temps depuis le GUI, on reset tout
             if scene_change {
-                img = RgbaImage::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32);
-                final_img = RgbaImage::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32);
+                img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
+                final_img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
                 iterations_done = 0;
                 work_queue.lock().unwrap().clear();
                 // On vide egalement le channel.
@@ -225,30 +241,33 @@ fn build_image_from_tilesets(
             } else {
                 // Si aucun changement n'a ete detecte on envoie l'image actuelle
                 if iterations_done > 0 {
-                    ta.send((final_img.clone(), iterations_done == max_iterations));
+                    ta.send((vec_to_image(&final_img), iterations_done == max_iterations));
                 } else {
-                    ta.send((img.clone(), false));
+                    ta.send((vec_to_image(&img), false));
                 }
             }
         }
     }
 }
 
-fn add_iteration_to_final_img(iteration: RgbaImage, mut final_img: RgbaImage, iterations_done: i32) -> RgbaImage {
+fn add_iteration_to_final_img(
+    iteration: Vec<Vec<Color>>,
+    mut final_img: Vec<Vec<Color>>,
+    iterations_done: i32,
+) -> Vec<Vec<Color>> {
     if iterations_done > 1 {
-        for x in 0..SCREEN_WIDTH as u32 {
-            for y in 0..SCREEN_HEIGHT as u32 {
-                let mut base_color = Color::from_rgba(final_img.get_pixel(x, y));
-                let mut new_iter_color = Color::from_rgba(iteration.get_pixel(x, y));
+        for x in 0..SCREEN_WIDTH {
+            for y in 0..SCREEN_HEIGHT {
+                let mut base_color = final_img.get(x).unwrap().get(y).unwrap().clone();
+                let mut new_iter_color = iteration.get(x).unwrap().get(y).unwrap();
                 let iterations_done = iterations_done as f64;
-                base_color = 
-                    (base_color * (iterations_done - 1.) / iterations_done) +
-                    (new_iter_color * (1. / iterations_done as f64));
-                final_img.put_pixel(x, y, base_color.to_rgba());
+                base_color = (base_color * (iterations_done - 1.) / iterations_done)
+                    + (new_iter_color * (1. / iterations_done));
+                base_color.clone_into(final_img.get_mut(x).unwrap().get_mut(y).unwrap());
+                // final_img[x][y] = base_color;
             }
         }
-    }
-    else {
+    } else {
         return iteration;
     }
     final_img

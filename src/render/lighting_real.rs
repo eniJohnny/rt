@@ -3,10 +3,9 @@ use rand::Rng;
 use crate::{
     model::{
         materials::color::Color,
-        maths::{hit::Hit, ray::Ray, vec3::Vec3},
+        maths::{hit::Hit, ray::Ray},
         objects::light,
         scene::Scene,
-        shapes::{cylinder, sphere, Shape},
     },
     MAX_DEPTH,
 };
@@ -38,12 +37,13 @@ pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
     let reflected = (1.0 - (-ray.get_dir()).dot(hit.norm())) * absorbed;
 
     let rand = rand::thread_rng().gen_range((0.)..(1.0));
-
     if rand > reflected + hit.metalness() {
         //Indirect Light
         if scene.indirect_lightning() && ray.get_depth() < MAX_DEPTH {
             let indirect_ray = random_bounce(hit, ray, hit.norm(), 1.);
             light_color += get_lighting_from_ray(scene, &indirect_ray) * hit.color();
+            // } else if ray.get_depth() == MAX_DEPTH {
+            //     light_color += hit.color();
         }
     } else {
         //Reflect Light
@@ -61,10 +61,12 @@ pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
             } else {
                 light_color += reflect_color * hit.color();
             }
+            // } else if ray.get_depth() == MAX_DEPTH {
+            //     light_color += hit.color();
         }
     }
-
-    light_color = light_color.clamp(0., 1.);
+    light_color.clamp(0., 1.);
+    // light_color.apply_gamma();
     light_color
 }
 

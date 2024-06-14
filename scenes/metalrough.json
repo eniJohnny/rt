@@ -226,8 +226,8 @@
     },
     {
         "type": "camera",
-        "pos": [0, 0, -9.9],
-        "dir": [0, 0, 1],
+        "pos": [-4.9, 4.9, 4.9],
+        "dir": [1, -1, -2],
         "fov": 60
     },
     {
@@ -257,15 +257,15 @@
         "dir": [0, -1, 0],
         "height": 1.0,
         "radius": 2.5,
-        "color": [255, 255, 255]
+        "color": [255, 255, 255],
+        "emissive": 1.0
     },
     {
         "type": "plane",
         "pos": [0, 5, 0],
         "dir": [0, -1, 0],
         "color": [255, 255, 255],
-        "roughness": 1.0,
-        "emissive": 1.0
+        "roughness": 1.0
     },
     {
         "type": "plane",
