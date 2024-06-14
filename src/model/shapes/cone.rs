@@ -1,4 +1,5 @@
 use super::Shape;
+use crate::model::materials::material::Projection;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 use crate::model::shapes::plane::Plane;
 
@@ -72,7 +73,7 @@ impl Shape for Cone {
         intersections.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
         return Some(intersections);
     }
-    fn projection(&self, hit: &Hit) -> (f64, f64) {
+    fn projection(&self, hit: &Hit) -> Projection {
         unimplemented!()
     }
     fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {

@@ -1,5 +1,5 @@
 use super::Shape;
-use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
+use crate::model::{materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}};
 
 #[derive(Debug)]
 pub struct Plane {
@@ -25,7 +25,7 @@ impl Shape for Plane {
         }
         return None;
     }
-    fn projection(&self, hit: &Hit) -> (f64, f64) {
+    fn projection(&self, hit: &Hit) -> Projection {
         unimplemented!()
     }
     fn norm(&self, hit_pos: &Vec3, ray_dir: &Vec3) -> Vec3 {
