@@ -35,7 +35,7 @@ pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
         return hit.emissive() * hit.color();
     }
     let mut light_color = Color::new(0., 0., 0.);
-    let reflected = 1.0 - (-ray.get_dir()).dot(hit.norm()) * absorbed;
+    let reflected = (1.0 - (-ray.get_dir()).dot(hit.norm())) * absorbed;
 
     let rand = rand::thread_rng().gen_range((0.)..(1.0));
 
