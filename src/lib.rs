@@ -18,7 +18,7 @@ const GUI_WIDTH: u32 = 400;
 const GUI_HEIGHT: u32 = 600;
 const MAX_THREADS: usize = 16;
 const BASE_SIMPLIFICATION: usize = 32;
-const MAX_DEPTH: u8 = 4;
+const MAX_DEPTH: u8 = 2;
 const ANTIALIASING: f64 = 0.002;
 const MAX_ITERATIONS: i32 = 200;
 
@@ -42,7 +42,7 @@ const CAM_MOVE_KEYS: [VirtualKeyCode; 10] = [
 ];
 
 pub fn run() {
-    let path = String::from("scenes/scene.json");
+    let path = String::from("scenes/metalrough.json");
     if path != "" {
         let scene = get_scene(&path);
         display_scene(scene);

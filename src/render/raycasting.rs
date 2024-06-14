@@ -11,23 +11,21 @@ use super::{
     restir::{Path, PathBucket, Sample},
 };
 
-fn get_angle_to(fov: f64, pos: f64, length: f64) -> f64 {
-    (pos / length - 0.5) * fov
-}
-
 pub fn get_ray_debug(scene: &Scene, x: usize, y: usize, debug: bool) -> Ray {
-    let mut rng = rand::thread_rng();
-    let roll = -f64::atan2(-scene.camera().dir().x(), *scene.camera().dir().z());
-    let pitch = scene.camera().dir().y().asin();
-    let roll = roll + get_angle_to(scene.camera().fov(), x as f64, SCREEN_WIDTH as f64) + rng.gen_range((0.)..(ANTIALIASING));
-    let pitch = pitch + get_angle_to(scene.camera().vfov(), y as f64, SCREEN_HEIGHT as f64) + rng.gen_range((0.)..(ANTIALIASING));
-    let yaw = 0.;
-    let quat = Quaternion::from_euler_angles(pitch, roll, yaw);
-    let mut ray = Ray::new(
-        scene.camera().pos().clone(),
-        Vec3::new(0., 0., 1.).rotate(&quat).normalize(),
-        0,
-    );
+    let width = (scene.camera().fov() / 2.).tan() * 2.;
+    let height = width * SCREEN_HEIGHT as f64 / SCREEN_WIDTH as f64;
+    // Centre de l'ecran
+    let center: Vec3 = scene.camera().pos() + scene.camera().dir();
+
+    // Coin superieur gauche, et les distances pour atteindre a partir de lui les coin superieur droit et inferieur gauche
+    let top_left = center +  scene.camera().u() * - width / 2. - scene.camera().v() * height / 2.;
+    let left_to_right = scene.camera().u() * width;
+    let top_to_bot = scene.camera().v() * height;
+
+	let dir = &top_left - scene.camera().pos()
+		+ &top_to_bot * ((y as f64 / SCREEN_HEIGHT as f64) + rand::thread_rng().gen_range((0.)..ANTIALIASING))
+		+ &left_to_right * ((x as f64 / SCREEN_WIDTH as f64) + rand::thread_rng().gen_range((0.)..ANTIALIASING));
+	let mut ray = Ray::new(scene.camera().pos().clone(), dir.normalize(), 0);
     ray.debug = debug;
     ray
 }
