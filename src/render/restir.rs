@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use crate::model::{materials::Color, maths::hit::Hit};
+use crate::model::{materials::color::Color, maths::hit::Hit};
 
 #[derive(Debug, Clone)]
 pub struct Path<'a> {
@@ -25,27 +25,32 @@ pub struct PathBucket<'a> {
 
 impl<'a> PathBucket<'a> {
     pub fn combine(&mut self, rhs: Self) {
-        if self.weight + rhs.weight == 0. {
-            return;
-        }
-        let rand: f64 = rand::thread_rng().gen_range((0.)..(self.weight + rhs.weight));
-        if rand > self.weight {
-            self.sample = rhs.sample;
-        }
         self.weight += rhs.weight;
         self.nbSamples += rhs.nbSamples;
+        if self.weight < f64::EPSILON {
+            self.sample = rhs.sample;
+            return;
+        }
+        let rand: f64 = rand::thread_rng().gen_range((0.)..=(self.weight));
+        if rand < rhs.weight {
+            self.sample = rhs.sample;
+        }
     }
 
     pub fn add(&mut self, sample: Sample<'a>) {
-        self.weight += sample.weight;
-        if self.weight + sample.weight == 0. {
+        self.weight += &sample.weight;
+        self.nbSamples += 1;
+        if sample.weight < f64::EPSILON {
             return;
         }
-        if self.weight == 0.
-            || rand::thread_rng().gen_range((0.)..(self.weight + sample.weight)) > self.weight
+        if self.weight < f64::EPSILON {
+            self.sample = Some(sample);
+            return;
+        }
+        if self.nbSamples == 0
+            || rand::thread_rng().gen_range((0.)..=(self.weight)) < sample.weight
         {
             self.sample = Some(sample);
         }
-        self.nbSamples += 1;
     }
 }

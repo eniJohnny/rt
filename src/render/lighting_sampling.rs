@@ -2,15 +2,12 @@ use core::str;
 
 use crate::{
     model::{
-        materials::Color,
-        maths::{
+        materials::color::Color, maths::{
             hit::{self, Hit, HitType},
             quaternion,
             ray::Ray,
             vec3::Vec3,
-        },
-        objects::light,
-        scene::Scene,
+        }, objects::light, scene::Scene
     },
     MAX_DEPTH,
 };
@@ -55,17 +52,19 @@ pub fn get_bounce_color<'a>(
 ) -> Sample<'a> {
     match get_closest_hit(scene, ray) {
         Some(hit) => {
-            sampling_lighting(hit.clone(), scene, ray)
+            sampling_lighting(hit, scene, ray)
         }
         //TODO: Background color
-        None => Sample {
-            path: Path {
-                hit: hit.clone(),
-                indirect: None,
-                reflect: None,
-            },
-            color: Color::new(0., 0., 0.),
-            weight: 0.,
+        None => {
+            Sample {
+                path: Path {
+                    hit: hit.clone(),
+                    indirect: None,
+                    reflect: None,
+                },
+                color: Color::new(0., 0., 0.),
+                weight: 0.,
+            }
         },
     }
 }
@@ -82,29 +81,19 @@ pub fn get_reflected_light_bucket<'a>(hit: Hit<'a>, scene: &'a Scene, ray: &Ray)
         weight: 0.,
         nbSamples: 0,
     };
-    if hit.element().material().roughness() < f64::EPSILON {
-        if hit.dist() < &100. {
-            let dir = reflect_dir(ray.get_dir(), hit.norm());
-            let mut reflect_ray = Ray::new(hit.pos().clone(), dir, ray.get_depth() + 1);
-            reflect_ray.set_sampling(ray.is_sampling());
-            bucket.add(get_bounce_color(scene, &reflect_ray, hit.clone()));
-        }
+    let mut reflect_ray;
+    if hit.roughness() < f64::EPSILON {
+        let dir = reflect_dir(ray.get_dir(), hit.norm());
+        reflect_ray = Ray::new(hit.pos().clone(), dir, ray.get_depth() + 1);
     } else {
-        let sample_nb = 5;
-        let material = hit.element().material();
-        let mat_color = material.color(&hit);
-        let mat_absorbed = 1.0 - material.reflection_coef() - material.refraction_coef();
-
-        for _ in 0..sample_nb {
-            let random_bounce =
-                random_bounce(&hit, &ray, hit.norm(), hit.element().material().roughness());
-            let mut sample = get_bounce_color(scene, &random_bounce, hit.clone());
-            sample.color = &sample.color * material.reflection_coef() * &mat_color
-            + sample.color * mat_absorbed;
-            sample.weight = sample.color.as_weight();
-            bucket.add(sample);
-        }
+        reflect_ray =
+            random_bounce(&hit, &ray, hit.norm(), hit.roughness());
     }
+    reflect_ray.set_sampling(ray.is_sampling());
+    let mut sample = get_bounce_color(scene, &reflect_ray, hit.clone());
+    reflect_ray.debug = ray.debug;
+    sample.weight = sample.color.as_weight();
+    bucket.add(sample);
     bucket
 }
 
@@ -144,12 +133,12 @@ pub fn get_indirect_light_bucket<'a>(hit: Hit<'a>, scene: &'a Scene, ray: &Ray) 
         weight: 0.,
         nbSamples: 0,
     };
-    let sample_nb = 5;
+    let sample_nb = 1;
     for _ in 0..sample_nb {
         let mut random_bounce = random_bounce(&hit, &ray, hit.norm(), 1.);
         random_bounce.set_sampling(true);
         let mut sample = get_bounce_color(scene, &random_bounce, hit.clone());
-        sample.color = &sample.color * hit.element().material().color(&hit);
+        sample.color = &sample.color * hit.color();
         sample.weight = sample.color.as_weight();
         bucket.add(sample);
     }
@@ -167,20 +156,22 @@ pub fn sampling_lighting<'a>(hit: Hit<'a>, scene: &'a Scene, ray: &Ray) -> Sampl
         weight: 0.,
     };
 
-    let material = sample.path.hit.element().material();
-    let absorbed = 1.0 - material.reflection_coef() - material.refraction_coef();
-    let mut light_color: Color = Color::new(0., 0., 0.);
-    let color = material.color(&sample.path.hit);
+    let sample_hit = sample.path.hit.clone();
+    let color = sample_hit.color();
+    let absorbed = (1.0 - sample_hit.metalness() - sample_hit.refraction()) * (1.0 - sample_hit.emissive());
+
+    let mut light_color: Color = sample_hit.emissive() * sample_hit.color();
+    
 
     if ray.get_depth() > 0 {
         for light in scene.lights() {
-            light_color += light.as_ref().get_diffuse(&sample.path.hit) * &color;
+            light_color += light.as_ref().get_diffuse(&sample_hit) * color;
         }
     }
-    // Indirect light
+    //Indirect light
     if scene.indirect_lightning() && ray.get_depth() < MAX_DEPTH {
-        let indirect_sample = get_indirect_light_sample(sample.path.hit.clone(), scene, ray);
-        light_color += &indirect_sample.color * &color * indirect_sample.weight;
+        let indirect_sample = get_indirect_light_sample(sample_hit.clone(), scene, ray);
+        light_color += &indirect_sample.color * color * indirect_sample.weight;
         sample.path.indirect = Some(Box::new(indirect_sample));
     }
 
@@ -188,7 +179,7 @@ pub fn sampling_lighting<'a>(hit: Hit<'a>, scene: &'a Scene, ray: &Ray) -> Sampl
     // Reflection
     if ray.get_depth() < MAX_DEPTH {
         if scene.imperfect_reflections() {
-            let reflect_sample = get_reflected_light_sample(sample.path.hit.clone(), scene, ray);
+            let reflect_sample = get_reflected_light_sample(sample_hit.clone(), scene, ray);
             
             if let Some(reflect_sample) = reflect_sample {
                 light_color += &reflect_sample.color * reflect_sample.weight;
