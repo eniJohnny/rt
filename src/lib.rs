@@ -12,7 +12,7 @@ pub mod parsing;
 pub mod picker;
 pub mod render;
 
-const DISPLAY_AABB: bool = true;
+const DISPLAY_AABB: bool = false;
 const ERROR_MARGIN: f64 = 0.000000000001;
 const SCREEN_WIDTH: usize = 1600;
 const SCREEN_HEIGHT: usize = 900;
