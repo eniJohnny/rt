@@ -1,3 +1,5 @@
+use crate::model::materials::color::Color;
+
 use super::quaternion::Quaternion;
 use std::cmp::PartialEq;
 use std::fmt::{Display, Formatter, Result};
@@ -68,6 +70,18 @@ impl Vec3 {
     pub fn rotate_from_axis_angle(&self, angle: f64, axis: &Self) -> Self {
         let q = Quaternion::new_from_axis_angle(axis, angle);
         self.rotate(&q)
+    }
+
+    pub fn from_value(value: f64) -> Self {
+        Vec3::new(value, value, value)
+    }
+
+    pub fn to_value(&self) -> f64 {
+        (self.x + self.y + self.z) / 3.
+    }
+
+    pub fn from_color(color: Color) -> Self {
+        Vec3::new(color.r(), color.g(), color.b())
     }
 }
 

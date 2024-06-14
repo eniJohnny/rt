@@ -6,10 +6,10 @@ use crate::{
     gui::{
         draw::draw_gui, textformat::TextFormat, utils::{gui_clicked, hide_gui, hitbox_contains}, Gui
     },
-    model::{materials::Color, maths::vec2::Vec2, scene::Scene},
+    model::{materials::{color::Color, texture::Texture}, maths::{vec2::Vec2, vec3::Vec3}, scene::Scene},
     render::{
-        lighting_real::get_real_lighting,
-        raycasting::{get_closest_hit, get_ray, sampling_ray},
+        lighting_real::get_lighting_from_hit,
+        raycasting::{get_closest_hit, get_ray, get_ray_debug, sampling_ray},
     },
     CAM_MOVE_KEYS, FPS, RGB_KEYS,
 };
@@ -30,7 +30,7 @@ use winit::{
     window::Window,
 };
 
-use super::update::{update_color, update_metalness, update_roughness, update_shape};
+use super::update::{update_color, update_shape};
 use super::utils::{display_element_infos, draw_text, get_shape, move_camera};
 
 use super::display;
@@ -54,9 +54,11 @@ pub fn event_manager(
     let mut time_of_last_move = Instant::now();
     let time_between_move = Duration::from_millis(1000 / FPS);
 
+
     // Event loop (can't move it elsewhere because of the borrow checker)
     let mut mouse_position = (0.0, 0.0);
     event_loop.run(move |event, _, control_flow: &mut ControlFlow| {
+
         *control_flow = ControlFlow::WaitUntil(Instant::now() + Duration::from_millis(20));
         if scene_change {
             thread::sleep(Duration::from_millis(10));
@@ -104,15 +106,12 @@ pub fn event_manager(
                         // Tant que l'on maintiens une reference write du RwLock(Sorte de mutex),
                         // tous les threads de render seront bloques.
                         let mut scene = scene.write().unwrap();
-                        let mut ray = get_ray(&scene, x as usize, y as usize);
-                        ray.debug = true;
-                        let bucket = sampling_ray(&scene, &ray);
-                        if let Some(mut sample) = bucket.sample {
-                            sample.weight =
-                                bucket.weight / (sample.weight * bucket.nbSamples as f64);
-                            get_real_lighting(&scene, &sample, &ray);
-                        }
+                        let mut ray = get_ray_debug(&scene, x as usize, y as usize, true);
                         let hit = get_closest_hit(&scene, &ray);
+                        if let Some(hit) = &hit {
+                            //For debug purposes
+                            get_lighting_from_hit(&scene, hit, &ray);
+                        }
 
                         if gui_clicked(mouse_position, &scene.gui) {
                             // If the GUI is clicked
@@ -132,36 +131,15 @@ pub fn event_manager(
                                     let element_index = scene.gui.element_index();
                                     let elem = &scene.elements()[element_index];
                                     let shape = elem.shape();
-                                    let material = elem.material();
 
                                     if RGB_KEYS.contains(&key.as_str()) {
-                                        let color = Color::new(0., 0., 0.);
-                                        let metalness = material.reflection_coef();
-                                        let roughness = material.roughness();
-                                        let new_material =
-                                            update_color(key, value, color, metalness, roughness);
-                                        if new_material.is_some() {
-                                            scene.elements_as_mut()[element_index]
-                                                .set_material(new_material.unwrap());
-                                        }
+                                        update_color(key, value, scene.elements_as_mut()[element_index].material_mut());
                                     } else if key == "metalness" {
-                                        let color = Color::new(0., 0., 0.);
-                                        let roughness = material.roughness();
-                                        let new_material =
-                                            update_metalness(value, color, roughness);
-                                        if new_material.is_some() {
-                                            scene.elements_as_mut()[element_index]
-                                                .set_material(new_material.unwrap());
-                                        }
+                                        let metalness = value.parse::<f64>().unwrap();
+                                        scene.elements_as_mut()[element_index].material_mut().set_metalness(Texture::Value(Vec3::new(metalness, metalness, metalness)));
                                     } else if key == "roughness" {
-                                        let color = Color::new(0., 0., 0.);
-                                        let metalness = material.reflection_coef();
-                                        let new_material =
-                                            update_roughness(value, color, metalness);
-                                        if new_material.is_some() {
-                                            scene.elements_as_mut()[element_index]
-                                                .set_material(new_material.unwrap());
-                                        }
+                                        let roughness = value.parse::<f64>().unwrap();
+                                        scene.elements_as_mut()[element_index].material_mut().set_roughness(Texture::Value(Vec3::new(roughness, roughness, roughness)));
                                     } else {
                                         let new_shape = update_shape(shape, key, value);
                                         if new_shape.is_some() {
