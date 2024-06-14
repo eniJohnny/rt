@@ -18,12 +18,12 @@ pub fn get_ray_debug(scene: &Scene, x: usize, y: usize, debug: bool) -> Ray {
     let center: Vec3 = scene.camera().pos() + scene.camera().dir();
 
     // Coin superieur gauche, et les distances pour atteindre a partir de lui les coin superieur droit et inferieur gauche
-    let top_left = center +  scene.camera().u() * - width / 2. - scene.camera().v() * height / 2.;
+    let top_left = center +  scene.camera().u() * - width / 2. + scene.camera().v() * height / 2.;
     let left_to_right = scene.camera().u() * width;
     let top_to_bot = scene.camera().v() * height;
 
 	let dir = &top_left - scene.camera().pos()
-		+ &top_to_bot * ((y as f64 / SCREEN_HEIGHT as f64) + rand::thread_rng().gen_range((0.)..ANTIALIASING))
+		- &top_to_bot * ((y as f64 / SCREEN_HEIGHT as f64) + rand::thread_rng().gen_range((0.)..ANTIALIASING))
 		+ &left_to_right * ((x as f64 / SCREEN_WIDTH as f64) + rand::thread_rng().gen_range((0.)..ANTIALIASING));
 	let mut ray = Ray::new(scene.camera().pos().clone(), dir.normalize(), 0);
     ray.debug = debug;
