@@ -12,12 +12,11 @@ use std::{
 use image::{GenericImageView, Rgba, RgbaImage};
 
 use crate::{
-    model::{materials::Color, scene::Scene},
-    BASE_SIMPLIFICATION, MAX_THREADS, SCREEN_HEIGHT, SCREEN_WIDTH,
+    model::{materials::color::{self, Color}, scene::Scene}, BASE_SIMPLIFICATION, MAX_ITERATIONS, MAX_THREADS, SCREEN_HEIGHT, SCREEN_WIDTH
 };
 
 use super::{
-    lighting_real::get_real_lighting,
+    lighting_real::{get_lighting_from_hit, get_lighting_from_ray},
     lighting_sampling::{get_indirect_light_sample, sampling_lighting},
     raycasting::{get_closest_hit, get_ray, sampling_ray},
     restir::PathBucket,
@@ -122,15 +121,16 @@ pub fn start_render_threads(
                         // On calcule le ray et on le cast
                         let ray = get_ray(&scene, x, y);
 
-                        let bucket = sampling_ray(&scene, &ray);
+                        // let bucket = sampling_ray(&scene, &ray);
 
-                        if let Some(mut sample) = bucket.sample {
-                            sample.weight =
-                                bucket.weight / (sample.weight * bucket.nbSamples as f64);
-                            colors.push(get_real_lighting(&scene, &sample, &ray));
-                        } else {
-                            colors.push(Color::new(0., 0., 0.));
-                        }
+                        // if let Some(mut sample) = bucket.sample {
+                        //     sample.weight =
+                        //         bucket.weight / (sample.weight * bucket.nbSamples as f64);
+                        //     colors.push(get_real_lighting(&scene, &sample, &ray));
+                        // } else {
+                        //     colors.push(Color::new(0., 0., 0.));
+                        // }
+                        colors.push(get_lighting_from_ray(&scene, &ray))
                     });
                     cur_tx.send((tile, colors)).unwrap();
                 }
@@ -160,7 +160,7 @@ fn build_image_from_tilesets(
     // La fonction renvoie le nombre de tile d'une resolution donnee.
     // Cela nous permet de traquer quand est-ce que l'image de la plus basse resolution possible est completee, car c'est le
     // point ou on peux l'envoyer au main_thread.
-    let max_iterations = 100;
+    let max_iterations = MAX_ITERATIONS;
     let mut samplingMode = true;
     let mut low_res_to_do = generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
     let mut max_res_to_do = low_res_to_do;
@@ -174,7 +174,9 @@ fn build_image_from_tilesets(
                 let mut index = 0;
                 // Meme chose que dans render_tilesets, on ne remplit que les zones necessaires par tile et par resolution.
                 for_each_uncalculated_pixel(&tile, |x, y| {
-                    let color = colors[index].clone().to_rgba();
+                    let mut color = (&colors[index]).clone();
+                    // color.apply_gamma();
+                    let color = color.to_rgba();
                     index += 1;
                     for x in x..min(x + &tile.factor, SCREEN_WIDTH) {
                         for y in y..min(y + &tile.factor, SCREEN_HEIGHT) {
@@ -183,9 +185,9 @@ fn build_image_from_tilesets(
                     }
                 });
                 // On retient les tile de la plus basse resolution qui passent par la
-                if tile.factor == BASE_SIMPLIFICATION {
+                if tile.factor == BASE_SIMPLIFICATION && low_res_to_do > 0 {
                     low_res_to_do -= 1;
-                } else if tile.factor == 1 {
+                } else if tile.factor == 1 && max_res_to_do > 0 {
                     max_res_to_do -= 1;
                 }
 
@@ -237,8 +239,11 @@ fn add_iteration_to_final_img(iteration: RgbaImage, mut final_img: RgbaImage, it
         for x in 0..SCREEN_WIDTH as u32 {
             for y in 0..SCREEN_HEIGHT as u32 {
                 let mut base_color = Color::from_rgba(final_img.get_pixel(x, y));
+                let mut new_iter_color = Color::from_rgba(iteration.get_pixel(x, y));
                 let iterations_done = iterations_done as f64;
-                base_color = base_color * ((iterations_done - 1.) / iterations_done) as f64 + (Color::from_rgba(iteration.get_pixel(x, y)) * (1. / iterations_done as f64));
+                base_color = 
+                    (base_color * (iterations_done - 1.) / iterations_done) +
+                    (new_iter_color * (1. / iterations_done as f64));
                 final_img.put_pixel(x, y, base_color.to_rgba());
             }
         }

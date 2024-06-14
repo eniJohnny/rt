@@ -1,36 +1,24 @@
 use std::cmp::min;
-use crate::model::{materials::{Color, Material, metal::Metal}, maths::vec3::Vec3,  shapes::{plane, sphere, cylinder, cone, Shape}};
-
-pub fn update_color(key: String, value: String, color: Color, metalness: f64, roughness: f64) -> Option<Box<dyn Sync + Material>> {
-    let mut new_color: (u8, u8, u8) = ((color.r() * 255.) as u8, (color.g() * 255.) as u8, (color.b() * 255.) as u8);
-    let new_value = min(value.parse::<u32>().unwrap(), 255) as u8;
-    match key.as_str() {
-        "colr" => {
-            new_color.0 = new_value;
+use crate::model::{materials::{color::Color, diffuse::Diffuse, material::Material, texture::Texture}, maths::vec3::Vec3,  shapes::{cone, cylinder, plane, sphere, Shape}};
+pub fn update_color(key: String, value: String, material: &mut dyn Material) {
+    if let Texture::Value(color) = material.color() {
+        let mut new_color: (u8, u8, u8) = ((color.x() * 255.) as u8, (color.y() * 255.) as u8, (color.z() * 255.) as u8);
+        let new_value = min(value.parse::<u32>().unwrap(), 255) as u8;
+        match key.as_str() {
+            "colr" => {
+                new_color.0 = new_value;
+            }
+            "colg" => {
+                new_color.1 = new_value;
+            }
+            "colb" => {
+                new_color.2 = new_value;
+            }
+            _ => (),
         }
-        "colg" => {
-            new_color.1 = new_value;
-        }
-        "colb" => {
-            new_color.2 = new_value;
-        }
-        _ => (),
+        let new_color = Vec3::new(new_color.0 as f64 / 255., new_color.1 as f64 / 255., new_color.2 as f64 / 255.);
+        material.set_color(Texture::Value(new_color));
     }
-    let new_color = Color::new(new_color.0 as f64 / 255., new_color.1 as f64 / 255., new_color.2 as f64 / 255.);
-    let new_material = Metal::new(new_color, metalness, roughness);
-    Some(Box::new(new_material))
-}
-
-pub fn update_metalness(value: String, color: Color, roughness: f64) -> Option<Box<dyn Sync + Material>> {
-    let metalness = value.parse::<f64>().unwrap();
-    let new_material = Metal::new(color, metalness, roughness);
-    Some(Box::new(new_material))
-}
-
-pub fn update_roughness(value: String, color: Color, metalness: f64) -> Option<Box<dyn Sync + Material>> {
-    let roughness = value.parse::<f64>().unwrap();
-    let new_material = Metal::new(color, metalness, roughness);
-    Some(Box::new(new_material))
 }
 
 pub fn update_shape(shape: &dyn Shape, key: String, value: String) -> Option<Box<dyn Sync + Shape>> {    

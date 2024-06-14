@@ -226,23 +226,25 @@
     },
     {
         "type": "camera",
-        "pos": [0, 0, -15],
+        "pos": [0, 0, -9],
         "dir": [0, 0, 1],
-        "fov": 45
+        "fov": 60
     },
     {
         "type": "plane",
         "pos": [-5, 0, 0],
         "dir": [1, 0, 0],
         "color": [150, 100, 255],
-        "roughness": 1.0
+        "roughness": 1.0,
+        "emissive": 0.5
     },
     {
         "type": "plane",
         "pos": [5, 0, 0],
         "dir": [-1, 0, 0],
         "color": [150, 255, 100],
-        "roughness": 1.0
+        "roughness": 1.0,
+        "emissive": 0.5
     },
     {
         "type": "plane",
@@ -263,32 +265,14 @@
         "pos": [0, 0, 5],
         "dir": [0, 0, -1],
         "color": [255, 255, 255],
-        "roughness": 0.1,
-        "metalness": 0.8
+        "roughness": 1.0,
+        "metalness": 0.0
     },
     {
         "type": "plane",
-        "pos": [0, 0, -20],
+        "pos": [0, 0, -10],
         "dir": [0, 0, 1],
         "color": [255, 255, 255],
         "roughness": 1.0
-    },
-    {
-        "type": "light",
-        "pos": [-3, -3, -4],
-        "color": [255, 50, 50],
-        "intensity": 7
-    },
-    {
-        "type": "light",
-        "pos": [3, -3, -4],
-        "color": [50, 50, 255],
-        "intensity": 7
-    },
-    {
-        "type": "light",
-        "pos": [0, 4, -4],
-        "color": [50, 255, 50],
-        "intensity": 6
     }
 ]

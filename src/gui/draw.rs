@@ -1,6 +1,6 @@
 use image::Rgba;
 
-use crate::{display::utils::{display_element_infos, display_light_infos, draw_text}, model::{materials::{Color, Material}, maths::vec2::Vec2, objects::light::{AmbientLight, Light, PointLight}, shapes::{cone, cylinder, plane, sphere}, Element}, GUI_HEIGHT, GUI_WIDTH};
+use crate::{display::utils::{display_element_infos, display_light_infos, draw_text}, model::{materials::{color::Color, material::Material, texture::Texture}, maths::vec2::Vec2, objects::light::{Light, PointLight}, shapes::{cone, cylinder, plane, sphere}, Element}, GUI_HEIGHT, GUI_WIDTH};
 
 use super::{Gui, textformat::TextFormat};
 
@@ -29,54 +29,86 @@ pub fn draw_sphere_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, sphere:
     params.set_background_color(Rgba([89, 89, 89, 255]));
 
     let mut gui = Gui::new();
-    let color = Color::new(0., 0., 0.);
-    let metalness = material.reflection_coef();
+    let color = material.color();
+    let metalness = material.metalness();
     let roughness = material.roughness();
-
-    gui.keys.push("posx".to_string());
-    gui.keys.push("posy".to_string());
-    gui.keys.push("posz".to_string());
-    gui.keys.push("dirx".to_string());
-    gui.keys.push("diry".to_string());
-    gui.keys.push("dirz".to_string());
-    gui.keys.push("colr".to_string());
-    gui.keys.push("colg".to_string());
-    gui.keys.push("colb".to_string());
-    gui.keys.push("metalness".to_string());
-    gui.keys.push("roughness".to_string());
-    gui.keys.push("radius".to_string());
-
-    gui.values.push(sphere.pos().x().to_string());
-    gui.values.push(sphere.pos().y().to_string());
-    gui.values.push(sphere.pos().z().to_string());
-    gui.values.push(sphere.dir().x().to_string());
-    gui.values.push(sphere.dir().y().to_string());
-    gui.values.push(sphere.dir().z().to_string());
-    gui.values.push((color.r() * 255.).to_string());
-    gui.values.push((color.g() * 255.).to_string());
-    gui.values.push((color.b() * 255.).to_string());
-    gui.values.push(metalness.to_string());
-    gui.values.push(roughness.to_string());
-    gui.values.push(sphere.radius().to_string());
+    let refraction = material.refraction();
+    let emissive = material.emissive();
+    let norm = material.norm();
 
     titles.parse_and_draw_text(img, 0, "Sphere", "");
     titles.parse_and_draw_text(img, 1, "Position:", "");
+    gui.keys.push("posx".to_string());
+    gui.values.push(sphere.pos().x().to_string());
+    gui.hitboxes.push(params.parse_and_draw_text(img, 2, " X:", &sphere.pos().x().to_string()));
+
+    gui.keys.push("posy".to_string());
+    gui.values.push(sphere.pos().y().to_string());
+    gui.hitboxes.push(params.parse_and_draw_text(img, 3, " Y:", &sphere.pos().y().to_string()));
+
+    gui.keys.push("posz".to_string());
+    gui.values.push(sphere.pos().z().to_string());
+    gui.hitboxes.push(params.parse_and_draw_text(img, 4, " Z:", &sphere.pos().z().to_string()));
+
     titles.parse_and_draw_text(img, 5, "Direction:", "");
+
+    gui.keys.push("dirx".to_string());
+    gui.values.push(sphere.dir().x().to_string());
+    gui.hitboxes.push(params.parse_and_draw_text(img, 6, " X:", &sphere.dir().x().to_string()));
+
+    gui.keys.push("diry".to_string());
+    gui.values.push(sphere.dir().y().to_string());
+    gui.hitboxes.push(params.parse_and_draw_text(img, 7, " Y:", &sphere.dir().y().to_string()));
+
+    gui.keys.push("dirz".to_string());
+    gui.values.push(sphere.dir().z().to_string());
+    gui.hitboxes.push(params.parse_and_draw_text(img, 8, " Z:", &sphere.dir().z().to_string()));
+    
+
     titles.parse_and_draw_text(img, 9, "Material:", "");
+    match color {
+        Texture::Texture(file) => {
+            gui.keys.push("color".to_string());
+            gui.values.push(file.clone());
+            gui.hitboxes.push(params.parse_and_draw_text(img, 10, " R:", &file));
+        },
+        Texture::Value(vec) => {
+            let color = Color::from_vec3(&vec);
+            gui.keys.push("colr".to_string());
+            gui.keys.push("colg".to_string());
+            gui.keys.push("colb".to_string());
+            
+            gui.values.push((color.r() * 255.).to_string());
+            gui.values.push((color.g() * 255.).to_string());
+            gui.values.push((color.b() * 255.).to_string());
+
+            gui.hitboxes.push(params.parse_and_draw_text(img, 10, " R:", &format!("{:.0}", color.r() * 255.)));
+            gui.hitboxes.push(params.parse_and_draw_text(img, 11, " G:", &format!("{:.0}", color.g() * 255.)));
+            gui.hitboxes.push(params.parse_and_draw_text(img, 12, " B:", &format!("{:.0}", color.b() * 255.)));
+        }
+    }
+
+    let metalness_str = match metalness {
+        Texture::Texture(file) => file.clone(),
+        Texture::Value(metalness) => metalness.to_string()
+    };
+    gui.keys.push("metalness".to_string());
+    gui.hitboxes.push(params.parse_and_draw_text(img, 13, " Metalness:", &metalness_str));
+    gui.values.push(metalness_str);
+    
+    let roughness_str = match metalness {
+        Texture::Texture(file) => file.clone(),
+        Texture::Value(roughness) => roughness.to_string()
+    };
+    gui.keys.push("roughness".to_string());
+    gui.hitboxes.push(params.parse_and_draw_text(img, 14, " Roughness:", &roughness_str));
+    gui.values.push(roughness_str);
+
     titles.parse_and_draw_text(img, 15, "Misc:", "");
 
-    gui.hitboxes.push(params.parse_and_draw_text(img, 2, " X:", &sphere.pos().x().to_string()));
-    gui.hitboxes.push(params.parse_and_draw_text(img, 3, " Y:", &sphere.pos().y().to_string()));
-    gui.hitboxes.push(params.parse_and_draw_text(img, 4, " Z:", &sphere.pos().z().to_string()));
-    gui.hitboxes.push(params.parse_and_draw_text(img, 6, " X:", &sphere.dir().x().to_string()));
-    gui.hitboxes.push(params.parse_and_draw_text(img, 7, " Y:", &sphere.dir().y().to_string()));
-    gui.hitboxes.push(params.parse_and_draw_text(img, 8, " Z:", &sphere.dir().z().to_string()));
-    gui.hitboxes.push(params.parse_and_draw_text(img, 10, " R:", &format!("{:.0}", color.r() * 255.)));
-    gui.hitboxes.push(params.parse_and_draw_text(img, 11, " G:", &format!("{:.0}", color.g() * 255.)));
-    gui.hitboxes.push(params.parse_and_draw_text(img, 12, " B:", &format!("{:.0}", color.b() * 255.)));
-    gui.hitboxes.push(params.parse_and_draw_text(img, 13, " Metalness:", &metalness.to_string()));
-    gui.hitboxes.push(params.parse_and_draw_text(img, 14, " Roughness:", &roughness.to_string()));
+    gui.keys.push("radius".to_string());
     gui.hitboxes.push(params.parse_and_draw_text(img, 16, " Radius:", &sphere.radius().to_string()));
+    gui.values.push(sphere.radius().to_string());
 
     draw_gui_buttons(img, &gui);
 
@@ -108,8 +140,14 @@ pub fn draw_cylinder_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, cylin
 
     let mut gui = Gui::new();
     let color = Color::new(0., 0., 0.);
-    let metalness = material.reflection_coef();
-    let roughness = material.roughness();
+    let metalness = match material.metalness() {
+        Texture::Texture(file) => file.clone(),
+        Texture::Value(metalness) => metalness.to_string()
+    };
+    let roughness = match material.roughness() {
+        Texture::Texture(file) => file.clone(),
+        Texture::Value(roughness) => roughness.to_string()
+    };
 
     gui.keys.push("posx".to_string());
     gui.keys.push("posy".to_string());
@@ -189,8 +227,14 @@ pub fn draw_plane_gui (img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, plane: &
 
     let mut gui = Gui::new();
     let color = Color::new(0., 0., 0.);
-    let metalness = material.reflection_coef();
-    let roughness = material.roughness();
+    let metalness = match material.metalness() {
+        Texture::Texture(file) => file.clone(),
+        Texture::Value(metalness) => metalness.to_string()
+    };
+    let roughness = match material.roughness() {
+        Texture::Texture(file) => file.clone(),
+        Texture::Value(roughness) => roughness.to_string()
+    };
 
     gui.keys.push("posx".to_string());
     gui.keys.push("posy".to_string());
@@ -263,8 +307,14 @@ pub fn draw_cone_gui(img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, cone: &con
 
     let mut gui = Gui::new();
     let color = Color::new(0., 0., 0.);
-    let metalness = material.reflection_coef();
-    let roughness = material.roughness();
+    let metalness = match material.metalness() {
+        Texture::Texture(file) => file.clone(),
+        Texture::Value(metalness) => metalness.to_string()
+    };
+    let roughness = match material.roughness() {
+        Texture::Texture(file) => file.clone(),
+        Texture::Value(roughness) => roughness.to_string()
+    };
 
     gui.keys.push("posx".to_string());
     gui.keys.push("posy".to_string());
