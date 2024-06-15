@@ -1,3 +1,7 @@
+use std::collections::HashMap;
+
+use image::RgbaImage;
+
 use crate::model::{materials::{color::Color, material::Projection, texture::Texture}, Element};
 
 use super::vec3::Vec3;
@@ -24,7 +28,7 @@ pub struct Hit<'a> {
 }
 
 impl<'a> Hit<'a> {
-    pub fn new(element: &'a Element, dist: f64, pos: Vec3, ray_dir: &Vec3) -> Self {
+    pub fn new(element: &'a Element, dist: f64, pos: Vec3, ray_dir: &Vec3, textures: &HashMap<String, image::RgbaImage>) -> Self {
         let mut hit = Hit {
             element,
             dist,
@@ -38,7 +42,7 @@ impl<'a> Hit<'a> {
             norm_variation: Vec3::new(0., 0., 0.),
             emissive: 0.
         };
-        Hit::map(&mut hit, ray_dir);
+        Hit::map(&mut hit, ray_dir, textures);
         hit
     }
 
@@ -81,7 +85,7 @@ impl<'a> Hit<'a> {
         }
     }
 
-    fn map(&mut self, ray_dir: &Vec3) {
+    fn map(&mut self, ray_dir: &Vec3, textures: &HashMap<String, RgbaImage>) {
         let mut projection_opt: Option<Projection> = None;
         let mat = self.element.material();
 
@@ -101,9 +105,12 @@ impl<'a> Hit<'a> {
         match mat.color() {
             Texture::Texture(file) => {
                 projection_opt = self.get_projection(projection_opt);
-                if let Some(projection) = projection_opt {
-					todo!()
-                }
+                if let Some(projection) = &projection_opt {
+					let img = textures.get(file).unwrap();
+					let x = (&projection.u * img.width() as f64) as u32;
+					let y = ((1. - &projection.v) * img.height() as f64) as u32;
+					self.color = Color::from_rgba(img.get_pixel(x, y));
+				}
             },
             Texture::Value(color) => {
                 self.color = Color::from_vec3(color);

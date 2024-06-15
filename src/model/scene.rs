@@ -1,9 +1,13 @@
+use std::collections::HashMap;
+
+use image::{RgbImage, RgbaImage};
+
 use crate::{
     gui::Gui,
     model::objects::light::{AmbientLight, Light},
 };
 
-use super::{objects::camera::Camera, Element};
+use super::{materials::{material::Material, texture::Texture}, objects::camera::Camera, Element};
 
 #[derive(Debug)]
 pub struct Scene {
@@ -14,6 +18,7 @@ pub struct Scene {
     pub gui: Gui,
 	indirect_lightning: bool,
 	imperfect_reflections: bool,
+	textures: HashMap<String, image::RgbaImage>
 }
 
 impl Scene {
@@ -26,6 +31,7 @@ impl Scene {
             gui: Gui::new(),
 			indirect_lightning: true,
 			imperfect_reflections: true,
+			textures: HashMap::new()
         }
     }
 
@@ -45,6 +51,24 @@ impl Scene {
     pub fn add_ambient_light(&mut self, ambient_light: AmbientLight) {
         self.ambient_light = ambient_light;
     }
+
+	pub fn add_texture(&mut self, name: String, texture: RgbaImage) {
+        self.textures.insert(name, texture);
+    }
+
+	pub fn add_textures(&mut self, material: &Box<dyn Material + Sync + Send>) {
+		match material.color() {
+			Texture::Value(_) => {},
+			Texture::Texture(path) => {
+				if !self.textures.contains_key(path) {
+					self.add_texture(path.clone(), match image::open(path) {
+						Ok(img) => img.to_rgba8(),
+						Err(_) => panic!("Error opening texture file")
+					});
+				}
+			}
+		}
+	}
 
     // Accessors
     pub fn elements(&self) -> &Vec<Element> {
@@ -76,6 +100,10 @@ impl Scene {
 
 	pub fn imperfect_reflections(&self) -> bool {
         self.imperfect_reflections
+    }
+
+	pub fn textures(&self) -> &HashMap<String, image::RgbaImage> {
+        &self.textures
     }
 
     // Mutators

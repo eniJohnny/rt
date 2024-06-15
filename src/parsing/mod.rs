@@ -1,3 +1,5 @@
+use pixels::wgpu::ShaderModule;
+
 use crate::model::materials::color::Color;
 use crate::model::materials::diffuse::Diffuse;
 use crate::model::materials::material::Material;
@@ -5,7 +7,7 @@ use crate::model::materials::texture::Texture;
 use crate::model::maths::vec3::Vec3;
 use crate::model::objects::camera::Camera;
 use crate::model::objects::light::{AmbientLight, Light, ParallelLight, PointLight};
-use crate::model::Element;
+use crate::model::{scene, Element};
 use crate::model::{
     scene::Scene, shapes::cone::Cone, shapes::cylinder::Cylinder, shapes::plane::Plane,
     shapes::sphere::Sphere,
@@ -34,7 +36,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
 
                 let shape = Box::new(Sphere::new(pos, dir, radius));
                 let material = get_material(&object, color);
-
+				scene.add_textures(&material);
                 let element = Element::new(shape, material);
                 scene.add_element(element)
             }
@@ -45,7 +47,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
 
                 let shape = Box::new(Plane::new(pos, dir));
                 let material = get_material(&object, color);
-
+				scene.add_textures(&material);
                 let element = Element::new(shape, material);
                 scene.add_element(element)
             }
@@ -58,7 +60,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
 
                 let shape = Box::new(Cylinder::new(pos, dir, radius, height));
                 let material = get_material(&object, color);
-
+				scene.add_textures(&material);
                 let element = Element::new(shape, material);
                 scene.add_element(element)
             }
@@ -71,8 +73,8 @@ pub fn get_scene(scene_file: &String) -> Scene {
 
                 let shape = Box::new(Cone::new(pos, dir, radius, height));
                 let material = get_material(&object, color);
-
-                let element = Element::new(shape, material);
+				scene.add_textures(&material);
+				let element = Element::new(shape, material);
                 scene.add_element(element)
             }
             "camera" => {
@@ -86,15 +88,20 @@ pub fn get_scene(scene_file: &String) -> Scene {
             "light" => {
                 let pos = get_position(&object);
                 let intensity = get_intensity(&object);
-                let color = get_color(&object);
-
+                let color = match get_color(&object) {
+					Some(color) => color,
+					None => panic!("Color must be provided for lights")
+				};
                 let new_light = Box::new(PointLight::new(pos, intensity, color))
                     as Box<dyn Light + Sync + Send>;
                 scene.add_light(new_light);
             }
             "ambient" => {
                 let intensity = get_intensity(&object);
-                let color = get_color(&object);
+                let color = match get_color(&object) {
+					Some(color) => color,
+					None => panic!("Color must be provided for lights")
+				};
 
                 let new_ambient_light = AmbientLight::new(intensity, color);
                 scene.add_ambient_light(new_ambient_light);
@@ -102,7 +109,10 @@ pub fn get_scene(scene_file: &String) -> Scene {
             "parallel" => {
                 let intensity = get_intensity(&object);
                 let dir = get_direction(&object);
-                let color = get_color(&object);
+                let color = match get_color(&object) {
+					Some(color) => color,
+					None => panic!("Color must be provided for lights")
+				};
 
                 let new_light = Box::new(ParallelLight::new(dir, intensity, color));
                 scene.add_light(new_light);
@@ -169,9 +179,12 @@ fn parse_json(scene_file: String) -> Vec<HashMap<String, String>> {
     return objects;
 }
 
-fn get_color(object: &HashMap<String, String>) -> Color {
-    // Testing if the color is in the format [r, g, b]
-    let rgb_str = [&object["color_r"], &object["color_g"], &object["color_b"]];
+fn get_color(object: &HashMap<String, String>) -> Option<Color> {
+	if object.get("color").is_some() {
+		return None;
+	}
+	// Testing if the color is in the format [r, g, b]
+	let rgb_str = [&object["color_r"], &object["color_g"], &object["color_b"]];
 
     for i in 0..3 {
         if rgb_str[i].parse::<u8>().is_err() {
@@ -189,7 +202,7 @@ fn get_color(object: &HashMap<String, String>) -> Color {
         .parse::<u8>()
         .expect("Error parsing color");
 
-    return Color::new(r as f64 / 255., g as f64 / 255., b as f64 / 255.);
+    return Some(Color::new(r as f64 / 255., g as f64 / 255., b as f64 / 255.));
 }
 
 fn get_position(object: &HashMap<String, String>) -> Vec3 {
@@ -241,39 +254,28 @@ fn get_direction(object: &HashMap<String, String>) -> Vec3 {
     .normalize()
 }
 
-fn get_material(object: &HashMap<String, String>, color: Color) -> Box<dyn Material + Sync + Send> {
+fn get_material(object: &HashMap<String, String>, color_opt: Option<Color>) -> Box<dyn Material + Sync + Send> {
     let default: String = String::from("0.0");
     let metalness_string = object.get("metalness").unwrap_or(&default);
     let roughness_string = object.get("roughness").unwrap_or(&default);
     let refraction_string = object.get("refraction").unwrap_or(&default);
     let emissive_string = object.get("emissive").unwrap_or(&default);
-
-    let mut metalness = 0.0;
-    let mut roughness = 0.0;
-    let mut refraction = 0.0;
-    let mut emissive = 0.0;
-
-    if let Ok(value) = metalness_string.parse::<f64>() {
-        metalness = value;
-    }
-    if let Ok(value) = roughness_string.parse::<f64>() {
-        roughness = value;
-    }
-    if let Ok(value) = emissive_string.parse::<f64>() {
-        emissive = value;
-    }
-    if let Ok(value) = refraction_string.parse::<f64>() {
-        refraction = value;
-    }
-
-    println!("Metalness : {}, Roughness: {}, Emissive: {}, Refraction: {}", metalness, roughness, emissive, refraction);
-    Box::new(
+	let color_texture = match object.get("color") {
+		Some(path) => Texture::Texture(path.clone()),
+		None => {
+			match color_opt {
+				Some(color) => Texture::Value(Vec3::new(color.r(), color.g(), color.b())),
+				None => panic!("Color must be provided for non-textured materials")
+			}
+		}
+	};
+	Box::new(
         Diffuse::new(
-            Texture::Value(Vec3::from_color(color)),
-            Texture::Value(Vec3::from_value(metalness)),
-            Texture::Value(Vec3::from_value(roughness)),
-            Texture::Value(Vec3::from_value(emissive)),
-            Texture::Value(Vec3::from_value(refraction)),
+            color_texture,
+            Texture::from_float_litteral(metalness_string),
+            Texture::from_float_litteral(roughness_string),
+            Texture::from_float_litteral(emissive_string),
+            Texture::from_float_litteral(refraction_string),
             Texture::Value(Vec3::new(0., 0., 1.))))
 }
 
