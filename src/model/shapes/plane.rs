@@ -25,9 +25,33 @@ impl Shape for Plane {
         }
         return None;
     }
+
     fn projection(&self, hit: &Hit) -> Projection {
-        unimplemented!()
+		let mut projection: Projection = Projection::default();
+
+		let constant_axis: Vec3;
+		if self.dir == Vec3::new(0., 0., 1.) {
+			constant_axis = Vec3::new(0., 1., 0.);
+		} else {
+			constant_axis = Vec3::new(0., 0., 1.);
+		}
+		projection.i = self.dir().cross(&constant_axis).normalize();
+		projection.j = self.dir().cross(&projection.i).normalize();
+		projection.k = hit.norm().clone();
+		let dist = hit.pos() - self.pos();
+		let i_component = dist.dot(&projection.i);
+		let j_component = dist.dot(&projection.j);
+		projection.u = &i_component - (i_component as i32) as f64;
+		if projection.u < 0. {
+			projection.u += 1.;
+		}
+		projection.v = &j_component - (j_component as i32) as f64;
+		if projection.v < 0. {
+			projection.v += 1.;
+		}
+		projection
     }
+
     fn norm(&self, hit_pos: &Vec3, ray_dir: &Vec3) -> Vec3 {
         // On doit aussi prendre on compte quand on tape de l'autre cote du plane
         if ray_dir.dot(&self.dir) > 0. {
