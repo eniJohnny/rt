@@ -57,14 +57,17 @@ impl Scene {
     }
 
 	pub fn add_textures(&mut self, material: &Box<dyn Material + Sync + Send>) {
-		match material.color() {
-			Texture::Value(_) => {},
-			Texture::Texture(path) => {
-				if !self.textures.contains_key(path) {
-					self.add_texture(path.clone(), match image::open(path) {
-						Ok(img) => img.to_rgba8(),
-						Err(_) => panic!("Error opening texture file")
-					});
+		let textures = [material.color(), material.roughness(), material.metalness()];
+		for texture in textures.iter() {
+			match texture {
+				Texture::Value(_) => {},
+				Texture::Texture(path) => {
+					if !self.textures.contains_key(path) {
+						self.add_texture(path.clone(), match image::open(path) {
+							Ok(img) => img.to_rgba8(),
+							Err(_) => panic!("Error opening texture file")
+						});
+					}
 				}
 			}
 		}
