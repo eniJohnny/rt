@@ -1,6 +1,6 @@
 use crate::{
     model::{
-        materials::color::Color, maths::{hit::Hit, ray::Ray}, objects::light, scene::Scene
+        materials::color::Color, maths::{hit::Hit, ray::Ray, vec3::Vec3}, objects::light, scene::Scene, shapes::{cylinder, sphere, Shape}
     },
     MAX_DEPTH,
 };
@@ -22,6 +22,16 @@ pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
 }
 
 pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
+	if let Some(cylinder) = hit.element().shape().as_cylinder() {
+		let projection = cylinder.projection(hit);
+		return Color::from_vec3(&Vec3::new(projection.u, projection.v, 0.));
+	} else if let Some(plane) = hit.element().shape().as_plane() {
+		let projection = plane.projection(hit);
+		return Color::from_vec3(&Vec3::new(projection.u, projection.v, 0.));
+	} else if let Some(sphere) = hit.element().shape().as_sphere() {
+		let projection = sphere.projection(hit);
+		return Color::from_vec3(&Vec3::new(projection.u, projection.v, 0.));
+	}
     let absorbed = (1.0 - hit.metalness() - hit.refraction()) * (1.0 - hit.emissive());
 
     let mut light_color: Color = hit.emissive() * hit.color();

@@ -1,12 +1,12 @@
 [
     {
         "type": "sphere",
-        "pos": [-2, 2, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
+        "pos": [-3, 3, 0],
+        "dir": [0, 1, 0],
+        "color": "./scenes/materials/metal/Metal_Color.jpg",
         "radius": 0.5,
-        "metalness": 0.0,
-        "roughness": 0.0
+        "metalness": "./scenes/materials/metal/Metal_Metalness.jpg",
+        "roughness": "./scenes/materials/metal/Metal_Roughness.jpg"
     },
     {
         "type": "sphere",
