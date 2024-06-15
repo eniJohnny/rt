@@ -120,9 +120,13 @@ impl<'a> Hit<'a> {
         match mat.roughness() {
             Texture::Texture(file) => {
                 projection_opt = self.get_projection(projection_opt);
-                if let Some(projection) = projection_opt {
-					todo!()
-                }
+                if let Some(projection) = &projection_opt {
+					let img = textures.get(file).unwrap();
+					let x = (&projection.u * img.width() as f64) as u32;
+					let y = ((1. - &projection.v) * img.height() as f64) as u32;
+					let color = Color::from_rgba(img.get_pixel(x, y));
+					self.roughness = Vec3::from_color(color).to_value();
+				}
             },
             Texture::Value(roughness) => {
                 self.roughness = roughness.to_value() * roughness.to_value();
@@ -132,9 +136,13 @@ impl<'a> Hit<'a> {
         match mat.metalness() {
             Texture::Texture(file) => {
                 projection_opt = self.get_projection(projection_opt);
-                if let Some(projection) = projection_opt {
-					todo!()
-                }
+                if let Some(projection) = &projection_opt {
+					let img = textures.get(file).unwrap();
+					let x = (&projection.u * img.width() as f64) as u32;
+					let y = ((1. - &projection.v) * img.height() as f64) as u32;
+					let color = Color::from_rgba(img.get_pixel(x, y));
+					self.metalness = Vec3::from_color(color).to_value();
+				}
             },
             Texture::Value(metalness) => {
                 self.metalness = metalness.to_value();
