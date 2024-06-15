@@ -91,6 +91,7 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
             t,
             ray.get_pos() + ray.get_dir() * (t - f64::EPSILON),
             ray.get_dir(),
+			scene.textures()
         )),
     }
 }
