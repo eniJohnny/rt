@@ -91,7 +91,7 @@ impl Shape for Cylinder {
 		let total_height = self.height + self.radius * 2.0;
 
 		let constant_axis: Vec3;
-		if self.dir == Vec3::new(0., 0., 1.) {
+		if *hit.norm() == Vec3::new(0., 0., 1.) {
 			constant_axis = Vec3::new(0., 1., 0.);
 		} else {
 			constant_axis = Vec3::new(0., 0., 1.);
