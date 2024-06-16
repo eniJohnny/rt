@@ -97,8 +97,8 @@ impl Shape for Cylinder {
 			constant_axis = Vec3::new(0., 0., 1.);
 		}
 
-		projection.i = self.dir().cross(&constant_axis).normalize();
-		projection.j = self.dir().cross(&projection.i).normalize();
+		projection.i = hit.norm().cross(&constant_axis).normalize();
+		projection.j = hit.norm().cross(&projection.i).normalize();
 		projection.k = hit.norm().clone();
 		let i_component: f64 = cam_hit.dot(&projection.i);
 		let j_component: f64 = cam_hit.dot(&projection.j);
