@@ -35,8 +35,8 @@ impl Shape for Plane {
 		} else {
 			constant_axis = Vec3::new(0., 0., 1.);
 		}
-		projection.i = self.dir().cross(&constant_axis).normalize();
-		projection.j = self.dir().cross(&projection.i).normalize();
+		projection.i = hit.norm().cross(&constant_axis).normalize();
+		projection.j = hit.norm().cross(&projection.i).normalize();
 		projection.k = hit.norm().clone();
 		let dist = hit.pos() - self.pos();
 		let i_component = dist.dot(&projection.i);
