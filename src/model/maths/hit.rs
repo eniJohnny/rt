@@ -99,26 +99,28 @@ impl<'a> Hit<'a> {
         let mat = self.element.material();
 
         self.norm = self.element.shape().norm(&self.pos, ray_dir);
-        // match mat.norm() {
-        //     Texture::Texture(file) => {
-        //         projection = self.get_projection(projection);
-        //         if let Some((x, y)) = projection {
-        //             todo!()
-        //         }
-        //     },
-        //     Texture::Value(norm) => {
-        //         self.norm = todo!();
-        //     }
-        // }
+        match mat.norm() {
+            Texture::Texture(file) => {
+                projection_opt = self.get_projection(projection_opt);
+                if let Some(projection) = &projection_opt {
+                    let img = textures.get(file).unwrap();
+                    let color = Texture::get(projection, img);
+                    let norm = //&self.norm
+                        color.r() * projection.i.clone()
+                        + color.g() * projection.j.clone()
+                        + color.b() * self.norm();
+                    self.norm = norm.normalize();
+                }
+            }
+            Texture::Value(norm) => (),
+        }
 
         match mat.color() {
             Texture::Texture(file) => {
                 projection_opt = self.get_projection(projection_opt);
                 if let Some(projection) = &projection_opt {
                     let img = textures.get(file).unwrap();
-                    let x = (&projection.u * img.width() as f64) as u32;
-                    let y = ((1. - &projection.v) * img.height() as f64) as u32;
-                    self.color = Color::from_rgba(img.get_pixel(x, y));
+                    self.color = Texture::get(projection, img);
                 }
             }
             Texture::Value(color) => {
@@ -131,9 +133,7 @@ impl<'a> Hit<'a> {
                 projection_opt = self.get_projection(projection_opt);
                 if let Some(projection) = &projection_opt {
                     let img = textures.get(file).unwrap();
-                    let x = (&projection.u * img.width() as f64) as u32;
-                    let y = ((1. - &projection.v) * img.height() as f64) as u32;
-                    let color = Color::from_rgba(img.get_pixel(x, y));
+                    let color = Texture::get(projection, img);
                     self.roughness = Vec3::from_color(color).to_value();
                 }
             }
@@ -147,9 +147,7 @@ impl<'a> Hit<'a> {
                 projection_opt = self.get_projection(projection_opt);
                 if let Some(projection) = &projection_opt {
                     let img = textures.get(file).unwrap();
-                    let x = (&projection.u * img.width() as f64) as u32;
-                    let y = ((1. - &projection.v) * img.height() as f64) as u32;
-                    let color = Color::from_rgba(img.get_pixel(x, y));
+                    let color = Texture::get(projection, img);
                     self.metalness = Vec3::from_color(color).to_value();
                 }
             }
@@ -161,8 +159,10 @@ impl<'a> Hit<'a> {
         match mat.emissive() {
             Texture::Texture(file) => {
                 projection_opt = self.get_projection(projection_opt);
-                if let Some(projection) = projection_opt {
-                    todo!()
+                if let Some(projection) = &projection_opt {
+                    let img = textures.get(file).unwrap();
+                    let color = Texture::get(projection, img);
+                    self.emissive = Vec3::from_color(color).to_value();
                 }
             }
             Texture::Value(emissive) => {

@@ -11,7 +11,7 @@ use crate::{
 };
 
 use super::{
-    lighting_sampling::{get_indirect_light_bucket, random_bounce, sampling_lighting},
+    lighting_sampling::get_reflected_light_bucket,
     restir::{Path, PathBucket, Sample},
 };
 
@@ -42,10 +42,10 @@ pub fn get_ray(scene: &Scene, x: usize, y: usize) -> Ray {
     get_ray_debug(scene, x, y, false)
 }
 
-pub fn sampling_ray<'a>(scene: &'a Scene, ray: &Ray) -> PathBucket<'a> {
+pub fn sampling_ray(scene: &Scene, ray: &Ray) -> PathBucket {
     match get_closest_hit(scene, ray) {
         Some(hit) => {
-            let mut bucket = get_indirect_light_bucket(hit.clone(), scene, ray);
+            let mut bucket = get_reflected_light_bucket(hit.clone(), scene, ray);
             let mut path = Path {
                 hit,
                 reflect: None,
@@ -57,7 +57,6 @@ pub fn sampling_ray<'a>(scene: &'a Scene, ray: &Ray) -> PathBucket<'a> {
                 path.indirect = Some(Box::new(sample));
             }
             bucket.sample = Some(Sample {
-                path,
                 color: Color::new(0., 0., 0.),
                 weight,
             });
@@ -91,7 +90,7 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
             t,
             ray.get_pos() + ray.get_dir() * (t - f64::EPSILON),
             ray.get_dir(),
-			scene.textures()
+            scene.textures(),
         )),
     }
 }

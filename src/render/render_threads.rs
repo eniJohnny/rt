@@ -21,13 +21,12 @@ use crate::{
 
 use super::{
     lighting_real::{get_lighting_from_hit, get_lighting_from_ray},
-    lighting_sampling::{get_indirect_light_sample, sampling_lighting},
     raycasting::{get_closest_hit, get_ray, sampling_ray},
     restir::PathBucket,
 };
 
 #[derive(Clone)]
-struct Tile<'a> {
+struct Tile {
     pub x: usize,
     pub y: usize,
     pub width: usize,
@@ -35,7 +34,7 @@ struct Tile<'a> {
     pub factor: usize,
     pub sampling: bool,
     pub iteration: u32,
-    pub previousIteration: Vec<Vec<PathBucket<'a>>>,
+    pub previousIteration: Vec<Vec<PathBucket>>,
 }
 
 fn generate_tiles_for(
@@ -151,7 +150,9 @@ fn vec_to_image(vec: &Vec<Vec<Color>>) -> RgbaImage {
     let mut image = RgbaImage::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32);
     for x in 0..SCREEN_WIDTH {
         for y in 0..SCREEN_HEIGHT {
-            image.put_pixel(x as u32, y as u32, vec[x][y].to_rgba());
+            let mut vec = vec[x][y].clone();
+            vec.apply_gamma();
+            image.put_pixel(x as u32, y as u32, vec.to_rgba());
         }
     }
 

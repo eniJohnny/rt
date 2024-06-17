@@ -30,29 +30,30 @@ impl Shape for Plane {
     }
 
     fn projection(&self, hit: &Hit) -> Projection {
-		let mut projection: Projection = Projection::default();
+        let mut projection: Projection = Projection::default();
+        let scale = 4.;
 
-		let constant_axis: Vec3;
-		if *hit.norm() == Vec3::new(0., 0., 1.) {
-			constant_axis = Vec3::new(0., 1., 0.);
-		} else {
-			constant_axis = Vec3::new(0., 0., 1.);
-		}
-		projection.i = hit.norm().cross(&constant_axis).normalize();
-		projection.j = hit.norm().cross(&projection.i).normalize();
-		projection.k = hit.norm().clone();
-		let dist = hit.pos() - self.pos();
-		let i_component = dist.dot(&projection.i);
-		let j_component = dist.dot(&projection.j);
-		projection.u = &i_component - (i_component as i32) as f64;
-		if projection.u < 0. {
-			projection.u += 1.;
-		}
-		projection.v = &j_component - (j_component as i32) as f64;
-		if projection.v < 0. {
-			projection.v += 1.;
-		}
-		projection
+        let constant_axis: Vec3;
+        if *hit.norm() == Vec3::new(0., 1., 0.) {
+            constant_axis = Vec3::new(0., 0., 1.);
+        } else {
+            constant_axis = Vec3::new(0., 1., 0.);
+        }
+        projection.i = hit.norm().cross(&constant_axis).normalize();
+        projection.j = hit.norm().cross(&projection.i).normalize();
+        projection.k = hit.norm().clone();
+        let dist = hit.pos() - self.pos();
+        let i_component = dist.dot(&projection.i) / &scale;
+        let j_component = dist.dot(&projection.j) / &scale;
+        projection.u = &i_component - (i_component as i32) as f64;
+        if projection.u < 0. {
+            projection.u += 1.;
+        }
+        projection.v = &j_component - (j_component as i32) as f64;
+        if projection.v < 0. {
+            projection.v += 1.;
+        }
+        projection
     }
 
     fn norm(&self, hit_pos: &Vec3, ray_dir: &Vec3) -> Vec3 {
