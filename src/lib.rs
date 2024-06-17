@@ -42,7 +42,7 @@ const CAM_MOVE_KEYS: [VirtualKeyCode; 10] = [
 ];
 
 pub fn run() {
-    let path = String::from("scenes/metalrough.json");
+    let path = String::from("scenes/sphere.json");
     if path != "" {
         let scene = get_scene(&path);
         display_scene(scene);
