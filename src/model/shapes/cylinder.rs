@@ -91,23 +91,31 @@ impl Shape for Cylinder {
 		let total_height = self.height + self.radius * 2.0;
 
 		let constant_axis: Vec3;
+		if self.dir == Vec3::new(0., 0., 1.) {
+			constant_axis = Vec3::new(0., 1., 0.);
+		} else {
+			constant_axis = Vec3::new(0., 0., 1.);
+		}
+		let cylinder_i = self.dir.cross(&constant_axis).normalize();
+		let cylinder_j = self.dir.cross(&cylinder_i).normalize();
+		
+		let constant_axis: Vec3;
 		if *hit.norm() == Vec3::new(0., 0., 1.) {
 			constant_axis = Vec3::new(0., 1., 0.);
 		} else {
 			constant_axis = Vec3::new(0., 0., 1.);
 		}
-
 		projection.i = hit.norm().cross(&constant_axis).normalize();
 		projection.j = hit.norm().cross(&projection.i).normalize();
 		projection.k = hit.norm().clone();
-		let i_component: f64 = cam_hit.dot(&projection.i);
-		let j_component: f64 = cam_hit.dot(&projection.j);
-		let ij_hit: Vec3 = (i_component * &projection.i + j_component * &projection.j).normalize(); 
-		let is_front: bool = ij_hit.dot(&projection.j) > 0.;
+		let i_component: f64 = cam_hit.dot(&cylinder_i);
+		let j_component: f64 = cam_hit.dot(&cylinder_j);
+		let ij_hit: Vec3 = (i_component * &cylinder_i + j_component * &cylinder_j).normalize(); 
+		let is_front: bool = ij_hit.dot(&cylinder_j) > 0.;
 		if is_front {
-			projection.u = (ij_hit.dot(&projection.i) + 1.) / 4.;
+			projection.u = (ij_hit.dot(&cylinder_i) + 1.) / 4.;
 		} else {
-			projection.u = 1. - (ij_hit.dot(&projection.i) + 1.) / 4.;
+			projection.u = 1. - (ij_hit.dot(&cylinder_i) + 1.) / 4.;
 		}
         if level > -0.000001 && level < 0.000001 { // Bottom Cap
 			projection.v = (hit.pos() - &self.pos).length() / total_height;
