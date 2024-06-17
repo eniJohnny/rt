@@ -1,9 +1,6 @@
 use super::Shape;
+use crate::model::materials::material::Projection;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
-use crate::model::{
-    materials::material::Projection,
-    maths::{hit::Hit, ray::Ray, vec3::Vec3},
-};
 
 #[derive(Debug)]
 pub struct Sphere {
@@ -43,18 +40,26 @@ impl Shape for Sphere {
         } else {
             constant_axis = Vec3::new(0., 0., 1.);
         }
-        projection.v = ((self.dir.dot(&hit.norm()) + 1.) / 2.).clamp(0., 1.);
+        projection.v = ((self.dir.dot(&hit.norm()) + 1.) / 2.);
         projection.i = hit.norm().cross(&constant_axis).normalize();
         projection.j = hit.norm().cross(&projection.i).normalize();
         projection.k = hit.norm().clone();
-        let i_component: f64 = hit.norm().dot(&projection.i);
-        let j_component: f64 = hit.norm().dot(&projection.j);
-        let ij_hit: Vec3 = (i_component * &projection.i + j_component * &projection.j).normalize();
-        let is_front: bool = ij_hit.dot(&projection.j) > 0.;
-        if is_front {
-            projection.u = (ij_hit.dot(&projection.i) + 1.) / 4.;
+        let constant_axis: Vec3;
+        if self.dir == Vec3::new(0., 0., 1.) {
+            constant_axis = Vec3::new(0., 1., 0.);
         } else {
-            projection.u = 1. - (ij_hit.dot(&projection.i) + 1.) / 4.;
+            constant_axis = Vec3::new(0., 0., 1.);
+        }
+        let sphere_i = self.dir.cross(&constant_axis).normalize();
+        let sphere_j = self.dir.cross(&sphere_i).normalize();
+        let i_component: f64 = hit.norm().dot(&sphere_i);
+        let j_component: f64 = hit.norm().dot(&sphere_j);
+        let ij_hit: Vec3 = (i_component * &sphere_i + j_component * &sphere_j).normalize();
+        let is_front: bool = ij_hit.dot(&sphere_j) > 0.;
+        if is_front {
+            projection.u = (ij_hit.dot(&sphere_i) + 1.) / 4.;
+        } else {
+            projection.u = 1. - (ij_hit.dot(&sphere_i) + 1.) / 4.;
         }
         projection
     }
