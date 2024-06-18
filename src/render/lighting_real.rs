@@ -65,7 +65,8 @@ pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
         return hit.emissive() * hit.color();
     }
     let mut light_color = Color::new(0., 0., 0.);
-    let fresnel_factor = fresnel_reflect_ratio(1., 1., hit.norm(), ray.get_dir(), 0., 1.);
+    let fresnel_factor =
+        fresnel_reflect_ratio(1., 1., hit.norm(), ray.get_dir(), 0., 1.0 - hit.roughness());
     let reflected = fresnel_factor * absorbed;
 
     let rand = rand::thread_rng().gen_range(0.0..1.0);

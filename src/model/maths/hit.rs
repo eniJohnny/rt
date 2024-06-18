@@ -28,6 +28,7 @@ pub struct Hit<'a> {
     refraction: f64,
     norm_variation: Vec3,
     emissive: f64,
+    opacity: f64,
 }
 
 impl<'a> Hit<'a> {
@@ -50,6 +51,7 @@ impl<'a> Hit<'a> {
             refraction: 0.,
             norm_variation: Vec3::new(0., 0., 0.),
             emissive: 0.,
+            opacity: 1.,
         };
         Hit::map(&mut hit, ray_dir, textures);
         hit
@@ -86,6 +88,9 @@ impl<'a> Hit<'a> {
     pub fn emissive(&self) -> f64 {
         self.emissive
     }
+    pub fn opacity(&self) -> f64 {
+        self.opacity
+    }
 
     fn get_projection(&self, projection: Option<Projection>) -> Option<Projection> {
         match projection {
@@ -106,9 +111,9 @@ impl<'a> Hit<'a> {
                     let img = textures.get(file).unwrap();
                     let color = Texture::get(projection, img);
                     let norm = //&self.norm
-                        color.r() * projection.i.clone()
-                        + color.g() * projection.j.clone()
-                        + color.b() * self.norm();
+                        (color.r() - 0.5) * 2. * projection.i.clone()
+                        + (color.g() - 0.5) * 2. * projection.j.clone()
+                        + (color.b() - 0.5) * 2. * self.norm();
                     self.norm = norm.normalize();
                 }
             }
@@ -179,6 +184,20 @@ impl<'a> Hit<'a> {
             }
             Texture::Value(refraction) => {
                 self.refraction = refraction.to_value();
+            }
+        }
+
+        match mat.opacity() {
+            Texture::Texture(file) => {
+                projection_opt = self.get_projection(projection_opt);
+                if let Some(projection) = projection_opt {
+                    let img = textures.get(file).unwrap();
+                    let color = Texture::get(&projection, img);
+                    self.opacity = Vec3::from_color(color).to_value();
+                }
+            }
+            Texture::Value(opacity) => {
+                self.opacity = opacity.to_value();
             }
         }
     }

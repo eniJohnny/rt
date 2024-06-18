@@ -76,48 +76,51 @@ impl Shape for Cone {
     }
 
     fn projection(&self, hit: &Hit) -> Projection {
-		let mut projection: Projection = Projection::default();
-		let constant_axis: Vec3;
-		if *hit.norm() == Vec3::new(0., 0., 1.) {
-			constant_axis = Vec3::new(0., 1., 0.);
-		} else {
-			constant_axis = Vec3::new(0., 0., 1.);
-		}
-		projection.i = hit.norm().cross(&constant_axis).normalize();
-		projection.j = hit.norm().cross(&projection.i).normalize();
-		projection.k = hit.norm().clone();
+        let mut projection: Projection = Projection::default();
+        let constant_axis: Vec3;
+        if *hit.norm() == Vec3::new(0., 0., 1.) {
+            constant_axis = Vec3::new(0., 1., 0.);
+        } else {
+            constant_axis = Vec3::new(0., 0., 1.);
+        }
+        projection.i = hit.norm().cross(&constant_axis).normalize();
+        projection.j = hit.norm().cross(&projection.i).normalize();
+        projection.k = hit.norm().clone();
 
         let point_to_hit = hit.pos() - &self.pos;
         let level = point_to_hit.dot(&self.dir);
-		
-		let slope_lenght = (self.height.powi(2) + self.radius.powi(2)).sqrt();
-		let total_height = slope_lenght + self.radius;
 
-		let constant_axis: Vec3;
-		if self.dir == Vec3::new(0., 0., 1.) {
-			constant_axis = Vec3::new(0., 1., 0.);
-		} else {
-			constant_axis = Vec3::new(0., 0., 1.);
-		}
-		let cylinder_i = self.dir.cross(&constant_axis).normalize();
-		let cylinder_j = self.dir.cross(&cylinder_i).normalize();
-		
-		let i_component: f64 = point_to_hit.dot(&cylinder_i);
-		let j_component: f64 = point_to_hit.dot(&cylinder_j);
-		let ij_hit: Vec3 = (i_component * &cylinder_i + j_component * &cylinder_j).normalize(); 
-		let is_front: bool = ij_hit.dot(&cylinder_j) > 0.;
-		if is_front {
-			projection.u = (ij_hit.dot(&cylinder_i) + 1.) / 4.;
-		} else {
-			projection.u = 1. - (ij_hit.dot(&cylinder_i) + 1.) / 4.;
-		}
-        if level > self.height - 0.000001 && level < self.height + 0.000001 { // Cap
-			projection.v = (total_height - (point_to_hit - &self.dir * &self.height).length()) / total_height;
-        } else { // Cone
-			projection.v = point_to_hit.length() / total_height;
-		}
-		projection
-	}
+        let slope_lenght = (self.height.powi(2) + self.radius.powi(2)).sqrt();
+        let total_height = slope_lenght + self.radius;
+
+        let constant_axis: Vec3;
+        if self.dir == Vec3::new(0., 0., 1.) {
+            constant_axis = Vec3::new(0., 1., 0.);
+        } else {
+            constant_axis = Vec3::new(0., 0., 1.);
+        }
+        let cylinder_i = self.dir.cross(&constant_axis).normalize();
+        let cylinder_j = self.dir.cross(&cylinder_i).normalize();
+
+        let i_component: f64 = point_to_hit.dot(&cylinder_i);
+        let j_component: f64 = point_to_hit.dot(&cylinder_j);
+        let ij_hit: Vec3 = (i_component * &cylinder_i + j_component * &cylinder_j).normalize();
+        let is_front: bool = ij_hit.dot(&cylinder_j) > 0.;
+        if is_front {
+            projection.u = (ij_hit.dot(&cylinder_i) + 1.) / 4.;
+        } else {
+            projection.u = 1. - (ij_hit.dot(&cylinder_i) + 1.) / 4.;
+        }
+        if level > self.height - 0.000001 && level < self.height + 0.000001 {
+            // Cap
+            projection.v =
+                (total_height - (point_to_hit - &self.dir * &self.height).length()) / total_height;
+        } else {
+            // Cone
+            projection.v = point_to_hit.length() / total_height;
+        }
+        projection
+    }
 
     fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {
         let pc = hit_position - &self.pos;

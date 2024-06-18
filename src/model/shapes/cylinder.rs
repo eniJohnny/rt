@@ -1,3 +1,6 @@
+use core::panic;
+use std::vec;
+
 use super::Shape;
 use crate::model::materials::material::Projection;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
@@ -28,60 +31,63 @@ impl Shape for Cylinder {
         let c = cov.dot(&cov) - (self.radius * self.radius);
 
         let mut delta = b * b - 4.0 * a * c;
-        if (delta < 0.0) {
-            return None;
-        }
-        delta = delta.sqrt();
 
-        //On calcule la distance avec les deux intersections
-        let mut intersections = Vec::from([(-b - delta) / (2.0 * a), (-b + delta) / (2.0 * a)]);
+        let mut t = Vec::new();
 
-        //On vérifie si les intersections sont bien sur le cylindre (delimité par la hauteur)
-        let projection1 = (intersections[0] * r.get_dir() + r.get_pos() - &self.pos).dot(&self.dir);
-        let projection2 = (intersections[1] * r.get_dir() + r.get_pos() - &self.pos).dot(&self.dir);
-
-        if (projection2 < 0.0 || projection2 > self.height) || intersections[1] < 0. || delta == 0.
-        {
-            intersections.remove(1);
-        }
-        if (projection1 < 0.0 || projection1 > self.height) || intersections[0] < 0. {
-            intersections.remove(0);
+        if delta > 0.0 {
+            delta = delta.sqrt();
+            let (t1, t2) = ((-b - delta) / (2.0 * a), (-b + delta) / (2.0 * a));
+            t.push(t1.min(t2));
+            t.push(t1.max(t2));
+        } else if delta == 0.0 {
+            t.push(-b / (2.0 * a));
         }
 
-        //On vérifie si le rayon intersecte les plans du cylindre
-        match self.plane[0].intersect(r) {
-            Some(intersection) => {
-                let position = intersection[0] * r.get_dir() + r.get_pos();
-                let distance1 = (&position - &self.pos).length();
-                let distance2 = (position - (&self.pos + &self.dir * &self.height)).length();
-                if distance1 < self.radius || distance2 < self.radius {
-                    intersections.push(intersection[0]);
+        if let Some(t3) = self.plane[0].intersect(r) {
+            let t3 = t3[0];
+            let t4 = self.plane[1]
+                .intersect(r)
+                .expect("The cylinder's planes should be parrallel to each other")[0];
+            t.push(t3.min(t4));
+            t.push(t3.max(t4));
+        }
+        match t.len() {
+            2 => {
+                if delta < 0.0 {
+                    // On ne touche que les deux plans, on n'intersecte donc que si on est a l'interieur du cylindre
+                    let mut base = Vec3::new(0.3, 0.8, 0.6);
+                    if base == self.dir {
+                        base = Vec3::new(0.4, -0.5, 0.3);
+                    }
+                    if (r.get_pos() - &self.pos).dot(&self.dir.cross(&base)) < self.radius {
+                        return Some(t);
+                    }
+                } else {
+                    let dot_hit_dir = (r.get_pos() - &self.pos).dot(&self.dir);
+                    if dot_hit_dir > 0. && dot_hit_dir < self.height {
+                        return Some(t);
+                    }
                 }
             }
-            _ => {
-                // Ce bloc sera exécuté pour tous les autres cas, y compris None
-            }
-        }
-        match self.plane[1].intersect(r) {
-            Some(intersection) => {
-                let position = intersection[0] * r.get_dir() + r.get_pos();
-                let distance1 = (&position - &self.pos).length();
-                let distance2 = (position - (&self.pos + &self.dir * &self.height)).length();
-                if distance1 < self.radius || distance2 < self.radius {
-                    intersections.push(intersection[0]);
+            3 => {
+                // On ne touche que la tranche du cylindre, on n'intersecte que si le t cylindre est entre les deux plans (inclusif)
+                if t[0] >= t[1] && t[0] <= t[1] {
+                    t.truncate(1);
+                    return Some(t);
                 }
             }
-            _ => {
-                // Ce bloc sera exécuté pour tous les autres cas, y compris None
+            4 => {
+                // 99.9% des cas, le classico
+                if t[2] > t[1] && t[0] < t[3] {
+                    t.remove(0);
+                    t.remove(2);
+                    t.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+                    return Some(t);
+                }
             }
+            _ => panic!("Should never happen"),
         }
-        if intersections.len() == 0 {
-            return None;
-        }
-
-        //On retourne les intersections triées
-        intersections.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-        return Some(intersections);
+        None
     }
 
     fn projection(&self, hit: &Hit) -> Projection {
