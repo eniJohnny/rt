@@ -66,6 +66,9 @@ impl Scene {
             material.roughness(),
             material.metalness(),
             material.norm(),
+            material.emissive(),
+            material.refraction(),
+            material.opacity(),
         ];
         for texture in textures.iter() {
             match texture {

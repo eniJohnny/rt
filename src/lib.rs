@@ -16,11 +16,12 @@ const SCREEN_WIDTH_U32: u32 = SCREEN_WIDTH as u32;
 const SCREEN_HEIGHT_U32: u32 = SCREEN_HEIGHT as u32;
 const GUI_WIDTH: u32 = 400;
 const GUI_HEIGHT: u32 = 600;
-const MAX_THREADS: usize = 4;
+const MAX_THREADS: usize = 8;
 const BASE_SIMPLIFICATION: usize = 32;
 const MAX_DEPTH: u8 = 10;
-const ANTIALIASING: f64 = 0.002;
-const MAX_ITERATIONS: i32 = 200;
+const ANTIALIASING: f64 = 0.001;
+const MAX_ITERATIONS: i32 = 1000;
+const MAX_EMISSIVE: f64 = 100.;
 
 const SCENE_FOLDER: &str = "scenes";
 const PICKER_LINE_HEIGHT: f64 = 30.0;

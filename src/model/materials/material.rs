@@ -4,7 +4,7 @@ use crate::model::maths::{hit::Hit, vec3::Vec3};
 
 use super::{color::Color, diffuse::Diffuse, texture::Texture};
 
-#[derive(Default)]
+#[derive(Debug, Clone, Default)]
 pub struct Projection {
     pub u: f64,
     pub v: f64,

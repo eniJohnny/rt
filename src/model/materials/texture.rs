@@ -28,11 +28,21 @@ impl Texture {
         }
     }
 
-    pub fn from_float_litteral(string: &String) -> Self {
+    pub fn from_float_scaled(string: &String, default: f64, scale: f64) -> Self {
+        if let Ok(value) = string.parse::<f64>() {
+            Texture::Value(Vec3::from_value(value) / scale)
+        } else if string == "" {
+            Texture::Value(Vec3::from_value(default) / scale)
+        } else {
+            Texture::Texture(string.clone())
+        }
+    }
+
+    pub fn from_float_litteral(string: &String, default: f64) -> Self {
         if let Ok(value) = string.parse::<f64>() {
             Texture::Value(Vec3::from_value(value))
         } else if string == "" {
-            Texture::Value(Vec3::from_value(0.))
+            Texture::Value(Vec3::from_value(default))
         } else {
             Texture::Texture(string.clone())
         }

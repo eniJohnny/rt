@@ -53,11 +53,14 @@ pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
 
     if ray.debug {
         println!(
-            "Metal : {}, Roughness: {}, Color: {}, Norm: {}",
+            "Metal : {}, Roughness: {}, Color: {}, Norm: {}, Emissive: {}, Opacity: {}, Refraction: {}",
             hit.metalness(),
             hit.roughness(),
             hit.color(),
-            hit.norm()
+            hit.norm(),
+            hit.emissive(),
+            hit.opacity(),
+            hit.refraction()
         );
     }
 

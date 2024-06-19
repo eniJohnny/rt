@@ -71,26 +71,46 @@ pub fn sampling_ray(scene: &Scene, ray: &Ray) -> PathBucket {
 }
 
 pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
-    let mut closest: Option<(f64, &Element)> = None;
+    let mut closest: Option<Hit> = None;
     for element in scene.elements().iter() {
         if let Some(t) = element.shape().intersect(ray) {
-            if let Some((tmin, _)) = &closest {
-                if &t[0] < tmin {
-                    closest = Some((t[0], element));
+            for dist in t {
+                if dist < 0.0 {
+                    continue;
                 }
-            } else {
-                closest = Some((t[0], element))
+                if let Some(hit) = &closest {
+                    if &dist < hit.dist() {
+                        let new_hit = Hit::new(
+                            element,
+                            dist,
+                            ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
+                            ray.get_dir(),
+                            scene.textures(),
+                        );
+                        if new_hit.opacity() > 0.5 {
+                            closest = Some(new_hit);
+                        }
+                    }
+                } else {
+                    let new_hit = Hit::new(
+                        element,
+                        dist,
+                        ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
+                        ray.get_dir(),
+                        scene.textures(),
+                    );
+                    if new_hit.opacity() > 0.5 {
+                        closest = Some(new_hit);
+                    }
+                }
             }
         }
     }
     match closest {
         None => None,
-        Some((t, elem)) => Some(Hit::new(
-            elem,
-            t,
-            ray.get_pos() + ray.get_dir() * (t - f64::EPSILON),
-            ray.get_dir(),
-            scene.textures(),
-        )),
+        Some(mut hit) => {
+            hit.map_textures(scene.textures());
+            Some(hit)
+        }
     }
 }
