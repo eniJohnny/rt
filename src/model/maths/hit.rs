@@ -112,9 +112,10 @@ impl<'a> Hit<'a> {
 
     fn map_norm(&mut self, textures: &HashMap<String, RgbaImage>) {
         let vec = self.map_texture(self.element.material().norm(), textures);
-        let norm = (vec.x() - 0.5) * 2. * self.projection().i.clone()
-            + (-vec.y() + 0.5) * 2. * self.projection().j.clone()
-            + (vec.z() - 0.5) * 2. * self.norm();
+        let projection = self.projection();
+        let norm = (vec.x() - 0.5) * 2. * projection.i.clone()
+            + (-vec.y() + 0.5) * 2. * projection.j.clone()
+            + (vec.z() - 0.5) * 2. * projection.k.clone();
         self.norm = norm.normalize();
     }
 

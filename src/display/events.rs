@@ -4,9 +4,16 @@ extern crate winit;
 
 use crate::{
     gui::{
-        draw::draw_gui, textformat::TextFormat, utils::{gui_clicked, hide_gui, hitbox_contains}, Gui
+        draw::draw_gui,
+        textformat::TextFormat,
+        utils::{gui_clicked, hide_gui, hitbox_contains},
+        Gui,
     },
-    model::{materials::{color::Color, texture::Texture}, maths::{vec2::Vec2, vec3::Vec3}, scene::Scene},
+    model::{
+        materials::{color::Color, texture::Texture},
+        maths::{vec2::Vec2, vec3::Vec3},
+        scene::Scene,
+    },
     render::{
         lighting_real::get_lighting_from_hit,
         raycasting::{get_closest_hit, get_ray, get_ray_debug, sampling_ray},
@@ -54,11 +61,9 @@ pub fn event_manager(
     let mut time_of_last_move = Instant::now();
     let time_between_move = Duration::from_millis(1000 / FPS);
 
-
     // Event loop (can't move it elsewhere because of the borrow checker)
     let mut mouse_position = (0.0, 0.0);
     event_loop.run(move |event, _, control_flow: &mut ControlFlow| {
-
         *control_flow = ControlFlow::WaitUntil(Instant::now() + Duration::from_millis(20));
         if scene_change {
             thread::sleep(Duration::from_millis(10));
@@ -70,11 +75,18 @@ pub fn event_manager(
             if mut_scene.gui.is_open() {
                 match mut_scene.gui.displaying().as_str() {
                     "element" => {
-                        mut_scene.gui = draw_gui(&mut img, Some(&mut_scene.elements()[mut_scene.gui.element_index()]), None, mut_scene.gui.element_index());
+                        mut_scene.gui = draw_gui(
+                            &mut img,
+                            Some(&mut_scene.elements()[mut_scene.gui.element_index()]),
+                            None,
+                            mut_scene.gui.element_index(),
+                        );
                     }
                     "light" => {
-                        let index = (mut_scene.gui.light_index() + 1) as usize % mut_scene.lights().len();
-                        mut_scene.gui = draw_gui(&mut img, None, Some(&mut_scene.lights()[index]), index);
+                        let index =
+                            (mut_scene.gui.light_index() + 1) as usize % mut_scene.lights().len();
+                        mut_scene.gui =
+                            draw_gui(&mut img, None, Some(&mut_scene.lights()[index]), index);
                     }
                     _ => {}
                 }
@@ -111,6 +123,8 @@ pub fn event_manager(
                         if let Some(hit) = &hit {
                             //For debug purposes
                             get_lighting_from_hit(&scene, hit, &ray);
+                            let proj = hit.element().shape().projection(hit);
+                            dbg!(proj);
                         }
 
                         if gui_clicked(mouse_position, &scene.gui) {
@@ -133,13 +147,25 @@ pub fn event_manager(
                                     let shape = elem.shape();
 
                                     if RGB_KEYS.contains(&key.as_str()) {
-                                        update_color(key, value, scene.elements_as_mut()[element_index].material_mut());
+                                        update_color(
+                                            key,
+                                            value,
+                                            scene.elements_as_mut()[element_index].material_mut(),
+                                        );
                                     } else if key == "metalness" {
                                         let metalness = value.parse::<f64>().unwrap();
-                                        scene.elements_as_mut()[element_index].material_mut().set_metalness(Texture::Value(Vec3::new(metalness, metalness, metalness)));
+                                        scene.elements_as_mut()[element_index]
+                                            .material_mut()
+                                            .set_metalness(Texture::Value(Vec3::new(
+                                                metalness, metalness, metalness,
+                                            )));
                                     } else if key == "roughness" {
                                         let roughness = value.parse::<f64>().unwrap();
-                                        scene.elements_as_mut()[element_index].material_mut().set_roughness(Texture::Value(Vec3::new(roughness, roughness, roughness)));
+                                        scene.elements_as_mut()[element_index]
+                                            .material_mut()
+                                            .set_roughness(Texture::Value(Vec3::new(
+                                                roughness, roughness, roughness,
+                                            )));
                                     } else {
                                         let new_shape = update_shape(shape, key, value);
                                         if new_shape.is_some() {
@@ -409,7 +435,8 @@ pub fn event_manager(
                         let lights = scene.lights();
                         let light_index = (scene.gui.light_index() + 1) as usize % lights.len();
 
-                        scene.gui = draw_gui(&mut img, None, Some(&lights[light_index]), light_index);
+                        scene.gui =
+                            draw_gui(&mut img, None, Some(&lights[light_index]), light_index);
                         display(&mut pixels, &mut img);
                     }
                     _ => (),
@@ -426,10 +453,16 @@ pub fn event_manager(
                 let mut mut_scene = scene.write().unwrap();
                 if mut_scene.gui.is_open() {
                     if mut_scene.gui.displaying() == "element" {
-                        mut_scene.gui = draw_gui(&mut img, Some(&mut_scene.elements()[mut_scene.gui.element_index()]), None, mut_scene.gui.element_index());
+                        mut_scene.gui = draw_gui(
+                            &mut img,
+                            Some(&mut_scene.elements()[mut_scene.gui.element_index()]),
+                            None,
+                            mut_scene.gui.element_index(),
+                        );
                     } else if mut_scene.gui.displaying() == "light" {
                         let index = mut_scene.gui.light_index() as usize;
-                        mut_scene.gui = draw_gui(&mut img, None, Some(&mut_scene.lights()[index]), index);
+                        mut_scene.gui =
+                            draw_gui(&mut img, None, Some(&mut_scene.lights()[index]), index);
                     }
                 }
                 if mut_scene.gui.keys().len() == 0 {

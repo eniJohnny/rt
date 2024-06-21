@@ -56,10 +56,16 @@ impl Shape for Cone {
         //On vérifie si le rayon intersecte le plan du cone
         match self.plane.intersect(r) {
             Some(intersection) => {
-                let position = intersection[0] * r.get_dir() + r.get_pos();
-                let distance = (position - (&self.pos + &self.dir * &self.height)).length();
-                if distance < self.radius {
-                    intersections.push(intersection[0]);
+                let mut tmin = -1.;
+                for t in intersection {
+                    tmin = t.min(tmin);
+                }
+                if tmin >= 0.0 {
+                    let position = tmin * r.get_dir() + r.get_pos();
+                    let distance = (position - (&self.pos + &self.dir * &self.height)).length();
+                    if distance < self.radius {
+                        intersections.push(tmin);
+                    }
                 }
             }
             _ => {
@@ -135,6 +141,10 @@ impl Shape for Cone {
     }
     fn as_cone(&self) -> Option<&Cone> {
         Some(self)
+    }
+
+    fn pos(&self) -> &Vec3 {
+        &self.pos
     }
 }
 

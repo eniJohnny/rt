@@ -19,6 +19,7 @@ pub trait Shape: Debug + Sync + Send {
     fn intersect(&self, ray: &Ray) -> Option<Vec<f64>>;
     fn projection(&self, hit: &Hit) -> Projection;
     fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3;
+    fn pos(&self) -> &Vec3;
 
     fn as_sphere(&self) -> Option<&Sphere> {
         None

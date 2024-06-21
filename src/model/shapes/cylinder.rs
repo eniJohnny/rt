@@ -1,4 +1,5 @@
 use core::panic;
+use std::f64::consts::PI;
 use std::vec;
 
 use super::Shape;
@@ -47,27 +48,16 @@ impl Shape for Cylinder {
             let t3 = t3[0];
             let t4 = self.plane[1]
                 .intersect(r)
-                .expect("The cylinder's planes should be parrallel to each other")[0];
+                .expect("The cylinder's planes should be parrallel to each other.")[0];
             t.push(t3.min(t4));
             t.push(t3.max(t4));
         }
         match t.len() {
+            1 => {
+                return Some(t);
+            }
             2 => {
-                if delta < 0.0 {
-                    // On ne touche que les deux plans, on n'intersecte donc que si on est a l'interieur du cylindre
-                    let mut base = Vec3::new(0.3, 0.8, 0.6);
-                    if base == self.dir {
-                        base = Vec3::new(0.4, -0.5, 0.3);
-                    }
-                    if (r.get_pos() - &self.pos).dot(&self.dir.cross(&base)) < self.radius {
-                        return Some(t);
-                    }
-                } else {
-                    let dot_hit_dir = (r.get_pos() - &self.pos).dot(&self.dir);
-                    if dot_hit_dir > 0. && dot_hit_dir < self.height {
-                        return Some(t);
-                    }
-                }
+                return None;
             }
             3 => {
                 // On ne touche que la tranche du cylindre, on n'intersecte que si le t cylindre est entre les deux plans (inclusif)
@@ -78,10 +68,12 @@ impl Shape for Cylinder {
             }
             4 => {
                 // 99.9% des cas, le classico
-                if t[2] > t[1] && t[0] < t[3] {
+                if !(t[2] > t[1] || t[3] < t[0]) {
+                    t.sort_unstable_by(|a, b| {
+                        a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal)
+                    });
                     t.remove(0);
                     t.remove(2);
-                    t.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
                     return Some(t);
                 }
             }
@@ -104,28 +96,29 @@ impl Shape for Cylinder {
             constant_axis = Vec3::new(0., 0., 1.);
         }
 
-        projection.i = self.dir().cross(&constant_axis).normalize();
-        projection.j = self.dir().cross(&projection.i).normalize();
+        let i = self.dir().cross(&constant_axis).normalize();
+        let j = self.dir().cross(&i).normalize();
+        let i_component: f64 = cam_hit.dot(&i);
+        let j_component: f64 = cam_hit.dot(&j);
+        let ij_hit: Vec3 = (i_component * &i + j_component * &j).normalize();
+
+        projection.u = 0.5 + i_component.atan2(j_component) / (2. * PI);
+        projection.i = (&ij_hit).cross(self.dir()).normalize();
         projection.k = hit.norm().clone();
-        let i_component: f64 = cam_hit.dot(&projection.i);
-        let j_component: f64 = cam_hit.dot(&projection.j);
-        let ij_hit: Vec3 = (i_component * &projection.i + j_component * &projection.j).normalize();
-        let is_front: bool = ij_hit.dot(&projection.j) > 0.;
-        if is_front {
-            projection.u = (ij_hit.dot(&projection.i) + 1.) / 4.;
-        } else {
-            projection.u = 1. - (ij_hit.dot(&projection.i) + 1.) / 4.;
-        }
+
         if level > -0.000001 && level < 0.000001 {
             // Bottom Cap
+            projection.j = ij_hit;
             projection.v = (hit.pos() - &self.pos).length() / total_height;
         } else if level > self.height - 0.000001 && level < self.height + 0.000001 {
             // Top Cap
+            projection.j = -ij_hit;
             projection.v = (total_height
                 - (hit.pos() - &self.pos - &self.dir * &self.height).length())
                 / total_height;
         } else {
             // Cylinder
+            projection.j = self.dir().clone();
             projection.v = (level + self.radius) / total_height;
         }
         projection
@@ -135,18 +128,31 @@ impl Shape for Cylinder {
         let pc = hit - &self.pos;
         let coef = pc.dot(&self.dir);
         let projection = &self.dir * coef;
+        println!(
+            "\ndir:{}, pos:{}, hit: {}, ray: {}\npc : {}, coef: {}, projection: {}",
+            self.dir, self.pos, hit, ray_dir, pc, coef, projection
+        );
 
+        let norm;
         if coef > -0.000001 && coef < 0.000001 {
-            return self.plane[0].norm(hit, ray_dir);
+            norm = self.plane[0].norm(hit, ray_dir);
+            println!("bot cap: {}", norm);
+        } else if coef > self.height - 0.000001 && coef < self.height + 0.000001 {
+            norm = self.plane[1].norm(hit, ray_dir);
+            println!("top cap: {}", norm);
+        } else {
+            norm = (hit - (&self.pos + &projection)).normalize();
+            println!("side: {}", norm);
         }
-        if coef > self.height - 0.000001 && coef < self.height + 0.000001 {
-            return self.plane[1].norm(hit, ray_dir);
-        }
-
-        return (hit - (&self.pos + &projection)).normalize();
+        println!();
+        return norm;
     }
     fn as_cylinder(&self) -> Option<&Cylinder> {
         Some(self)
+    }
+
+    fn pos(&self) -> &Vec3 {
+        &self.pos
     }
 }
 

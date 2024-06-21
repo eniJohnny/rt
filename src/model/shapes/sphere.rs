@@ -85,6 +85,9 @@ impl Shape for Sphere {
     fn as_cone(&self) -> Option<&super::cone::Cone> {
         None
     }
+    fn pos(&self) -> &Vec3 {
+        &self.pos
+    }
 }
 
 impl Sphere {
