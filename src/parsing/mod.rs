@@ -282,7 +282,7 @@ fn get_material(
         Texture::from_float_litteral(roughness_string, 0.),
         Texture::from_float_scaled(emissive_string, 0., MAX_EMISSIVE),
         Texture::from_float_litteral(refraction_string, 0.),
-        Texture::from_file_or(normal_string, Vec3::new(0., 0., 1.)),
+        Texture::from_file_or(normal_string, Vec3::new(0.5, 0.5, 1.)),
         Texture::from_float_litteral(opacity_string, 1.),
     ))
 }

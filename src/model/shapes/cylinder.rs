@@ -128,23 +128,15 @@ impl Shape for Cylinder {
         let pc = hit - &self.pos;
         let coef = pc.dot(&self.dir);
         let projection = &self.dir * coef;
-        println!(
-            "\ndir:{}, pos:{}, hit: {}, ray: {}\npc : {}, coef: {}, projection: {}",
-            self.dir, self.pos, hit, ray_dir, pc, coef, projection
-        );
 
         let norm;
         if coef > -0.000001 && coef < 0.000001 {
             norm = self.plane[0].norm(hit, ray_dir);
-            println!("bot cap: {}", norm);
         } else if coef > self.height - 0.000001 && coef < self.height + 0.000001 {
             norm = self.plane[1].norm(hit, ray_dir);
-            println!("top cap: {}", norm);
         } else {
-            norm = (hit - (&self.pos + &projection)).normalize();
-            println!("side: {}", norm);
+            norm = (pc - &projection).normalize();
         }
-        println!();
         return norm;
     }
     fn as_cylinder(&self) -> Option<&Cylinder> {
