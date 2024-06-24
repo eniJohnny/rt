@@ -1,5 +1,21 @@
 [
     {
+        "type": "rectangle",
+        "pos": [0, 0, -1],
+        "dir_l": [1, 0, 0],
+        "dir_w": [0, 1, 0],
+        "length": 2,
+        "width": 3,
+        "color": [255, 0, 0],
+        "metalness": 0.7
+    },
+    {
+        "type": "light",
+        "pos": [0, 2, -3],
+        "color": [255, 255, 255],
+        "intensity": 5
+    },
+    {
         "type": "sphere",
         "pos": [-1, 1, 0],
         "dir": [1, 0, 0],
