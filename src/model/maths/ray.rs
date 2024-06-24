@@ -37,6 +37,9 @@ impl Ray {
     pub fn is_sampling(&self) -> bool {
         self.sampling
     }
+    pub fn set_dir(&mut self, dir: Vec3) {
+        self.dir = dir;
+    }
 }
 
 impl Display for Ray {

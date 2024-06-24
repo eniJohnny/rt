@@ -1,278 +1,102 @@
 [
     {
         "type": "sphere",
-        "pos": [-2, 2, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "radius": 0.5,
-        "metalness": 0.0,
-        "roughness": 0.0
+        "pos": [-2.5, 2.5, 2],
+        "dir": [0, 1, 0],
+        "color": "bricks_color.jpg",
+        "radius": 2.0,
+        "normal": "bricks_normal.jpg",
+        "roughness": "bricks_roughness.jpg"
     },
     {
         "type": "sphere",
-        "pos": [-1, 2, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "radius": 0.5,
-        "metalness": 0.0,
-        "roughness": 0.25
-    },
-    {
-        "type": "sphere",
-        "pos": [0, 2, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "radius": 0.5,
-        "metalness": 0.0,
-        "roughness": 0.5
-    },
-    {
-        "type": "sphere",
-        "pos": [1, 2, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "radius": 0.5,
-        "metalness": 0.0,
-        "roughness": 0.75
-    },
-    {
-        "type": "sphere",
-        "pos": [2, 2, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "radius": 0.5,
-        "metalness": 0.0,
-        "roughness": 1.0
-    },
-    {
-        "type": "sphere",
-        "pos": [-2, 1, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "metalness": 0.25,
-        "radius": 0.5,
-        "roughness": 0.0
-    },
-    {
-        "type": "sphere",
-        "pos": [-1, 1, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "metalness": 0.25,
-        "radius": 0.5,
-        "roughness": 0.25
-    },
-    {
-        "type": "sphere",
-        "pos": [0, 1, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "metalness": 0.25,
-        "radius": 0.5,
-        "roughness": 0.5
-    },
-    {
-        "type": "sphere",
-        "pos": [1, 1, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "metalness": 0.25,
-        "radius": 0.5,
-        "roughness": 0.75
-    },
-    {
-        "type": "sphere",
-        "pos": [2, 1, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "radius": 0.5,
-        "metalness": 0.25,
-        "roughness": 1.0
-    },
-    {
-        "type": "sphere",
-        "pos": [-2, 0, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "metalness": 0.5,
-        "radius": 0.5,
-        "roughness": 0.0
-    },
-    {
-        "type": "sphere",
-        "pos": [-1, 0, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "metalness": 0.5,
-        "radius": 0.5,
-        "roughness": 0.25
-    },
-    {
-        "type": "sphere",
-        "pos": [0, 0, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "metalness": 0.5,
-        "radius": 0.5,
-        "roughness": 0.5
-    },
-    {
-        "type": "sphere",
-        "pos": [1, 0, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "metalness": 0.5,
-        "radius": 0.5,
-        "roughness": 0.75
-    },
-    {
-        "type": "sphere",
-        "pos": [2, 0, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "radius": 0.5,
-        "metalness": 0.5,
-        "roughness": 1.0
-    },
-    {
-        "type": "sphere",
-        "pos": [-2, -1, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "metalness": 0.75,
-        "radius": 0.5,
-        "roughness": 0.0
-    },
-    {
-        "type": "sphere",
-        "pos": [-1, -1, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "metalness": 0.75,
-        "radius": 0.5,
-        "roughness": 0.25
-    },
-    {
-        "type": "sphere",
-        "pos": [0, -1, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "metalness": 0.75,
-        "radius": 0.5,
-        "roughness": 0.5
-    },
-    {
-        "type": "sphere",
-        "pos": [1, -1, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "metalness": 0.75,
-        "radius": 0.5,
-        "roughness": 0.75
-    },
-    {
-        "type": "sphere",
-        "pos": [2, -1, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "radius": 0.5,
-        "metalness": 0.75,
-        "roughness": 1.0
+        "pos": [2.5, 2.5, 2],
+        "dir": [0, 1, 0],
+        "color": "wood_color.jpg",
+        "radius": 2.0,
+        "normal": "wood_normal.jpg",
+        "roughness": "wood_roughness.jpg"
     },
     {
         "type": "sphere",
         "pos": [-2, -2, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "metalness": 1.0,
-        "radius": 0.5,
-        "roughness": 0.0
-    },
-    {
-        "type": "sphere",
-        "pos": [-1, -2, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "metalness": 1.0,
-        "radius": 0.5,
-        "roughness": 0.25
-    },
-    {
-        "type": "sphere",
-        "pos": [0, -2, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "metalness": 1.0,
-        "radius": 0.5,
-        "roughness": 0.5
-    },
-    {
-        "type": "sphere",
-        "pos": [1, -2, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "metalness": 1.0,
-        "radius": 0.5,
-        "roughness": 0.75
+        "dir": [0, 1, 0],
+        "color": "plates_color.jpg",
+        "radius": 1.5,
+        "normal": "plates_normal.jpg",
+        "roughness": "plates_roughness.jpg",
+        "metalness": "plates_metal.jpg"
     },
     {
         "type": "sphere",
         "pos": [2, -2, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 255, 255],
-        "radius": 0.5,
-        "metalness": 1.0,
-        "roughness": 1.0
+        "dir": [0, 1, 0],
+        "color": "tiles_color.jpg",
+        "radius": 1.5,
+        "normal": "tiles_normal.jpg",
+        "roughness": "tiles_roughness.jpg"
     },
     {
         "type": "camera",
-        "pos": [0, 0, -9],
+        "pos": [0.0, 0.0, -14.9],
         "dir": [0, 0, 1],
-        "fov": 60
+        "fov": 75
     },
     {
         "type": "plane",
         "pos": [-5, 0, 0],
         "dir": [1, 0, 0],
-        "color": [150, 100, 255],
-        "roughness": 1.0,
-        "emissive": 0.5
+        "color": "bricks_color.jpg",
+        "roughness": "bricks_roughness.jpg",
+        "normal": "bricks_normal.jpg"
     },
     {
         "type": "plane",
         "pos": [5, 0, 0],
         "dir": [-1, 0, 0],
-        "color": [150, 255, 100],
-        "roughness": 1.0,
-        "emissive": 0.5
+        "color": "bricks_color.jpg",
+        "roughness": "bricks_roughness.jpg",
+        "normal": "bricks_normal.jpg"
     },
     {
         "type": "plane",
         "pos": [0, -5, 0],
         "dir": [0, 1, 0],
-        "color": [255, 255, 255],
-        "roughness": 1.0
+        "color": "wood_color.jpg",
+        "roughness": "wood_roughness.jpg",
+        "normal": "wood_normal.jpg"
     },
     {
         "type": "plane",
         "pos": [0, 5, 0],
         "dir": [0, -1, 0],
         "color": [255, 255, 255],
-        "roughness": 1.0
+        "emissive": 2.0
     },
     {
         "type": "plane",
         "pos": [0, 0, 5],
         "dir": [0, 0, -1],
-        "color": [255, 255, 255],
-        "roughness": 1.0,
-        "metalness": 0.0
+        "color": "bricks_color.jpg",
+        "roughness": "bricks_roughness.jpg",
+        "normal": "bricks_normal.jpg"
     },
     {
         "type": "plane",
-        "pos": [0, 0, -10],
+        "pos": [0, 0, -2],
+        "dir": [0, 0, -1],
+        "color": "barreaux_color.jpg",
+        "normal": "barreaux_normal.jpg",
+        "roughness": "barreaux-roughness.jpg",
+        "metalness": "barreaux_metal.jpg",
+        "opacity": "barreaux_opacity.jpg"
+    },
+    {
+        "type": "plane",
+        "pos": [0, 0, -15],
         "dir": [0, 0, 1],
         "color": [255, 255, 255],
-        "roughness": 1.0
+        "roughness": 0.0,
+        "metalness": 0.0
     }
 ]

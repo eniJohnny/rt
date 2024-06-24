@@ -1,4 +1,5 @@
 use super::Shape;
+use crate::model::materials::material::Projection;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 use crate::model::shapes::plane::Plane;
 
@@ -44,22 +45,29 @@ impl Shape for Cone {
         let projection1 = (intersections[0] * r.get_dir() + r.get_pos() - &self.pos).dot(&self.dir);
         let projection2 = (intersections[1] * r.get_dir() + r.get_pos() - &self.pos).dot(&self.dir);
 
-        if (projection2 < 0.0 || projection2 > self.height) || intersections[1] < 0. || delta == 0.{
+        if (projection2 < 0.0 || projection2 > self.height) || intersections[1] < 0. || delta == 0.
+        {
             intersections.remove(1);
         }
-        if (projection1 < 0.0 ||  projection1 > self.height) || intersections[0] < 0.{
+        if (projection1 < 0.0 || projection1 > self.height) || intersections[0] < 0. {
             intersections.remove(0);
         }
 
         //On vérifie si le rayon intersecte le plan du cone
         match self.plane.intersect(r) {
             Some(intersection) => {
-                let position = intersection[0]  * r.get_dir() + r.get_pos();
-                let distance = (position - (&self.pos + &self.dir * &self.height)).length();
-                if distance < self.radius{
-                    intersections.push(intersection[0]);
+                let mut tmin = -1.;
+                for t in intersection {
+                    tmin = t.min(tmin);
                 }
-            },
+                if tmin >= 0.0 {
+                    let position = tmin * r.get_dir() + r.get_pos();
+                    let distance = (position - (&self.pos + &self.dir * &self.height)).length();
+                    if distance < self.radius {
+                        intersections.push(tmin);
+                    }
+                }
+            }
             _ => {
                 // Ce bloc sera exécuté pour tous les autres cas, y compris None
             }
@@ -72,9 +80,54 @@ impl Shape for Cone {
         intersections.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
         return Some(intersections);
     }
-    fn projection(&self, hit: &Hit) -> (f64, f64) {
-        unimplemented!()
+
+    fn projection(&self, hit: &Hit) -> Projection {
+        let mut projection: Projection = Projection::default();
+        let constant_axis: Vec3;
+        if *hit.norm() == Vec3::new(0., 0., 1.) {
+            constant_axis = Vec3::new(0., 1., 0.);
+        } else {
+            constant_axis = Vec3::new(0., 0., 1.);
+        }
+        projection.i = hit.norm().cross(&constant_axis).normalize();
+        projection.j = hit.norm().cross(&projection.i).normalize();
+        projection.k = hit.norm().clone();
+
+        let point_to_hit = hit.pos() - &self.pos;
+        let level = point_to_hit.dot(&self.dir);
+
+        let slope_lenght = (self.height.powi(2) + self.radius.powi(2)).sqrt();
+        let total_height = slope_lenght + self.radius;
+
+        let constant_axis: Vec3;
+        if self.dir == Vec3::new(0., 0., 1.) {
+            constant_axis = Vec3::new(0., 1., 0.);
+        } else {
+            constant_axis = Vec3::new(0., 0., 1.);
+        }
+        let cylinder_i = self.dir.cross(&constant_axis).normalize();
+        let cylinder_j = self.dir.cross(&cylinder_i).normalize();
+
+        let i_component: f64 = point_to_hit.dot(&cylinder_i);
+        let j_component: f64 = point_to_hit.dot(&cylinder_j);
+        let ij_hit: Vec3 = (i_component * &cylinder_i + j_component * &cylinder_j).normalize();
+        let is_front: bool = ij_hit.dot(&cylinder_j) > 0.;
+        if is_front {
+            projection.u = (ij_hit.dot(&cylinder_i) + 1.) / 4.;
+        } else {
+            projection.u = 1. - (ij_hit.dot(&cylinder_i) + 1.) / 4.;
+        }
+        if level > self.height - 0.000001 && level < self.height + 0.000001 {
+            // Cap
+            projection.v =
+                (total_height - (point_to_hit - &self.dir * &self.height).length()) / total_height;
+        } else {
+            // Cone
+            projection.v = point_to_hit.length() / total_height;
+        }
+        projection
     }
+
     fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {
         let pc = hit_position - &self.pos;
         let coef = pc.dot(&self.dir) / pc.dot(&pc);
@@ -84,10 +137,14 @@ impl Shape for Cone {
             return self.plane.norm(hit_position, ray_dir);
         }
 
-        return ((&self.pos + &projection) -(&self.pos + &self.dir * &self.height)).normalize();
+        return ((&self.pos + &projection) - (&self.pos + &self.dir * &self.height)).normalize();
     }
     fn as_cone(&self) -> Option<&Cone> {
         Some(self)
+    }
+
+    fn pos(&self) -> &Vec3 {
+        &self.pos
     }
 }
 
@@ -130,7 +187,7 @@ impl Cone {
             radius,
             height,
             cos_powed,
-            plane
+            plane,
         }
     }
 }
