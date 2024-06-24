@@ -10,7 +10,7 @@ use crate::model::objects::light::{AmbientLight, Light, ParallelLight, PointLigh
 use crate::model::{scene, Element};
 use crate::model::{
     scene::Scene, shapes::cone::Cone, shapes::cylinder::Cylinder, shapes::plane::Plane,
-    shapes::sphere::Sphere, shapes::polygon::Polygon, shapes::polygon::Triangle, shapes::rectangle::Rectangle
+    shapes::sphere::Sphere, shapes::rectangle::Rectangle
 };
 use crate::{error, MAX_EMISSIVE};
 // use crate::{error, SCENE};
@@ -18,6 +18,7 @@ use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::io::Write;
 use std::ops::Add;
+use crate::model::shapes::triangle::Triangle;
 
 pub fn print_scene(scene: &Scene) {
     write!(std::io::stdout(), "{:#?}\n", scene).expect("Error printing scene");
@@ -84,7 +85,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let c = get_coordinates_value(&object, "c");
                 let color = get_color(&object);
 
-                let shape = Box::new(Polygon::new(Vec::from([Triangle{ a,b,c }])));
+                let shape = Box::new(Triangle::new(a,b,c));
                 let material = get_material(&object, color);
 
                 let element = Element::new(shape, material);
