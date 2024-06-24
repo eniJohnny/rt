@@ -118,24 +118,7 @@
         "pos": [0, 0, -20],
         "dir": [0, 0, 1],
         "color": [255, 255, 255],
-        "roughness": 1.0
-    },
-    {
-        "type": "light",
-        "pos": [-3, -3, -4],
-        "color": [50, 50, 255],
-        "intensity": 8
-    },
-    {
-        "type": "light",
-        "pos": [3, -3, -4],
-        "color": [255, 50, 50],
-        "intensity": 8
-    },
-    {
-        "type": "light",
-        "pos": [0, 4, -4],
-        "color": [50, 255, 50],
-        "intensity": 8
+        "roughness": 1.0,
+        "emissive": 1.0
     }
 ]

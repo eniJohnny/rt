@@ -9,12 +9,29 @@ pub struct Diffuse {
     roughness: Texture,
     refraction: Texture,
     norm_variation: Texture,
-    emissive: Texture
+    emissive: Texture,
+    opacity: Texture,
 }
 
 impl Diffuse {
-    pub fn new(color: Texture, metalness: Texture, roughness: Texture, emissive: Texture, refraction: Texture, norm_variation: Texture) -> Self {
-        Self { color, metalness, roughness, emissive, refraction, norm_variation}
+    pub fn new(
+        color: Texture,
+        metalness: Texture,
+        roughness: Texture,
+        emissive: Texture,
+        refraction: Texture,
+        norm_variation: Texture,
+        opacity: Texture,
+    ) -> Self {
+        Self {
+            color,
+            metalness,
+            roughness,
+            emissive,
+            refraction,
+            norm_variation,
+            opacity,
+        }
     }
 }
 
@@ -63,4 +80,10 @@ impl Material for Diffuse {
         self.emissive = emissive;
     }
 
+    fn opacity(&self) -> &Texture {
+        &self.opacity
+    }
+    fn set_opacity(&mut self, opacity: Texture) {
+        self.opacity = opacity;
+    }
 }

@@ -1,9 +1,17 @@
+use std::collections::HashMap;
+
+use image::{RgbImage, RgbaImage};
+
 use crate::{
     gui::Gui,
     model::objects::light::{AmbientLight, Light},
 };
 
-use super::{objects::camera::Camera, Element};
+use super::{
+    materials::{material::Material, texture::Texture},
+    objects::camera::Camera,
+    Element,
+};
 
 #[derive(Debug)]
 pub struct Scene {
@@ -12,8 +20,9 @@ pub struct Scene {
     lights: Vec<Box<dyn Light + Sync + Send>>,
     ambient_light: AmbientLight,
     pub gui: Gui,
-	indirect_lightning: bool,
-	imperfect_reflections: bool,
+    indirect_lightning: bool,
+    imperfect_reflections: bool,
+    textures: HashMap<String, image::RgbaImage>,
 }
 
 impl Scene {
@@ -24,8 +33,9 @@ impl Scene {
             lights: Vec::new(),
             ambient_light: AmbientLight::default(),
             gui: Gui::new(),
-			indirect_lightning: true,
-			imperfect_reflections: true,
+            indirect_lightning: true,
+            imperfect_reflections: true,
+            textures: HashMap::new(),
         }
     }
 
@@ -44,6 +54,42 @@ impl Scene {
 
     pub fn add_ambient_light(&mut self, ambient_light: AmbientLight) {
         self.ambient_light = ambient_light;
+    }
+
+    pub fn add_texture(&mut self, name: String, texture: RgbaImage) {
+        self.textures.insert(name, texture);
+    }
+
+    pub fn add_textures(&mut self, material: &Box<dyn Material + Sync + Send>) {
+        let textures = [
+            material.color(),
+            material.roughness(),
+            material.metalness(),
+            material.norm(),
+            material.emissive(),
+            material.refraction(),
+            material.opacity(),
+        ];
+        for texture in textures.iter() {
+            match texture {
+                Texture::Value(_) => {}
+                Texture::Texture(path) => {
+                    if path == "" || path.contains("..") {
+                        panic!("Textures should only be stored in the textures folder.");
+                    }
+                    if !self.textures.contains_key(path) {
+                        let pathStr = String::from("./textures/") + path;
+                        self.add_texture(
+                            path.clone(),
+                            match image::open(&pathStr) {
+                                Ok(img) => img.to_rgba8(),
+                                Err(_) => panic!("Error opening texture file {}", path),
+                            },
+                        );
+                    }
+                }
+            }
+        }
     }
 
     // Accessors
@@ -70,12 +116,16 @@ impl Scene {
         &self.ambient_light
     }
 
-	pub fn indirect_lightning(&self) -> bool {
+    pub fn indirect_lightning(&self) -> bool {
         self.indirect_lightning
     }
 
-	pub fn imperfect_reflections(&self) -> bool {
+    pub fn imperfect_reflections(&self) -> bool {
         self.imperfect_reflections
+    }
+
+    pub fn textures(&self) -> &HashMap<String, image::RgbaImage> {
+        &self.textures
     }
 
     // Mutators

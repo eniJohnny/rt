@@ -29,7 +29,7 @@ impl Color {
         Self { r, g, b }
     }
 
-    pub fn to_rgba(self) -> Rgba<u8> {
+    pub fn to_rgba(&self) -> Rgba<u8> {
         Rgba([
             (self.r * 255.) as u8,
             (self.g * 255.) as u8,
@@ -43,7 +43,11 @@ impl Color {
     }
 
     pub fn from_rgba(color: &Rgba<u8>) -> Self {
-        Color::new(color.0[0] as f64 / 255., color.0[1] as f64 / 255., color.0[2] as f64 / 255.)
+        Color::new(
+            color.0[0] as f64 / 255.,
+            color.0[1] as f64 / 255.,
+            color.0[2] as f64 / 255.,
+        )
     }
 
     pub fn clamp(&self, min: f64, max: f64) -> Self {
@@ -306,4 +310,3 @@ impl Div<&Color> for f64 {
         }
     }
 }
-

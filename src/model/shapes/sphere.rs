@@ -1,5 +1,8 @@
-use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
+use std::f64::consts::PI;
+
 use super::Shape;
+use crate::model::materials::material::Projection;
+use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 
 #[derive(Debug)]
 pub struct Sphere {
@@ -30,35 +33,39 @@ impl Shape for Sphere {
         None
     }
 
-    fn projection(&self, hit: &Hit) -> (f64, f64) {
-		if self.dir == *hit.norm() {
-			return (0., 1.);
-		}
-		else if self.dir == -hit.norm() {
-			return (0., 0.);
-		}
-		let constant_axis: Vec3;
-		if self.dir == Vec3::new(0., 0., 1.) {
-			constant_axis = Vec3::new(0., 1., 0.);
-		} else {
-			constant_axis = Vec3::new(0., 0., 1.);
-		}
-		let	(u_ratio, v_ratio): (f64, f64);
-		v_ratio = (self.dir.dot(&hit.norm()) + 1.) / 2.;
-		let i: Vec3 = self.dir().cross(&constant_axis).normalize();
-		let j: Vec3 = self.dir().cross(&i).normalize();
-		let i_component: f64 = hit.norm().dot(&i);
-		let j_component: f64 = hit.norm().dot(&j);
-		let ij_hit: Vec3 = (i_component * &i + j_component * &j).normalize(); 
-		let is_front: bool = ij_hit.dot(&j) > 0.;
-		if is_front {
-			u_ratio = (ij_hit.dot(&i) + 1.) / 4.;
-		} else {
-			u_ratio = 1. - (ij_hit.dot(&i) + 1.) / 4.;
-		}
-		(u_ratio, v_ratio)
+    fn projection(&self, hit: &Hit) -> Projection {
+        let mut projection: Projection = Projection::default();
+
+        let constant_axis: Vec3;
+        if *hit.norm() == Vec3::new(0., 0., 1.) {
+            constant_axis = Vec3::new(0., 1., 0.);
+        } else {
+            constant_axis = Vec3::new(0., 0., 1.);
+        }
+        projection.v = ((self.dir.dot(&hit.norm()) + 1.) / 2.);
+        projection.i = hit.norm().cross(&constant_axis).normalize();
+        projection.j = hit.norm().cross(&projection.i).normalize();
+        projection.k = hit.norm().clone();
+        let constant_axis: Vec3;
+        if self.dir == Vec3::new(0., 0., 1.) {
+            constant_axis = Vec3::new(0., 1., 0.);
+        } else {
+            constant_axis = Vec3::new(0., 0., 1.);
+        }
+        projection.v = ((self.dir.dot(&hit.norm()) + 1.) / 2.).clamp(0., 1.);
+        projection.i = self.dir.cross(&constant_axis).normalize();
+        projection.j = self.dir.cross(&projection.i).normalize();
+        projection.k = hit.norm().clone();
+        let i_component: f64 = hit.norm().dot(&projection.i);
+        let j_component: f64 = hit.norm().dot(&projection.j);
+        let k_component: f64 = hit.norm().dot(&self.dir);
+        projection.u = (f64::atan2(i_component, j_component) + PI) / (2. * PI);
+        projection.v = f64::acos(k_component) / PI;
+        projection.i = hit.norm().cross(&self.dir).normalize();
+        projection.j = hit.norm().cross(&projection.i).normalize();
+        projection
     }
-	
+
     fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {
         (hit_position - self.pos()).normalize()
     }
@@ -77,6 +84,9 @@ impl Shape for Sphere {
 
     fn as_cone(&self) -> Option<&super::cone::Cone> {
         None
+    }
+    fn pos(&self) -> &Vec3 {
+        &self.pos
     }
 }
 
