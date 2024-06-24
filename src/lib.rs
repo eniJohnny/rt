@@ -11,6 +11,8 @@ pub mod picker;
 pub mod render;
 
 const DISPLAY_AABB: bool = false;
+const AABB_WIREFRAME: bool = false;
+const WIREFRAME_THICKNESS: f64 = 0.05;
 const ERROR_MARGIN: f64 = 0.000000000001;
 const SCREEN_WIDTH: usize = 1600;
 const SCREEN_HEIGHT: usize = 900;
@@ -45,7 +47,7 @@ const CAM_MOVE_KEYS: [VirtualKeyCode; 10] = [
 ];
 
 pub fn run() {
-    let path = String::from("scenes/metalrough.json");
+    let path = String::from("scenes/aabb.json");
     if path != "" {
         let scene = get_scene(&path);
         display_scene(scene);

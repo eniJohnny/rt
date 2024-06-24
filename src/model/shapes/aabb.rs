@@ -3,7 +3,7 @@ use std::default;
 use super::Shape;
 use crate::model::materials::material::Projection;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
-use crate::ERROR_MARGIN;
+use crate::{ERROR_MARGIN, WIREFRAME_THICKNESS};
 
 
 #[derive(Debug, Clone)]
@@ -82,6 +82,24 @@ impl Aabb {
         self.pos = pos
     }
 
+    // Methods
+    pub fn is_wireframe_point(&self, point: &Vec3) -> bool {
+        let x = *point.x();
+        let y = *point.y();
+        let z = *point.z();
+
+        // Two dimensions are close to the same edge = point is part of the wireframe
+        let x_min_near_edge = (x - self.x_min).abs() < WIREFRAME_THICKNESS;
+        let x_max_near_edge = (x - self.x_max).abs() < WIREFRAME_THICKNESS;
+        let y_min_near_edge = (y - self.y_min).abs() < WIREFRAME_THICKNESS;
+        let y_max_near_edge = (y - self.y_max).abs() < WIREFRAME_THICKNESS;
+        let z_min_near_edge = (z - self.z_min).abs() < WIREFRAME_THICKNESS;
+        let z_max_near_edge = (z - self.z_max).abs() < WIREFRAME_THICKNESS;
+
+        let near_edge_count = x_min_near_edge as i32 + x_max_near_edge as i32 + y_min_near_edge as i32 + y_max_near_edge as i32 + z_min_near_edge as i32 + z_max_near_edge as i32;
+
+        return near_edge_count >= 2;
+    }
 }
 
 impl Shape for Aabb {

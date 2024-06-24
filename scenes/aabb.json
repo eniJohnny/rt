@@ -2,58 +2,63 @@
     {
         "type": "cone",
         "pos": [0, 0, 0],
-        "dir": [0, 1, 0],
-        "color": [255, 0, 0],
-        "radius": 0.3,
-        "height": 1.0,
-        "roughness": 0.1,
-        "metalness": 0.7
+        "dir": [1, 1, 1],
+        "color": [255, 255, 255],
+        "radius": 0.5,
+        "metalness": 1.0,
+        "roughness": 1.0,
+        "height": 2,
+        "emissive": 0.3
     },
     {
         "type": "camera",
+        "pos": [0, 0, -9],
+        "dir": [0, 0, 1],
+        "fov": 60
+    },
+    {
+        "type": "plane",
+        "pos": [-5, 0, 0],
+        "dir": [1, 0, 0],
+        "color": [150, 100, 255],
+        "roughness": 1.0,
+        "emissive": 0.5
+    },
+    {
+        "type": "plane",
+        "pos": [5, 0, 0],
+        "dir": [-1, 0, 0],
+        "color": [150, 255, 100],
+        "roughness": 1.0,
+        "emissive": 0.5
+    },
+    {
+        "type": "plane",
+        "pos": [0, -5, 0],
+        "dir": [0, 1, 0],
+        "color": [255, 255, 255],
+        "roughness": 1.0
+    },
+    {
+        "type": "plane",
+        "pos": [0, 5, 0],
+        "dir": [0, -1, 0],
+        "color": [255, 255, 255],
+        "roughness": 1.0
+    },
+    {
+        "type": "plane",
+        "pos": [0, 0, 5],
+        "dir": [0, 0, -1],
+        "color": [255, 255, 255],
+        "roughness": 1.0,
+        "metalness": 0.0
+    },
+    {
+        "type": "plane",
         "pos": [0, 0, -10],
         "dir": [0, 0, 1],
-        "fov": 45
-    },
-    {
-        "type": "light",
-        "pos": [0, 0, -10],
         "color": [255, 255, 255],
-        "intensity": 100
-    },
-    {
-        "type": "light",
-        "pos": [0, 0, 10],
-        "color": [255, 255, 255],
-        "intensity": 100
-    },
-    {
-        "type": "light",
-        "pos": [0, -10, 0],
-        "color": [255, 255, 255],
-        "intensity": 100
-    },
-    {
-        "type": "light",
-        "pos": [0, 10, 0],
-        "color": [255, 255, 255],
-        "intensity": 100
-    },
-    {
-        "type": "light",
-        "pos": [-10, 0, 0],
-        "color": [255, 255, 255],
-        "intensity": 100
-    },
-    {
-        "type": "light",
-        "pos": [10, 0, 0],
-        "color": [255, 255, 255],
-        "intensity": 100
-    },
-    {
-        "type": "ambient",
-        "color": [255, 255, 255],
-        "intensity": 0.8
+        "roughness": 1.0
     }
 ]
