@@ -14,7 +14,9 @@ use crate::{
     CAM_MOVE_KEYS, FPS, RGB_KEYS,
 };
 use image::{ImageBuffer, Rgba, RgbaImage};
+use chrono::{DateTime, Utc};
 use std::{
+    path::Path,
     sync::{
         mpsc::{Receiver, Sender},
         Arc, RwLock,
@@ -284,6 +286,17 @@ pub fn event_manager(
                         } else {
                             *control_flow = ControlFlow::Exit;
                         }
+                    }
+                    Some(VirtualKeyCode::P) => {
+                        // Save a screenshot
+                        let date: DateTime<Utc> = Utc::now();
+                        // let datestring = format!("{}", date.format("%Y-%m-%d %H:%M:%S"));
+                        let datestring = format!("{}", date.format("%y%m%d_%H%M%S%3f"));
+                        if Path::new("screenshots").exists() == false {
+                            std::fs::create_dir("screenshots").unwrap();
+                        }
+                        let path = format!("screenshots/screenshot_{}.png", datestring);
+                        img.save(path).unwrap();
                     }
                     c if (c >= Some(VirtualKeyCode::Numpad0)
                         && c <= Some(VirtualKeyCode::Numpad9))
