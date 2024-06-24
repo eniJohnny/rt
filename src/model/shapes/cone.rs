@@ -1,4 +1,3 @@
-use super::aabb::Aabb;
 use super::Shape;
 use crate::model::materials::material::Projection;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
