@@ -2,18 +2,16 @@ extern crate image;
 extern crate pixels;
 extern crate winit;
 
-pub mod utils;
-pub mod update;
 pub mod events;
+pub mod events2;
+pub mod update;
+pub mod utils;
 
 use crate::{
-    model::scene::Scene,
-    SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32,
+    model::scene::Scene, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32,
 };
 use image::RgbaImage;
-use std::
-    sync::{Arc, RwLock}
-;
+use std::sync::{Arc, RwLock};
 
 use crate::render::render_threads::start_render_threads;
 use pixels::{Pixels, SurfaceTexture};

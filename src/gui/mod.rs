@@ -1,12 +1,14 @@
 pub mod draw;
-pub mod utils;
+pub mod elements;
+pub mod gui;
+pub mod settings;
 pub mod textformat;
+pub mod utils;
 
-use crate::
-    model::{maths::vec2::Vec2, Element}
-;
+use elements::window::UIBox;
 
-#[derive(Debug, PartialEq, Clone)]
+use crate::model::{maths::vec2::Vec2, Element};
+
 pub struct Gui {
     keys: Vec<String>,
     values: Vec<String>,
@@ -19,6 +21,7 @@ pub struct Gui {
     is_open: bool,
     light_index: i32,
     displaying: String,
+    subwindows: Vec<UIBox>,
 }
 
 impl Gui {
@@ -35,6 +38,7 @@ impl Gui {
             is_open: false,
             light_index: -1,
             displaying: "".to_string(),
+            subwindows: vec![],
         }
     }
 
@@ -71,6 +75,9 @@ impl Gui {
     pub fn displaying(&self) -> &String {
         &self.displaying
     }
+    pub fn subwindows(&self) -> &Vec<UIBox> {
+        &self.subwindows
+    }
 
     pub fn set_element_index(&mut self, index: usize) {
         self.element_index = index;
@@ -94,5 +101,4 @@ impl Gui {
     pub fn set_displaying(&mut self, displaying: &String) {
         self.displaying = displaying.to_string();
     }
-
 }

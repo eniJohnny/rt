@@ -96,13 +96,13 @@ impl<'a> Hit<'a> {
 
     fn map_texture(&mut self, texture: &Texture, map: &HashMap<String, RgbaImage>) -> Vec3 {
         match texture {
-            Texture::Texture(file) => {
+            Texture::Texture(file, _) => {
                 let projection = self.projection();
                 let img = map.get(file).unwrap();
                 let color = Texture::get(projection, img);
                 Vec3::from_color(color)
             }
-            Texture::Value(value) => value.clone(),
+            Texture::Value(value, _) => value.clone(),
         }
     }
 

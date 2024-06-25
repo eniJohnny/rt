@@ -19,20 +19,12 @@ pub fn hide_gui(img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, full_img: &Rgba
     for x in x_start..img.width() {
         for y in 0..height {
             let pixel = full_img.get_pixel(x, y).to_rgba();
-            img.put_pixel(
-                x,
-                y,
-                pixel,
-            );
+            img.put_pixel(x, y, pixel);
         }
     }
 }
 
 pub fn gui_clicked(pos: (f64, f64), gui: &Gui) -> bool {
-    if gui == &Gui::new() {
-        return false;
-    }
-
     let x = pos.0 as u32;
     let y = pos.1 as u32;
 

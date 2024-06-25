@@ -12,7 +12,7 @@ use crate::{
 
 use super::{
     lighting_sampling::{
-        get_indirect_light_sample, get_reflected_light_bucket, get_reflected_light_sample,
+        get_indirect_light_bucket, get_indirect_light_sample, get_reflected_light_sample,
         random_unit_vector, reflect_dir,
     },
     raycasting::{get_closest_hit, get_ray},
@@ -78,7 +78,7 @@ pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
     let rand = rand::thread_rng().gen_range(0.0..1.0);
     if rand > reflected + hit.metalness() {
         // Indirect Light
-        if scene.indirect_lightning() && ray.get_depth() < MAX_DEPTH {
+        if scene.indirect_lightning() && ray.get_depth() < MAX_DEPTH as u8 {
             // if ray.get_depth() == 0 {
             //     let sample = get_indirect_light_sample(hit.clone(), scene, &ray);
             //     light_color += sample.color * sample.weight * hit.color();
@@ -92,7 +92,7 @@ pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
             light_color = get_lighting_from_ray(scene, &indirect_ray) * hit.color();
             // }
         }
-    } else if scene.imperfect_reflections() && ray.get_depth() < MAX_DEPTH {
+    } else if scene.imperfect_reflections() && ray.get_depth() < MAX_DEPTH as u8 {
         let reflect_color;
         // if ray.get_depth() == 0 {
         //     let sample = get_reflected_light_sample(hit.clone(), scene, &ray, hit.roughness());

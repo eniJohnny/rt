@@ -141,7 +141,7 @@ pub fn start_render_threads(
                 thread::sleep(Duration::from_millis(5));
             });
         }
-        build_image_from_tilesets(rc, rb, ta, work_queue);
+        build_image_from_tilesets(rc, rb, ta, work_queue, scene);
     });
     (ra, tb)
 }
@@ -169,6 +169,7 @@ fn build_image_from_tilesets(
     rb: Receiver<bool>,
     ta: Sender<(RgbaImage, bool)>,
     work_queue: Arc<Mutex<VecDeque<Tile>>>,
+    scene: Arc<RwLock<Scene>>,
 ) {
     // Bon c'est un peu le bordel, je pense que je pourrais faire un truc mieux que ca, je previens, la c'est un peu fouillis
 
@@ -210,7 +211,7 @@ fn build_image_from_tilesets(
                 if max_res_to_do == 0 {
                     iterations_done += 1;
                     final_img = add_iteration_to_final_img(img, final_img, iterations_done);
-                    if iterations_done < max_iterations {
+                    if iterations_done < scene.read().unwrap().settings().iterations as i32 {
                         low_res_to_do =
                             generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
                         max_res_to_do = low_res_to_do;
@@ -242,7 +243,10 @@ fn build_image_from_tilesets(
             } else {
                 // Si aucun changement n'a ete detecte on envoie l'image actuelle
                 if iterations_done > 0 {
-                    ta.send((vec_to_image(&final_img), iterations_done == max_iterations));
+                    ta.send((
+                        vec_to_image(&final_img),
+                        iterations_done == scene.read().unwrap().settings().iterations as i32,
+                    ));
                 } else {
                     ta.send((vec_to_image(&img), false));
                 }
@@ -263,9 +267,8 @@ fn add_iteration_to_final_img(
                 let mut new_iter_color = iteration.get(x).unwrap().get(y).unwrap();
                 let iterations_done = iterations_done as f64;
                 base_color = (base_color * (iterations_done - 1.) / iterations_done)
-                    + (new_iter_color * (1. / iterations_done));
-                base_color.clone_into(final_img.get_mut(x).unwrap().get_mut(y).unwrap());
-                // final_img[x][y] = base_color;
+                    + (new_iter_color * (1. / iterations_done as f64));
+                final_img.get_mut(x).unwrap()[y] = base_color;
             }
         }
     } else {

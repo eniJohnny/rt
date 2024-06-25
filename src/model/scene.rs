@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use image::{RgbImage, RgbaImage};
 
 use crate::{
-    gui::Gui,
+    gui::{settings::Settings, Gui},
     model::objects::light::{AmbientLight, Light},
 };
 
@@ -19,7 +19,7 @@ pub struct Scene {
     camera: Camera,
     lights: Vec<Box<dyn Light + Sync + Send>>,
     ambient_light: AmbientLight,
-    pub gui: Gui,
+    settings: Settings,
     indirect_lightning: bool,
     imperfect_reflections: bool,
     textures: HashMap<String, image::RgbaImage>,
@@ -32,7 +32,7 @@ impl Scene {
             camera: Camera::default(),
             lights: Vec::new(),
             ambient_light: AmbientLight::default(),
-            gui: Gui::new(),
+            settings: Settings::default(),
             indirect_lightning: true,
             imperfect_reflections: true,
             textures: HashMap::new(),
@@ -56,6 +56,14 @@ impl Scene {
         self.ambient_light = ambient_light;
     }
 
+    pub fn settings(&self) -> &Settings {
+        &self.settings
+    }
+
+    pub fn settings_mut(&mut self) -> &mut Settings {
+        &mut self.settings
+    }
+
     pub fn add_texture(&mut self, name: String, texture: RgbaImage) {
         self.textures.insert(name, texture);
     }
@@ -72,16 +80,16 @@ impl Scene {
         ];
         for texture in textures.iter() {
             match texture {
-                Texture::Value(_) => {}
-                Texture::Texture(path) => {
+                Texture::Value(..) => {}
+                Texture::Texture(path, _) => {
                     if path == "" || path.contains("..") {
                         panic!("Textures should only be stored in the textures folder.");
                     }
                     if !self.textures.contains_key(path) {
-                        let pathStr = String::from("./textures/") + path;
+                        let path_str = String::from("./textures/") + path;
                         self.add_texture(
                             path.clone(),
-                            match image::open(&pathStr) {
+                            match image::open(&path_str) {
                                 Ok(img) => img.to_rgba8(),
                                 Err(_) => panic!("Error opening texture file {}", path),
                             },
