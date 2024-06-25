@@ -10,7 +10,10 @@ use crate::{
         Gui,
     },
     model::{
-        materials::{color::Color, texture::Texture},
+        materials::{
+            color::Color,
+            texture::{Texture, TextureType},
+        },
         maths::{vec2::Vec2, vec3::Vec3},
         scene::Scene,
     },
@@ -20,8 +23,8 @@ use crate::{
     },
     CAM_MOVE_KEYS, FPS, RGB_KEYS,
 };
-use image::{ImageBuffer, Rgba, RgbaImage};
 use chrono::{DateTime, Utc};
+use image::{ImageBuffer, Rgba, RgbaImage};
 use std::{
     path::Path,
     sync::{
@@ -58,6 +61,7 @@ pub fn event_manager(
     let format = TextFormat::new_base_format();
     let editing_format = TextFormat::new_editing_format();
     let mut full_img: RgbaImage = img.clone();
+    let mut gui = Gui::new();
 
     let mut current_input: Option<VirtualKeyCode> = None;
     let mut time_of_last_move = Instant::now();
@@ -74,21 +78,19 @@ pub fn event_manager(
             img = render_img;
 
             let mut mut_scene = scene.write().unwrap();
-            if mut_scene.gui.is_open() {
-                match mut_scene.gui.displaying().as_str() {
+            if gui.is_open() {
+                match gui.displaying().as_str() {
                     "element" => {
-                        mut_scene.gui = draw_gui(
+                        gui = draw_gui(
                             &mut img,
-                            Some(&mut_scene.elements()[mut_scene.gui.element_index()]),
+                            Some(&mut_scene.elements()[gui.element_index()]),
                             None,
-                            mut_scene.gui.element_index(),
+                            gui.element_index(),
                         );
                     }
                     "light" => {
-                        let index =
-                            (mut_scene.gui.light_index() + 1) as usize % mut_scene.lights().len();
-                        mut_scene.gui =
-                            draw_gui(&mut img, None, Some(&mut_scene.lights()[index]), index);
+                        let index = (gui.light_index() + 1) as usize % mut_scene.lights().len();
+                        gui = draw_gui(&mut img, None, Some(&mut_scene.lights()[index]), index);
                     }
                     _ => {}
                 }
@@ -129,22 +131,22 @@ pub fn event_manager(
                             dbg!(proj);
                         }
 
-                        if gui_clicked(mouse_position, &scene.gui) {
+                        if gui_clicked(mouse_position, &gui) {
                             // If the GUI is clicked
 
                             let mut editing = false;
 
-                            if hitbox_contains(scene.gui.cancel_hitbox(), mouse_position) {
+                            if hitbox_contains(gui.cancel_hitbox(), mouse_position) {
                                 // Close GUI
                                 hide_gui(&mut img, &full_img);
-                                scene.gui = Gui::new();
+                                gui = Gui::new();
                                 display(&mut pixels, &mut img);
-                            } else if hitbox_contains(scene.gui.apply_hitbox(), mouse_position) {
+                            } else if hitbox_contains(gui.apply_hitbox(), mouse_position) {
                                 // Apply changes for every key
-                                for i in 0..scene.gui.keys().len() {
-                                    let key = scene.gui.keys()[i].clone();
-                                    let value = scene.gui.values()[i].clone().replace("_", "");
-                                    let element_index = scene.gui.element_index();
+                                for i in 0..gui.keys().len() {
+                                    let key = gui.keys()[i].clone();
+                                    let value = gui.values()[i].clone().replace("_", "");
+                                    let element_index = gui.element_index();
                                     let elem = &scene.elements()[element_index];
                                     let shape = elem.shape();
 
@@ -158,16 +160,18 @@ pub fn event_manager(
                                         let metalness = value.parse::<f64>().unwrap();
                                         scene.elements_as_mut()[element_index]
                                             .material_mut()
-                                            .set_metalness(Texture::Value(Vec3::new(
-                                                metalness, metalness, metalness,
-                                            )));
+                                            .set_metalness(Texture::Value(
+                                                Vec3::new(metalness, metalness, metalness),
+                                                TextureType::Vector,
+                                            ));
                                     } else if key == "roughness" {
                                         let roughness = value.parse::<f64>().unwrap();
                                         scene.elements_as_mut()[element_index]
                                             .material_mut()
-                                            .set_roughness(Texture::Value(Vec3::new(
-                                                roughness, roughness, roughness,
-                                            )));
+                                            .set_roughness(Texture::Value(
+                                                Vec3::new(roughness, roughness, roughness),
+                                                TextureType::Vector,
+                                            ));
                                     } else {
                                         let new_shape = update_shape(shape, key, value);
                                         if new_shape.is_some() {
@@ -179,9 +183,9 @@ pub fn event_manager(
                                 }
                                 display(&mut pixels, &mut img);
                             } else {
-                                let index = scene.gui.updating_index();
-                                let value = scene.gui.values()[index].clone().replace("_", "");
-                                let hitbox = scene.gui.hitboxes()[index].clone();
+                                let index = gui.updating_index();
+                                let value = gui.values()[index].clone().replace("_", "");
+                                let hitbox = gui.hitboxes()[index].clone();
                                 let pos = Vec2::new(*hitbox.0.x() as f64, *hitbox.0.y() as f64);
                                 let background_pos =
                                     Vec2::new(*hitbox.0.x() as f64 - 10., *hitbox.0.y() as f64);
@@ -191,16 +195,16 @@ pub fn event_manager(
                                 draw_text(&mut img, &pos, text, &format);
                                 display(&mut pixels, &mut img);
                             }
-                            if scene.gui.keys().len() > 0 {
-                                for i in 0..scene.gui.keys().len() {
-                                    let hitbox = scene.gui.hitboxes()[i].clone();
+                            if gui.keys().len() > 0 {
+                                for i in 0..gui.keys().len() {
+                                    let hitbox = gui.hitboxes()[i].clone();
                                     if hitbox_contains(&hitbox, mouse_position) {
                                         // Reset previous value formatting
-                                        if scene.gui.updating() {
-                                            let index = scene.gui.updating_index();
+                                        if gui.updating() {
+                                            let index = gui.updating_index();
                                             let value =
-                                                scene.gui.values()[index].clone().replace("_", "");
-                                            let hitbox = scene.gui.hitboxes()[index].clone();
+                                                gui.values()[index].clone().replace("_", "");
+                                            let hitbox = gui.hitboxes()[index].clone();
                                             let pos = Vec2::new(
                                                 *hitbox.0.x() as f64,
                                                 *hitbox.0.y() as f64,
@@ -221,28 +225,28 @@ pub fn event_manager(
                                         }
 
                                         // Update value
-                                        scene.gui.set_updating(true);
-                                        scene.gui.set_updating_index(i);
+                                        gui.set_updating(true);
+                                        gui.set_updating_index(i);
                                         editing = true;
                                     }
                                 }
                                 if editing == false {
-                                    let index = scene.gui.updating_index();
-                                    let value = scene.gui.values()[index].clone().replace("_", "");
-                                    let hitbox = scene.gui.hitboxes()[index].clone();
+                                    let index = gui.updating_index();
+                                    let value = gui.values()[index].clone().replace("_", "");
+                                    let hitbox = gui.hitboxes()[index].clone();
                                     let pos =
                                         Vec2::new(*hitbox.0.x() as f64 - 10., *hitbox.0.y() as f64);
 
                                     let text = format!("{}", value);
                                     draw_text(&mut img, &pos, text, &format);
-                                    scene.gui.set_updating(false);
+                                    gui.set_updating(false);
                                 }
                             }
 
-                            if scene.gui.updating() {
-                                let index = scene.gui.updating_index();
-                                let value = scene.gui.values()[index].clone().replace("_", "");
-                                let hitbox = scene.gui.hitboxes()[index].clone();
+                            if gui.updating() {
+                                let index = gui.updating_index();
+                                let value = gui.values()[index].clone().replace("_", "");
+                                let hitbox = gui.hitboxes()[index].clone();
                                 let pos =
                                     Vec2::new(*hitbox.0.x() as f64 - 10., *hitbox.0.y() as f64);
 
@@ -265,16 +269,16 @@ pub fn event_manager(
                                 .unwrap()
                                 as usize;
 
-                            if scene.gui.keys().len() == 0 {
+                            if gui.keys().len() == 0 {
                                 full_img = img.clone();
                             }
 
-                            scene.gui = display_element_infos(element, &mut img);
-                            scene.gui.set_element_index(element_index);
+                            gui = display_element_infos(element, &mut img);
+                            gui.set_element_index(element_index);
                             display(&mut pixels, &mut img);
                         } else {
                             hide_gui(&mut img, &full_img);
-                            scene.gui = Gui::new();
+                            gui = Gui::new();
                             display(&mut pixels, &mut img);
                         }
                     }
@@ -305,9 +309,9 @@ pub fn event_manager(
                         scene_change = true;
                     }
                     Some(VirtualKeyCode::Escape) => {
-                        if scene.gui.is_open() {
+                        if gui.is_open() {
                             hide_gui(&mut img, &full_img);
-                            scene.gui = Gui::new();
+                            gui = Gui::new();
                             display(&mut pixels, &mut img);
                         } else {
                             *control_flow = ControlFlow::Exit;
@@ -328,13 +332,13 @@ pub fn event_manager(
                         && c <= Some(VirtualKeyCode::Numpad9))
                         || (c >= Some(VirtualKeyCode::Key1) && c <= Some(VirtualKeyCode::Key0)) =>
                     {
-                        if scene.gui.updating() == false {
+                        if gui.updating() == false {
                             return;
                         }
 
                         // Add c to the edited value
-                        let index = scene.gui.updating_index();
-                        let hitbox = scene.gui.hitboxes()[index].clone();
+                        let index = gui.updating_index();
+                        let hitbox = gui.hitboxes()[index].clone();
                         let new_hitbox = (
                             Vec2::new(*hitbox.0.x() - 10., *hitbox.0.y()),
                             hitbox.1.clone(),
@@ -343,7 +347,7 @@ pub fn event_manager(
 
                         // -10 px for the _ character
                         let pos = Vec2::new(*pos.x() as f64 - 10., *pos.y() as f64);
-                        let value = scene.gui.values()[index].clone().replace("_", "");
+                        let value = gui.values()[index].clone().replace("_", "");
                         let mut number = c.unwrap() as u8;
                         if c.unwrap() >= VirtualKeyCode::Key1 && c.unwrap() <= VirtualKeyCode::Key9
                         {
@@ -356,7 +360,7 @@ pub fn event_manager(
 
                         let value = format!("{}{:?}_", value, number);
 
-                        scene.gui.set_updates(index, &value, &new_hitbox);
+                        gui.set_updates(index, &value, &new_hitbox);
 
                         draw_text(&mut img, &pos, value, &editing_format);
                         display(&mut pixels, &mut img);
@@ -364,8 +368,8 @@ pub fn event_manager(
                     }
                     Some(VirtualKeyCode::Back) => {
                         // Remove last character from the edited value
-                        let index = scene.gui.updating_index();
-                        let hitbox = scene.gui.hitboxes()[index].clone();
+                        let index = gui.updating_index();
+                        let hitbox = gui.hitboxes()[index].clone();
                         let new_hitbox = (
                             Vec2::new(*hitbox.0.x() + 10., *hitbox.0.y()),
                             hitbox.1.clone(),
@@ -375,13 +379,13 @@ pub fn event_manager(
                         let pos = Vec2::new(*pos.x() as f64 - 10., *pos.y() as f64);
                         let background_pos =
                             Vec2::new(*hitbox.0.x() as f64 - 10., *hitbox.0.y() as f64);
-                        let value = scene.gui.values()[index].clone().replace("_", "");
+                        let value = gui.values()[index].clone().replace("_", "");
 
                         if value.len() > 0 {
                             let value = value.chars().take(value.len() - 1).collect::<String>();
                             let value = format!("{}_", value);
 
-                            scene.gui.set_updates(index, &value, &new_hitbox);
+                            gui.set_updates(index, &value, &new_hitbox);
 
                             draw_text(&mut img, &background_pos, " ".to_string(), &format);
                             draw_text(&mut img, &pos, value, &editing_format);
@@ -390,8 +394,8 @@ pub fn event_manager(
                     }
                     Some(VirtualKeyCode::NumpadDecimal) | Some(VirtualKeyCode::Period) => {
                         // Add a comma to the edited value
-                        let index = scene.gui.updating_index();
-                        let hitbox = scene.gui.hitboxes()[index].clone();
+                        let index = gui.updating_index();
+                        let hitbox = gui.hitboxes()[index].clone();
                         let new_hitbox = (
                             Vec2::new(*hitbox.0.x() - 10., *hitbox.0.y()),
                             hitbox.1.clone(),
@@ -399,7 +403,7 @@ pub fn event_manager(
                         let pos = new_hitbox.0.clone();
                         // -10 for the _
                         let pos = Vec2::new(*pos.x() as f64 - 10., *pos.y() as f64);
-                        let mut value = scene.gui.values()[index].clone().replace("_", "");
+                        let mut value = gui.values()[index].clone().replace("_", "");
 
                         if value.contains(".") {
                             return;
@@ -410,17 +414,17 @@ pub fn event_manager(
                         } else {
                             value = format!("{}._", value);
                         }
-                        scene.gui.set_updates(index, &value, &new_hitbox);
+                        gui.set_updates(index, &value, &new_hitbox);
 
                         draw_text(&mut img, &pos, value, &editing_format);
                         display(&mut pixels, &mut img);
                     }
                     Some(VirtualKeyCode::NumpadSubtract) | Some(VirtualKeyCode::Minus) => {
                         // Add a minus to the edited value
-                        let index = scene.gui.updating_index();
-                        let hitbox = scene.gui.hitboxes()[index].clone();
+                        let index = gui.updating_index();
+                        let hitbox = gui.hitboxes()[index].clone();
                         let mut offset = -10.;
-                        if scene.gui.values()[index].contains("-") {
+                        if gui.values()[index].contains("-") {
                             offset = 10.;
                         }
                         let new_hitbox = (
@@ -430,7 +434,7 @@ pub fn event_manager(
                         let pos = new_hitbox.0.clone();
                         // -10 for the _
                         let pos = Vec2::new(*pos.x() as f64 - 10., *pos.y() as f64);
-                        let mut value = scene.gui.values()[index].clone().replace("_", "");
+                        let mut value = gui.values()[index].clone().replace("_", "");
 
                         value.push('_');
                         if value.contains("-") {
@@ -439,17 +443,16 @@ pub fn event_manager(
                             value = format!("-{}", value);
                         }
 
-                        scene.gui.set_updates(index, &value, &new_hitbox);
+                        gui.set_updates(index, &value, &new_hitbox);
 
                         draw_text(&mut img, &pos, value, &editing_format);
                         display(&mut pixels, &mut img);
                     }
                     Some(VirtualKeyCode::L) => {
                         let lights = scene.lights();
-                        let light_index = (scene.gui.light_index() + 1) as usize % lights.len();
+                        let light_index = (gui.light_index() + 1) as usize % lights.len();
 
-                        scene.gui =
-                            draw_gui(&mut img, None, Some(&lights[light_index]), light_index);
+                        gui = draw_gui(&mut img, None, Some(&lights[light_index]), light_index);
                         display(&mut pixels, &mut img);
                     }
                     _ => (),
@@ -464,28 +467,27 @@ pub fn event_manager(
             if let Ok((render_img, final_img)) = ra.try_recv() {
                 img = render_img;
                 let mut mut_scene = scene.write().unwrap();
-                if mut_scene.gui.is_open() {
-                    if mut_scene.gui.displaying() == "element" {
-                        mut_scene.gui = draw_gui(
+                if gui.is_open() {
+                    if gui.displaying() == "element" {
+                        gui = draw_gui(
                             &mut img,
-                            Some(&mut_scene.elements()[mut_scene.gui.element_index()]),
+                            Some(&mut_scene.elements()[gui.element_index()]),
                             None,
-                            mut_scene.gui.element_index(),
+                            gui.element_index(),
                         );
-                    } else if mut_scene.gui.displaying() == "light" {
-                        let index = mut_scene.gui.light_index() as usize;
-                        mut_scene.gui =
-                            draw_gui(&mut img, None, Some(&mut_scene.lights()[index]), index);
+                    } else if gui.displaying() == "light" {
+                        let index = gui.light_index() as usize;
+                        gui = draw_gui(&mut img, None, Some(&mut_scene.lights()[index]), index);
                     }
                 }
-                if mut_scene.gui.keys().len() == 0 {
+                if gui.keys().len() == 0 {
                     full_img = img.clone();
                 }
                 display(&mut pixels, &mut img);
                 final_image = final_img;
                 image_requested = false;
 
-                // scene.gui = Gui::new();
+                // gui = Gui::new();
             }
         } else if !final_image {
             tb.send(false).unwrap();

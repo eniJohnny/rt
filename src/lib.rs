@@ -1,5 +1,7 @@
 extern crate image;
 use display::display_scene;
+use gui::settings::ViewMode;
+use image::flat::View;
 use parsing::get_scene;
 use winit::event::VirtualKeyCode;
 
@@ -14,14 +16,19 @@ const SCREEN_WIDTH: usize = 1600;
 const SCREEN_HEIGHT: usize = 900;
 const SCREEN_WIDTH_U32: u32 = SCREEN_WIDTH as u32;
 const SCREEN_HEIGHT_U32: u32 = SCREEN_HEIGHT as u32;
-const GUI_WIDTH: u32 = 400;
-const GUI_HEIGHT: u32 = 600;
 const MAX_THREADS: usize = 5;
 const BASE_SIMPLIFICATION: usize = 32;
-const MAX_DEPTH: u8 = 10;
+const MAX_DEPTH: usize = 10;
 const ANTIALIASING: f64 = 0.001;
-const MAX_ITERATIONS: i32 = 1000;
+const MAX_ITERATIONS: usize = 1;
 const MAX_EMISSIVE: f64 = 100.;
+
+/********* Default UISettings *********/
+const PADDING: usize = 10;
+const FIELD_HEIGHT: usize = 26;
+const GUI_WIDTH: u32 = 400;
+const GUI_HEIGHT: u32 = 600;
+const VIEW_MODE: ViewMode = ViewMode::HighDef;
 
 const SCENE_FOLDER: &str = "scenes";
 const PICKER_LINE_HEIGHT: f64 = 30.0;
