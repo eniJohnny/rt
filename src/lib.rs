@@ -9,6 +9,7 @@ pub mod model;
 pub mod parsing;
 pub mod picker;
 pub mod render;
+pub mod bvh;
 
 const AABB_OPACITY: f64 = 0.0;
 const DISPLAY_WIREFRAME: bool = true;
@@ -53,6 +54,10 @@ pub fn run() {
         if DISPLAY_WIREFRAME {
             scene.add_wireframes();
         }
+
+        // testing node struct
+        // bvh::node::test_node(&mut scene);
+
         display_scene(scene);
     }
 }
