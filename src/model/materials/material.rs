@@ -30,17 +30,3 @@ pub trait Material: Debug + Sync + Send {
     fn set_emissive(&mut self, emissive: Texture);
     fn set_opacity(&mut self, opacity: Texture);
 }
-
-impl dyn Material {
-    pub fn default() -> Box<Self> {
-        Box::new(Diffuse::new(
-            Texture::Value(Vec3::from_value(0.)),
-            Texture::Value(Vec3::from_value(0.)),
-            Texture::Value(Vec3::from_value(0.)),
-            Texture::Value(Vec3::from_value(0.)),
-            Texture::Value(Vec3::from_value(0.)),
-            Texture::Value(Vec3::from_value(0.)),
-            Texture::Value(Vec3::from_value(0.)),
-        ))
-    }
-}

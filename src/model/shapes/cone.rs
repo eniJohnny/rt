@@ -1,3 +1,5 @@
+use std::vec;
+
 use super::Shape;
 use crate::model::materials::material::Projection;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
@@ -233,6 +235,8 @@ impl Cone {
     }
 
     pub fn compute_aabb(pos:Vec3, dir: Vec3, height: f64, radius: f64) -> super::aabb::Aabb {
+        let dir = dir.normalize();
+
         let i;
         if dir == Vec3::new(0.0, 0.0, 1.0) {
             i = Vec3::new(1.0, 0.0, 0.0);
@@ -241,18 +245,25 @@ impl Cone {
         }
 
         let j = dir.cross(&i).normalize();
-        let base_center = &pos + dir * height;
 
-        let a = &base_center + &i * radius;
-        let b = &base_center - i * radius;
-        let c = &base_center + &j * radius;
-        let d = base_center - j * radius;
-        let e = pos;
+        let apex = &pos;
+        let base_center = &pos + &dir * height;
 
-        let x_array = vec![*a.x(), *b.x(), *c.x(), *d.x(), *e.x()];
-        let y_array = vec![*a.y(), *b.y(), *c.y(), *d.y(), *e.y()];
-        let z_array = vec![*a.z(), *b.z(), *c.z(), *d.z(), *e.z()];
+        let sample_nb = 16;
+        let mut x_array = vec![*apex.x()];
+        let mut y_array = vec![*apex.y()];
+        let mut z_array = vec![*apex.z()];
 
+        for k in 0..sample_nb {
+            let angle = 2.0 * std::f64::consts::PI * (k as f64) / (sample_nb as f64);
+            let x_offset = radius * angle.cos();
+            let y_offset = radius * angle.sin();
+            let point = &base_center + &i * x_offset + &j * y_offset;
+
+            x_array.push(*point.x());
+            y_array.push(*point.y());
+            z_array.push(*point.z());
+        }
 
         super::aabb::Aabb::new(
             Cone::get_min(&x_array),

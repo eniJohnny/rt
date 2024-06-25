@@ -7,7 +7,7 @@ use crate::{
         scene::Scene,
         Element,
     },
-    ANTIALIASING, DISPLAY_AABB, MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH,
+    ANTIALIASING, MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 
 use super::{
@@ -74,9 +74,7 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     let mut closest: Option<Hit> = None;
     for element in scene.elements().iter() {
         let mut t = None;
-        if element.shape().as_aabb().is_some() && !DISPLAY_AABB {
-            continue;
-        }
+
         t = element.shape().intersect(ray);
         if let Some(t) = t {
             for dist in t {

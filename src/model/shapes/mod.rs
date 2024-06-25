@@ -1,3 +1,4 @@
+use self::wireframe::Wireframe;
 use self::aabb::Aabb;
 use self::cone::Cone;
 use self::cylinder::Cylinder;
@@ -15,6 +16,7 @@ pub mod cylinder;
 pub mod plane;
 pub mod sphere;
 pub mod aabb;
+pub mod wireframe;
 
 pub trait Shape: Debug + Sync + Send {
     fn distance(&self, vec: &Vec3) -> f64;
@@ -36,6 +38,9 @@ pub trait Shape: Debug + Sync + Send {
         None
     }
     fn as_aabb(&self) -> Option<&Aabb> {
+        None
+    }
+    fn as_wireframe(&self) -> Option<&Wireframe> {
         None
     }
     fn aabb(&self) -> Option<&Aabb> {
