@@ -11,6 +11,7 @@ pub mod model;
 pub mod parsing;
 pub mod picker;
 pub mod render;
+pub mod bvh;
 
 const AABB_OPACITY: f64 = 0.0;
 const DISPLAY_WIREFRAME: bool = true;
