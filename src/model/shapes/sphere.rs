@@ -33,6 +33,12 @@ impl Shape for Sphere {
         None
     }
 
+	fn outer_intersect(&self, r: &Ray, factor: f64) -> Option<Vec<f64>> {
+		let mut outer_sphere = self.clone();
+		outer_sphere.set_radius(outer_sphere.radius() + outer_sphere.radius() * 0.1 * factor);
+		outer_sphere.intersect(r)
+	}
+
     fn projection(&self, hit: &Hit) -> Projection {
         let mut projection: Projection = Projection::default();
 

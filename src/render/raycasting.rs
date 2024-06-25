@@ -2,7 +2,7 @@ use rand::Rng;
 
 use crate::{
     model::{
-        materials::color::Color,
+        materials::{color::Color, texture::Texture},
         maths::{hit::Hit, quaternion::Quaternion, ray::Ray, vec3::Vec3},
         scene::Scene,
         shapes::plane::Plane,
@@ -83,11 +83,68 @@ fn intersect2(plane: &Plane, r: Ray) -> Option<Vec<f64>> {
     None
 }
 
+fn get_closest_hit_from_t<'a>(scene: &'a Scene, ray: &Ray, t: &Option<Vec<f64>>, element: &'a Element) -> Option<Hit<'a>> {
+    let mut closest: Option<Hit> = None;
+	if let Some(t) = t {
+		for dist in t {
+			if *dist > 0.0 {
+				if let Some(hit) = &closest {
+					if dist < hit.dist() {
+						let new_hit = Hit::new(
+							element,
+							*dist,
+							ray.get_pos() + ray.get_dir() * (*dist - f64::EPSILON),
+							ray.get_dir(),
+							scene.textures(),
+						);
+						if new_hit.opacity() > 0.5 {
+							closest = Some(new_hit);
+						}
+					}
+				} else {
+					let new_hit = Hit::new(
+						element,
+						*dist,
+						ray.get_pos() + ray.get_dir() * (*dist - f64::EPSILON),
+						ray.get_dir(),
+						scene.textures(),
+					);
+					if new_hit.opacity() > 0.5 {
+						closest = Some(new_hit);
+					}
+				}
+			}
+		}
+	}
+	match closest {
+		None => None,
+		Some(mut hit) => {
+			hit.map_textures(scene.textures());
+			Some(hit)
+		}
+	}
+}
+
 pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     let mut closest: Option<Hit> = None;
     for element in scene.elements().iter() {
         let mut t = None;
-        t = element.shape().intersect(ray);
+		if let Texture::Texture(file) = element.material().displacement() {
+			let mut iter_ratio = 1.02;
+			let mut previous_ratio = 0.;
+			let mut displaced_ratio = 0.;
+			while iter_ratio > 0. && displaced_ratio < iter_ratio {
+				iter_ratio -= 0.02;
+				previous_ratio = displaced_ratio;
+				t = element.shape().outer_intersect(ray, iter_ratio);
+				if let Some(mut hit) = get_closest_hit_from_t(scene, ray, &t, element) {
+					displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures()).to_value();
+				}
+			}
+			t = element.shape().outer_intersect(ray, (previous_ratio + iter_ratio) / 2.);
+		} else {
+        	t = element.shape().intersect(ray);
+		}
         if let Some(t) = t {
             for dist in t {
                 if dist > 0.0 {

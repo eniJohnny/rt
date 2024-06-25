@@ -46,6 +46,10 @@ impl Shape for Plane {
         // None
     }
 
+	fn outer_intersect(&self, r: &Ray, factor: f64) -> Option<Vec<f64>> {
+		self.intersect(r)
+	}
+
     fn projection(&self, hit: &Hit) -> Projection {
         let mut projection: Projection = Projection::default();
         let scale = 4.;

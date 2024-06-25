@@ -69,6 +69,7 @@ impl Scene {
             material.emissive(),
             material.refraction(),
             material.opacity(),
+			material.displacement(),
         ];
         for texture in textures.iter() {
             match texture {
