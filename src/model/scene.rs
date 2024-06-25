@@ -7,8 +7,11 @@ use crate::{
 };
 
 use super::{
-    materials::{material::Material, texture::Texture},
+    materials::{diffuse::{self, Diffuse},
+    material::{self, Material},
+    texture::Texture},
     objects::camera::Camera,
+    shapes,
     Element,
 };
 
@@ -115,6 +118,19 @@ impl Scene {
             );
         }
     }
+    
+    pub fn add_wireframes(&mut self) {
+        let aabbs = self.all_aabb();
+        let mut new_elements = vec![];
+        for aabb in aabbs {
+            let new_material = Diffuse::default();
+            let new_shape = shapes::wireframe::Wireframe::from_aabb(aabb);
+            let new_element = Element::new(Box::new(new_shape), new_material);
+
+            new_elements.push(new_element);
+        }
+        self.elements.append(&mut new_elements);
+    }
 
     // Accessors
     pub fn elements(&self) -> &Vec<Element> {
@@ -154,6 +170,13 @@ impl Scene {
 
     pub fn set_dirty(&mut self, dirty: bool) {
         self.dirty = dirty;
+    }
+    
+    pub fn all_aabb(&self) -> Vec<&crate::model::shapes::aabb::Aabb> {
+        self.elements
+            .iter()
+            .filter_map(|element| element.shape().as_aabb())
+            .collect()
     }
 
     // Mutators

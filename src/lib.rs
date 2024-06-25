@@ -12,8 +12,8 @@ pub mod parsing;
 pub mod picker;
 pub mod render;
 
-const DISPLAY_AABB: bool = false;
-const AABB_WIREFRAME: bool = false;
+const AABB_OPACITY: f64 = 0.0;
+const DISPLAY_WIREFRAME: bool = true;
 const WIREFRAME_THICKNESS: f64 = 0.05;
 const ERROR_MARGIN: f64 = 0.000000000001;
 const SCREEN_WIDTH: usize = 1600;
@@ -68,6 +68,9 @@ pub fn run() {
     if path != "" {
         let mut scene = get_scene(&path);
         scene.add_skysphere_texture("skysphere.jpg");
+        if DISPLAY_WIREFRAME {
+            scene.add_wireframes();
+        }
         start_scene(scene);
     }
 }

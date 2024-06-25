@@ -7,7 +7,7 @@ use crate::{ERROR_MARGIN, WIREFRAME_THICKNESS};
 
 
 #[derive(Debug, Clone)]
-pub struct Aabb {
+pub struct Wireframe {
     x_min: f64,
     x_max: f64,
     y_min: f64,
@@ -17,15 +17,15 @@ pub struct Aabb {
     pos: Vec3,
 }
 
-impl Aabb {
+impl Wireframe {
     // Constructor
-    pub fn new(x_min: f64, x_max: f64, y_min: f64, y_max: f64, z_min: f64, z_max: f64) -> Aabb {
+    pub fn new(x_min: f64, x_max: f64, y_min: f64, y_max: f64, z_min: f64, z_max: f64) -> Wireframe {
         let pos = Vec3::new(
             (x_min + x_max) / 2.0,
             (y_min + y_max) / 2.0,
             (z_min + z_max) / 2.0,
         );
-        self::Aabb {
+        self::Wireframe {
             x_min,
             x_max,
             y_min,
@@ -36,25 +36,24 @@ impl Aabb {
         }
     }
 
-    // Get the AABB of a list of AABBs
-    pub fn from_aabbs(aabbs: &Vec<Aabb>) -> Aabb {
-        let mut x_min = f64::MAX;
-        let mut x_max = f64::MIN;
-        let mut y_min = f64::MAX;
-        let mut y_max = f64::MIN;
-        let mut z_min = f64::MAX;
-        let mut z_max = f64::MIN;
+    pub fn from_aabb(aabb: &super::Aabb) -> Wireframe {
+        let x_min = aabb.x_min();
+        let x_max = aabb.x_max();
+        let y_min = aabb.y_min();
+        let y_max = aabb.y_max();
+        let z_min = aabb.z_min();
+        let z_max = aabb.z_max();
+        let pos = aabb.pos().clone();
 
-        for aabb in aabbs {
-            x_min = x_min.min(aabb.x_min());
-            x_max = x_max.max(aabb.x_max());
-            y_min = y_min.min(aabb.y_min());
-            y_max = y_max.max(aabb.y_max());
-            z_min = z_min.min(aabb.z_min());
-            z_max = z_max.max(aabb.z_max());
+        self::Wireframe {
+            x_min,
+            x_max,
+            y_min,
+            y_max,
+            z_min,
+            z_max,
+            pos,
         }
-
-        Aabb::new(x_min, x_max, y_min, y_max, z_min, z_max)
     }
 
     // Accessors
@@ -123,7 +122,7 @@ impl Aabb {
     }
 }
 
-impl Shape for Aabb {
+impl Shape for Wireframe {
     fn distance(&self, vec: &Vec3) -> f64 {
         let dx = vec.x().max(self.x_min()).min(self.x_max()) - vec.x();
         let dy = vec.y().max(self.y_min()).min(self.y_max()) - vec.y();
@@ -140,10 +139,19 @@ impl Shape for Aabb {
         let tmin_z = (self.z_min() - ray.get_pos().z()) / ray.get_dir().z();
         let tmax_z = (self.z_max() - ray.get_pos().z()) / ray.get_dir().z();
 
-        let tmin = get_tmin(tmin_x, tmax_x, tmin_y, tmax_y, tmin_z, tmax_z);
+        let mut tmin = get_tmin(tmin_x, tmax_x, tmin_y, tmax_y, tmin_z, tmax_z);
         let tmax = get_tmax(tmin_x, tmax_x, tmin_y, tmax_y, tmin_z, tmax_z);
 
-        if tmin > 0.0 && tmax > 0.0 && tmin < tmax {
+        let t1 = ray.get_pos() + ray.get_dir() * tmin;
+        let t2 = ray.get_pos() + ray.get_dir() * tmax;
+
+        let t1_is_wireframe = self.is_wireframe_point(&t1);
+        let t2_is_wireframe = self.is_wireframe_point(&t2);
+        
+        if tmin > 0.0 && tmax > 0.0 && tmin < tmax && (t1_is_wireframe || t2_is_wireframe) {
+            if !t1_is_wireframe && t2_is_wireframe {
+                tmin = tmax;
+            }
             return Some(Vec::from([tmin, tmax]));
         }
 
@@ -188,14 +196,14 @@ impl Shape for Aabb {
             // println!("zmax_diff: {} - {}", zmax_diff, zmax_diff < ERROR_MARGIN);
             // println!("----------------------------------------------------");
 
-            panic!("Error: hit_position is not on the AABB.\nThe problem certainly comes from the error margin.\nYou can use the debug print right above this message (src/model/shapes/aabb.rs:151 atm) to see why it didn't trigger.\nAdjust ERROR_MARGIN (src/lib.rs) if needed.");
+            panic!("Error: hit_position is not on the AABB.\nThe problem certainly comes from the error margin.\nYou can use the debug print right above this message (src/model/shapes/wireframe.rs:151 atm) to see why it didn't trigger.\nAdjust ERROR_MARGIN (src/lib.rs) if needed.");
         }
     }
 
     fn pos(&self) -> &Vec3 {
         &self.pos
     }
-    fn as_aabb(&self) -> Option<&Aabb> {
+    fn as_wireframe(&self) -> Option<&Wireframe> {
         Some(self)
     }
 }
