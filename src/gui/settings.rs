@@ -1,12 +1,14 @@
 use rusttype::Font;
 
 use crate::{
-    model::{materials::color::Color, objects::light::AmbientLight}, ANTIALIASING, FIELD_HEIGHT, FIELD_PADDING_X, FIELD_PADDING_Y, BASE_FONT_SIZE, GUI_HEIGHT, GUI_WIDTH, INDENT_PADDING, MAX_DEPTH, MAX_ITERATIONS, MARGIN, VIEW_MODE
+    model::{materials::color::Color, objects::light::AmbientLight},
+    ANTIALIASING, BASE_FONT_SIZE, FIELD_HEIGHT, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT,
+    GUI_WIDTH, INDENT_PADDING, MARGIN, MAX_DEPTH, MAX_ITERATIONS, VIEW_MODE,
 };
 
 use super::elements::{
-    fields::{Category, ElemType, Property, UIElement, Value},
     ui::UI,
+    uielement::{Category, ElemType, Property, UIElement, Value},
     Displayable, Position,
 };
 

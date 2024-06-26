@@ -1,28 +1,42 @@
-use std::{collections::HashMap, sync::{Arc, RwLock}};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 use image::{Rgba, RgbaImage};
 use winit::event::VirtualKeyCode;
 
-use crate::{gui::uisettings::UISettings, model::{maths::vec2::Vec2, scene::Scene}, GUI_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::{
+    display::utils::draw_text2,
+    gui::{
+        draw::{draw_button_background, draw_button_background2},
+        uisettings::UISettings,
+    },
+    model::{maths::vec2::Vec2, scene::Scene},
+    GUI_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH,
+};
 
-use super::{fields::{ElemType, Property, UIElement}, window::UIBox};
+use super::{
+    uibox::UIBox,
+    uielement::{ElemType, Property, UIElement},
+};
 
 #[derive(Clone)]
 pub struct Editing {
     pub reference: String,
-    pub value: String
+    pub value: String,
 }
 
 pub struct UI {
-    boxes: HashMap<usize, UIBox>,
-    inlined: Vec<usize>,
+    boxes: HashMap<String, UIBox>,
+    inlined: Vec<String>,
     settings: UISettings,
     box_index: usize,
-    active_box_index: usize,
+    active_box_reference: String,
     editing: Option<Editing>,
     mouse_position: (u32, u32),
     inputs: Vec<VirtualKeyCode>,
-    dirty: bool
+    dirty: bool,
 }
 
 impl UI {
@@ -32,11 +46,11 @@ impl UI {
             boxes: HashMap::new(),
             inlined: vec![],
             settings: UISettings::default(),
-            active_box_index: 0,
+            active_box_reference: "".to_string(),
             editing: None,
             mouse_position: (0, 0),
             inputs: vec![],
-            dirty: false
+            dirty: false,
         }
     }
 
@@ -69,8 +83,16 @@ impl UI {
         self.dirty = true;
     }
 
-    pub fn get_box_by_index(&self, id: usize) -> &UIBox {
-        self.boxes.get(&self.box_index).expect("ERROR : Couldn't find the added UIBox")
+    pub fn get_box(&self, reference: String) -> &UIBox {
+        self.boxes
+            .get(&reference)
+            .expect("ERROR : Couldn't find the added UIBox")
+    }
+
+    pub fn get_box_mut(&mut self, reference: String) -> &mut UIBox {
+        self.boxes
+            .get_mut(&reference)
+            .expect("ERROR : Couldn't find the added UIBox")
     }
 
     pub fn get_property_by_reference(&mut self, reference: &String) -> Option<&mut Property> {
@@ -84,23 +106,27 @@ impl UI {
         None
     }
 
-    pub fn add_box(&mut self, mut uibox: UIBox) -> usize {
+    pub fn add_box(&mut self, mut uibox: UIBox) -> String {
         self.box_index += 1;
-        uibox.id = self.box_index;
-        self.boxes.insert(self.box_index, uibox);
-        self.box_index
+        uibox.reference = self.box_index.to_string();
+        self.boxes.insert(self.box_index.to_string(), uibox);
+        self.box_index.to_string()
     }
 
     pub fn active_box(&self) -> Option<&UIBox> {
-        if self.active_box_index == 0 {
+        if self.active_box_reference == "" {
             None
         } else {
-            Some(self.boxes.get(&self.active_box_index).expect("ERROR : Couldn't find the added UIBox"))
+            Some(
+                self.boxes
+                    .get(&self.active_box_reference)
+                    .expect("ERROR : Couldn't find the added UIBox"),
+            )
         }
     }
 
-    pub fn set_active_box(&mut self, id: usize) {
-        self.active_box_index = id;
+    pub fn set_active_box(&mut self, id: String) {
+        self.active_box_reference = id;
         self.dirty = true;
     }
 
@@ -135,14 +161,15 @@ impl UI {
     // }
 
     pub fn draw(&mut self, scene: &Arc<RwLock<Scene>>, img: &mut RgbaImage) {
-        let start = std::time::Instant::now();
         // let inline_pos = (self.settings.padding, self.settings.padding);
         let width = self.settings.gui_width;
         let pos_x = SCREEN_WIDTH as u32 - self.settings.gui_width;
         let mut pos_y = 0;
-        let index = self.active_box_index;
-        if index > 0 {
-            let uibox = self.boxes.get(&index).expect("Destroyed UIBox still referenced as active");
+        if self.active_box_reference != "" {
+            let uibox = self
+                .boxes
+                .get(&self.active_box_reference)
+                .expect("Destroyed UIBox still referenced as active");
             if let Some(color) = &uibox.background_color {
                 for x in pos_x..(pos_x + width) {
                     for y in pos_y..(pos_y + uibox.height(&self.settings)) {
@@ -154,9 +181,25 @@ impl UI {
             for elem in &uibox.elems {
                 pos_y += elem.draw(img, &self, scene, pos_x, pos_y, 0);
             }
+
+            if let Some(edit_bar) = &uibox.edit_bar {
+                draw_text2(
+                    img,
+                    edit_bar.txt_message.position,
+                    edit_bar.txt_message.text.clone(),
+                    &edit_bar.txt_message.format,
+                    &self.settings,
+                    0,
+                );
+                draw_button_background2(
+                    img,
+                    (uibox.pos.0 + 50, uibox.height(&self.settings) - 60),
+                    (100, 40),
+                    Rgba([70, 125, 70, 255]),
+                );
+            }
         }
         self.dirty = false;
-        println!("{}", start.elapsed().as_millis());
     }
 
     pub fn clicked(&self, click: (u32, u32)) -> Option<&UIElement> {
@@ -166,7 +209,7 @@ impl UI {
                 for elem in &uibox.elems {
                     let elem_height = elem.height(self.settings());
                     if click.1 < pos.1 + elem_height && click.1 > pos.1 {
-                        return Some(&elem)
+                        return Some(&elem);
                     }
                     pos.1 += elem_height;
                 }

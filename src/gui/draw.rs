@@ -16,7 +16,7 @@ use crate::{
 };
 
 use super::{
-    elements::{window::UIBox, Position},
+    elements::{uibox::UIBox, Position},
     textformat::TextFormat,
     Gui,
 };
@@ -601,6 +601,26 @@ fn is_corner(x: u32, y: u32, x_start: u32, y_start: u32, x_end: u32, y_end: u32)
     }
 
     false
+}
+
+pub fn draw_button_background2(
+    img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>,
+    pos: (u32, u32),
+    size: (u32, u32),
+    color: Rgba<u8>,
+) {
+    let x_start = pos.0;
+    let x_end = pos.0 + size.0;
+    let y_start = pos.1;
+    let y_end = pos.1 + size.1;
+
+    for x in x_start..x_end {
+        for y in y_start..y_end {
+            if is_corner(x, y, x_start, y_start, x_end, y_end) == false {
+                img.put_pixel(x, y, color);
+            }
+        }
+    }
 }
 
 pub fn draw_button_background(

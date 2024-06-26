@@ -1,6 +1,12 @@
-use crate::{BASE_FONT_SIZE, FIELD_HEIGHT, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH, INDENT_PADDING, MARGIN};
+use crate::{
+    BASE_FONT_SIZE, FIELD_HEIGHT, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH,
+    INDENT_PADDING, MARGIN,
+};
 
-use super::elements::{fields::{Category, ElemType, Property, UIElement, Value}, Displayable, Position};
+use super::elements::{
+    uielement::{Category, ElemType, Property, UIElement, Value},
+    Displayable, Position,
+};
 
 pub struct UISettings {
     pub margin: u32,
@@ -13,7 +19,7 @@ pub struct UISettings {
     pub gui_width: u32,
 }
 
-impl  UISettings {
+impl UISettings {
     pub fn default() -> Self {
         Self {
             margin: MARGIN as u32,
@@ -41,17 +47,18 @@ impl Displayable for UISettings {
                         ui.settings_mut().margin = value
                     }
                 }),
-                Box::new(|value, _, ui| {
+                Box::new(|value| {
                     if let Value::Unsigned(value) = value {
-                        if value > ui.settings().gui_width / 2 {
+                        if *value > 20 {
                             return Err("Too much padding is bad for your health");
                         }
                     }
                     Ok(())
                 }),
-                settings)),
+                settings,
+            )),
             Position::Inline,
-            settings
+            settings,
         ));
 
         fields
