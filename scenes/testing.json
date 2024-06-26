@@ -1,0 +1,52 @@
+[
+    {
+        "type": "sphere",
+        "pos": [-2.5, 2.5, 2],
+        "dir": [0, 1, 0],
+        "color": "bricks_color.jpg",
+        "radius": 2.0,
+        "normal": "bricks_normal.jpg",
+        "roughness": "bricks_roughness.jpg"
+    },
+    {
+        "type": "sphere",
+        "pos": [2.5, 2.5, 2],
+        "dir": [0, 1, 0],
+        "color": "wood_color.jpg",
+        "radius": 2.0,
+        "normal": "wood_normal.jpg",
+        "roughness": "wood_roughness.jpg"
+    },
+    {
+        "type": "sphere",
+        "pos": [-2, -2, 0],
+        "dir": [0, 1, 0],
+        "color": "plates_color.jpg",
+        "radius": 1.5,
+        "normal": "plates_normal.jpg",
+        "roughness": "plates_roughness.jpg",
+        "metalness": "plates_metal.jpg"
+    },
+    {
+        "type": "sphere",
+        "pos": [2, -2, 0],
+        "dir": [0, 1, 0],
+        "color": "tiles_color.jpg",
+        "radius": 1.5,
+        "normal": "tiles_normal.jpg",
+        "roughness": "tiles_roughness.jpg"
+    },
+    {
+        "type": "camera",
+        "pos": [0.0, 0.0, -14.9],
+        "dir": [0, 0, 1],
+        "fov": 75
+    },
+    {
+        "type": "plane",
+        "pos": [0, -10, 0],
+        "dir": [0, 1, 0],
+        "color": [255, 255, 255],
+        "emissive": 2.0
+    }
+]

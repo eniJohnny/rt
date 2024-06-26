@@ -16,14 +16,17 @@ use super::{
         random_unit_vector, reflect_dir,
     },
     raycasting::{get_closest_hit, get_ray},
-    restir::{PathBucket, Sample},
+    restir::{PathBucket, Sample}, skysphere::get_skysphere_color,
 };
 
 pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
     match get_closest_hit(scene, ray) {
         Some(hit) => get_lighting_from_hit(scene, &hit, ray),
         //TODO : Handle BG on None
-        None => Color::new(0., 0., 0.),
+        // None => Color::new(0., 0., 0.),
+        None => {
+            get_skysphere_color(scene, ray)
+        }
     }
 }
 
