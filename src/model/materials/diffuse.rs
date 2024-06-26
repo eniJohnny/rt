@@ -33,6 +33,18 @@ impl Diffuse {
             opacity,
         }
     }
+
+    pub fn default() -> Box<Self> {
+        Box::new(Diffuse::new(
+            Texture::Value(Vec3::from_value(1.)),
+            Texture::Value(Vec3::from_value(0.)),
+            Texture::Value(Vec3::from_value(1.)),
+            Texture::Value(Vec3::from_value(0.1)),
+            Texture::Value(Vec3::from_value(0.)),
+            Texture::Value(Vec3::from_value(0.)),
+            Texture::Value(Vec3::from_value(1.)),
+        ))
+    }
 }
 
 unsafe impl Send for Diffuse {}

@@ -216,7 +216,7 @@ fn build_image_from_tilesets(
                         max_res_to_do = low_res_to_do;
                     }
                     img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
-                    println!("{} iterations done", iterations_done);
+                    // println!("{} iterations done", iterations_done);
                 }
             }
             if low_res_to_do == 0 {
