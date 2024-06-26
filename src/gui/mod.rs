@@ -4,6 +4,7 @@ pub mod gui;
 pub mod settings;
 pub mod textformat;
 pub mod utils;
+pub mod uisettings;
 
 use elements::window::UIBox;
 

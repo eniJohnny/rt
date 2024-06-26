@@ -5,7 +5,7 @@ use pixels::{Pixels, SurfaceTexture};
 use rusttype::{Font, Scale};
 use winit::{dpi::LogicalSize, event::{Event, MouseScrollDelta, WindowEvent}, event_loop::{ControlFlow, EventLoop}, platform::run_return::EventLoopExtRunReturn, window::{Window, WindowBuilder}};
 
-use crate::{display::{display, utils::blend}, gui::{self, textformat::TextFormat}, model::{maths::{vec2::Vec2, vec3::Vec3}, objects::camera, scene::{self, Scene}}, parsing::get_scene, render::render_threads::start_render_threads, PICKER_LINE_HEIGHT, SCENE_FOLDER, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32};
+use crate::{display::{display, utils::blend}, gui::{self, uisettings::UISettings, textformat::TextFormat}, model::{maths::{vec2::Vec2, vec3::Vec3}, objects::camera, scene::{self, Scene}}, parsing::get_scene, render::render_threads::start_render_threads, PICKER_LINE_HEIGHT, SCENE_FOLDER, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32};
 
 fn get_files_in_folder() -> io::Result<Vec<String>> {
     let mut files = Vec::new();
@@ -100,7 +100,8 @@ fn get_hitbox(pos: &Vec2) -> (Vec2, Vec2) {
 fn draw_files_and_update_hitboxes(start: usize, files: &Vec<String>, pixels: &mut Pixels<Window>) -> (Vec<(Vec2, Vec2)> , RgbaImage) {
     let mut hitboxes: Vec<(Vec2, Vec2)> = Vec::new();
     let mut img = RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32);
-    let format = gui::textformat::TextFormat::new_base_format();
+    let settings = UISettings::default();
+    let format = gui::textformat::TextFormat::new_base_format(&settings);
 
     for i in start..files.len() {
         let file = &files[i];

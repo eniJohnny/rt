@@ -2,7 +2,7 @@ use fields::UIElement;
 
 use crate::model::maths::vec2::Vec2;
 
-use super::settings::UISettings;
+use super::uisettings::UISettings;
 
 pub mod fields;
 pub mod ui;
@@ -15,5 +15,5 @@ pub enum Position {
 }
 
 pub trait Displayable {
-    fn get_fields(&self, settings: &UISettings) -> Vec<UIElement>;
+    fn get_fields(&self, reference: &String, settings: &UISettings) -> Vec<UIElement>;
 }

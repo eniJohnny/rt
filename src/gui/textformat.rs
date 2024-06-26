@@ -1,8 +1,8 @@
 use image::{Rgba, RgbaImage};
 
-use crate::{display::utils::draw_text, model::maths::vec2::Vec2, GUI_HEIGHT, GUI_WIDTH};
+use crate::{display::utils::draw_text, model::maths::vec2::Vec2, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH};
 
-use super::utils::get_line_position;
+use super::{uisettings::UISettings, utils::get_line_position};
 
 
 pub struct TextFormat {
@@ -10,6 +10,10 @@ pub struct TextFormat {
     font_size: f32,
     font_color: Rgba<u8>,
     background_color: Rgba<u8>,
+    pub padding_left: u32,
+    pub padding_right: u32,
+    pub padding_top: u32, 
+    pub padding_bot: u32
 }
 
 impl Default for TextFormat {
@@ -19,7 +23,17 @@ impl Default for TextFormat {
             font_size: 24.,
             font_color: Rgba([255, 255, 255, 255]),
             background_color: Rgba([50, 50, 50, 255]),
+            padding_left: FIELD_PADDING_X,
+            padding_right: FIELD_PADDING_X,
+            padding_bot: FIELD_PADDING_Y,
+            padding_top: FIELD_PADDING_Y,
         }
+    }
+}
+
+pub trait Formattable {
+    fn base_format(&self, settings: &UISettings) -> TextFormat {
+        TextFormat::default()
     }
 }
 
@@ -55,29 +69,45 @@ impl TextFormat {
         font_size: f32,
         font_color: Rgba<u8>,
         background_color: Rgba<u8>,
+        padding_left: u32,
+        padding_right: u32,
+        padding_top: u32, 
+        padding_bot: u32
     ) -> Self {
         Self {
             size,
             font_size,
             font_color,
             background_color,
+            padding_left,
+            padding_right,
+            padding_top, 
+            padding_bot
         }
     }
 
-    pub fn new_base_format() -> Self {
+    pub fn new_base_format(settings: &UISettings) -> Self {
         Self {
-            size: Vec2::new(GUI_WIDTH as f64, GUI_HEIGHT as f64),
-            font_size: 24.,
+            size: Vec2::new(settings.gui_width as f64, settings.gui_height as f64),
+            font_size: settings.font_size as f32,
             font_color: Rgba([255, 255, 255, 255]),
             background_color: Rgba([89, 89, 89, 255]),
+            padding_left: settings.padding_x,
+            padding_right: settings.padding_x,
+            padding_top: settings.padding_y,
+            padding_bot: settings.padding_y,
         }
     }
-    pub fn new_editing_format() -> Self {
+    pub fn new_editing_format(settings: &UISettings) -> Self {
         Self {
             size: Vec2::new(400., 400.),
-            font_size: 24.,
+            font_size: settings.font_size as f32,
             font_color: Rgba([0, 0, 0, 255]),
             background_color: Rgba([255, 255, 255, 255]),
+            padding_left: settings.padding_x,
+            padding_right: settings.padding_x,
+            padding_top: settings.padding_y,
+            padding_bot: settings.padding_y,
         }
     }
 

@@ -10,6 +10,7 @@ pub mod utils;
 use crate::{
     model::scene::Scene, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32,
 };
+use events2::main_loop;
 use image::RgbaImage;
 use std::sync::{Arc, RwLock};
 
@@ -39,19 +40,20 @@ pub fn display_scene(scene: Scene) {
         Pixels::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32, surface_texture).unwrap()
     };
 
-    // Setting up the render_threads and asking for the first image
+    // // Setting up the render_threads and asking for the first image
     let scene = Arc::new(RwLock::new(scene));
-    let (ra, tb) = start_render_threads(Arc::clone(&scene));
-    let scene_change = false;
-    tb.send(scene_change).unwrap();
+    // let (ra, tb) = start_render_threads(Arc::clone(&scene));
+    // let scene_change = false;
+    // tb.send(scene_change).unwrap();
 
-    let mut img = RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32);
+    // let mut img = RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32);
 
-    // Display the scene
-    display(&mut pixels, &mut img);
+    // // Display the scene
+    // display(&mut pixels, &mut img);
 
-    // Set up event manager
-    events::event_manager(event_loop, scene, img, pixels, ra, tb);
+    // // Set up event manager
+    // events::event_manager(event_loop, scene, img, pixels, ra, tb);
+    main_loop(event_loop, scene, pixels);
 }
 
 pub fn display(pixels: &mut Pixels<Window>, img: &mut RgbaImage) {

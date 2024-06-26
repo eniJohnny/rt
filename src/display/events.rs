@@ -4,10 +4,7 @@ extern crate winit;
 
 use crate::{
     gui::{
-        draw::draw_gui,
-        textformat::TextFormat,
-        utils::{gui_clicked, hide_gui, hitbox_contains},
-        Gui,
+        draw::draw_gui, uisettings::UISettings, textformat::TextFormat, utils::{gui_clicked, hide_gui, hitbox_contains}, Gui
     },
     model::{
         materials::{
@@ -58,8 +55,9 @@ pub fn event_manager(
     let mut scene_change = false;
     let mut image_requested = true;
     let mut final_image = false;
-    let format = TextFormat::new_base_format();
-    let editing_format = TextFormat::new_editing_format();
+    let settings = UISettings::default();
+    let format = TextFormat::new_base_format(&settings);
+    let editing_format = TextFormat::new_editing_format(&settings);
     let mut full_img: RgbaImage = img.clone();
     let mut gui = Gui::new();
 
