@@ -3,10 +3,10 @@ pub mod elements;
 pub mod gui;
 pub mod settings;
 pub mod textformat;
-pub mod utils;
 pub mod uisettings;
+pub mod utils;
 
-use elements::window::UIBox;
+use elements::uibox::UIBox;
 
 use crate::model::{maths::vec2::Vec2, Element};
 

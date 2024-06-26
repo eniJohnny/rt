@@ -1,8 +1,10 @@
 use std::{
-    path::Path, sync::{
+    path::Path,
+    sync::{
         mpsc::{Receiver, Sender},
         Arc, RwLock,
-    }, time::{Duration, Instant}
+    },
+    time::{Duration, Instant},
 };
 
 use chrono::{DateTime, Utc};
@@ -14,7 +16,16 @@ use winit::{
     window::Window,
 };
 
-use crate::{gui::elements::{fields::ElemType, ui::{Editing, UI}, window::UIBox, Displayable}, model::scene::Scene, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32};
+use crate::{
+    gui::elements::{
+        ui::{Editing, UI},
+        uibox::UIBox,
+        uielement::ElemType,
+        Displayable,
+    },
+    model::scene::Scene,
+    SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32,
+};
 
 use super::display;
 
@@ -23,7 +34,10 @@ pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixel
     let mut settings_box = UIBox::default(&ui, "uisettings".to_string());
     let mut img = RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32);
 
-    settings_box.add_elements(ui.settings().get_fields(&settings_box.reference, ui.settings()));
+    settings_box.add_elements(
+        ui.settings()
+            .get_fields(&settings_box.reference, ui.settings()),
+    );
 
     let index = ui.add_box(settings_box);
     ui.set_active_box(index);
@@ -39,26 +53,30 @@ pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixel
         match event {
             Event::WindowEvent { window_id, event } => {
                 handle_event(event, &scene, &mut ui, control_flow);
-            },
+            }
             _ => {}
         }
     })
 }
 
-fn handle_event(event: WindowEvent, scene: &Arc<RwLock<Scene>>, ui: &mut UI, flow: &mut ControlFlow) {
+fn handle_event(
+    event: WindowEvent,
+    scene: &Arc<RwLock<Scene>>,
+    ui: &mut UI,
+    flow: &mut ControlFlow,
+) {
     match event {
         WindowEvent::CursorMoved { position, .. } => {
             ui.set_mouse_position((position.x as u32, position.y as u32))
         }
         WindowEvent::MouseInput { state, .. } => {
             if state == winit::event::ElementState::Released {
-                println!("Mouse triggered");
                 let pos = ui.mouse_position();
                 if let Some(elem) = ui.clicked(pos) {
                     if let Some(edit) = ui.editing() {
                         if &edit.reference != &elem.reference {
                             if let ElemType::Property(property) = &elem.elem_type {
-                                ui.set_editing(Some(Editing{
+                                ui.set_editing(Some(Editing {
                                     reference: elem.reference.clone(),
                                     value: property.value.to_string(),
                                 }));
@@ -66,21 +84,20 @@ fn handle_event(event: WindowEvent, scene: &Arc<RwLock<Scene>>, ui: &mut UI, flo
                         }
                     } else {
                         if let ElemType::Property(property) = &elem.elem_type {
-                            ui.set_editing(Some(Editing{
+                            ui.set_editing(Some(Editing {
                                 reference: elem.reference.clone(),
                                 value: property.value.to_string(),
                             }));
                         }
                     }
                 } else if ui.editing().is_some() {
-                    println!("Clicked outside");
                     // Drops current value if clicked outside
                     ui.set_editing(None);
                 }
             }
         }
         WindowEvent::KeyboardInput { input, .. } => {
-            if let Some(keycode) =  input.virtual_keycode {
+            if let Some(keycode) = input.virtual_keycode {
                 if input.state == winit::event::ElementState::Released {
                     // ui.input_pressed(keycode);
                 } else if input.state == winit::event::ElementState::Pressed {
@@ -98,31 +115,35 @@ fn handle_event(event: WindowEvent, scene: &Arc<RwLock<Scene>>, ui: &mut UI, flo
     }
 }
 
-fn handle_keyboard_press(scene: &Arc<RwLock<Scene>>, ui: &mut UI, flow: &mut ControlFlow, input: VirtualKeyCode) {
+fn handle_keyboard_press(
+    scene: &Arc<RwLock<Scene>>,
+    ui: &mut UI,
+    flow: &mut ControlFlow,
+    input: VirtualKeyCode,
+) {
     if let Some(edit) = ui.editing().clone() {
         let mut value = edit.value;
         match input {
-            num if (num >= VirtualKeyCode::Numpad0
-            && num <= VirtualKeyCode::Numpad9) => {
+            num if (num >= VirtualKeyCode::Numpad0 && num <= VirtualKeyCode::Numpad9) => {
                 let num = num as u8 - 80;
                 value += &num.to_string();
                 ui.set_editing(Some(Editing {
-                    reference : edit.reference,
-                    value
+                    reference: edit.reference,
+                    value,
                 }));
             }
             num if num >= VirtualKeyCode::Key1 && num <= VirtualKeyCode::Key9 => {
                 value += &(num as u8 + 1).to_string();
                 ui.set_editing(Some(Editing {
-                    reference : edit.reference,
-                    value
+                    reference: edit.reference,
+                    value,
                 }));
             }
             VirtualKeyCode::Key0 => {
                 value += "0";
                 ui.set_editing(Some(Editing {
-                    reference : edit.reference,
-                    value
+                    reference: edit.reference,
+                    value,
                 }));
             }
             c if (c >= VirtualKeyCode::A && c <= VirtualKeyCode::Z) => {
@@ -130,8 +151,8 @@ fn handle_keyboard_press(scene: &Arc<RwLock<Scene>>, ui: &mut UI, flow: &mut Con
                 let ch = char::from_u32(char_u8).expect("Not a valid char");
                 value.push(ch);
                 ui.set_editing(Some(Editing {
-                    reference : edit.reference,
-                    value
+                    reference: edit.reference,
+                    value,
                 }));
             }
             VirtualKeyCode::Escape => {
@@ -140,8 +161,8 @@ fn handle_keyboard_press(scene: &Arc<RwLock<Scene>>, ui: &mut UI, flow: &mut Con
             VirtualKeyCode::Back => {
                 value.truncate(value.len() - 1);
                 ui.set_editing(Some(Editing {
-                    reference : edit.reference,
-                    value
+                    reference: edit.reference,
+                    value,
                 }));
             }
             VirtualKeyCode::NumpadEnter | VirtualKeyCode::Return => {
@@ -156,7 +177,7 @@ fn handle_keyboard_press(scene: &Arc<RwLock<Scene>>, ui: &mut UI, flow: &mut Con
     match input {
         VirtualKeyCode::Escape => {
             if ui.active_box().is_none() {
-                ui.set_active_box(0);
+                ui.set_active_box("".to_string());
             } else {
                 *flow = ControlFlow::Exit;
             }
@@ -165,8 +186,7 @@ fn handle_keyboard_press(scene: &Arc<RwLock<Scene>>, ui: &mut UI, flow: &mut Con
     }
 }
 
-fn handle_inputs_long_press(scene: &Arc<RwLock<Scene>>, ui: &mut UI, flow: &mut ControlFlow) {
-}
+fn handle_inputs_long_press(scene: &Arc<RwLock<Scene>>, ui: &mut UI, flow: &mut ControlFlow) {}
 
 fn handle_inputs(scene: &Arc<RwLock<Scene>>, ui: &mut UI, flow: &mut ControlFlow) {
     let inputs = ui.inputs();
