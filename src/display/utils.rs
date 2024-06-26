@@ -2,8 +2,8 @@ use image::{ImageBuffer, Rgba, RgbaImage};
 use rusttype::{Font, Scale};
 use winit::event::VirtualKeyCode;
 use crate::{
-    gui::{draw::{draw_cone_gui, draw_cylinder_gui, draw_pointlight_gui, draw_plane_gui, draw_sphere_gui}, textformat::TextFormat, Gui},
-    model::{maths::vec2::Vec2, objects::{camera::Camera, light::Light}, shapes::Shape, Element}
+    gui::{draw::{draw_cone_gui, draw_cylinder_gui, draw_plane_gui, draw_pointlight_gui, draw_sphere_gui}, uisettings::UISettings, textformat::TextFormat, Gui},
+    model::{maths::vec2::Vec2, objects::{camera::Camera, light::Light}, shapes::Shape, Element}, GUI_WIDTH
 };
 
 pub fn move_camera(camera: &mut Camera, c: Option<VirtualKeyCode>) {
@@ -61,6 +61,45 @@ pub fn display_light_infos(light: &Box<dyn Light + Sync + Send>, img: &mut Image
     
 }
 
+pub fn draw_text2(image: &mut RgbaImage, pos: (u32, u32), text: String, format: &TextFormat, settings: &UISettings, indent: u32) {
+    let x = pos.0 as u32 + format.padding_left + indent * settings.indent_padding;
+    let y = pos.1 as u32 + format.padding_top;
+
+    // Load font
+    let font_data = include_bytes!("../assets/JetBrainsMono-Regular.ttf");
+    let font = &Font::try_from_bytes(font_data as &[u8]).expect("Error loading font");
+
+    // Set font size and color
+    let scale = Scale::uniform(format.font_size());
+    let background_color = *format.background_color();
+    let color = format.font_color();
+
+    draw_text_background2(
+        image,
+        pos,
+        (GUI_WIDTH, format.font_size() as u32 + format.padding_bot + format.padding_top),
+        background_color,
+    );
+
+    // Draw text
+    let v_metrics = font.v_metrics(scale);
+    let offset = rusttype::point(x as f32, y as f32 + v_metrics.ascent);
+
+    for glyph in font.layout(&text, scale, offset) {
+        if let Some(bb) = glyph.pixel_bounding_box() {
+            glyph.draw(|x, y, v| {
+                let x = x as i32 + bb.min.x;
+                let y = y as i32 + bb.min.y;
+                if x >= 0 && x < image.width() as i32 && y >= 0 && y < image.height() as i32 {
+                    let pixel = image.get_pixel_mut(x as u32, y as u32);
+                    *pixel = blend(color, pixel, v);
+                }
+            });
+        }
+    }
+}
+
+
 pub fn draw_text(image: &mut RgbaImage, pos: &Vec2, text: String, format: &TextFormat) {
     let x = *pos.x() as u32 + 8;
     let y = *pos.y() as u32;
@@ -110,6 +149,29 @@ pub fn blend(text_color: &Rgba<u8>, background_color: &Rgba<u8>, alpha: f32) -> 
     let b = (text_color[2] as f32 * alpha + background_color[2] as f32 * inv_alpha) as u8;
     let a = (text_color[3] as f32 * alpha + background_color[3] as f32 * inv_alpha) as u8;
     Rgba([r, g, b, a])
+}
+
+pub fn draw_text_background2(
+    image: &mut RgbaImage,
+    pos: (u32, u32),
+    size: (u32, u32),
+    color: Rgba<u8>,
+) {
+    let mut width = size.0;
+    let mut height = size.1;
+
+    if pos.0 + width > image.width() {
+        width = image.width() - pos.0 ;
+    }
+
+    let x = image.width() - width;
+    let y = pos.1 ;
+
+    for x in x..(x + width) {
+        for y in y..(y + height) {
+            image.put_pixel(x, y, color);
+        }
+    }
 }
 
 pub fn draw_text_background(

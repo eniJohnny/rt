@@ -24,11 +24,17 @@ const MAX_ITERATIONS: usize = 1;
 const MAX_EMISSIVE: f64 = 100.;
 
 /********* Default UISettings *********/
-const PADDING: usize = 10;
+const MARGIN: usize = 10;
 const FIELD_HEIGHT: usize = 26;
 const GUI_WIDTH: u32 = 400;
 const GUI_HEIGHT: u32 = 600;
 const VIEW_MODE: ViewMode = ViewMode::HighDef;
+const FIELD_PADDING_X: u32 = 10;
+const FIELD_PADDING_Y: u32 = 3;
+const INDENT_PADDING: u32 = 10;
+const BASE_FONT_SIZE: u32 = 24;
+const BUTTON_FONT_SIZE: u32 = 36;
+
 
 const SCENE_FOLDER: &str = "scenes";
 const PICKER_LINE_HEIGHT: f64 = 30.0;
