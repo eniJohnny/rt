@@ -21,11 +21,10 @@
         "type": "sphere",
         "pos": [-2, -2, 0],
         "dir": [0, 1, 0],
-        "color": "plates_color.jpg",
+        "color": [255, 255, 255],
         "radius": 1.5,
-        "normal": "plates_normal.jpg",
-        "roughness": "plates_roughness.jpg",
-        "metalness": "plates_metal.jpg"
+        "roughness": 0.0,
+        "metalness": 1.0
     },
     {
         "type": "sphere",
@@ -41,12 +40,5 @@
         "pos": [0.0, 0.0, -14.9],
         "dir": [0, 0, 1],
         "fov": 75
-    },
-    {
-        "type": "plane",
-        "pos": [0, -10, 0],
-        "dir": [0, 1, 0],
-        "color": [255, 255, 255],
-        "emissive": 2.0
     }
 ]
