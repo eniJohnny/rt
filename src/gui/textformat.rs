@@ -1,9 +1,11 @@
 use image::{Rgba, RgbaImage};
 
-use crate::{display::utils::draw_text, model::maths::vec2::Vec2, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH};
+use crate::{
+    display::utils::draw_text, model::maths::vec2::Vec2, FIELD_PADDING_X, FIELD_PADDING_Y,
+    GUI_HEIGHT, GUI_WIDTH,
+};
 
 use super::{uisettings::UISettings, utils::get_line_position};
-
 
 pub struct TextFormat {
     size: Vec2,
@@ -12,8 +14,8 @@ pub struct TextFormat {
     background_color: Rgba<u8>,
     pub padding_left: u32,
     pub padding_right: u32,
-    pub padding_top: u32, 
-    pub padding_bot: u32
+    pub padding_top: u32,
+    pub padding_bot: u32,
 }
 
 impl Default for TextFormat {
@@ -71,8 +73,8 @@ impl TextFormat {
         background_color: Rgba<u8>,
         padding_left: u32,
         padding_right: u32,
-        padding_top: u32, 
-        padding_bot: u32
+        padding_top: u32,
+        padding_bot: u32,
     ) -> Self {
         Self {
             size,
@@ -81,8 +83,8 @@ impl TextFormat {
             background_color,
             padding_left,
             padding_right,
-            padding_top, 
-            padding_bot
+            padding_top,
+            padding_bot,
         }
     }
 

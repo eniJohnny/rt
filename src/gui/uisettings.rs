@@ -49,7 +49,7 @@ impl Displayable for UISettings {
                 }),
                 Box::new(|value| {
                     if let Value::Unsigned(value) = value {
-                        if *value > 20 {
+                        if value > &20 {
                             return Err("Too much padding is bad for your health");
                         }
                     }

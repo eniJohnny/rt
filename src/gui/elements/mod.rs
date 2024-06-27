@@ -1,3 +1,4 @@
+use ui::UI;
 use uielement::UIElement;
 
 use crate::model::maths::vec2::Vec2;
@@ -12,9 +13,8 @@ pub mod uielement;
 pub enum Position {
     Inline,
     Bottom,
-    Relative(u32, u32),
+    Relative(i32, i32),
 }
-
 pub trait Displayable {
-    fn get_fields(&self, reference: &String, settings: &UISettings) -> Vec<UIElement>;
+    fn get_fields(&self, reference: &String, ui: &UISettings) -> Vec<UIElement>;
 }
