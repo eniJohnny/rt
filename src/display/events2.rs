@@ -32,6 +32,7 @@ use super::display;
 pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixels: Pixels<Window>) {
     let mut ui = UI::default();
     let mut settings_box = UIBox::default(&ui, "uisettings".to_string());
+    settings_box.set_edit_bar(ui.settings());
     let mut img = RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32);
 
     settings_box.add_elements(

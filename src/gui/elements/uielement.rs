@@ -1,4 +1,7 @@
-use std::sync::{Arc, RwLock};
+use std::{
+    cell::RefCell,
+    sync::{Arc, RwLock},
+};
 
 use image::{Rgba, RgbaImage};
 
@@ -70,7 +73,7 @@ pub struct UIElement {
     visible: bool,
     pub elem_type: ElemType,
     pub text: String,
-    pos: Position,
+    pub pos: Position,
     pub format: TextFormat,
     pub position: (u32, u32),
     pub size: (u32, u32),
@@ -150,6 +153,16 @@ impl UIElement {
             (prop.fn_validate)(&prop.value)?;
         }
         Ok(())
+    }
+
+    pub fn submit_properties(&self, scene: &mut Scene, ui: &mut UI) {
+        if let ElemType::Category(cat) = &self.elem_type {
+            for elem in &cat.elems {
+                elem.submit_properties(scene, ui);
+            }
+        } else if let ElemType::Property(prop) = &self.elem_type {
+            (prop.fn_submit)(prop.value.clone(), scene, ui);
+        }
     }
 
     pub fn draw(
@@ -273,8 +286,8 @@ pub struct Category {
     pub collapsed: bool,
 }
 
-type FnSubmit = Box<dyn Fn(Value, &mut Scene, &mut UI)>;
-type FnValidate = Box<dyn Fn(&Value) -> Result<(), &'static str>>;
+pub type FnSubmit = Box<dyn Fn(Value, &mut Scene, &mut UI)>;
+pub type FnValidate = Box<dyn Fn(&Value) -> Result<(), &'static str>>;
 
 pub struct Property {
     pub value: Value,

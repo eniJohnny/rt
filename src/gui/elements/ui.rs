@@ -19,6 +19,7 @@ use crate::{
 use super::{
     uibox::UIBox,
     uielement::{ElemType, Property, UIElement},
+    Position,
 };
 
 #[derive(Clone)]
@@ -183,20 +184,54 @@ impl UI {
             }
 
             if let Some(edit_bar) = &uibox.edit_bar {
-                draw_text2(
-                    img,
-                    edit_bar.txt_message.position,
-                    edit_bar.txt_message.text.clone(),
-                    &edit_bar.txt_message.format,
-                    &self.settings,
-                    0,
-                );
-                draw_button_background2(
-                    img,
-                    (uibox.pos.0 + 50, uibox.height(&self.settings) - 60),
-                    (100, 40),
-                    Rgba([70, 125, 70, 255]),
-                );
+                // draw_text2(
+                //     img,
+                //     edit_bar.txt_message.position,
+                //     edit_bar.txt_message.text.clone(),
+                //     &edit_bar.txt_message.format,
+                //     &self.settings,
+                //     0,
+                // );
+                if let Position::Relative(x, y) = edit_bar.btn_apply.pos {
+                    let pos_x = match x {
+                        _ if x < 0 => uibox.pos.0 + (self.settings().gui_width as i32 + x) as u32,
+                        _ => uibox.pos.0 + x as u32,
+                    };
+                    let pos_y: u32 = match y {
+                        _ if y < 0 => uibox.pos.1 + (self.settings().gui_height as i32 + y) as u32,
+                        _ => uibox.pos.1 + y as u32,
+                    };
+                    draw_button_background2(
+                        img,
+                        (pos_x, pos_y),
+                        (100, 40),
+                        Rgba([70, 125, 70, 255]),
+                    );
+                    // draw_text2(
+                    //     img,
+                    //     (pos_x, pos_y),
+                    //     edit_bar.btn_apply.text.clone(),
+                    //     &edit_bar.btn_apply.format,
+                    //     self.settings(),
+                    //     0,
+                    // );
+                }
+                if let Position::Relative(x, y) = edit_bar.btn_cancel.pos {
+                    let pos_x = match x {
+                        _ if x < 0 => uibox.pos.0 + (self.settings().gui_width as i32 + x) as u32,
+                        _ => uibox.pos.0 + x as u32,
+                    };
+                    let pos_y: u32 = match y {
+                        _ if y < 0 => uibox.pos.1 + (self.settings().gui_height as i32 + y) as u32,
+                        _ => uibox.pos.1 + y as u32,
+                    };
+                    draw_button_background2(
+                        img,
+                        (pos_x, pos_y),
+                        (100, 40),
+                        Rgba([125, 70, 70, 255]),
+                    );
+                }
             }
         }
         self.dirty = false;

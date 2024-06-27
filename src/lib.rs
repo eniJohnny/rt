@@ -35,7 +35,6 @@ const INDENT_PADDING: u32 = 10;
 const BASE_FONT_SIZE: u32 = 24;
 const BUTTON_FONT_SIZE: u32 = 36;
 
-
 const SCENE_FOLDER: &str = "scenes";
 const PICKER_LINE_HEIGHT: f64 = 30.0;
 // const SCENE: &str = "scenes/sphere.json";
