@@ -121,6 +121,38 @@ impl Aabb {
 
         return near_edge_count >= 2;
     }
+
+    pub fn split(&mut self, dir: Vec3, t: f64) -> (Aabb, Aabb) {
+        // Split AABB into two parts along the direction dir at distance t
+        // Dir should be along the x, y or z axis, otherwise the split will not wield two AABBs
+
+        let x_axis = *dir.x() == 1.0 || *dir.x() == -1.0;
+        let y_axis = *dir.y() == 1.0 || *dir.y() == -1.0;
+        let z_axis = *dir.z() == 1.0 || *dir.z() == -1.0;
+
+        let error = x_axis as i32 + y_axis as i32 + z_axis as i32;
+        if error != 1 {
+            panic!("Error: dir should be along the x, y or z axis.");
+        }
+
+        let mut aabb1 = self.clone();
+        let mut aabb2 = self.clone();
+
+        if x_axis {
+            let new_x = self.x_min + (self.x_max - self.x_min) * t;
+            aabb1.set_x_max(new_x);
+            aabb2.set_x_min(new_x);
+        } else if y_axis {
+            let new_y = self.y_min + (self.y_max - self.y_min) * t;
+            aabb1.set_y_max(new_y);
+            aabb2.set_y_min(new_y);
+        } else if z_axis {
+            let new_z = self.z_min + (self.z_max - self.z_min) * t;
+            aabb1.set_z_max(new_z);
+            aabb2.set_z_min(new_z);
+        }
+        (aabb1, aabb2)
+    }
 }
 
 impl Shape for Aabb {
@@ -216,4 +248,14 @@ fn get_tmax(tmin_x: f64, tmax_x: f64, tmin_y: f64, tmax_y: f64, tmin_z: f64, tma
 
     let tmax = xmax.min(ymax).min(zmax);
     tmax
+}
+
+pub fn test() {
+    let mut aabb = Aabb::new(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+    let dir = Vec3::new(1.0, 0.0, 0.0);
+    let t = 0.75;
+
+    let (aabb1, aabb2) = aabb.split(dir, t);
+
+    dbg!(aabb, aabb1, aabb2);
 }

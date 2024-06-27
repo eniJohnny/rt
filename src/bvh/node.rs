@@ -1,4 +1,4 @@
-use crate::model::{scene::Scene, shapes::aabb::Aabb};
+use crate::model::{scene::Scene, shapes::aabb::{self, Aabb}};
 
 #[derive(Debug)]
 pub struct Node {
@@ -45,6 +45,9 @@ impl Node {
     pub fn add_elements(&mut self, elements: Vec<usize>) {
         self.len += elements.len();
         self.elements.extend(elements);
+    }
+    pub fn is_leaf(&self) -> bool {
+        self.len > 0
     }
 }
 
