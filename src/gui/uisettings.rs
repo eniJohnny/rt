@@ -8,6 +8,7 @@ use super::elements::{
     Displayable, Position,
 };
 
+#[derive(Clone)]
 pub struct UISettings {
     pub margin: u32,
     pub field_height: u32,

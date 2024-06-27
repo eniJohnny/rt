@@ -3,16 +3,16 @@ use uielement::UIElement;
 
 use crate::model::maths::vec2::Vec2;
 
-use super::uisettings::UISettings;
+use super::{textformat::TextFormat, uisettings::UISettings};
 
 pub mod ui;
 pub mod uibox;
 pub mod uielement;
+pub mod uieditbar;
 
 #[derive(Debug, Clone)]
 pub enum Position {
     Inline,
-    Bottom,
     Relative(i32, i32),
 }
 pub trait Displayable {

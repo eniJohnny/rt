@@ -61,29 +61,18 @@ pub fn display_light_infos(light: &Box<dyn Light + Sync + Send>, img: &mut Image
     
 }
 
-pub fn draw_text2(image: &mut RgbaImage, pos: (u32, u32), text: String, format: &TextFormat, settings: &UISettings, indent: u32) {
-    let x = pos.0 as u32 + format.padding_left + indent * settings.indent_padding;
-    let y = pos.1 as u32 + format.padding_top;
-
+pub fn draw_text2(image: &mut RgbaImage, pos: (u32, u32), text: String, format: &TextFormat) {
     // Load font
     let font_data = include_bytes!("../assets/JetBrainsMono-Regular.ttf");
     let font = &Font::try_from_bytes(font_data as &[u8]).expect("Error loading font");
 
     // Set font size and color
     let scale = Scale::uniform(format.font_size());
-    let background_color = *format.background_color();
     let color = format.font_color();
-
-    draw_text_background2(
-        image,
-        pos,
-        (GUI_WIDTH, format.font_size() as u32 + format.padding_bot + format.padding_top),
-        background_color,
-    );
 
     // Draw text
     let v_metrics = font.v_metrics(scale);
-    let offset = rusttype::point(x as f32, y as f32 + v_metrics.ascent);
+    let offset = rusttype::point(pos.0 as f32, pos.1 as f32 + v_metrics.ascent);
 
     for glyph in font.layout(&text, scale, offset) {
         if let Some(bb) = glyph.pixel_bounding_box() {

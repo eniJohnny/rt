@@ -101,7 +101,7 @@ fn draw_files_and_update_hitboxes(start: usize, files: &Vec<String>, pixels: &mu
     let mut hitboxes: Vec<(Vec2, Vec2)> = Vec::new();
     let mut img = RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32);
     let settings = UISettings::default();
-    let format = gui::textformat::TextFormat::new_base_format(&settings);
+    let format = gui::textformat::TextFormat::base_format(&settings);
 
     for i in start..files.len() {
         let file = &files[i];

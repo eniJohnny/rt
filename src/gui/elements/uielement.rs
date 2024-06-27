@@ -1,20 +1,19 @@
 use std::{
     cell::RefCell,
-    sync::{Arc, RwLock},
+    sync::{Arc, RwLock}, thread::current,
 };
 
 use image::{Rgba, RgbaImage};
 
 use crate::{
-    display::utils::draw_text2,
+    display::utils::{draw_text2, draw_text_background2},
     gui::{
-        textformat::{Formattable, TextFormat},
-        uisettings::UISettings,
+        draw::draw_background, textformat::{FormatBuilder, Formattable, TextFormat}, uisettings::UISettings
     },
-    model::{materials::texture::Texture, scene::Scene},
+    model::{materials::texture::Texture, scene::Scene}, SCREEN_WIDTH_U32,
 };
 
-use super::{ui::UI, uibox::UIBox, Displayable, Position};
+use super::{ui::{Editing, UI}, uibox::UIBox, Displayable, Position};
 
 #[derive(Debug, Clone)]
 pub enum Value {
@@ -52,30 +51,25 @@ pub enum ElemType {
 impl Formattable for ElemType {
     fn base_format(&self, settings: &UISettings) -> TextFormat {
         match self {
-            ElemType::Button(..) => {
-                let mut format = TextFormat::default();
-                format.set_font_size(36.);
+            ElemType::Button(..) => TextFormat::new_btn_format(settings),
+            ElemType::Category(..) => TextFormat::new_category_format(settings),
+            ElemType::Property(..) => TextFormat::field_format(settings),
+            ElemType::Stat(..) => FormatBuilder::default(settings).bg_color(None).build(),
+            ElemType::Text => {
+                let mut format = TextFormat::field_format(settings);
+                format.bg_color = None;
                 format
-            }
-            ElemType::Category(..) => TextFormat::default(),
-            ElemType::Property(..) => {
-                let mut format = TextFormat::default();
-                format.set_background_color(Rgba([89, 89, 89, 255]));
-                format
-            }
-            ElemType::Stat(..) => TextFormat::default(),
-            ElemType::Text => TextFormat::default(),
+            },
         }
     }
 }
 
 pub struct UIElement {
-    visible: bool,
+    pub visible: bool,
     pub elem_type: ElemType,
     pub text: String,
-    pub pos: Position,
     pub format: TextFormat,
-    pub position: (u32, u32),
+    pub pos: Position,
     pub size: (u32, u32),
     pub reference: String,
 }
@@ -94,7 +88,6 @@ impl UIElement {
             elem_type: elem,
             text: String::from(name),
             pos,
-            position: (0, 0),
             size: (0, 0),
             reference: reference + "." + name,
         }
@@ -103,7 +96,7 @@ impl UIElement {
         if !self.visible {
             return 0;
         }
-        let mut height = settings.field_height + settings.margin;
+        let mut height = self.get_size(&self.text, &self.format).1;
         if let ElemType::Category(cat) = &self.elem_type {
             if !cat.collapsed {
                 for elem in &cat.elems {
@@ -112,6 +105,10 @@ impl UIElement {
             }
         }
         height
+    }
+
+    pub fn set_format(&mut self, format: TextFormat) {
+        self.format = format;
     }
 
     pub fn get_property_by_reference(&mut self, reference: &String) -> Option<&mut Property> {
@@ -165,36 +162,106 @@ impl UIElement {
         }
     }
 
+    pub fn get_pos(&self, pos: &Position, box_pos: (u32, u32), box_size: (u32, u32), inline_pos: (u32, u32), indent: u32) -> (u32, u32) {
+        match pos {
+            Position::Inline => {
+                (box_pos.0 + inline_pos.0 + indent, box_pos.1 + inline_pos.1)
+            }
+            Position::Relative(x, y) => {
+                let pos_x = match x {
+                    _ if *x < 0 => box_pos.0 + (box_size.0 as i32 + x) as u32,
+                    0 => box_pos.0 + inline_pos.0 + indent,
+                    _ => box_pos.0 + *x as u32,
+                };
+                let pos_y: u32 = match y {
+                    _ if *y < 0 => box_pos.1 + (box_size.1 as i32 + y) as u32,
+                    0 => box_pos.1 + inline_pos.1,
+                    _ => box_pos.1 + *y as u32,
+                };
+                (pos_x, pos_y)
+            }
+        }
+    }
+
+    pub fn get_size(&self, text: &String, format: &TextFormat) -> (u32, u32) {
+        let mut height = format.font_size() as u32 + format.padding_bot + format.padding_top;
+        let mut width = format.font_size() as u32 / 2 * text.len() as u32 + format.padding_left + format.padding_top;
+        if let ElemType::Text = self.elem_type {
+            let available_width = format.width - format.padding_left - format.padding_right;
+            let mut current_width = 0;
+            let mut lines = 1;
+
+            let mut txt_split = self.text.split(" ");
+            while let Some(str) = txt_split.next() {
+                let word_width = format.font_size() as u32 * (str.len() + 1) as u32;
+                if current_width + word_width > available_width {
+                    current_width = word_width;
+                    lines += 1;
+                } else {
+                    current_width += word_width;
+                }
+            }
+            height = lines * format.font_size() as u32 + format.padding_bot + format.padding_top;
+        }
+        if format.height > height {
+            height = format.height;
+        }
+        if format.width > width {
+            width = format.width;
+        } 
+        (width, height)
+    }
+
+    fn draw_text(&self, img: &mut RgbaImage, text: String, box_pos: (u32, u32), box_size: (u32, u32), inline_pos: (u32, u32), format: &TextFormat, indent: u32, position: Position) -> u32 {
+        let pos = self.get_pos(&position, box_pos, box_size, inline_pos, indent);
+        let size = self.get_size(&text, format);
+        if let Some(color) = format.bg_color {
+            draw_background(
+                img,
+                pos,
+                size,
+                color,
+                format.border_radius);
+        }
+        draw_text2(img, (pos.0 + format.padding_left, pos.1 + format.padding_top), text, format);
+        match position {
+            Position::Inline => {
+                return size.1;
+            }
+            Position::Relative(x, y) => {
+                if y > 0 {
+                    return y as u32 + size.1;
+                }
+            }
+            _ => ()
+        }
+        0
+    }
+
     pub fn draw(
         &self,
         img: &mut RgbaImage,
         ui: &UI,
         scene: &Arc<RwLock<Scene>>,
-        pos_x: u32,
-        pos_y: u32,
+        box_pos: (u32, u32),
+        box_size: (u32, u32),
+        inline_pos: (u32, u32),
         indent: u32,
     ) -> u32 {
         let mut height = 0;
         match &self.elem_type {
             ElemType::Button(..) => {
-                todo!()
+                height += self.draw_text(img, self.text.clone(), box_pos, box_size, inline_pos, &self.format, indent, self.pos.clone());
             }
             ElemType::Category(cat) => {
-                draw_text2(
-                    img,
-                    (pos_x, pos_y),
-                    self.text.clone(),
-                    &self.format,
-                    ui.settings(),
-                    indent,
-                );
-                height +=
-                    ui.settings().field_height + self.format.padding_bot + self.format.padding_top;
+                let cat_height = self.draw_text(img, self.text.clone(), box_pos, box_size, inline_pos, &self.format, indent, self.pos.clone());
+                height += cat_height;
+                    
                 if !cat.collapsed {
                     for elem in &cat.elems {
                         if elem.visible {
                             let elem_height =
-                                elem.draw(img, ui, scene, pos_x, pos_y + height, indent + 1)
+                                elem.draw(img, ui, scene, box_pos, box_size, (inline_pos.0, inline_pos.1 + height), indent + ui.settings().indent_padding)
                                     + ui.settings().margin;
                             height += elem_height;
                         }
@@ -202,21 +269,13 @@ impl UIElement {
                 }
             }
             ElemType::Property(property) => {
-                draw_text2(
-                    img,
-                    (pos_x, pos_y),
-                    self.text.clone(),
-                    &self.format,
-                    ui.settings(),
-                    indent,
-                );
+                height += self.draw_text(img, self.text.clone(), box_pos, box_size, inline_pos, &self.format, indent, self.pos.clone());
                 let format;
                 let value;
                 if let Some(edit) = ui.editing() {
                     if &self.reference == &edit.reference {
                         value = edit.value.clone() + "_";
                         format = &property.editing_format;
-                        println!("{}, {}", value, edit.value.len());
                     } else {
                         value = property.value.to_string();
                         format = &self.format;
@@ -225,59 +284,87 @@ impl UIElement {
                     value = property.value.to_string();
                     format = &self.format;
                 }
-                let offset = ui.settings().gui_width
-                    - value.len() as u32 * 10
-                    - format.padding_right
-                    - format.padding_left;
-                draw_text2(
-                    img,
-                    (pos_x + offset, pos_y),
-                    value.to_string(),
-                    &format,
-                    ui.settings(),
-                    indent,
-                );
-                height += ui.settings().field_height + format.padding_top + format.padding_bot;
+                let offset = value.len()as u32 * format.font_size() as u32 / 2 + format.padding_right + format.padding_left;
+                self.draw_text(img, value, box_pos, box_size, inline_pos, format, indent, Position::Relative(-(offset as i32), 0));
             }
             ElemType::Stat(function) => {
-                draw_text2(
-                    img,
-                    (pos_x, pos_y),
-                    self.text.clone(),
-                    &self.format,
-                    ui.settings(),
-                    indent,
-                );
+                height += self.draw_text(img, self.text.clone(), box_pos, box_size, inline_pos, &self.format, indent, self.pos.clone());
                 let value = function(&scene.read().unwrap());
-                let offset = ui.settings().gui_width
-                    - value.to_string().len() as u32 * 10
-                    - self.format.padding_right
-                    - self.format.padding_left;
-                draw_text2(
-                    img,
-                    (pos_x + offset, pos_y),
-                    self.text.clone(),
-                    &self.format,
-                    ui.settings(),
-                    indent,
-                );
-                height +=
-                    ui.settings().field_height + self.format.padding_top + self.format.padding_bot;
+                let offset = value.to_string().len() as i32 * 10 - self.format.padding_right as i32;
+                self.draw_text(img, value, box_pos, box_size, inline_pos, &self.format, indent, Position::Relative(-(offset as i32), 0));
             }
             ElemType::Text => {
-                draw_text2(
-                    img,
-                    (pos_x, pos_y),
-                    self.text.clone(),
-                    &self.format,
-                    ui.settings(),
-                    indent,
-                );
-                height +=
-                    ui.settings().field_height + self.format.padding_top + self.format.padding_bot;
+                let available_width = self.format.width - self.format.padding_left - self.format.padding_right;
+                let mut current_width = 0;
+                let mut lines = vec![];
+    
+                let mut txt_split = self.text.split(" ");
+                let mut line = String::from("");
+                while let Some(str) = txt_split.next() {
+                    let word_width = self.format.font_size() as u32 / 2 * (str.len() + 1) as u32;
+                    if current_width + word_width > available_width {
+                        current_width = word_width;
+                        lines.push(line.clone());
+                        line = str.to_string() + " ";
+                    } else {
+                        line += str;
+                        line += " ";
+                        current_width += word_width;
+                    }
+                }
+                lines.push(line);
+                let mut pos = self.pos.clone();
+                for line in lines {
+                    height += self.draw_text(img, line, box_pos, box_size, inline_pos, &self.format, indent, pos.clone());
+                    if let Position::Relative(x, y) = pos {
+                        pos = Position::Relative(x, y + self.format.font_size() as i32 / 2 + ui.settings().margin as i32)
+                    }
+                }
             }
         }
         height
+    }
+
+    pub fn clicked(&mut self, click: (u32, u32), box_pos: (u32, u32), box_size: (u32, u32), indent: u32, inline_pos: (u32, u32), scene: &Arc<RwLock<Scene>>, ui: &mut UI) -> u32 {
+        let pos = self.get_pos(&self.pos, box_pos, box_size, inline_pos, indent);
+        let size = self.get_size(&self.text, &self.format);
+        let mut height = size.1;
+        println!("ref: {}, click: {}:{}, pos: {}:{}, size: {}:{}", self.reference, click.0, click.1, pos.0, pos.1, size.0, size.1);
+        if click.0 > pos.0 && click.0 < pos.0 + size.0 && click.1 > pos.1 && click.1 < pos.1 + size.1 {
+            println!("{} has been clicked", self.reference);
+            match &mut self.elem_type {
+                ElemType::Property(property) => {
+                    println!("Property !");
+                    if let Some(edit) = ui.editing() {
+                        if &edit.reference != &self.reference {
+                            ui.set_editing(Some(Editing {
+                                reference: self.reference.clone(),
+                                value: property.value.to_string(),
+                            }));
+                        }
+                    } else {
+                        println!("Set editing");
+                        ui.set_editing(Some(Editing {
+                            reference: self.reference.clone(),
+                            value: property.value.to_string(),
+                        }));
+                    }
+                },
+                ElemType::Button(fn_click) => {
+                    fn_click(&mut scene.write().unwrap(), ui);
+                },
+                ElemType::Category(cat) => {
+                    cat.collapsed = !cat.collapsed;
+                },
+                _ => ()
+            }
+        } else if let ElemType::Category(cat) = &mut self.elem_type {
+            for elem in &mut cat.elems {
+                height += elem.clicked(click, box_pos, box_size, indent, (inline_pos.0, inline_pos.1 + height), scene, ui);
+            }
+        }
+        height
+        
     }
 }
 
@@ -313,13 +400,13 @@ impl Property {
         }
     }
 
-    pub fn set_value_from_string(&mut self, val: String) {
+    pub fn set_value_from_string(&mut self, val: String) -> Option<String> {
         match self.value {
             Value::Bool(_) => (),
             Value::Float(_) => {
                 let val = val.parse::<f64>();
                 if val.is_err() {
-                    println!("The value is not a proper float");
+                    return Some("The value must be a proper float".to_string());
                 } else {
                     self.value = Value::Float(val.unwrap());
                 }
@@ -330,11 +417,12 @@ impl Property {
             Value::Unsigned(_) => {
                 let val = val.parse::<u32>();
                 if val.is_err() {
-                    println!("The value is not a proper unsigned number");
+                    return Some("The value must be a proper unsigned integer".to_string());
                 } else {
                     self.value = Value::Unsigned(val.unwrap());
                 }
             }
         }
+        None
     }
 }

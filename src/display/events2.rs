@@ -18,7 +18,7 @@ use winit::{
 
 use crate::{
     gui::elements::{
-        ui::{Editing, UI},
+        ui::{ui_clicked, Editing, UI},
         uibox::UIBox,
         uielement::ElemType,
         Displayable,
@@ -73,26 +73,7 @@ fn handle_event(
         WindowEvent::MouseInput { state, .. } => {
             if state == winit::event::ElementState::Released {
                 let pos = ui.mouse_position();
-                if let Some(elem) = ui.clicked(pos) {
-                    if let Some(edit) = ui.editing() {
-                        if &edit.reference != &elem.reference {
-                            if let ElemType::Property(property) = &elem.elem_type {
-                                ui.set_editing(Some(Editing {
-                                    reference: elem.reference.clone(),
-                                    value: property.value.to_string(),
-                                }));
-                            }
-                        }
-                    } else {
-                        if let ElemType::Property(property) = &elem.elem_type {
-                            ui.set_editing(Some(Editing {
-                                reference: elem.reference.clone(),
-                                value: property.value.to_string(),
-                            }));
-                        }
-                    }
-                } else if ui.editing().is_some() {
-                    // Drops current value if clicked outside
+                if !ui_clicked(pos, scene, ui) {
                     ui.set_editing(None);
                 }
             }
@@ -167,8 +148,20 @@ fn handle_keyboard_press(
                 }));
             }
             VirtualKeyCode::NumpadEnter | VirtualKeyCode::Return => {
+                let mut err = None;
                 if let Some(property) = ui.get_property_by_reference(&edit.reference) {
-                    property.set_value_from_string(value);
+                    err = property.set_value_from_string(value);
+                }
+                let rb = edit.reference.clone();
+                let r = rb.split(".").next().unwrap().to_string();
+                let uibox = ui.get_box_mut(r);
+                if let Some(edit_bar) = &mut uibox.edit_bar {
+                    if let Some(err) = err {
+                        edit_bar.txt_message.text = err;
+                        edit_bar.txt_message.visible = true;
+                    } else {
+                        edit_bar.txt_message.visible = false;
+                    }
                 }
                 ui.set_editing(None);
             }
