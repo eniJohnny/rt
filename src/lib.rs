@@ -55,10 +55,13 @@ pub fn run() {
             scene.add_wireframes();
         }
 
-        // testing aabb splitting
-        // model::shapes::aabb::test();
+        // testing aabbs
+        // model::shapes::aabb::aabb_split_test();
+        // model::shapes::aabb::aabb_get_children_test(&scene);
+        // testing nodes
+        bvh::node::test_node_insertion(&mut scene);
 
-        display_scene(scene);
+        // display_scene(scene);
     }
 }
 
