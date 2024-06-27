@@ -3,15 +3,13 @@ use std::cell::{Ref, RefCell};
 use image::RgbaImage;
 
 use crate::{
-    gui::{gui::Property, uisettings::UISettings, Gui},
+    gui::{gui::Property, textformat::TextFormat, uisettings::UISettings, Gui},
     model::{materials::color::Color, scene::Scene},
     SCREEN_WIDTH,
 };
 
 use super::{
-    ui::UI,
-    uielement::{ElemType, UIElement},
-    Position,
+    ui::UI, uieditbar::UIEditBar, uielement::{ElemType, UIElement}, Position
 };
 
 pub struct UIBox {
@@ -27,82 +25,11 @@ pub struct UIBox {
     pub edit_bar: Option<UIEditBar>,
 }
 
-pub struct UIEditBar {
-    pub txt_message: UIElement,
-    pub btn_apply: UIElement,
-    pub btn_cancel: UIElement,
-    pub reference: String,
-}
-
-impl UIEditBar {
-    pub fn new(reference: String, settings: &UISettings) -> Self {
-        let reference = reference + ".editbar";
-        let txt_message = UIElement::new(
-            "",
-            reference.clone() + ".message",
-            ElemType::Text,
-            Position::Relative(0, -80),
-            settings,
-        );
-        let ref2 = reference.clone();
-        let fn_validate_and_apply: Box<dyn Fn(&mut Scene, &mut UI)> = Box::new(move |scene, ui| {
-            {
-                let uibox = ui.get_box_mut((ref2).clone());
-                let mut error = None;
-                for elem in &mut uibox.elems {
-                    if let Err(e) = elem.validate_properties() {
-                        error = Some(e);
-                        break;
-                    }
-                }
-                if let Some(error) = error {
-                    if let Some(edit_bar) = &mut uibox.edit_bar {
-                        edit_bar.txt_message.text = error;
-                    }
-                }
-            }
-            {
-                let mut vector = ui.get_box_mut((ref2).clone()).elems.split_off(0);
-                for elem in &mut vector {
-                    elem.submit_properties(scene, ui);
-                }
-                ui.get_box_mut((ref2).clone()).elems.append(&mut vector);
-            }
-        });
-        let btn_apply = UIElement::new(
-            "Apply",
-            reference.clone() + ".btnApply",
-            ElemType::Button(fn_validate_and_apply),
-            Position::Relative((settings.gui_width as i32 / 2 - 120) / 2, -50),
-            settings,
-        );
-        let ref2 = reference.clone();
-        let btn_cancel = UIElement::new(
-            "Cancel",
-            reference.clone() + ".btnCancel",
-            ElemType::Button(Box::new(move |scene, ui| {
-                let uibox = ui.get_box_mut(ref2.clone());
-                for elem in &mut uibox.elems {
-                    elem.reset_properties(scene);
-                }
-            })),
-            Position::Relative((settings.gui_width as i32 / 2 + 20) / 2, -50),
-            settings,
-        );
-        Self {
-            reference,
-            txt_message,
-            btn_apply,
-            btn_cancel,
-        }
-    }
-}
-
 impl UIBox {
     pub fn default(gui: &UI, reference: String) -> Self {
         UIBox {
             pos: (SCREEN_WIDTH as u32 - gui.settings().gui_width, 0),
-            background_color: Some(Color::new(0., 0., 0.)),
+            background_color: Some(Color::new(0.1, 0.1, 0.1)),
             borders: None,
             visible: true,
             collapsed: false,
@@ -129,13 +56,68 @@ impl UIBox {
         Ok(())
     }
 
-    pub fn height(&self, settings: &UISettings) -> u32 {
-        let mut size = 0;
+    pub fn height(&self, margin: u32) -> u32 {
+        let mut top_height = 0;
+        let mut bot_height = 0;
+        let mut inline_height = 0;
+
         for elem in &self.elems {
-            size += elem.height(settings);
-            size += self.margin;
+            if !elem.visible {
+                continue;
+            }
+            match elem.pos {
+                Position::Relative(_, y) =>{
+                    match y {
+                        _ if y > 0 => {
+                            let needed_height = y as u32 + elem.get_size(&elem.text, &elem.format).1 + margin;
+                            if needed_height > top_height {
+                                top_height = needed_height;
+                            }
+                        },
+                        _ if y < 0 => {
+                            let needed_height = -y as u32 + margin;
+                            if needed_height > bot_height {
+                                bot_height = needed_height;
+                            }
+                        },
+                        _ => ()
+                    }
+                },
+                Position::Inline => {
+                    inline_height += elem.get_size(&elem.text, &elem.format).1 + margin;
+                }
+            }
         }
-        size
+        if let Some(edit_bar) = &self.edit_bar {
+            for elem in vec![&edit_bar.btn_apply, &edit_bar.btn_cancel, &edit_bar.txt_message] {
+                if !elem.visible {
+                    continue;
+                }
+                match elem.pos {
+                    Position::Relative(_, y) =>{
+                        match y {
+                            _ if y > 0 => {
+                                let needed_height = y as u32 + elem.get_size(&elem.text, &elem.format).1 + margin;
+                                if needed_height > top_height {
+                                    top_height = needed_height;
+                                }
+                            },
+                            _ if y < 0 => {
+                                let needed_height = -y as u32 + margin;
+                                if needed_height > bot_height {
+                                    bot_height = needed_height;
+                                }
+                            },
+                            _ => ()
+                        }
+                    },
+                    Position::Inline => {
+                        inline_height += elem.get_size(&elem.text, &elem.format).1 + margin;
+                    }
+                }
+            }
+        }
+        inline_height + top_height + bot_height
     }
 
     pub fn show(&self, ui: &mut UI) {

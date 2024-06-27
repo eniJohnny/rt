@@ -56,7 +56,7 @@ pub fn event_manager(
     let mut image_requested = true;
     let mut final_image = false;
     let settings = UISettings::default();
-    let format = TextFormat::new_base_format(&settings);
+    let format = TextFormat::base_format(&settings);
     let editing_format = TextFormat::new_editing_format(&settings);
     let mut full_img: RgbaImage = img.clone();
     let mut gui = Gui::new();

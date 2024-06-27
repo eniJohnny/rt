@@ -9,7 +9,7 @@ use winit::event::VirtualKeyCode;
 use crate::{
     display::utils::draw_text2,
     gui::{
-        draw::{draw_button_background, draw_button_background2},
+        draw::{draw_button_background, draw_background},
         uisettings::UISettings,
     },
     model::{maths::vec2::Vec2, scene::Scene},
@@ -96,6 +96,17 @@ impl UI {
             .expect("ERROR : Couldn't find the added UIBox")
     }
 
+    // pub fn get_element_by_reference(&self, reference: String) -> Option<&UIElement> {
+    //     for uibox in self.boxes.values_mut() {
+    //         for elem in &mut uibox.elems {
+    //             if let Some(elem) = elem.get_element_by_reference(reference) {
+    //                 return Some(elem);
+    //             }
+    //         }
+    //     }
+    //     None
+    // }
+
     pub fn get_property_by_reference(&mut self, reference: &String) -> Option<&mut Property> {
         for uibox in self.boxes.values_mut() {
             for elem in &mut uibox.elems {
@@ -108,10 +119,13 @@ impl UI {
     }
 
     pub fn add_box(&mut self, mut uibox: UIBox) -> String {
-        self.box_index += 1;
-        uibox.reference = self.box_index.to_string();
-        self.boxes.insert(self.box_index.to_string(), uibox);
-        self.box_index.to_string()
+        if &uibox.reference == "" {
+            self.box_index += 1;
+            uibox.reference = self.box_index.to_string();
+        }
+        let reference = uibox.reference.clone();
+        self.boxes.insert(reference.clone(), uibox);
+        reference
     }
 
     pub fn active_box(&self) -> Option<&UIBox> {
@@ -121,6 +135,18 @@ impl UI {
             Some(
                 self.boxes
                     .get(&self.active_box_reference)
+                    .expect("ERROR : Couldn't find the added UIBox"),
+            )
+        }
+    }
+
+    pub fn active_box_mut(&mut self) -> Option<&mut UIBox> {
+        if self.active_box_reference == "" {
+            None
+        } else {
+            Some(
+                self.boxes
+                    .get_mut(&self.active_box_reference)
                     .expect("ERROR : Couldn't find the added UIBox"),
             )
         }
@@ -162,7 +188,7 @@ impl UI {
     // }
 
     pub fn draw(&mut self, scene: &Arc<RwLock<Scene>>, img: &mut RgbaImage) {
-        // let inline_pos = (self.settings.padding, self.settings.padding);
+        img.fill_with(|| 0);
         let width = self.settings.gui_width;
         let pos_x = SCREEN_WIDTH as u32 - self.settings.gui_width;
         let mut pos_y = 0;
@@ -171,85 +197,64 @@ impl UI {
                 .boxes
                 .get(&self.active_box_reference)
                 .expect("Destroyed UIBox still referenced as active");
+            let uibox_height = uibox.height(self.settings().margin);
             if let Some(color) = &uibox.background_color {
                 for x in pos_x..(pos_x + width) {
-                    for y in pos_y..(pos_y + uibox.height(&self.settings)) {
+                    for y in pos_y..(pos_y + uibox_height) {
                         img.put_pixel(x as u32, y as u32, color.to_rgba());
                     }
                 }
             }
 
             for elem in &uibox.elems {
-                pos_y += elem.draw(img, &self, scene, pos_x, pos_y, 0);
-            }
-
-            if let Some(edit_bar) = &uibox.edit_bar {
-                // draw_text2(
-                //     img,
-                //     edit_bar.txt_message.position,
-                //     edit_bar.txt_message.text.clone(),
-                //     &edit_bar.txt_message.format,
-                //     &self.settings,
-                //     0,
-                // );
-                if let Position::Relative(x, y) = edit_bar.btn_apply.pos {
-                    let pos_x = match x {
-                        _ if x < 0 => uibox.pos.0 + (self.settings().gui_width as i32 + x) as u32,
-                        _ => uibox.pos.0 + x as u32,
-                    };
-                    let pos_y: u32 = match y {
-                        _ if y < 0 => uibox.pos.1 + (self.settings().gui_height as i32 + y) as u32,
-                        _ => uibox.pos.1 + y as u32,
-                    };
-                    draw_button_background2(
-                        img,
-                        (pos_x, pos_y),
-                        (100, 40),
-                        Rgba([70, 125, 70, 255]),
-                    );
-                    // draw_text2(
-                    //     img,
-                    //     (pos_x, pos_y),
-                    //     edit_bar.btn_apply.text.clone(),
-                    //     &edit_bar.btn_apply.format,
-                    //     self.settings(),
-                    //     0,
-                    // );
+                if elem.visible {
+                    pos_y += elem.draw(img, &self, scene, uibox.pos, (self.settings().gui_width, uibox_height), (0, pos_y), 0);
                 }
-                if let Position::Relative(x, y) = edit_bar.btn_cancel.pos {
-                    let pos_x = match x {
-                        _ if x < 0 => uibox.pos.0 + (self.settings().gui_width as i32 + x) as u32,
-                        _ => uibox.pos.0 + x as u32,
-                    };
-                    let pos_y: u32 = match y {
-                        _ if y < 0 => uibox.pos.1 + (self.settings().gui_height as i32 + y) as u32,
-                        _ => uibox.pos.1 + y as u32,
-                    };
-                    draw_button_background2(
-                        img,
-                        (pos_x, pos_y),
-                        (100, 40),
-                        Rgba([125, 70, 70, 255]),
-                    );
+            }
+            if let Some(edit_bar) = &uibox.edit_bar {
+                for elem in vec![&edit_bar.txt_message, &edit_bar.btn_apply, &edit_bar.btn_cancel] {
+                    if elem.visible {
+                        elem.draw(img, &self, scene, uibox.pos, (self.settings().gui_width, uibox_height), (0, pos_y), 0);
+                    }
                 }
             }
         }
         self.dirty = false;
     }
+}
 
-    pub fn clicked(&self, click: (u32, u32)) -> Option<&UIElement> {
-        if let Some(uibox) = self.active_box() {
-            let mut pos = uibox.pos;
-            if click.0 < pos.0 + self.settings.gui_width && click.0 > pos.0 {
-                for elem in &uibox.elems {
-                    let elem_height = elem.height(self.settings());
-                    if click.1 < pos.1 + elem_height && click.1 > pos.1 {
-                        return Some(&elem);
-                    }
-                    pos.1 += elem_height;
-                }
+pub fn ui_clicked(click: (u32, u32), scene: &Arc<RwLock<Scene>>, ui: &mut UI) -> bool {
+    let mut new_elems = vec![];
+    let gui_width = ui.settings.gui_width;
+    let margin = ui.settings().margin;
+    let mut clicked = false;
+    let mut edit_bar_opt = None;
+    let mut box_pos = (0, 0);
+    let mut box_size = (0, 0);
+    let mut inline_pos = (0, 0);
+    if let Some(uibox) = ui.active_box_mut() {
+        new_elems = uibox.elems.split_off(0);
+        box_pos = uibox.pos;
+        box_size = (gui_width, uibox.height(margin));
+        inline_pos = (0, 0);
+        edit_bar_opt = uibox.edit_bar.take();
+        if click.0 > box_pos.0 && click.0 < box_pos.0 + box_size.0 && click.1 > box_pos.1 && click.1 < box_pos.1 + box_size.1 {
+            let mut height = 0;
+            for elem in &mut new_elems {
+                height += elem.clicked(click, box_pos, box_size, 0, (inline_pos.0, inline_pos.1 + height), scene, ui);
             }
+            clicked = true;
         }
-        None
     }
+    if let Some(mut edit_bar) =  edit_bar_opt {   
+        for elem in vec![&mut edit_bar.btn_apply, &mut edit_bar.btn_cancel, &mut edit_bar.txt_message] {
+            elem.clicked(click, box_pos, box_size, 0, inline_pos, scene, ui);
+        }
+        edit_bar_opt = Some(edit_bar);
+    }
+    if let Some(uibox) = ui.active_box_mut() {
+        uibox.elems.append(&mut new_elems);
+        uibox.edit_bar = edit_bar_opt;
+    }
+    clicked
 }
