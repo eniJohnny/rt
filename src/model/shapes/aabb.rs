@@ -3,6 +3,7 @@ use std::default;
 use super::Shape;
 use crate::model::materials::material::Projection;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
+use crate::model::scene::Scene;
 use crate::{ERROR_MARGIN, WIREFRAME_THICKNESS};
 
 
@@ -37,7 +38,7 @@ impl Aabb {
     }
 
     // Get the AABB of a list of AABBs
-    pub fn from_aabbs(aabbs: &Vec<Aabb>) -> Aabb {
+    pub fn from_aabbs(aabbs: &Vec<&Aabb>) -> Aabb {
         let mut x_min = f64::MAX;
         let mut x_max = f64::MIN;
         let mut y_min = f64::MAX;
@@ -130,11 +131,6 @@ impl Aabb {
         let y_axis = *dir.y() == 1.0 || *dir.y() == -1.0;
         let z_axis = *dir.z() == 1.0 || *dir.z() == -1.0;
 
-        let error = x_axis as i32 + y_axis as i32 + z_axis as i32;
-        if error != 1 {
-            panic!("Error: dir should be along the x, y or z axis.");
-        }
-
         let mut aabb1 = self.clone();
         let mut aabb2 = self.clone();
 
@@ -151,7 +147,78 @@ impl Aabb {
             aabb1.set_z_max(new_z);
             aabb2.set_z_min(new_z);
         }
+
         (aabb1, aabb2)
+    }
+
+    pub fn get_children_aabbs(&self, scene: &Scene) -> Vec<Aabb> {
+        let aabbs = scene.all_aabb();
+        let mut children = vec![];
+
+        for aabb in aabbs {
+            if self.is_child(&aabb) {
+                children.push(aabb.clone());
+            }
+        }
+
+        children
+    }
+
+    pub fn get_children_aabbs_id(&self, scene: &Scene) -> Vec<usize> {
+        let elements = scene.elements();
+        let mut children = vec![];
+
+        for (i, element) in elements.iter().enumerate() {
+            if element.shape().as_aabb().is_some() && self.is_child(element.shape().as_aabb().unwrap()){
+                children.push(i);
+            }
+        }
+
+        children
+    }
+
+    pub fn get_children_elements(&self, scene: &Scene) -> Vec<usize> {
+        let elements = scene.elements();
+        let mut children = vec![];
+
+        for (i, element) in elements.iter().enumerate() {
+            let mut aabb_shape = None;
+
+            if let Some(aabb) = element.shape().as_aabb() {
+                aabb_shape = Some(aabb);
+            } else if let Some(aabb) = element.shape().aabb() {
+                aabb_shape = Some(aabb);
+            }
+
+            if aabb_shape.is_some() && self.is_child(aabb_shape.unwrap()) {
+                children.push(i);
+            }
+        }
+
+        children
+    }
+
+    pub fn is_child(&self, aabb: &Aabb) -> bool {
+        if self == aabb {
+            return false;
+        }
+        
+        let x_overlap = self.x_min() < aabb.x_max() && self.x_max() > aabb.x_min();
+        let y_overlap = self.y_min() < aabb.y_max() && self.y_max() > aabb.y_min();
+        let z_overlap = self.z_min() < aabb.z_max() && self.z_max() > aabb.z_min();
+
+        x_overlap && y_overlap && z_overlap
+    }
+}
+
+impl PartialEq for Aabb {
+    fn eq(&self, other: &Self) -> bool {
+        self.x_min == other.x_min
+            && self.x_max == other.x_max
+            && self.y_min == other.y_min
+            && self.y_max == other.y_max
+            && self.z_min == other.z_min
+            && self.z_max == other.z_max
     }
 }
 
@@ -250,7 +317,7 @@ fn get_tmax(tmin_x: f64, tmax_x: f64, tmin_y: f64, tmax_y: f64, tmin_z: f64, tma
     tmax
 }
 
-pub fn test() {
+pub fn aabb_split_test() {
     let mut aabb = Aabb::new(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
     let dir = Vec3::new(1.0, 0.0, 0.0);
     let t = 0.75;
@@ -258,4 +325,13 @@ pub fn test() {
     let (aabb1, aabb2) = aabb.split(dir, t);
 
     dbg!(aabb, aabb1, aabb2);
+}
+
+pub fn aabb_get_children_test(scene: &Scene) {
+    let aabbs = scene.all_aabb();
+    let aabb = aabbs.first().expect("No AABBs in scene");
+    let biggest_aabb = Aabb::from_aabbs(&aabbs);
+
+    dbg!(aabb, aabb.get_children_aabbs(scene));
+    dbg!(&biggest_aabb, biggest_aabb.get_children_aabbs(scene));
 }
