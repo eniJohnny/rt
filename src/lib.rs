@@ -55,8 +55,8 @@ pub fn run() {
             scene.add_wireframes();
         }
 
-        // testing node struct
-        // bvh::node::test_node(&mut scene);
+        // testing aabb splitting
+        // model::shapes::aabb::test();
 
         display_scene(scene);
     }
