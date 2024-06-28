@@ -20,7 +20,7 @@ use crate::{
 use super::{
     ui::{Editing, UI},
     uibox::UIBox,
-    utils::{get_pos, get_size, split_in_lines},
+    utils::{draw_element_text, get_pos, get_size, split_in_lines},
     Displayable, HitBox,
 };
 
@@ -79,18 +79,20 @@ pub struct UIElement {
     pub text: String,
     pub format: TextFormat,
     pub size: (u32, u32),
+    pub id: String,
     pub reference: String,
 }
 
 impl UIElement {
-    pub fn new(name: &str, reference: String, elem: ElemType, settings: &UISettings) -> Self {
+    pub fn new(name: &str, id: &str, elem: ElemType, settings: &UISettings) -> Self {
         UIElement {
             visible: true,
             format: elem.base_format(settings),
             elem_type: elem,
             text: String::from(name),
             size: (0, 0),
-            reference: reference + "." + name,
+            reference: id.to_string(),
+            id: id.to_string()
         }
     }
     pub fn height(&self, settings: &UISettings) -> u32 {
@@ -101,7 +103,7 @@ impl UIElement {
         if let ElemType::Category(cat) = &self.elem_type {
             if !cat.collapsed {
                 for elem in &cat.elems {
-                    height += elem.height(settings);
+                    height += elem.height(settings) + settings.margin;
                 }
             }
         }
@@ -110,6 +112,25 @@ impl UIElement {
 
     pub fn set_format(&mut self, format: TextFormat) {
         self.format = format;
+    }
+
+    pub fn refresh_format(&mut self, settings: &UISettings) {
+        self.format = self.elem_type.base_format(settings);
+        if let ElemType::Category(cat) = &mut self.elem_type {
+            for elem in &mut cat.elems {
+                elem.refresh_format(settings);
+            }
+        }
+    }
+
+    pub fn set_reference(&mut self, parent_ref: String) {
+        self.reference = parent_ref + "." + &self.id;
+
+        if let ElemType::Category(cat) = &mut self.elem_type {
+            for elem in &mut cat.elems {
+                elem.set_reference(self.reference.clone());
+            }
+        }
     }
 
     pub fn get_property_by_reference(&mut self, reference: &String) -> Option<&mut Property> {
@@ -134,7 +155,9 @@ impl UIElement {
     pub fn get_element_by_reference_mut(&mut self, reference: &String) -> Option<&mut UIElement> {
         if &self.reference == reference {
             return Some(self);
-        } else if let ElemType::Category(cat) = &mut self.elem_type {
+        }
+        println!("{} is not {}", self.reference, reference);
+        if let ElemType::Category(cat) = &mut self.elem_type {
             for elem in &mut cat.elems {
                 let result = elem.get_element_by_reference_mut(reference);
                 if result.is_some() {
@@ -156,7 +179,6 @@ impl UIElement {
     }
 
     pub fn validate_properties(&self) -> Result<(), String> {
-        let mut ok = true;
         if let ElemType::Category(cat) = &self.elem_type {
             for elem in &cat.elems {
                 elem.validate_properties()?;
@@ -177,25 +199,6 @@ impl UIElement {
         }
     }
 
-    fn draw_text(
-        &self,
-        img: &mut RgbaImage,
-        text: String,
-        pos: (u32, u32),
-        size: (u32, u32),
-        format: &TextFormat,
-    ) {
-        if let Some(color) = format.bg_color {
-            draw_background(img, pos, size, color, format.border_radius);
-        }
-        draw_text2(
-            img,
-            (pos.0 + format.padding_left, pos.1 + format.padding_top),
-            text,
-            format,
-        );
-    }
-
     pub fn draw(
         &self,
         img: &mut RgbaImage,
@@ -206,7 +209,7 @@ impl UIElement {
         let mut vec = vec![];
         match &self.elem_type {
             ElemType::Button(..) => {
-                self.draw_text(
+                draw_element_text(
                     img,
                     self.text.clone(),
                     hitbox.pos,
@@ -215,7 +218,7 @@ impl UIElement {
                 );
             }
             ElemType::Category(cat) => {
-                self.draw_text(
+                draw_element_text(
                     img,
                     self.text.clone(),
                     hitbox.pos,
@@ -224,8 +227,8 @@ impl UIElement {
                 );
 
                 if !cat.collapsed {
+                    let mut height = hitbox.size.1 + ui.uisettings().margin;
                     for elem in &cat.elems {
-                        let mut height = hitbox.size.1 + ui.settings().margin;
                         if elem.visible {
                             let hitbox = HitBox {
                                 pos: get_pos((hitbox.pos.0, hitbox.pos.1 + height), (0, 0), 0),
@@ -233,10 +236,10 @@ impl UIElement {
                                 reference: elem.reference.clone(),
                             };
                             let hitbox_list = elem.draw(img, ui, scene, &hitbox);
-                            height += hitbox.size.1 + ui.settings().margin;
+                            height += hitbox.size.1 + ui.uisettings().margin;
                             vec.push(hitbox);
                             for hitbox in hitbox_list {
-                                height += hitbox.size.1 + ui.settings().margin;
+                                height += hitbox.size.1 + ui.uisettings().margin;
                                 vec.push(hitbox)
                             }
                         }
@@ -244,7 +247,7 @@ impl UIElement {
                 }
             }
             ElemType::Property(property) => {
-                self.draw_text(
+                draw_element_text(
                     img,
                     self.text.clone(),
                     hitbox.pos,
@@ -254,10 +257,8 @@ impl UIElement {
                 let format;
                 let value;
                 if let Some(edit) = ui.editing() {
-                    println!("editing");
                     if &self.reference == &edit.reference {
                         value = edit.value.clone() + "_";
-                        println!("drawing editing format");
                         format = &property.editing_format;
                     } else {
                         value = property.value.to_string();
@@ -271,7 +272,7 @@ impl UIElement {
                     + format.padding_left
                     + format.padding_right;
                 let offset = hitbox.size.0 - value_width;
-                self.draw_text(
+                draw_element_text(
                     img,
                     value,
                     (hitbox.pos.0 + offset, hitbox.pos.1),
@@ -280,7 +281,7 @@ impl UIElement {
                 );
             }
             ElemType::Stat(function) => {
-                self.draw_text(
+                draw_element_text(
                     img,
                     self.text.clone(),
                     hitbox.pos,
@@ -292,7 +293,7 @@ impl UIElement {
                     + self.format.padding_left
                     + self.format.padding_right;
                 let offset = hitbox.size.0 - value_width;
-                self.draw_text(
+                draw_element_text(
                     img,
                     value,
                     (hitbox.pos.0 + offset, hitbox.pos.1),
@@ -307,7 +308,7 @@ impl UIElement {
                 let mut height = 0;
                 for line in lines {
                     let size = get_size(&line, &self.format);
-                    self.draw_text(
+                    draw_element_text(
                         img,
                         line,
                         (hitbox.pos.0, hitbox.pos.1 + height),
@@ -324,7 +325,6 @@ impl UIElement {
     pub fn clicked(&mut self, scene: &Arc<RwLock<Scene>>, ui: &mut UI) {
         match &mut self.elem_type {
             ElemType::Property(property) => {
-                println!("Property !");
                 if let Some(edit) = ui.editing() {
                     if &edit.reference != &self.reference {
                         ui.set_editing(Some(Editing {
@@ -333,7 +333,6 @@ impl UIElement {
                         }));
                     }
                 } else {
-                    println!("Set editing");
                     ui.set_editing(Some(Editing {
                         reference: self.reference.clone(),
                         value: property.value.to_string(),
@@ -356,7 +355,17 @@ pub struct Category {
     pub collapsed: bool,
 }
 
+impl Category {
+    pub fn default() -> Self {
+        Self {
+            elems: vec![],
+            collapsed: false
+        }
+    }
+}
+
 pub type FnSubmit = Box<dyn Fn(Value, &mut Scene, &mut UI)>;
+pub type FnApply = Box<dyn Fn(&mut Scene, &mut UI)>;
 pub type FnValidate = Box<dyn Fn(&Value) -> Result<(), &'static str>>;
 
 pub struct Property {
@@ -383,29 +392,28 @@ impl Property {
         }
     }
 
-    pub fn set_value_from_string(&mut self, val: String) -> Option<String> {
+    pub fn get_value_from_string(&self, val: String) -> Result<Value,String> {
         match self.value {
-            Value::Bool(_) => (),
+            Value::Bool(_) => return Err("Bool value edited ?".to_string()),
             Value::Float(_) => {
                 let val = val.parse::<f64>();
                 if val.is_err() {
-                    return Some("The value must be a proper float".to_string());
+                    return Err("The value must be a proper float".to_string());
                 } else {
-                    self.value = Value::Float(val.unwrap());
+                    return Ok(Value::Float(val.unwrap()));
                 }
             }
             Value::Text(_) => {
-                self.value = Value::Text(val);
+                return Ok(Value::Text(val));
             }
             Value::Unsigned(_) => {
                 let val = val.parse::<u32>();
                 if val.is_err() {
-                    return Some("The value must be a proper unsigned integer".to_string());
+                    return Err("The value must be a proper unsigned integer".to_string());
                 } else {
-                    self.value = Value::Unsigned(val.unwrap());
+                    return Ok(Value::Unsigned(val.unwrap()));
                 }
             }
         }
-        None
     }
 }

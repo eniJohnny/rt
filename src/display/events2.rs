@@ -32,13 +32,15 @@ use super::display;
 pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixels: Pixels<Window>) {
     let mut ui = UI::default();
     let mut settings_box = UIBox::default(&ui, "uisettings".to_string());
-    // settings_box.set_edit_bar(ui.settings());
     let mut img = RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32);
 
     settings_box.add_elements(
-        ui.settings()
-            .get_fields(&settings_box.reference, ui.settings()),
+        ui.uisettings()
+            .get_fields(&settings_box.reference, ui.uisettings()),
     );
+    settings_box.set_edit_bar(ui.uisettings(), Some(Box::new(|_, ui| {
+        ui.refresh_formats()
+    })));
 
     let index = ui.add_box(settings_box);
     ui.set_active_box(index);
@@ -76,6 +78,7 @@ fn handle_event(
                 if !ui_clicked(pos, scene, ui) {
                     ui.set_editing(None);
                 }
+                ui.set_dirty()
             }
         }
         WindowEvent::KeyboardInput { input, .. } => {
@@ -150,11 +153,23 @@ fn handle_keyboard_press(
             VirtualKeyCode::NumpadEnter | VirtualKeyCode::Return => {
                 let mut err = None;
                 if let Some(property) = ui.get_property_by_reference(&edit.reference) {
-                    err = property.set_value_from_string(value);
+                    match property.get_value_from_string(value.clone()) {
+                        Err(error) => {
+                            err = Some(error);
+                        }
+                        Ok(value) => {
+                            if let Err(e) = (property.fn_validate)(&value) {
+                                err = Some(e.to_string());
+                            } else {
+                                property.initial_value = property.value.clone();
+                                property.value = value;
+                            }
+                        }
+                    }
                 }
-                let rb = edit.reference.clone();
-                let r = rb.split(".").next().unwrap().to_string();
-                let uibox = ui.get_box_mut(r);
+                let tmp_ref = edit.reference.clone();
+                let box_ref = tmp_ref.split(".").next().unwrap().to_string();
+                let uibox = ui.get_box_mut(box_ref);
                 if let Some(edit_bar) = &mut uibox.edit_bar {
                     if let Some(err) = err {
                         edit_bar.text.0 = Some(err);

@@ -11,7 +11,7 @@ use crate::{
 use super::{
     ui::UI,
     uieditbar::UIEditBar,
-    uielement::{ElemType, UIElement},
+    uielement::{ElemType, FnApply, UIElement},
     HitBox,
 };
 
@@ -29,7 +29,7 @@ pub struct UIBox {
 impl UIBox {
     pub fn default(gui: &UI, reference: String) -> Self {
         UIBox {
-            pos: (SCREEN_WIDTH as u32 - gui.settings().gui_width, 0),
+            pos: (SCREEN_WIDTH as u32 - gui.uisettings().gui_width, 0),
             size: (0, 0),
             background_color: Some(Color::new(0.1, 0.1, 0.1)),
             borders: None,
@@ -41,11 +41,14 @@ impl UIBox {
     }
 
     pub fn add_elements(&mut self, mut elems: Vec<UIElement>) {
+        for elem in &mut elems {
+            elem.set_reference(self.reference.clone());
+        } 
         self.elems.append(&mut elems);
     }
 
-    pub fn set_edit_bar(&mut self, settings: &UISettings) {
-        self.edit_bar = Some(UIEditBar::new(self.reference.clone(), settings))
+    pub fn set_edit_bar(&mut self, settings: &UISettings, on_apply: Option<FnApply>) {
+        self.edit_bar = Some(UIEditBar::new(self.reference.clone(), settings, on_apply))
     }
 
     pub fn validate_properties(&self, scene: &mut Scene, ui: &mut UI) -> Result<(), String> {
@@ -55,18 +58,27 @@ impl UIBox {
         Ok(())
     }
 
+    pub fn refresh_formats(&mut self, settings: &UISettings) {
+        for elem in &mut self.elems {
+            elem.refresh_format(settings);
+        }
+        if let Some(edit_bar) = &mut self.edit_bar {
+            edit_bar.refresh_formats(settings);
+        }
+    }
+
     pub fn height(&self, settings: &UISettings) -> u32 {
-        let mut inline_height = 0;
+        let mut height = 0;
         for elem in &self.elems {
             if !elem.visible {
                 continue;
             }
-            inline_height += elem.height(settings);
+            height += elem.height(settings) + settings.margin;
         }
         if let Some(edit_bar) = &self.edit_bar {
-            todo!("EditBar")
+            height += edit_bar.height(settings);
         }
-        inline_height
+        height
     }
 
     pub fn show(&self, ui: &mut UI) {
