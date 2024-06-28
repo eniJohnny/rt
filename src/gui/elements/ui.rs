@@ -9,18 +9,14 @@ use winit::event::VirtualKeyCode;
 use crate::{
     display::utils::draw_text2,
     gui::{
-        draw::{draw_background, draw_button_background},
-        uisettings::UISettings,
+        draw::{draw_background, draw_button_background}, settings::Settings, uisettings::UISettings
     },
     model::{maths::vec2::Vec2, scene::Scene},
     GUI_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 
 use super::{
-    uibox::UIBox,
-    uielement::{ElemType, Property, UIElement},
-    utils::{get_pos, get_size, give_back_element, take_element},
-    HitBox,
+    uibox::UIBox, uieditbar::UIEditBar, uielement::{ElemType, Property, UIElement}, utils::{get_parent_ref, get_pos, get_size, give_back_element, take_element}, HitBox
 };
 
 #[derive(Clone)]
@@ -31,7 +27,8 @@ pub struct Editing {
 
 pub struct UI {
     boxes: HashMap<String, UIBox>,
-    settings: UISettings,
+    uisettings: UISettings,
+    settings: Settings,
     box_index: usize,
     active_box_reference: String,
     editing: Option<Editing>,
@@ -46,21 +43,30 @@ impl UI {
         UI {
             box_index: 0,
             boxes: HashMap::new(),
-            settings: UISettings::default(),
+            uisettings: UISettings::default(),
             active_box_reference: "".to_string(),
             editing: None,
             mouse_position: (0, 0),
             inputs: vec![],
             dirty: false,
             hitbox_vec: vec![],
+            settings: Settings::default()
         }
     }
 
-    pub fn settings(&self) -> &UISettings {
+    pub fn uisettings(&self) -> &UISettings {
+        &self.uisettings
+    }
+
+    pub fn uisettings_mut(&mut self) -> &mut UISettings {
+        &mut self.uisettings
+    }
+
+    pub fn settings(&self) -> &Settings {
         &self.settings
     }
 
-    pub fn settings_mut(&mut self) -> &mut UISettings {
+    pub fn settings_mut(&mut self) -> &mut Settings {
         &mut self.settings
     }
 
@@ -74,6 +80,14 @@ impl UI {
 
     pub fn dirty(&self) -> bool {
         self.dirty
+    }
+
+    pub fn refresh_formats(&mut self) {
+        let new_settings = self.uisettings().clone();
+        for (_, uibox) in &mut self.boxes {
+            uibox.refresh_formats(&new_settings);
+        }
+        self.set_dirty()
     }
 
     pub fn editing(&self) -> &Option<Editing> {
@@ -94,7 +108,7 @@ impl UI {
     pub fn get_box_mut(&mut self, reference: String) -> &mut UIBox {
         self.boxes
             .get_mut(&reference)
-            .expect("ERROR : Couldn't find the added UIBox")
+            .expect(&format!("ERROR : Couldn't find the added UIBox {}", reference))
     }
 
     pub fn get_element_by_reference_mut(&mut self, reference: String) -> Option<&mut UIElement> {
@@ -105,6 +119,7 @@ impl UI {
                 }
             }
         }
+        println!("Element {} not found", reference);
         None
     }
 
@@ -174,9 +189,28 @@ impl UI {
         &self.inputs
     }
 
+    pub fn validate_properties(&mut self, reference: String) {
+        let uibox = self.get_box_mut(reference.clone());
+        let mut error = None;
+        for elem in &mut uibox.elems {
+            if let Err(e) = elem.validate_properties() {
+                error = Some(e);
+                break;
+            }
+        }
+        if let Some(edit_bar) = &mut uibox.edit_bar {
+            if let Some(error) = error {
+                edit_bar.text.0 = Some(error);
+                return;
+            } else {
+                edit_bar.text.0 = None
+            }
+        }
+    }
+
     pub fn draw(&mut self, scene: &Arc<RwLock<Scene>>, img: &mut RgbaImage) {
         img.fill_with(|| 0);
-        let width = self.settings.gui_width;
+        let width = self.uisettings.gui_width;
         let mut hitbox_vec = vec![];
         if self.active_box_reference != "" {
             let uibox = self
@@ -184,7 +218,7 @@ impl UI {
                 .get(&self.active_box_reference)
                 .expect("Destroyed UIBox still referenced as active");
             let pos = uibox.pos;
-            let uibox_height = uibox.height(self.settings());
+            let uibox_height = uibox.height(self.uisettings());
             if let Some(color) = &uibox.background_color {
                 for x in pos.0..(pos.0 + width) {
                     for y in pos.1..(pos.1 + uibox_height) {
@@ -202,20 +236,24 @@ impl UI {
                         reference: elem.reference.clone(),
                     };
                     let vec = elem.draw(img, self, scene, &hitbox);
-                    height += hitbox.size.1 + self.settings().margin;
+                    height += hitbox.size.1 + self.uisettings().margin;
                     hitbox_vec.push(hitbox);
                     for hitbox in vec {
-                        height += hitbox.size.1 + self.settings().margin;
+                        height += hitbox.size.1 + self.uisettings().margin;
                         hitbox_vec.push(hitbox)
                     }
                 }
             }
             if let Some(edit_bar) = &uibox.edit_bar {
-                todo!("Handle edit bar")
+                hitbox_vec.append(&mut edit_bar.draw(img, (pos.0, pos.1 + height), &self.uisettings, width));
             }
         }
         self.dirty = false;
         self.hitbox_vec = hitbox_vec;
+    }
+
+    pub fn set_dirty(&mut self) {
+        self.dirty = true;
     }
 }
 
@@ -227,10 +265,22 @@ pub fn ui_clicked(click: (u32, u32), scene: &Arc<RwLock<Scene>>, ui: &mut UI) ->
             && click.1 > hitbox.pos.1
             && click.1 < hitbox.pos.1 + hitbox.size.1
         {
-            if let Some((mut elem, parent_ref, index)) = take_element(ui, hitbox.reference) {
-                elem.clicked(scene, ui);
-                give_back_element(ui, elem, parent_ref, index);
-                return true;
+            if hitbox.reference.ends_with("btnApply") || hitbox.reference.ends_with("btnCancel") {
+                let box_ref = get_parent_ref(hitbox.reference.clone());
+                let uibox = ui.get_box_mut(box_ref.clone());
+                if let Some(_) = uibox.edit_bar {
+                    if hitbox.reference.ends_with("btnApply") {
+                        UIEditBar::apply(&mut scene.write().unwrap(), ui, box_ref);
+                    } else if hitbox.reference.ends_with("btnCancel") {
+                        UIEditBar::cancel(&mut scene.write().unwrap(), ui, box_ref);
+                    }
+                }
+            } else {
+                if let Some((mut elem, parent_ref, index)) = take_element(ui, hitbox.reference) {
+                    elem.clicked(scene, ui);
+                    give_back_element(ui, elem, parent_ref, index);
+                    return true;
+                }
             }
         }
     }

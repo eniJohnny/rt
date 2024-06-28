@@ -1,4 +1,6 @@
-use crate::gui::textformat::TextFormat;
+use image::RgbaImage;
+
+use crate::{display::utils::draw_text2, gui::{draw::draw_background, textformat::TextFormat}};
 
 use super::{
     ui::UI,
@@ -105,4 +107,22 @@ pub fn give_back_element(ui: &mut UI, elem: UIElement, parent_ref: String, index
             cat.elems.insert(index, elem);
         }
     }
+}
+
+pub fn draw_element_text(
+    img: &mut RgbaImage,
+    text: String,
+    pos: (u32, u32),
+    size: (u32, u32),
+    format: &TextFormat,
+) {
+    if let Some(color) = format.bg_color {
+        draw_background(img, pos, size, color, format.border_radius);
+    }
+    draw_text2(
+        img,
+        (pos.0 + format.padding_left, pos.1 + format.padding_top),
+        text,
+        format,
+    );
 }
