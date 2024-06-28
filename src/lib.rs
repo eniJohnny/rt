@@ -49,21 +49,21 @@ const CAM_MOVE_KEYS: [VirtualKeyCode; 10] = [
 ];
 
 pub fn run() {
-    let path = String::from("scenes/aabb.json");
+    let path = String::from("scenes/bvh_test.json");
     if path != "" {
         let mut scene = get_scene(&path);
         if DISPLAY_WIREFRAME {
             scene.add_wireframes();
         }
-
+        scene.update_bvh();
         // testing aabbs
         // model::shapes::aabb::aabb_split_test();
-        model::shapes::aabb::aabb_better_split_test(&scene);
+        // model::shapes::aabb::aabb_better_split_test(&scene);
         // model::shapes::aabb::aabb_get_children_test(&scene);
         // testing nodes
         // bvh::node::test_node_insertion(&mut scene);
 
-        // display_scene(scene);
+        display_scene(scene);
     }
 }
 

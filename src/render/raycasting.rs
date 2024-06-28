@@ -1,13 +1,12 @@
 use rand::Rng;
 
 use crate::{
-    model::{
+    bvh::traversal::{get_closest_aabb_hit, traverse_bvh}, model::{
         materials::color::Color,
         maths::{hit::Hit, quaternion::Quaternion, ray::Ray, vec3::Vec3},
         scene::Scene,
         Element,
-    },
-    ANTIALIASING, MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH,
+    }, ANTIALIASING, MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH
 };
 
 use super::{
@@ -44,6 +43,8 @@ pub fn get_ray(scene: &Scene, x: usize, y: usize) -> Ray {
 
 pub fn sampling_ray(scene: &Scene, ray: &Ray) -> PathBucket {
     match get_closest_hit(scene, ray) {
+    // let node = get_closest_aabb_hit(scene, ray);
+    // match traverse_bvh(ray, node, scene) {
         Some(hit) => {
             let mut bucket = get_reflected_light_bucket(hit.clone(), scene, ray);
             let mut path = Path {
