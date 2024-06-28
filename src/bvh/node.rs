@@ -65,7 +65,8 @@ impl Node {
 
     pub fn set_children_elements(&mut self, scene: &mut Scene) {
         let aabb = self.aabb();
-        let elements = aabb.get_children_aabbs_id(scene);
+        let elements = aabb.get_children_elements_only(scene);
+
         self.set_elements(elements);
     }
 
@@ -77,7 +78,7 @@ impl Node {
         //     return;
         // }
 
-        let (aabb1, aabb2) = aabb.split(Vec3::new(1., 0., 0.), 0.5);
+        let (aabb1, aabb2) = aabb.better_split(scene);
         let left_children = aabb1.get_children_elements(scene);
         let right_children = aabb2.get_children_elements(scene);
 
