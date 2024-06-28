@@ -1,7 +1,7 @@
 use rand::Rng;
 
 use crate::{
-    model::{
+    bvh::traversal::{get_closest_aabb_hit, traverse_bvh}, model::{
         materials::color::Color,
         maths::{hit::Hit, ray::Ray, vec3::Vec3},
         objects::light,
@@ -20,6 +20,8 @@ use super::{
 
 pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
     match get_closest_hit(scene, ray) {
+    // let node = get_closest_aabb_hit(scene, ray);
+    // match traverse_bvh(ray, node, scene) {
         Some(hit) => get_lighting_from_hit(scene, &hit, ray),
         //TODO : Handle BG on None
         // None => Color::new(0., 0., 0.),

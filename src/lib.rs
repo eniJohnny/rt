@@ -73,6 +73,7 @@ pub fn run() {
         if DISPLAY_WIREFRAME {
             scene.add_wireframes();
         }
+        scene.update_bvh();
         start_scene(scene);
     }
 }

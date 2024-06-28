@@ -198,7 +198,7 @@ impl Aabb {
             aabb2 = aabb2_tmp;
         }
 
-        dbg!(original_cost, costs, aabb1 == aabb2);
+        // dbg!(original_cost, costs, aabb1 == aabb2);
 
         (aabb1, aabb2)
     }
@@ -288,8 +288,11 @@ impl Aabb {
         let mut children = vec![];
 
         for (i, element) in elements.iter().enumerate() {
-
-            if element.shape().as_aabb().is_none() && self.is_child(element.shape().aabb().unwrap()) {
+            let is_aabb = element.shape().as_aabb().is_some();
+            let aabb = element.shape().aabb();
+            let has_aabb = aabb.is_some();
+            
+            if !is_aabb && has_aabb && self.is_child(aabb.unwrap()) {
                 children.push(i);
             }
         }
@@ -307,6 +310,14 @@ impl Aabb {
         let z_overlap = self.z_min() < aabb.z_max() && self.z_max() > aabb.z_min();
 
         x_overlap && y_overlap && z_overlap
+    }
+
+    pub fn contains_point(&self, point: &Vec3) -> bool {
+        let x = *point.x();
+        let y = *point.y();
+        let z = *point.z();
+
+        x >= self.x_min && x <= self.x_max && y >= self.y_min && y <= self.y_max && z >= self.z_min && z <= self.z_max
     }
 }
 
