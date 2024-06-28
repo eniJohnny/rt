@@ -5,7 +5,7 @@ use crate::{
 
 use super::elements::{
     uielement::{Category, ElemType, Property, UIElement, Value},
-    Displayable, Position,
+    Displayable,
 };
 
 #[derive(Clone)]
@@ -58,7 +58,6 @@ impl Displayable for UISettings {
                 }),
                 settings,
             )),
-            Position::Inline,
             settings,
         ));
 

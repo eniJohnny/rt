@@ -32,7 +32,7 @@ use super::display;
 pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixels: Pixels<Window>) {
     let mut ui = UI::default();
     let mut settings_box = UIBox::default(&ui, "uisettings".to_string());
-    settings_box.set_edit_bar(ui.settings());
+    // settings_box.set_edit_bar(ui.settings());
     let mut img = RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32);
 
     settings_box.add_elements(
@@ -157,10 +157,9 @@ fn handle_keyboard_press(
                 let uibox = ui.get_box_mut(r);
                 if let Some(edit_bar) = &mut uibox.edit_bar {
                     if let Some(err) = err {
-                        edit_bar.txt_message.text = err;
-                        edit_bar.txt_message.visible = true;
+                        edit_bar.text.0 = Some(err);
                     } else {
-                        edit_bar.txt_message.visible = false;
+                        edit_bar.text.0 = None
                     }
                 }
                 ui.set_editing(None);
