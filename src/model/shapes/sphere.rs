@@ -3,6 +3,9 @@ use std::f64::consts::PI;
 use super::Shape;
 use crate::model::materials::material::Projection;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
+use crate::model::scene::Scene;
+use crate::model::Element;
+use crate::render::raycasting::get_closest_hit_from_t;
 
 #[derive(Debug)]
 pub struct Sphere {
@@ -33,10 +36,50 @@ impl Shape for Sphere {
         None
     }
 
-	fn outer_intersect(&self, r: &Ray, factor: f64) -> Option<Vec<f64>> {
+	fn outer_intersect(&self, r: &Ray, factor: f64, displaced_factor: f64) -> Option<Vec<f64>> {
 		let mut outer_sphere = self.clone();
-		outer_sphere.set_radius(outer_sphere.radius() + outer_sphere.radius() * 0.1 * factor);
+		outer_sphere.set_radius(outer_sphere.radius() + outer_sphere.radius() * displaced_factor * factor);
 		outer_sphere.intersect(r)
+	}
+
+    fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
+		let displaced_factor = 0.1;
+		
+		let current_step = 1.;
+		let step = 0.1;
+
+		let total_displacement = self.radius * displaced_factor;
+		let t = self.outer_intersect(ray, current_step, displaced_factor);
+		if let Some(mut hit) = get_closest_hit_from_t(scene, ray, &t, element) {
+			
+			let sphere_to_hit = hit.pos() - self.pos();
+			let hit_distance = sphere_to_hit.length() - self.radius;
+			let hit_ratio = hit_distance / total_displacement;
+			let displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures()).to_value();
+			
+
+			while displaced_ratio < hit_ratio {
+				let old_hit_ratio = hit_ratio;
+				// go to next step
+				let next_step = current_step - step;
+
+				let displaced_distance = (hit_ratio - displaced_ratio) * total_displacement;
+				let new_hit = hit.pos() + ray.get_dir() * displaced_distance;
+
+				let sphere_to_hit = new_hit - self.pos();
+				let hit_distance = sphere_to_hit.length() - self.radius;
+				let hit_ratio = hit_distance / total_displacement;
+				if hit_ratio < next_step {
+					while next_step - hit_ratio < 0.01 {
+						let difference = next_step - hit_ratio;
+						let new_hit_pos = &new_hit - ray.get_dir() * difference * total_displacement;
+					}
+				} else {
+					//texture read at hit ratio
+				}
+			}
+		}
+		t
 	}
 
     fn projection(&self, hit: &Hit) -> Projection {

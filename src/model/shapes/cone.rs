@@ -1,7 +1,9 @@
 use super::Shape;
 use crate::model::materials::material::Projection;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
+use crate::model::scene::Scene;
 use crate::model::shapes::plane::Plane;
+use crate::model::Element;
 
 #[derive(Debug)]
 pub struct Cone {
@@ -81,8 +83,12 @@ impl Shape for Cone {
         return Some(intersections);
     }
 
-	fn outer_intersect(&self, r: &Ray, factor: f64) -> Option<Vec<f64>> {
+	fn outer_intersect(&self, r: &Ray, factor: f64, displaced_factor: f64) -> Option<Vec<f64>> {
 		self.intersect(r)
+	}
+
+    fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
+		self.intersect(ray)
 	}
 
     fn projection(&self, hit: &Hit) -> Projection {

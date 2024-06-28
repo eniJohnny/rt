@@ -1,7 +1,6 @@
 use super::Shape;
 use crate::model::{
-    materials::material::Projection,
-    maths::{hit::Hit, ray::Ray, vec3::Vec3},
+    materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene, Element
 };
 
 #[derive(Debug)]
@@ -46,8 +45,12 @@ impl Shape for Plane {
         // None
     }
 
-	fn outer_intersect(&self, r: &Ray, factor: f64) -> Option<Vec<f64>> {
+	fn outer_intersect(&self, r: &Ray, factor: f64, displaced_factor: f64) -> Option<Vec<f64>> {
 		self.intersect(r)
+	}
+
+    fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
+		self.intersect(ray)
 	}
 
     fn projection(&self, hit: &Hit) -> Projection {
