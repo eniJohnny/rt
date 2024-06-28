@@ -12,6 +12,7 @@ pub mod render;
 pub mod bvh;
 
 const AABB_OPACITY: f64 = 0.0;
+const AABB_STEPS_NB: usize = 10;
 const DISPLAY_WIREFRAME: bool = true;
 const WIREFRAME_THICKNESS: f64 = 0.05;
 const ERROR_MARGIN: f64 = 0.000000000001;
@@ -57,9 +58,10 @@ pub fn run() {
 
         // testing aabbs
         // model::shapes::aabb::aabb_split_test();
+        model::shapes::aabb::aabb_better_split_test(&scene);
         // model::shapes::aabb::aabb_get_children_test(&scene);
         // testing nodes
-        bvh::node::test_node_insertion(&mut scene);
+        // bvh::node::test_node_insertion(&mut scene);
 
         // display_scene(scene);
     }

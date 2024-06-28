@@ -4,7 +4,7 @@ use super::Shape;
 use crate::model::materials::material::Projection;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 use crate::model::scene::Scene;
-use crate::{ERROR_MARGIN, WIREFRAME_THICKNESS};
+use crate::{ERROR_MARGIN, WIREFRAME_THICKNESS, AABB_STEPS_NB};
 
 
 #[derive(Debug, Clone)]
@@ -83,28 +83,41 @@ impl Aabb {
 
     // Mutators
     pub fn set_x_min(&mut self, x_min: f64) {
-        self.x_min = x_min
+        self.x_min = x_min;
+        self.update_pos();
     }
     pub fn set_x_max(&mut self, x_max: f64) {
-        self.x_max = x_max
+        self.x_max = x_max;
+        self.update_pos();
     }
     pub fn set_y_min(&mut self, y_min: f64) {
-        self.y_min = y_min
+        self.y_min = y_min;
+        self.update_pos();
     }
     pub fn set_y_max(&mut self, y_max: f64) {
-        self.y_max = y_max
+        self.y_max = y_max;
+        self.update_pos();
     }
     pub fn set_z_min(&mut self, z_min: f64) {
-        self.z_min = z_min
+        self.z_min = z_min;
+        self.update_pos();
     }
     pub fn set_z_max(&mut self, z_max: f64) {
-        self.z_max = z_max
+        self.z_max = z_max;
+        self.update_pos();
     }
     pub fn set_pos(&mut self, pos: Vec3) {
         self.pos = pos
     }
 
     // Methods
+    pub fn update_pos(&mut self) {
+        self.set_pos(Vec3::new(
+            (self.x_min + self.x_max) / 2.0,
+            (self.y_min + self.y_max) / 2.0,
+            (self.z_min + self.z_max) / 2.0,
+        ));
+    }
     pub fn is_wireframe_point(&self, point: &Vec3) -> bool {
         let x = *point.x();
         let y = *point.y();
@@ -121,6 +134,73 @@ impl Aabb {
         let near_edge_count = x_min_near_edge as i32 + x_max_near_edge as i32 + y_min_near_edge as i32 + y_max_near_edge as i32 + z_min_near_edge as i32 + z_max_near_edge as i32;
 
         return near_edge_count >= 2;
+    }
+
+    pub fn surface_area(&self) -> f64 {
+        let x = self.x_max - self.x_min;
+        let y = self.y_max - self.y_min;
+        let z = self.z_max - self.z_min;
+
+        2.0 * (x * y + y * z + z * x)
+    }
+
+    pub fn calculate_sah_cost(&self, aabb1: &Aabb, aabb2: &Aabb, scene: &Scene) -> f64 {
+        let total_surface_area = self.surface_area();
+        let aabb1_surface_area = aabb1.surface_area();
+        let aabb2_surface_area = aabb2.surface_area();
+
+        let P1 = aabb1_surface_area / total_surface_area;
+        let P2 = aabb2_surface_area / total_surface_area;
+
+        let C1 = aabb1_surface_area * aabb1.get_children_elements(scene).len() as f64; // Can be optimized
+        let C2 = aabb2_surface_area * aabb2.get_children_elements(scene).len() as f64; // Can be optimized
+        let Ct = 1.0; // Predefined constant in SAH, typically 1
+
+        Ct + P1 * C1 + P2 * C2
+    }
+
+    pub fn better_split(&mut self, scene: &Scene) -> (Aabb, Aabb) {
+        let mut aabb1 = self.clone();
+        let mut aabb2 = self.clone();
+        let mut costs: Vec<Cost> = vec![];
+
+        let original_cost = self.surface_area() * self.get_children_elements(scene).len() as f64;
+        let t_vec = get_t_vec(AABB_STEPS_NB);
+        let dir_vec = vec![
+            Vec3::new(1.0, 0.0, 0.0),
+            Vec3::new(0.0, 1.0, 0.0),
+            Vec3::new(0.0, 0.0, 1.0),
+        ];
+
+        // Default cost is 1.0 (worst case scenario, original traversal cost)
+        let mut best_cost = Cost {
+            cost: original_cost,
+            dir: Vec3::new(0.0, 0.0, 0.0),
+            t: 0.0,
+        };
+
+        for dir in dir_vec {
+            for t in &t_vec {
+                let (aabb1_tmp, aabb2_tmp) = self.split(dir, *t);
+                let cost = self.calculate_sah_cost(&aabb1_tmp, &aabb2_tmp, scene);
+
+                if cost < best_cost.cost {
+                    best_cost = Cost { cost, dir, t: *t };
+                }
+
+                costs.push(Cost { cost, dir, t: *t });
+            }
+        }
+
+        if best_cost.cost < original_cost {
+            let (aabb1_tmp, aabb2_tmp) = self.split(best_cost.dir, best_cost.t);
+            aabb1 = aabb1_tmp;
+            aabb2 = aabb2_tmp;
+        }
+
+        dbg!(original_cost, costs, aabb1 == aabb2);
+
+        (aabb1, aabb2)
     }
 
     pub fn split(&mut self, dir: Vec3, t: f64) -> (Aabb, Aabb) {
@@ -147,6 +227,9 @@ impl Aabb {
             aabb1.set_z_max(new_z);
             aabb2.set_z_min(new_z);
         }
+
+        aabb1.update_pos();
+        aabb2.update_pos();
 
         (aabb1, aabb2)
     }
@@ -191,6 +274,22 @@ impl Aabb {
             }
 
             if aabb_shape.is_some() && self.is_child(aabb_shape.unwrap()) {
+                children.push(i);
+            }
+        }
+
+        children
+    }
+
+    pub fn get_children_elements_only(&self, scene: &Scene) -> Vec<usize> {
+        // Does not return the children aabbs
+
+        let elements = scene.elements();
+        let mut children = vec![];
+
+        for (i, element) in elements.iter().enumerate() {
+
+            if element.shape().as_aabb().is_none() && self.is_child(element.shape().aabb().unwrap()) {
                 children.push(i);
             }
         }
@@ -317,6 +416,25 @@ fn get_tmax(tmin_x: f64, tmax_x: f64, tmin_y: f64, tmax_y: f64, tmin_z: f64, tma
     tmax
 }
 
+#[derive(Debug, Clone, Copy)]
+struct Cost {
+    cost: f64,
+    dir: Vec3,
+    t: f64,
+}
+
+pub fn get_t_vec(steps: usize) -> Vec<f64> {
+    let mut t_vec = vec![];
+
+    for i in 0..steps {
+        t_vec.push((i as f64 + 1.0) / (steps as f64 + 1.0));
+    }
+
+    t_vec
+}
+
+// Tests
+
 pub fn aabb_split_test() {
     let mut aabb = Aabb::new(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
     let dir = Vec3::new(1.0, 0.0, 0.0);
@@ -325,6 +443,15 @@ pub fn aabb_split_test() {
     let (aabb1, aabb2) = aabb.split(dir, t);
 
     dbg!(aabb, aabb1, aabb2);
+}
+
+pub fn aabb_better_split_test(scene: &Scene) {
+    let aabbs = scene.all_aabb();
+    let mut biggest_aabb = Aabb::from_aabbs(&aabbs);
+
+    let (aabb1, aabb2) = biggest_aabb.better_split(scene);
+
+    dbg!(biggest_aabb, aabb1, aabb2);
 }
 
 pub fn aabb_get_children_test(scene: &Scene) {
