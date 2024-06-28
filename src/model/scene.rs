@@ -92,6 +92,25 @@ impl Scene {
         }
     }
 
+    pub fn add_skysphere_texture(&mut self, path: &str) {
+        let key = "skysphere";
+
+        if path == "" || path.contains("..") {
+            panic!("Textures should only be stored in the textures folder.");
+        }
+        if !self.textures.contains_key(key) {
+            let path_str = String::from("./textures/") + path;
+            
+            self.add_texture(
+                key.to_string(),
+                match image::open(&path_str) {
+                    Ok(img) => img.to_rgba8(),
+                    Err(_) => panic!("Error opening texture file {}", path),
+                },
+            );
+        }
+    }
+
     // Accessors
     pub fn elements(&self) -> &Vec<Element> {
         &self.elements
@@ -126,6 +145,10 @@ impl Scene {
 
     pub fn textures(&self) -> &HashMap<String, image::RgbaImage> {
         &self.textures
+    }
+
+    pub fn get_texture(&self, name: &str) -> Option<&image::RgbaImage> {
+        self.textures.get(name)
     }
 
     // Mutators
