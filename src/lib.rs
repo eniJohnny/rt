@@ -43,9 +43,10 @@ const CAM_MOVE_KEYS: [VirtualKeyCode; 10] = [
 ];
 
 pub fn run() {
-    let path = String::from("scenes/metalrough.json");
+    let path = String::from("scenes/testing.json");
     if path != "" {
-        let scene = get_scene(&path);
+        let mut scene = get_scene(&path);
+        scene.add_skysphere_texture("skysphere.jpg");
         display_scene(scene);
     }
 }
