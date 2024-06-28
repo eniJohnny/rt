@@ -9,7 +9,7 @@ use crate::{
 use super::elements::{
     ui::UI,
     uielement::{Category, ElemType, Property, UIElement, Value},
-    Displayable, Position,
+    Displayable,
 };
 
 #[derive(Debug)]

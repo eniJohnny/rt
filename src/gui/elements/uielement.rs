@@ -1,6 +1,7 @@
 use std::{
     cell::RefCell,
-    sync::{Arc, RwLock}, thread::current,
+    sync::{Arc, RwLock},
+    thread::current,
 };
 
 use image::{Rgba, RgbaImage};
@@ -8,12 +9,20 @@ use image::{Rgba, RgbaImage};
 use crate::{
     display::utils::{draw_text2, draw_text_background2},
     gui::{
-        draw::draw_background, textformat::{FormatBuilder, Formattable, TextFormat}, uisettings::UISettings
+        draw::draw_background,
+        textformat::{FormatBuilder, Formattable, TextFormat},
+        uisettings::UISettings,
     },
-    model::{materials::texture::Texture, scene::Scene}, SCREEN_WIDTH_U32,
+    model::{materials::texture::Texture, scene::Scene},
+    SCREEN_WIDTH_U32,
 };
 
-use super::{ui::{Editing, UI}, uibox::UIBox, Displayable, Position};
+use super::{
+    ui::{Editing, UI},
+    uibox::UIBox,
+    utils::{get_pos, get_size, split_in_lines},
+    Displayable, HitBox,
+};
 
 #[derive(Debug, Clone)]
 pub enum Value {
@@ -59,7 +68,7 @@ impl Formattable for ElemType {
                 let mut format = TextFormat::field_format(settings);
                 format.bg_color = None;
                 format
-            },
+            }
         }
     }
 }
@@ -69,25 +78,17 @@ pub struct UIElement {
     pub elem_type: ElemType,
     pub text: String,
     pub format: TextFormat,
-    pub pos: Position,
     pub size: (u32, u32),
     pub reference: String,
 }
 
 impl UIElement {
-    pub fn new(
-        name: &str,
-        reference: String,
-        elem: ElemType,
-        pos: Position,
-        settings: &UISettings,
-    ) -> Self {
+    pub fn new(name: &str, reference: String, elem: ElemType, settings: &UISettings) -> Self {
         UIElement {
             visible: true,
             format: elem.base_format(settings),
             elem_type: elem,
             text: String::from(name),
-            pos,
             size: (0, 0),
             reference: reference + "." + name,
         }
@@ -96,7 +97,7 @@ impl UIElement {
         if !self.visible {
             return 0;
         }
-        let mut height = self.get_size(&self.text, &self.format).1;
+        let mut height = get_size(&self.text, &self.format).1;
         if let ElemType::Category(cat) = &self.elem_type {
             if !cat.collapsed {
                 for elem in &cat.elems {
@@ -126,6 +127,20 @@ impl UIElement {
                 }
             }
             _ => (),
+        }
+        None
+    }
+
+    pub fn get_element_by_reference_mut(&mut self, reference: &String) -> Option<&mut UIElement> {
+        if &self.reference == reference {
+            return Some(self);
+        } else if let ElemType::Category(cat) = &mut self.elem_type {
+            for elem in &mut cat.elems {
+                let result = elem.get_element_by_reference_mut(reference);
+                if result.is_some() {
+                    return result;
+                }
+            }
         }
         None
     }
@@ -162,80 +177,23 @@ impl UIElement {
         }
     }
 
-    pub fn get_pos(&self, pos: &Position, box_pos: (u32, u32), box_size: (u32, u32), inline_pos: (u32, u32), indent: u32) -> (u32, u32) {
-        match pos {
-            Position::Inline => {
-                (box_pos.0 + inline_pos.0 + indent, box_pos.1 + inline_pos.1)
-            }
-            Position::Relative(x, y) => {
-                let pos_x = match x {
-                    _ if *x < 0 => box_pos.0 + (box_size.0 as i32 + x) as u32,
-                    0 => box_pos.0 + inline_pos.0 + indent,
-                    _ => box_pos.0 + *x as u32,
-                };
-                let pos_y: u32 = match y {
-                    _ if *y < 0 => box_pos.1 + (box_size.1 as i32 + y) as u32,
-                    0 => box_pos.1 + inline_pos.1,
-                    _ => box_pos.1 + *y as u32,
-                };
-                (pos_x, pos_y)
-            }
-        }
-    }
-
-    pub fn get_size(&self, text: &String, format: &TextFormat) -> (u32, u32) {
-        let mut height = format.font_size() as u32 + format.padding_bot + format.padding_top;
-        let mut width = format.font_size() as u32 / 2 * text.len() as u32 + format.padding_left + format.padding_top;
-        if let ElemType::Text = self.elem_type {
-            let available_width = format.width - format.padding_left - format.padding_right;
-            let mut current_width = 0;
-            let mut lines = 1;
-
-            let mut txt_split = self.text.split(" ");
-            while let Some(str) = txt_split.next() {
-                let word_width = format.font_size() as u32 * (str.len() + 1) as u32;
-                if current_width + word_width > available_width {
-                    current_width = word_width;
-                    lines += 1;
-                } else {
-                    current_width += word_width;
-                }
-            }
-            height = lines * format.font_size() as u32 + format.padding_bot + format.padding_top;
-        }
-        if format.height > height {
-            height = format.height;
-        }
-        if format.width > width {
-            width = format.width;
-        } 
-        (width, height)
-    }
-
-    fn draw_text(&self, img: &mut RgbaImage, text: String, box_pos: (u32, u32), box_size: (u32, u32), inline_pos: (u32, u32), format: &TextFormat, indent: u32, position: Position) -> u32 {
-        let pos = self.get_pos(&position, box_pos, box_size, inline_pos, indent);
-        let size = self.get_size(&text, format);
+    fn draw_text(
+        &self,
+        img: &mut RgbaImage,
+        text: String,
+        pos: (u32, u32),
+        size: (u32, u32),
+        format: &TextFormat,
+    ) {
         if let Some(color) = format.bg_color {
-            draw_background(
-                img,
-                pos,
-                size,
-                color,
-                format.border_radius);
+            draw_background(img, pos, size, color, format.border_radius);
         }
-        draw_text2(img, (pos.0 + format.padding_left, pos.1 + format.padding_top), text, format);
-        match position {
-            Position::Inline => {
-                return size.1;
-            }
-            Position::Relative(x, y) => {
-                if y > 0 {
-                    return y as u32 + size.1;
-                }
-            }
-            _ => ()
-        }
-        0
+        draw_text2(
+            img,
+            (pos.0 + format.padding_left, pos.1 + format.padding_top),
+            text,
+            format,
+        );
     }
 
     pub fn draw(
@@ -243,38 +201,63 @@ impl UIElement {
         img: &mut RgbaImage,
         ui: &UI,
         scene: &Arc<RwLock<Scene>>,
-        box_pos: (u32, u32),
-        box_size: (u32, u32),
-        inline_pos: (u32, u32),
-        indent: u32,
-    ) -> u32 {
-        let mut height = 0;
+        hitbox: &HitBox,
+    ) -> Vec<HitBox> {
+        let mut vec = vec![];
         match &self.elem_type {
             ElemType::Button(..) => {
-                height += self.draw_text(img, self.text.clone(), box_pos, box_size, inline_pos, &self.format, indent, self.pos.clone());
+                self.draw_text(
+                    img,
+                    self.text.clone(),
+                    hitbox.pos,
+                    hitbox.size,
+                    &self.format,
+                );
             }
             ElemType::Category(cat) => {
-                let cat_height = self.draw_text(img, self.text.clone(), box_pos, box_size, inline_pos, &self.format, indent, self.pos.clone());
-                height += cat_height;
-                    
+                self.draw_text(
+                    img,
+                    self.text.clone(),
+                    hitbox.pos,
+                    hitbox.size,
+                    &self.format,
+                );
+
                 if !cat.collapsed {
                     for elem in &cat.elems {
+                        let mut height = hitbox.size.1 + ui.settings().margin;
                         if elem.visible {
-                            let elem_height =
-                                elem.draw(img, ui, scene, box_pos, box_size, (inline_pos.0, inline_pos.1 + height), indent + ui.settings().indent_padding)
-                                    + ui.settings().margin;
-                            height += elem_height;
+                            let hitbox = HitBox {
+                                pos: get_pos((hitbox.pos.0, hitbox.pos.1 + height), (0, 0), 0),
+                                size: get_size(&elem.text, &elem.format),
+                                reference: elem.reference.clone(),
+                            };
+                            let hitbox_list = elem.draw(img, ui, scene, &hitbox);
+                            height += hitbox.size.1 + ui.settings().margin;
+                            vec.push(hitbox);
+                            for hitbox in hitbox_list {
+                                height += hitbox.size.1 + ui.settings().margin;
+                                vec.push(hitbox)
+                            }
                         }
                     }
                 }
             }
             ElemType::Property(property) => {
-                height += self.draw_text(img, self.text.clone(), box_pos, box_size, inline_pos, &self.format, indent, self.pos.clone());
+                self.draw_text(
+                    img,
+                    self.text.clone(),
+                    hitbox.pos,
+                    hitbox.size,
+                    &self.format,
+                );
                 let format;
                 let value;
                 if let Some(edit) = ui.editing() {
+                    println!("editing");
                     if &self.reference == &edit.reference {
                         value = edit.value.clone() + "_";
+                        println!("drawing editing format");
                         format = &property.editing_format;
                     } else {
                         value = property.value.to_string();
@@ -284,87 +267,87 @@ impl UIElement {
                     value = property.value.to_string();
                     format = &self.format;
                 }
-                let offset = value.len()as u32 * format.font_size() as u32 / 2 + format.padding_right + format.padding_left;
-                self.draw_text(img, value, box_pos, box_size, inline_pos, format, indent, Position::Relative(-(offset as i32), 0));
+                let value_width = value.len() as u32 * format.font_size as u32 / 2
+                    + format.padding_left
+                    + format.padding_right;
+                let offset = hitbox.size.0 - value_width;
+                self.draw_text(
+                    img,
+                    value,
+                    (hitbox.pos.0 + offset, hitbox.pos.1),
+                    (value_width, hitbox.size.1),
+                    format,
+                );
             }
             ElemType::Stat(function) => {
-                height += self.draw_text(img, self.text.clone(), box_pos, box_size, inline_pos, &self.format, indent, self.pos.clone());
+                self.draw_text(
+                    img,
+                    self.text.clone(),
+                    hitbox.pos,
+                    hitbox.size,
+                    &self.format,
+                );
                 let value = function(&scene.read().unwrap());
-                let offset = value.to_string().len() as i32 * 10 - self.format.padding_right as i32;
-                self.draw_text(img, value, box_pos, box_size, inline_pos, &self.format, indent, Position::Relative(-(offset as i32), 0));
+                let value_width = value.len() as u32 * self.format.font_size as u32 / 2
+                    + self.format.padding_left
+                    + self.format.padding_right;
+                let offset = hitbox.size.0 - value_width;
+                self.draw_text(
+                    img,
+                    value,
+                    (hitbox.pos.0 + offset, hitbox.pos.1),
+                    (value_width, hitbox.size.1),
+                    &self.format,
+                );
             }
             ElemType::Text => {
-                let available_width = self.format.width - self.format.padding_left - self.format.padding_right;
-                let mut current_width = 0;
-                let mut lines = vec![];
-    
-                let mut txt_split = self.text.split(" ");
-                let mut line = String::from("");
-                while let Some(str) = txt_split.next() {
-                    let word_width = self.format.font_size() as u32 / 2 * (str.len() + 1) as u32;
-                    if current_width + word_width > available_width {
-                        current_width = word_width;
-                        lines.push(line.clone());
-                        line = str.to_string() + " ";
-                    } else {
-                        line += str;
-                        line += " ";
-                        current_width += word_width;
-                    }
-                }
-                lines.push(line);
-                let mut pos = self.pos.clone();
+                let available_width =
+                    self.format.width - self.format.padding_left - self.format.padding_right;
+                let mut lines = split_in_lines(self.text.clone(), available_width, &self.format);
+                let mut height = 0;
                 for line in lines {
-                    height += self.draw_text(img, line, box_pos, box_size, inline_pos, &self.format, indent, pos.clone());
-                    if let Position::Relative(x, y) = pos {
-                        pos = Position::Relative(x, y + self.format.font_size() as i32 / 2 + ui.settings().margin as i32)
-                    }
+                    let size = get_size(&line, &self.format);
+                    self.draw_text(
+                        img,
+                        line,
+                        (hitbox.pos.0, hitbox.pos.1 + height),
+                        size,
+                        &self.format,
+                    );
+                    height += size.1;
                 }
             }
         }
-        height
+        vec
     }
 
-    pub fn clicked(&mut self, click: (u32, u32), box_pos: (u32, u32), box_size: (u32, u32), indent: u32, inline_pos: (u32, u32), scene: &Arc<RwLock<Scene>>, ui: &mut UI) -> u32 {
-        let pos = self.get_pos(&self.pos, box_pos, box_size, inline_pos, indent);
-        let size = self.get_size(&self.text, &self.format);
-        let mut height = size.1;
-        println!("ref: {}, click: {}:{}, pos: {}:{}, size: {}:{}", self.reference, click.0, click.1, pos.0, pos.1, size.0, size.1);
-        if click.0 > pos.0 && click.0 < pos.0 + size.0 && click.1 > pos.1 && click.1 < pos.1 + size.1 {
-            println!("{} has been clicked", self.reference);
-            match &mut self.elem_type {
-                ElemType::Property(property) => {
-                    println!("Property !");
-                    if let Some(edit) = ui.editing() {
-                        if &edit.reference != &self.reference {
-                            ui.set_editing(Some(Editing {
-                                reference: self.reference.clone(),
-                                value: property.value.to_string(),
-                            }));
-                        }
-                    } else {
-                        println!("Set editing");
+    pub fn clicked(&mut self, scene: &Arc<RwLock<Scene>>, ui: &mut UI) {
+        match &mut self.elem_type {
+            ElemType::Property(property) => {
+                println!("Property !");
+                if let Some(edit) = ui.editing() {
+                    if &edit.reference != &self.reference {
                         ui.set_editing(Some(Editing {
                             reference: self.reference.clone(),
                             value: property.value.to_string(),
                         }));
                     }
-                },
-                ElemType::Button(fn_click) => {
-                    fn_click(&mut scene.write().unwrap(), ui);
-                },
-                ElemType::Category(cat) => {
-                    cat.collapsed = !cat.collapsed;
-                },
-                _ => ()
+                } else {
+                    println!("Set editing");
+                    ui.set_editing(Some(Editing {
+                        reference: self.reference.clone(),
+                        value: property.value.to_string(),
+                    }));
+                }
             }
-        } else if let ElemType::Category(cat) = &mut self.elem_type {
-            for elem in &mut cat.elems {
-                height += elem.clicked(click, box_pos, box_size, indent, (inline_pos.0, inline_pos.1 + height), scene, ui);
+            ElemType::Button(fn_click) => {
+                fn_click(&mut scene.write().unwrap(), ui);
             }
+            ElemType::Category(cat) => {
+                cat.collapsed = !cat.collapsed;
+            }
+            _ => (),
         }
-        height
-        
     }
 }
 

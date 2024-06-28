@@ -9,7 +9,7 @@ use winit::event::VirtualKeyCode;
 use crate::{
     display::utils::draw_text2,
     gui::{
-        draw::{draw_button_background, draw_background},
+        draw::{draw_background, draw_button_background},
         uisettings::UISettings,
     },
     model::{maths::vec2::Vec2, scene::Scene},
@@ -19,7 +19,8 @@ use crate::{
 use super::{
     uibox::UIBox,
     uielement::{ElemType, Property, UIElement},
-    Position,
+    utils::{get_pos, get_size, give_back_element, take_element},
+    HitBox,
 };
 
 #[derive(Clone)]
@@ -30,13 +31,13 @@ pub struct Editing {
 
 pub struct UI {
     boxes: HashMap<String, UIBox>,
-    inlined: Vec<String>,
     settings: UISettings,
     box_index: usize,
     active_box_reference: String,
     editing: Option<Editing>,
     mouse_position: (u32, u32),
     inputs: Vec<VirtualKeyCode>,
+    hitbox_vec: Vec<HitBox>,
     dirty: bool,
 }
 
@@ -45,13 +46,13 @@ impl UI {
         UI {
             box_index: 0,
             boxes: HashMap::new(),
-            inlined: vec![],
             settings: UISettings::default(),
             active_box_reference: "".to_string(),
             editing: None,
             mouse_position: (0, 0),
             inputs: vec![],
             dirty: false,
+            hitbox_vec: vec![],
         }
     }
 
@@ -96,16 +97,16 @@ impl UI {
             .expect("ERROR : Couldn't find the added UIBox")
     }
 
-    // pub fn get_element_by_reference(&self, reference: String) -> Option<&UIElement> {
-    //     for uibox in self.boxes.values_mut() {
-    //         for elem in &mut uibox.elems {
-    //             if let Some(elem) = elem.get_element_by_reference(reference) {
-    //                 return Some(elem);
-    //             }
-    //         }
-    //     }
-    //     None
-    // }
+    pub fn get_element_by_reference_mut(&mut self, reference: String) -> Option<&mut UIElement> {
+        for uibox in self.boxes.values_mut() {
+            for elem in &mut uibox.elems {
+                if let Some(elem) = elem.get_element_by_reference_mut(&reference) {
+                    return Some(elem);
+                }
+            }
+        }
+        None
+    }
 
     pub fn get_property_by_reference(&mut self, reference: &String) -> Option<&mut Property> {
         for uibox in self.boxes.values_mut() {
@@ -173,88 +174,65 @@ impl UI {
         &self.inputs
     }
 
-    // fn get_inlined_box_pos(&self, box_index: usize) -> (usize, usize) {
-    //     let mut pos = (self.settings.padding, self.settings.padding);
-    //     for index in &self.inlined {
-    //         if *index == box_index {
-    //             return pos;
-    //         }
-    //         let uibox = self
-    //             .boxes
-    //             .get(&index)
-    //             .expect("Inlined boxes' indexes are out of date").height(&self.settings);
-    //     }
-    //     pos
-    // }
-
     pub fn draw(&mut self, scene: &Arc<RwLock<Scene>>, img: &mut RgbaImage) {
         img.fill_with(|| 0);
         let width = self.settings.gui_width;
-        let pos_x = SCREEN_WIDTH as u32 - self.settings.gui_width;
-        let mut pos_y = 0;
+        let mut hitbox_vec = vec![];
         if self.active_box_reference != "" {
             let uibox = self
                 .boxes
                 .get(&self.active_box_reference)
                 .expect("Destroyed UIBox still referenced as active");
-            let uibox_height = uibox.height(self.settings().margin);
+            let pos = uibox.pos;
+            let uibox_height = uibox.height(self.settings());
             if let Some(color) = &uibox.background_color {
-                for x in pos_x..(pos_x + width) {
-                    for y in pos_y..(pos_y + uibox_height) {
+                for x in pos.0..(pos.0 + width) {
+                    for y in pos.1..(pos.1 + uibox_height) {
                         img.put_pixel(x as u32, y as u32, color.to_rgba());
                     }
                 }
             }
 
+            let mut height = 0;
             for elem in &uibox.elems {
                 if elem.visible {
-                    pos_y += elem.draw(img, &self, scene, uibox.pos, (self.settings().gui_width, uibox_height), (0, pos_y), 0);
-                }
-            }
-            if let Some(edit_bar) = &uibox.edit_bar {
-                for elem in vec![&edit_bar.txt_message, &edit_bar.btn_apply, &edit_bar.btn_cancel] {
-                    if elem.visible {
-                        elem.draw(img, &self, scene, uibox.pos, (self.settings().gui_width, uibox_height), (0, pos_y), 0);
+                    let hitbox = HitBox {
+                        pos: get_pos(uibox.pos, (0, pos.1 + height), 0),
+                        size: get_size(&elem.text, &elem.format),
+                        reference: elem.reference.clone(),
+                    };
+                    let vec = elem.draw(img, self, scene, &hitbox);
+                    height += hitbox.size.1 + self.settings().margin;
+                    hitbox_vec.push(hitbox);
+                    for hitbox in vec {
+                        height += hitbox.size.1 + self.settings().margin;
+                        hitbox_vec.push(hitbox)
                     }
                 }
             }
+            if let Some(edit_bar) = &uibox.edit_bar {
+                todo!("Handle edit bar")
+            }
         }
         self.dirty = false;
+        self.hitbox_vec = hitbox_vec;
     }
 }
 
 pub fn ui_clicked(click: (u32, u32), scene: &Arc<RwLock<Scene>>, ui: &mut UI) -> bool {
-    let mut new_elems = vec![];
-    let gui_width = ui.settings.gui_width;
-    let margin = ui.settings().margin;
-    let mut clicked = false;
-    let mut edit_bar_opt = None;
-    let mut box_pos = (0, 0);
-    let mut box_size = (0, 0);
-    let mut inline_pos = (0, 0);
-    if let Some(uibox) = ui.active_box_mut() {
-        new_elems = uibox.elems.split_off(0);
-        box_pos = uibox.pos;
-        box_size = (gui_width, uibox.height(margin));
-        inline_pos = (0, 0);
-        edit_bar_opt = uibox.edit_bar.take();
-        if click.0 > box_pos.0 && click.0 < box_pos.0 + box_size.0 && click.1 > box_pos.1 && click.1 < box_pos.1 + box_size.1 {
-            let mut height = 0;
-            for elem in &mut new_elems {
-                height += elem.clicked(click, box_pos, box_size, 0, (inline_pos.0, inline_pos.1 + height), scene, ui);
+    let hitbox_list = ui.hitbox_vec.split_off(0);
+    for hitbox in hitbox_list {
+        if click.0 > hitbox.pos.0
+            && click.0 < hitbox.pos.0 + hitbox.size.0
+            && click.1 > hitbox.pos.1
+            && click.1 < hitbox.pos.1 + hitbox.size.1
+        {
+            if let Some((mut elem, parent_ref, index)) = take_element(ui, hitbox.reference) {
+                elem.clicked(scene, ui);
+                give_back_element(ui, elem, parent_ref, index);
+                return true;
             }
-            clicked = true;
         }
     }
-    if let Some(mut edit_bar) =  edit_bar_opt {   
-        for elem in vec![&mut edit_bar.btn_apply, &mut edit_bar.btn_cancel, &mut edit_bar.txt_message] {
-            elem.clicked(click, box_pos, box_size, 0, inline_pos, scene, ui);
-        }
-        edit_bar_opt = Some(edit_bar);
-    }
-    if let Some(uibox) = ui.active_box_mut() {
-        uibox.elems.append(&mut new_elems);
-        uibox.edit_bar = edit_bar_opt;
-    }
-    clicked
+    false
 }

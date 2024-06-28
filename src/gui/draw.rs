@@ -15,11 +15,7 @@ use crate::{
     GUI_HEIGHT, GUI_WIDTH, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32,
 };
 
-use super::{
-    elements::{uibox::UIBox, Position},
-    textformat::TextFormat,
-    Gui,
-};
+use super::{elements::uibox::UIBox, textformat::TextFormat, Gui};
 
 pub fn draw_sphere_gui(
     img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>,
@@ -583,7 +579,15 @@ pub fn draw_pointlight_gui(
     gui
 }
 
-fn is_corner(x: u32, y: u32, x_start: u32, y_start: u32, x_end: u32, y_end: u32, border_radius: u32) -> bool {
+fn is_corner(
+    x: u32,
+    y: u32,
+    x_start: u32,
+    y_start: u32,
+    x_end: u32,
+    y_end: u32,
+    border_radius: u32,
+) -> bool {
     if x < x_start + border_radius && y < y_start + border_radius {
         return true;
     }
@@ -605,7 +609,7 @@ pub fn draw_background(
     pos: (u32, u32),
     size: (u32, u32),
     color: Rgba<u8>,
-    border_radius: u32
+    border_radius: u32,
 ) {
     let x_start = pos.0;
     let x_end = (pos.0 + size.0).min(SCREEN_WIDTH_U32 - 1);
