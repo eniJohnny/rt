@@ -1,6 +1,6 @@
 use std::f64::consts::PI;
 
-use crate::model::{materials::{color::Color, material::Projection, texture}, maths::{ray::Ray, vec3::Vec3}, scene::{self, Scene}, shapes::{sphere::{self, Sphere}, Shape}};
+use crate::model::{materials::{color::{self, Color}, material::Projection, texture}, maths::{ray::Ray, vec3::Vec3}, scene::{self, Scene}, shapes::{sphere::{self, Sphere}, Shape}};
 
 
 pub fn get_skysphere_color(scene: &Scene, ray: &Ray) -> Color {
@@ -8,7 +8,9 @@ pub fn get_skysphere_color(scene: &Scene, ray: &Ray) -> Color {
     let hit_norm = sphere.norm(ray.get_dir(), ray.get_dir());
     let projection = skysphere_projection(&hit_norm, &sphere);
     if let Some(img) = scene.get_texture("skysphere") {
-        return texture::Texture::get(&projection, &img);
+        let color = texture::Texture::get(&projection, &img);
+
+        &color * &color
     } else {
         return Color::new(0., 0., 0.);
     }
