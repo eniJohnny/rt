@@ -31,7 +31,7 @@ impl UIBox {
     pub fn default(gui: &UI, reference: String) -> Self {
         UIBox {
             pos: (SCREEN_WIDTH as u32 - gui.uisettings().gui_width, 0),
-            size: (0, 0),
+            size: (gui.uisettings().gui_width, 0),
             max_height: SCREEN_HEIGHT_U32,
             background_color: Some(Color::new(0.1, 0.1, 0.1)),
             borders: None,
@@ -75,27 +75,6 @@ impl UIBox {
         if let Some(edit_bar) = &mut self.edit_bar {
             edit_bar.refresh_formats(settings);
         }
-    }
-
-    pub fn height(&self, settings: &UISettings) -> u32 {
-        let mut edit_bar_height = 0;
-        if let Some(edit_bar) = &self.edit_bar {
-            edit_bar_height += edit_bar.height(self.size.0, settings);
-        }
-        let mut height = 0;
-        for elem in &self.elems {
-            if !elem.visible {
-                continue;
-            }
-            if edit_bar_height >= self.max_height {
-                break;
-            }
-            height += elem.height(
-                (self.size.0, self.max_height - edit_bar_height - height),
-                settings,
-            ) + settings.margin;
-        }
-        height + edit_bar_height
     }
 
     pub fn show(&self, ui: &mut UI) {

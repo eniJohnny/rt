@@ -11,7 +11,10 @@ use crate::{
 };
 use events2::main_loop;
 use image::RgbaImage;
-use std::sync::{Arc, RwLock};
+use std::{
+    ptr::copy_nonoverlapping,
+    sync::{Arc, RwLock},
+};
 
 use crate::render::render_threads::start_render_threads;
 use pixels::{Pixels, SurfaceTexture};
@@ -56,6 +59,11 @@ pub fn display_scene(scene: Scene) {
 
 pub fn display(pixels: &mut Pixels<Window>, img: &mut RgbaImage) {
     // Copy image data to pixels buffer
+
+    // unsafe {
+    //     copy_nonoverlapping(img_data.as_ptr(), frame.as_mut_ptr(), img_data.len());
+    // }
+
     pixels.get_frame().copy_from_slice(&img);
 
     // Render the pixels buffer

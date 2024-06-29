@@ -43,10 +43,7 @@ pub fn setup_edit_bar(ui: &mut UI, scene: &Arc<RwLock<Scene>>) {
             .settings()
             .get_fields(&settings_box.reference, ui.uisettings()),
     );
-    settings_box.set_edit_bar(
-        ui.uisettings(),
-        Some(Box::new(|_, ui| ui.refresh_formats())),
-    );
+    settings_box.set_edit_bar(ui.uisettings(), None);
 
     let index = ui.add_box(settings_box);
     ui.set_active_box(index);
@@ -60,13 +57,17 @@ pub fn setup_ui(scene: &Arc<RwLock<Scene>>) -> UI {
     ui
 }
 
-pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixels: Pixels<Window>) {
+pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixels: Pixels) {
     let mut ui = setup_ui(&scene);
+    let mut last_draw = Instant::now();
 
     event_loop.run(move |event, _, control_flow: &mut ControlFlow| {
         *control_flow = ControlFlow::WaitUntil(Instant::now() + Duration::from_millis(20));
 
-        redraw_if_necessary(&mut ui, &scene, &mut pixels);
+        if last_draw.elapsed().as_millis() > 20 {
+            redraw_if_necessary(&mut ui, &scene, &mut pixels);
+            last_draw = Instant::now();
+        }
         if scene.read().unwrap().dirty() {
             let context = ui.take_context();
             context.transmitter.send(true).unwrap();
@@ -84,6 +85,9 @@ pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixel
 }
 
 fn redraw_if_necessary(ui: &mut UI, scene: &Arc<RwLock<Scene>>, mut pixels: &mut Pixels<Window>) {
+    if ui.dirty() {
+        ui.process(&scene);
+    }
     let mut context = ui.take_context();
     let ui_img = &mut context.ui_img;
     let mut redraw = false;
@@ -104,17 +108,28 @@ fn redraw_if_necessary(ui: &mut UI, scene: &Arc<RwLock<Scene>>, mut pixels: &mut
         redraw = true;
     }
     if redraw {
-        let mut image = RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32);
-        for x in 0..SCREEN_WIDTH_U32 {
-            for y in 0..SCREEN_HEIGHT_U32 {
-                let mut pixel = ui_img.get_pixel(x, y);
-                if pixel.0 == [1; 4] {
-                    pixel = context.scene_img.get_pixel(x, y);
-                }
-                image.put_pixel(x, y, pixel.clone());
+        let time = Instant::now();
+        let mut image = ui_img.clone();
+        for i in image.enumerate_pixels_mut() {
+            if i.2 .0 == [1; 4] {
+                i.2 .0 = context.scene_img.get_pixel(i.0, i.1).0
             }
         }
+        // for x in 0..SCREEN_WIDTH_U32 {
+        //     for y in 0..SCREEN_HEIGHT_U32 {
+        //         let mut pixel = ui_img.get_pixel(x, y);
+        //         if pixel.0 == [1; 4] {
+        //             pixel = context.scene_img.get_pixel(x, y);
+        //         }
+        //         image.put_pixel(x, y, pixel.clone());
+        //     }
+        // }
         display(&mut pixels, &mut image);
+        let nb_samples = context.draw_time_samples as f64;
+        context.draw_time_avg = nb_samples * context.draw_time_avg / (nb_samples + 1.)
+            + time.elapsed().as_millis() as f64 / (nb_samples + 1.);
+        context.draw_time_samples += 1;
+        // println!("{}", context.draw_time_avg);
     }
     ui.give_back_context(context);
 }
