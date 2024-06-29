@@ -40,7 +40,10 @@ pub struct Settings {
 impl Settings {
     pub fn default() -> Self {
         Self {
-            view_mode: VIEW_MODE,
+            view_mode: ViewMode::Simple(
+                Color::new(0.2, 0.2, 0.2),
+                ParallelLight::new(Vec3::new(0.5, -0.5, 0.5), 1., Color::new(1., 1., 1.)),
+            ),
             reflections: true,
             indirect: true,
             iterations: MAX_ITERATIONS,
@@ -86,11 +89,40 @@ impl Displayable for Settings {
             settings,
         ));
 
-        vec![UIElement::new(
+        let mut view_mode_radio = UIElement::new("", "viewmode", ElemType::Row(vec![]), settings);
+        let mut simple = UIElement::new(
+            "Simple",
+            "simple",
+            ElemType::Button(Box::new(|scene, ui| {
+                scene.settings_mut().view_mode = ViewMode::Simple(
+                    Color::new(0.2, 0.2, 0.2),
+                    ParallelLight::new(Vec3::new(0.5, -0.5, 0.5), 1., Color::new(1., 1., 1.)),
+                );
+                scene.set_dirty(true);
+            })),
+            settings,
+        );
+        let mut gi = UIElement::new(
+            "Global Illumination",
+            "gi",
+            ElemType::Button(Box::new(|scene, ui| {
+                scene.settings_mut().view_mode = ViewMode::HighDef;
+                scene.set_dirty(true);
+            })),
+            settings,
+        );
+        gi.style_mut().fill_width = true;
+        simple.style_mut().fill_width = true;
+        view_mode_radio.add_element(gi);
+        view_mode_radio.add_element(simple);
+        let mut category = UIElement::new(
             "Render settings",
             "settings",
             ElemType::Category(category),
             settings,
-        )]
+        );
+        category.add_element(view_mode_radio);
+
+        vec![category]
     }
 }

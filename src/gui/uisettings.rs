@@ -111,6 +111,20 @@ impl Displayable for UISettings {
         ));
 
         category.elems.push(UIElement::new(
+            "Fps",
+            "fps",
+            ElemType::Stat(Box::new(|_, ui| {
+                if let Some(context) = ui.context() {
+                    println!("Youpi");
+                    return context.draw_time_avg.to_string();
+                }
+                println!("Not normal");
+                "".to_string()
+            })),
+            settings,
+        ));
+
+        category.elems.push(UIElement::new(
             "",
             "btnbar",
             ElemType::Row(btn_bar_vec),

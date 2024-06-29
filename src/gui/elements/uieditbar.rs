@@ -23,9 +23,9 @@ pub const BTN_APPLY: &str = "btnApply";
 pub const BTN_CANCEL: &str = "btnCancel";
 
 pub struct UIEditBar {
-    pub text: (Option<String>, Style),
-    pub apply: (String, Style),
-    pub cancel: (String, Style),
+    pub text: (Option<String>, Style, Option<HitBox>),
+    pub apply: (String, Style, Option<HitBox>),
+    pub cancel: (String, Style, Option<HitBox>),
     pub on_apply: Option<FnApply>,
     pub reference: String,
 }
@@ -53,50 +53,30 @@ impl UIEditBar {
             uibox.edit_bar = Some(edit_bar);
         }
     }
-    pub fn draw(
-        &self,
-        img: &mut RgbaImage,
+
+    pub fn process(
+        &mut self,
         pos: (u32, u32),
         settings: &UISettings,
-        width: u32,
+        size: (u32, u32),
     ) -> Vec<HitBox> {
         let mut hitbox_vec = vec![];
         let mut offset_y = 0;
         if let Some(str) = &self.text.0 {
-            let format = &self.text.1;
-            let available_width = format.width - format.padding_left - format.padding_right;
-            let lines = split_in_lines(str.clone(), available_width, format);
             let hitbox = HitBox {
                 pos,
-                size: (
-                    format.width,
-                    (format.font_size() as u32 + format.padding_bot + format.padding_top)
-                        * lines.len() as u32,
-                ),
+                size: get_size(str, &self.text.1, size),
                 reference: self.reference.clone() + "." + TXT_MESSAGE,
                 disabled: false,
             };
-            for line in lines {
-                let size = get_size(&line, format, hitbox.size);
-                draw_element_text(
-                    img,
-                    line,
-                    (hitbox.pos.0, hitbox.pos.1 + offset_y),
-                    size,
-                    format,
-                );
-                offset_y += size.1;
-            }
+            offset_y += hitbox.size.1;
+            self.text.2 = Some(hitbox.clone());
             hitbox_vec.push(hitbox);
         }
         offset_y += settings.margin;
-        let apply_size = get_size(&self.apply.0, &self.apply.1, (width / 2, SCREEN_HEIGHT_U32));
-        let cancel_size = get_size(
-            &self.cancel.0,
-            &self.cancel.1,
-            (width / 2, SCREEN_HEIGHT_U32),
-        );
-        let mid_point = pos.0 + width / 2;
+        let apply_size = get_size(&self.apply.0, &self.apply.1, (size.0 / 2, size.1));
+        let cancel_size = get_size(&self.cancel.0, &self.cancel.1, (size.0 / 2, size.1));
+        let mid_point = pos.0 + size.0 / 2;
 
         let apply_hitbox = HitBox {
             pos: (mid_point - 20 - apply_size.0, pos.1 + offset_y),
@@ -104,53 +84,59 @@ impl UIEditBar {
             reference: self.reference.clone() + "." + BTN_APPLY,
             disabled: false,
         };
-        draw_element_text(
-            img,
-            self.apply.0.clone(),
-            apply_hitbox.pos,
-            apply_hitbox.size,
-            &self.apply.1,
-        );
-
         let cancel_hitbox = HitBox {
             pos: (mid_point + 20, pos.1 + offset_y),
             size: cancel_size,
             reference: self.reference.clone() + "." + BTN_CANCEL,
             disabled: false,
         };
-        draw_element_text(
-            img,
-            self.cancel.0.clone(),
-            cancel_hitbox.pos,
-            cancel_hitbox.size,
-            &self.cancel.1,
-        );
+        self.apply.2 = Some(apply_hitbox.clone());
+        self.cancel.2 = Some(cancel_hitbox.clone());
         hitbox_vec.push(apply_hitbox);
         hitbox_vec.push(cancel_hitbox);
 
         hitbox_vec
     }
-    pub fn height(&self, width: u32, settings: &UISettings) -> u32 {
-        let mut height = 0;
+
+    pub fn draw(&self, img: &mut RgbaImage) {
         if let Some(str) = &self.text.0 {
-            let format = &self.text.1;
-            let available_width = width - format.padding_left - format.padding_right;
-            let lines = split_in_lines(str.clone(), available_width, format);
-            height += (format.font_size() as u32 + format.padding_bot) * lines.len() as u32;
+            if let Some(hitbox) = &self.text.2 {
+                let format = &self.text.1;
+                let available_width = hitbox.size.0 - format.padding_left - format.padding_right;
+                let lines = split_in_lines(str.clone(), available_width, format);
+
+                let mut offset_y = 0;
+                for line in lines {
+                    let size = get_size(&line, format, hitbox.size);
+                    draw_element_text(
+                        img,
+                        line,
+                        (hitbox.pos.0, hitbox.pos.1 + offset_y),
+                        size,
+                        format,
+                    );
+                    offset_y += size.1;
+                }
+            }
         }
-        height += settings.margin;
-        height += get_size(&self.apply.0, &self.apply.1, (width / 2, SCREEN_HEIGHT_U32))
-            .1
-            .max(
-                get_size(
-                    &self.cancel.0,
-                    &self.cancel.1,
-                    (width / 2, SCREEN_HEIGHT_U32),
-                )
-                .1,
-            )
-            + settings.margin * 2;
-        height
+        if let Some(hitbox) = &self.apply.2 {
+            draw_element_text(
+                img,
+                self.apply.0.clone(),
+                hitbox.pos,
+                hitbox.size,
+                &self.apply.1,
+            );
+        }
+        if let Some(hitbox) = &self.cancel.2 {
+            draw_element_text(
+                img,
+                self.cancel.0.clone(),
+                hitbox.pos,
+                hitbox.size,
+                &self.cancel.1,
+            );
+        }
     }
 
     pub fn refresh_formats(&mut self, settings: &UISettings) {
@@ -165,9 +151,9 @@ impl UIEditBar {
         let mut textformat = Style::field_format(settings);
         textformat.bg_color = None;
         Self {
-            apply: ("Apply".to_string(), Style::btn_apply(settings)),
-            cancel: ("Cancel".to_string(), Style::btn_cancel(settings)),
-            text: (None, textformat),
+            apply: ("Apply".to_string(), Style::btn_apply(settings), None),
+            cancel: ("Cancel".to_string(), Style::btn_cancel(settings), None),
+            text: (None, textformat, None),
             reference,
             on_apply,
         }

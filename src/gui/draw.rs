@@ -23,22 +23,71 @@ fn is_corner(
     y_start: u32,
     x_end: u32,
     y_end: u32,
-    border_radius: u32,
+    radius: u32,
 ) -> bool {
-    if x < x_start + border_radius && y < y_start + border_radius {
-        return true;
-    }
-    if x < x_start + border_radius && y > y_end - border_radius {
-        return true;
-    }
-    if x > x_end - border_radius && y < y_start + border_radius {
-        return true;
-    }
-    if x > x_end - border_radius && y > y_end - border_radius {
-        return true;
+    let corners = [
+        (x_start + radius, y_start + radius),     // Top-left
+        (x_end - radius - 1, y_start + radius),   // Top-right
+        (x_start + radius, y_end - radius - 1),   // Bottom-left
+        (x_end - radius - 1, y_end - radius - 1), // Bottom-right
+    ];
+
+    for &(cx, cy) in &corners {
+        let dx = cx as isize - x as isize;
+        let dy = cy as isize - y as isize;
+        if dx * dx + dy * dy <= (radius * radius) as isize {
+            return false;
+        }
     }
 
-    false
+    if (x >= x_start + radius && x < x_end - radius)
+        || (y >= y_start + radius && y < y_end - radius)
+        || (x < x_start + radius && y >= y_start + radius && y < y_end - radius)
+        || (x >= x_end - radius && y >= y_start + radius && y < y_end - radius)
+    {
+        return false; // Top and bottom edges
+    }
+
+    true
+}
+
+pub fn draw_checkbox(
+    img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>,
+    pos: (u32, u32),
+    size: (u32, u32),
+    value: bool,
+    style: &Style,
+) {
+    let checkbox_size = (18, 18);
+    let height = size.1;
+    let checkbox_pos = (
+        pos.0 + size.0 - style.padding_right - checkbox_size.0,
+        pos.1 + (height - checkbox_size.1) / 2,
+    );
+
+    draw_background(
+        img,
+        checkbox_pos,
+        checkbox_size,
+        Rgba([40, 10, 90, 255]),
+        style.border_radius,
+    );
+    draw_background(
+        img,
+        (checkbox_pos.0 + 2, checkbox_pos.1 + 2),
+        (checkbox_size.0 - 4, checkbox_size.1 - 4),
+        Rgba([255, 255, 255, 255]),
+        style.border_radius,
+    );
+    if value {
+        draw_background(
+            img,
+            (checkbox_pos.0 + 4, checkbox_pos.1 + 4),
+            (checkbox_size.0 - 8, checkbox_size.1 - 8),
+            Rgba([40, 10, 90, 255]),
+            style.border_radius,
+        );
+    }
 }
 
 pub fn draw_background(

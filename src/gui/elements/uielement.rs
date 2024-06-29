@@ -10,7 +10,7 @@ use image::{Rgba, RgbaImage};
 use crate::{
     display::utils::{draw_text2, draw_text_background2},
     gui::{
-        draw::draw_background,
+        draw::{draw_background, draw_checkbox},
         textformat::{Formattable, Style, StyleBuilder},
         uisettings::UISettings,
     },
@@ -55,7 +55,7 @@ impl Formattable for Value {
 
 pub enum ElemType {
     Text,
-    Stat(Box<dyn Fn(&Scene) -> String>),
+    Stat(Box<dyn Fn(&Scene, &UI) -> String>),
     Property(Property),
     Category(Category),
     Button(Box<dyn Fn(&mut Scene, &mut UI)>),
@@ -69,7 +69,10 @@ impl Formattable for ElemType {
             ElemType::Button(..) => Style::button(settings),
             ElemType::Category(..) => Style::category(settings),
             ElemType::Property(..) => Style::field_format(settings),
-            ElemType::Stat(..) => StyleBuilder::default(settings).bg_color(None).build(),
+            ElemType::Stat(..) => StyleBuilder::default(settings)
+                .bg_color(None)
+                .fill_width(true)
+                .build(),
             ElemType::Text => {
                 let mut format = Style::field_format(settings);
                 format.bg_color = None;
@@ -83,45 +86,47 @@ pub struct UIElement {
     pub visible: bool,
     pub elem_type: ElemType,
     pub text: String,
-    pub format: Style,
+    pub style: Style,
     pub size: (u32, u32),
     pub id: String,
     pub reference: String,
+    pub value: Option<String>,
+    pub hitbox: Option<HitBox>,
 }
 
 impl UIElement {
     pub fn new(name: &str, id: &str, elem: ElemType, settings: &UISettings) -> Self {
         UIElement {
             visible: true,
-            format: elem.base_style(settings),
+            style: elem.base_style(settings),
             elem_type: elem,
             text: String::from(name),
             size: (0, 0),
             reference: id.to_string(),
             id: id.to_string(),
+            value: None,
+            hitbox: None,
         }
-    }
-    pub fn height(&self, max_size: (u32, u32), settings: &UISettings) -> u32 {
-        if !self.visible {
-            return 0;
-        }
-        let mut height = get_size(&self.text, &self.format, max_size).1;
-        if let ElemType::Category(cat) = &self.elem_type {
-            if !cat.collapsed {
-                for elem in &cat.elems {
-                    height += elem.height(max_size, settings) + settings.margin;
-                }
-            }
-        }
-        height
     }
 
-    pub fn set_format(&mut self, format: Style) {
-        self.format = format;
+    pub fn add_element(&mut self, elem: UIElement) {
+        if let ElemType::Category(cat) = &mut self.elem_type {
+            cat.elems.push(elem);
+        } else if let ElemType::Row(elems) = &mut self.elem_type {
+            elems.push(elem);
+        }
+    }
+
+    pub fn set_style(&mut self, format: Style) {
+        self.style = format;
+    }
+
+    pub fn style_mut(&mut self) -> &mut Style {
+        &mut self.style
     }
 
     pub fn refresh_format(&mut self, settings: &UISettings) {
-        self.format = self.elem_type.base_style(settings);
+        self.style = self.elem_type.base_style(settings);
         if let ElemType::Category(cat) = &mut self.elem_type {
             for elem in &mut cat.elems {
                 elem.refresh_format(settings);
@@ -242,193 +247,176 @@ impl UIElement {
         }
     }
 
-    pub fn draw(
-        &self,
-        img: &mut RgbaImage,
-        ui: &UI,
-        scene: &Arc<RwLock<Scene>>,
-        hitbox: &HitBox,
-        max_height: u32,
-    ) -> Vec<HitBox> {
+    pub fn process(&mut self, ui: &UI, scene: &Arc<RwLock<Scene>>, max_height: u32) -> Vec<HitBox> {
         let mut vec = vec![];
         if max_height == 0 {
             return vec;
         }
-        match &self.elem_type {
-            ElemType::Row(elems) => {
-                let available_width = hitbox.size.0 / elems.len() as u32 - ui.uisettings().margin;
-                let mut offset_x = 0;
-                for elem in elems {
-                    let size = get_size(&elem.text, &elem.format, hitbox.size);
-                    let center = (available_width / 2, hitbox.size.1);
-                    let pos = (
-                        hitbox.pos.0 + offset_x + center.0 - size.0 / 2,
-                        hitbox.pos.1 + center.1 - size.1 / 2,
-                    );
-                    let hitbox = HitBox {
-                        pos,
-                        size,
-                        reference: elem.reference.clone(),
-                        disabled: matches!(elem.elem_type, ElemType::Row(_)),
-                    };
-                    let hitbox_list = elem.draw(img, ui, scene, &hitbox, max_height);
-                    offset_x += available_width + ui.uisettings().margin;
-                    vec.push(hitbox);
-                    for hitbox in hitbox_list {
-                        vec.push(hitbox)
+        if let Some(hitbox) = &self.hitbox {
+            match &mut self.elem_type {
+                ElemType::Row(elems) => {
+                    let available_width =
+                        hitbox.size.0 / elems.len() as u32 - ui.uisettings().margin * 2;
+                    let mut offset_x = ui.uisettings().margin;
+                    for elem in elems {
+                        let size = get_size(&elem.text, &elem.style, (available_width, max_height));
+                        let center = (available_width / 2, hitbox.size.1);
+                        let pos = (
+                            hitbox.pos.0 + offset_x + center.0 - size.0 / 2,
+                            hitbox.pos.1 + center.1 - size.1 / 2,
+                        );
+                        let hitbox = HitBox {
+                            pos,
+                            size,
+                            reference: elem.reference.clone(),
+                            disabled: matches!(elem.elem_type, ElemType::Row(_)),
+                        };
+                        elem.hitbox = Some(hitbox.clone());
+                        let hitbox_list = elem.process(ui, scene, max_height);
+                        offset_x += available_width + ui.uisettings().margin;
+                        vec.push(hitbox);
+                        for hitbox in hitbox_list {
+                            vec.push(hitbox);
+                        }
                     }
                 }
-            }
-            ElemType::Button(..) => {
-                draw_element_text(
-                    img,
-                    self.text.clone(),
-                    hitbox.pos,
-                    hitbox.size,
-                    &self.format,
-                );
-            }
-            ElemType::Category(cat) => {
-                draw_element_text(
-                    img,
-                    self.text.clone(),
-                    hitbox.pos,
-                    hitbox.size,
-                    &self.format,
-                );
-
-                if !cat.collapsed {
-                    let mut offset_y = hitbox.size.1 + ui.uisettings().margin;
-                    for elem in &cat.elems {
-                        if elem.visible {
-                            let hitbox = HitBox {
-                                pos: get_pos((hitbox.pos.0, hitbox.pos.1 + offset_y), (0, 0), 0),
-                                size: get_size(&elem.text, &elem.format, hitbox.size),
-                                reference: elem.reference.clone(),
-                                disabled: matches!(elem.elem_type, ElemType::Row(_)),
-                            };
-                            let hitbox_list =
-                                elem.draw(img, ui, scene, &hitbox, max_height - offset_y);
-                            offset_y += hitbox.size.1 + ui.uisettings().margin;
-                            vec.push(hitbox);
-                            for hitbox in hitbox_list {
+                ElemType::Category(cat) => {
+                    if !cat.collapsed {
+                        let mut offset_y = hitbox.size.1 + ui.uisettings().margin;
+                        for i in 0..cat.elems.len() {
+                            let mut elem = cat.elems.remove(i);
+                            if elem.visible {
+                                let hitbox = HitBox {
+                                    pos: get_pos(
+                                        (hitbox.pos.0, hitbox.pos.1 + offset_y),
+                                        (0, 0),
+                                        0,
+                                    ),
+                                    size: get_size(&elem.text, &elem.style, hitbox.size),
+                                    reference: elem.reference.clone(),
+                                    disabled: matches!(elem.elem_type, ElemType::Row(_)),
+                                };
+                                elem.hitbox = Some(hitbox.clone());
+                                let hitbox_list = elem.process(ui, scene, max_height - offset_y);
                                 offset_y += hitbox.size.1 + ui.uisettings().margin;
-                                vec.push(hitbox)
+                                vec.push(hitbox);
+                                for hitbox in hitbox_list {
+                                    offset_y += hitbox.size.1 + ui.uisettings().margin;
+                                    vec.push(hitbox)
+                                }
+                                if offset_y > max_height {
+                                    return vec;
+                                }
                             }
-                            if offset_y > max_height {
-                                return vec;
+                            cat.elems.insert(i, elem);
+                        }
+                    }
+                }
+                ElemType::Property(property) => {
+                    self.value = None;
+                    if !matches!(property.value, Value::Bool(_)) {
+                        if let Some(edit) = ui.editing() {
+                            if &self.reference == &edit.reference {
+                                self.value = Some(edit.value.clone() + "_");
                             }
                         }
                     }
                 }
+                ElemType::Stat(function) => {
+                    self.value = Some(function(&scene.read().unwrap(), ui));
+                }
+                _ => {}
             }
-            ElemType::Property(property) => {
-                draw_element_text(
-                    img,
-                    self.text.clone(),
-                    hitbox.pos,
-                    hitbox.size,
-                    &self.format,
-                );
-                let value;
-                if let Value::Bool(value) = property.value {
-                    let checkbox_size = (18, 18);
-                    let height = hitbox.size.1;
-                    let checkbox_pos = (
-                        hitbox.pos.0 + hitbox.size.0 - self.format.padding_right - checkbox_size.0,
-                        hitbox.pos.1 + (height - checkbox_size.1) / 2,
-                    );
+        }
 
-                    draw_background(
-                        img,
-                        checkbox_pos,
-                        checkbox_size,
-                        Rgba([40, 10, 90, 255]),
-                        self.format.border_radius,
-                    );
-                    draw_background(
-                        img,
-                        (checkbox_pos.0 + 2, checkbox_pos.1 + 2),
-                        (checkbox_size.0 - 4, checkbox_size.1 - 4),
-                        Rgba([255, 255, 255, 255]),
-                        self.format.border_radius,
-                    );
-                    if value {
-                        draw_background(
+        vec
+    }
+
+    pub fn draw(&self, img: &mut RgbaImage, ui: &UI, scene: &Arc<RwLock<Scene>>) {
+        if let Some(hitbox) = &self.hitbox {
+            match &self.elem_type {
+                ElemType::Row(elems) => {
+                    for elem in elems {
+                        elem.draw(img, ui, scene);
+                    }
+                }
+                ElemType::Button(..) => {
+                    draw_element_text(img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
+                }
+                ElemType::Category(cat) => {
+                    draw_element_text(img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
+
+                    if !cat.collapsed {
+                        for elem in &cat.elems {
+                            elem.draw(img, ui, scene);
+                        }
+                    }
+                }
+                ElemType::Property(property) => {
+                    draw_element_text(img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
+                    if let Value::Bool(value) = property.value {
+                        draw_checkbox(img, hitbox.pos, hitbox.size, value, &self.style);
+                    } else {
+                        let format;
+                        let value = match &self.value {
+                            Some(value) => {
+                                format = &property.editing_format;
+                                value.clone()
+                            }
+                            None => {
+                                format = &self.style;
+                                property.value.to_string()
+                            }
+                        };
+                        let value_width = value.len() as u32 * format.font_size as u32 / 2
+                            + format.padding_left
+                            + format.padding_right;
+                        let offset = hitbox.size.0 - value_width;
+                        draw_element_text(
                             img,
-                            (checkbox_pos.0 + 4, checkbox_pos.1 + 4),
-                            (checkbox_size.0 - 8, checkbox_size.1 - 8),
-                            Rgba([40, 10, 90, 255]),
-                            self.format.border_radius,
+                            value,
+                            (hitbox.pos.0 + offset, hitbox.pos.1),
+                            (value_width, hitbox.size.1),
+                            format,
                         );
                     }
-                } else {
-                    let format;
-                    if let Some(edit) = ui.editing() {
-                        if &self.reference == &edit.reference {
-                            value = edit.value.clone() + "_";
-                            format = &property.editing_format;
-                        } else {
-                            value = property.value.to_string();
-                            format = &self.format;
-                        }
-                    } else {
-                        value = property.value.to_string();
-                        format = &self.format;
-                    }
-                    let value_width = value.len() as u32 * format.font_size as u32 / 2
-                        + format.padding_left
-                        + format.padding_right;
-                    let offset = hitbox.size.0 - value_width;
-                    draw_element_text(
-                        img,
-                        value,
-                        (hitbox.pos.0 + offset, hitbox.pos.1),
-                        (value_width, hitbox.size.1),
-                        format,
-                    );
                 }
-            }
-            ElemType::Stat(function) => {
-                draw_element_text(
-                    img,
-                    self.text.clone(),
-                    hitbox.pos,
-                    hitbox.size,
-                    &self.format,
-                );
-                let value = function(&scene.read().unwrap());
-                let value_width = value.len() as u32 * self.format.font_size as u32 / 2
-                    + self.format.padding_left
-                    + self.format.padding_right;
-                let offset = hitbox.size.0 - value_width;
-                draw_element_text(
-                    img,
-                    value,
-                    (hitbox.pos.0 + offset, hitbox.pos.1),
-                    (value_width, hitbox.size.1),
-                    &self.format,
-                );
-            }
-            ElemType::Text => {
-                let available_width =
-                    self.format.width - self.format.padding_left - self.format.padding_right;
-                let mut lines = split_in_lines(self.text.clone(), available_width, &self.format);
-                let mut height = 0;
-                for line in lines {
-                    let size = get_size(&line, &self.format, (available_width, max_height));
-                    draw_element_text(
-                        img,
-                        line,
-                        (hitbox.pos.0, hitbox.pos.1 + height),
-                        size,
-                        &self.format,
-                    );
-                    height += size.1;
+                ElemType::Stat(_) => {
+                    draw_element_text(img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
+                    if let Some(value) = &self.value {
+                        let value_width = value.len() as u32 * self.style.font_size as u32 / 2
+                            + self.style.padding_left
+                            + self.style.padding_right;
+                        println!("{}, {}, {}", value, hitbox.size.0, value_width);
+                        let offset = hitbox.size.0 - value_width;
+                        draw_element_text(
+                            img,
+                            value.clone(),
+                            (hitbox.pos.0 + offset, hitbox.pos.1),
+                            (value_width, hitbox.size.1),
+                            &self.style,
+                        );
+                    }
+                }
+                ElemType::Text => {
+                    let available_width =
+                        self.style.width - self.style.padding_left - self.style.padding_right;
+                    let lines = split_in_lines(self.text.clone(), available_width, &self.style);
+                    let mut height = 0;
+                    for line in lines {
+                        let size = get_size(&line, &self.style, (available_width, hitbox.size.1));
+                        draw_element_text(
+                            img,
+                            line,
+                            (hitbox.pos.0, hitbox.pos.1 + height),
+                            size,
+                            &self.style,
+                        );
+                        height += size.1;
+                    }
                 }
             }
         }
-        vec
     }
 
     pub fn clicked(&mut self, scene: &Arc<RwLock<Scene>>, ui: &mut UI) {

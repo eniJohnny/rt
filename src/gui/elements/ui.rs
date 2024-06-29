@@ -2,6 +2,7 @@ use std::{
     any::Any,
     borrow::Borrow,
     collections::HashMap,
+    os::unix::raw::off_t,
     sync::{
         mpsc::{Receiver, Sender},
         Arc, RwLock,
@@ -45,6 +46,8 @@ pub struct UIContext {
     pub scene_img: RgbaImage,
     pub receiver: Receiver<(ImageBuffer<Rgba<u8>, Vec<u8>>, bool)>,
     pub transmitter: Sender<bool>,
+    pub draw_time_avg: f64,
+    pub draw_time_samples: u32,
 }
 
 impl UIContext {
@@ -57,6 +60,8 @@ impl UIContext {
             scene_img: RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32),
             receiver,
             transmitter,
+            draw_time_avg: 0.,
+            draw_time_samples: 0,
         }
     }
 }
@@ -99,6 +104,10 @@ impl UI {
 
     pub fn uisettings_mut(&mut self) -> &mut UISettings {
         &mut self.uisettings
+    }
+
+    pub fn context(&self) -> &Option<UIContext> {
+        &self.context
     }
 
     pub fn take_context(&mut self) -> UIContext {
@@ -248,68 +257,94 @@ impl UI {
         }
     }
 
-    pub fn draw(&mut self, scene: &Arc<RwLock<Scene>>, img: &mut RgbaImage) {
+    pub fn process(&mut self, scene: &Arc<RwLock<Scene>>) {
         let settings_snapshot = self.uisettings.clone();
-        img.fill_with(|| 1);
-        let width = self.uisettings.gui_width;
+        let mut reference_vec = vec![];
         let mut hitbox_vec = vec![];
 
-        for (_, uibox) in &mut self.boxes {
-            if !uibox.visible {
-                continue;
-            }
-            uibox.size.1 = uibox.height(&settings_snapshot);
+        for key in self.boxes.keys() {
+            reference_vec.push(key.to_string());
         }
 
-        for (_, uibox) in &self.boxes {
+        for reference in reference_vec {
+            let mut uibox = self.boxes.remove(&reference).unwrap();
             if !uibox.visible {
                 continue;
             }
-            let pos = uibox.pos;
-            if let Some(color) = &uibox.background_color {
-                draw_background(img, pos, uibox.size, color.to_rgba(), 0);
-            }
-
-            // let hitbox = HitBox {
-            //     pos: uibox.pos,
-            //     size: uibox.size,
-            //     reference: uibox.reference,
-            //     disabled: true,
-            // };
-
             let mut offset_y = 0;
-            for elem in &uibox.elems {
+            uibox.size.1 = uibox.max_height;
+            for i in 0..uibox.elems.len() {
+                let mut elem = uibox.elems.remove(i);
                 if elem.visible {
                     let hitbox = HitBox {
-                        pos: get_pos(uibox.pos, (0, pos.1 + offset_y), 0),
+                        pos: get_pos(uibox.pos, (0, uibox.pos.1 + offset_y), 0),
                         size: get_size(
                             &elem.text,
-                            &elem.format,
+                            &elem.style,
                             (uibox.size.0, uibox.size.1 - offset_y),
                         ),
                         reference: elem.reference.clone(),
                         disabled: matches!(elem.elem_type, ElemType::Row(_)),
                     };
-                    let vec = elem.draw(img, self, scene, &hitbox, uibox.max_height - offset_y);
-                    offset_y += hitbox.size.1 + settings_snapshot.margin;
+                    elem.hitbox = Some(hitbox.clone());
+                    let vec = elem.process(self, scene, uibox.max_height - offset_y);
+                    let needed_height =
+                        hitbox.pos.1 + hitbox.size.1 + settings_snapshot.margin - uibox.pos.1;
+                    if needed_height >= uibox.size.1 {
+                        break;
+                    }
+                    if needed_height > offset_y {
+                        offset_y = needed_height;
+                    }
                     hitbox_vec.push(hitbox);
+
                     for hitbox in vec {
-                        offset_y += hitbox.size.1 + settings_snapshot.margin;
+                        let needed_height =
+                            hitbox.pos.1 + hitbox.size.1 + settings_snapshot.margin - uibox.pos.1;
+                        if needed_height > offset_y {
+                            offset_y = needed_height;
+                        }
                         hitbox_vec.push(hitbox)
                     }
                 }
+                uibox.elems.insert(i, elem);
+            }
+            if let Some(mut edit_bar) = uibox.edit_bar.take() {
+                let mut vec = edit_bar.process(
+                    (uibox.pos.0, uibox.pos.1 + offset_y),
+                    &self.uisettings,
+                    uibox.size,
+                );
+                offset_y = vec[1].pos.1 + vec[1].size.1 + self.uisettings().margin * 2;
+                hitbox_vec.append(&mut vec);
+                uibox.edit_bar = Some(edit_bar);
+            }
+            uibox.size.1 = offset_y;
+            println!("{}", offset_y);
+            self.boxes.insert(reference, uibox);
+        }
+        self.hitbox_vec = hitbox_vec;
+    }
+
+    pub fn draw(&mut self, scene: &Arc<RwLock<Scene>>, img: &mut RgbaImage) {
+        img.fill_with(|| 1);
+        for (_, uibox) in &self.boxes {
+            if !uibox.visible {
+                continue;
+            }
+            if let Some(color) = &uibox.background_color {
+                draw_background(img, uibox.pos, uibox.size, color.to_rgba(), 0);
+            }
+            for elem in &uibox.elems {
+                if elem.visible {
+                    elem.draw(img, self, scene);
+                }
             }
             if let Some(edit_bar) = &uibox.edit_bar {
-                hitbox_vec.append(&mut edit_bar.draw(
-                    img,
-                    (pos.0, pos.1 + offset_y),
-                    &self.uisettings,
-                    width,
-                ));
+                edit_bar.draw(img);
             }
         }
         self.dirty = false;
-        self.hitbox_vec = hitbox_vec;
     }
 
     pub fn set_dirty(&mut self) {
@@ -320,7 +355,8 @@ impl UI {
 pub fn ui_clicked(click: (u32, u32), scene: &Arc<RwLock<Scene>>, ui: &mut UI) -> bool {
     let hitbox_list = ui.hitbox_vec.split_off(0);
     for hitbox in hitbox_list {
-        if click.0 > hitbox.pos.0
+        if !hitbox.disabled
+            && click.0 > hitbox.pos.0
             && click.0 < hitbox.pos.0 + hitbox.size.0
             && click.1 > hitbox.pos.1
             && click.1 < hitbox.pos.1 + hitbox.size.1
@@ -335,11 +371,16 @@ pub fn ui_clicked(click: (u32, u32), scene: &Arc<RwLock<Scene>>, ui: &mut UI) ->
                         UIEditBar::cancel(&mut scene.write().unwrap(), ui, box_ref);
                     }
                 }
+                return true;
             } else {
-                if let Some((mut elem, parent_ref, index)) = take_element(ui, hitbox.reference) {
+                if let Some((mut elem, parent_ref, index)) =
+                    take_element(ui, hitbox.reference.clone())
+                {
                     elem.clicked(scene, ui);
                     give_back_element(ui, elem, parent_ref, index);
                     return true;
+                } else {
+                    println!("ERROR: UIElement {} not found", &hitbox.reference)
                 }
             }
         }

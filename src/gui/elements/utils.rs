@@ -26,8 +26,9 @@ pub fn get_pos(parent_pos: (u32, u32), offset_pos: (u32, u32), indent: u32) -> (
 
 pub fn get_size(text: &String, style: &Style, max_size: (u32, u32)) -> (u32, u32) {
     let mut height = style.font_size() as u32 + style.padding_bot + style.padding_top;
-    let mut width =
-        style.font_size() as u32 / 2 * text.len() as u32 + style.padding_left + style.padding_top;
+    let mut width = (style.font_size() / 2. * text.len() as f32) as u32
+        + style.padding_left
+        + style.padding_top;
 
     let mut wanted_width = style.width.max(max_size.0 * style.fill_width as u32);
     let mut wanted_height = style.height;
@@ -42,7 +43,7 @@ pub fn get_size(text: &String, style: &Style, max_size: (u32, u32)) -> (u32, u32
         let lines = split_in_lines(text.clone(), style.width, style);
         height += (style.font_size() as u32 + style.padding_bot) * lines.len() as u32;
     }
-    (width.min(max_size.0), height.min(max_size.0))
+    (width.min(max_size.0), height.min(max_size.1))
 }
 
 pub fn split_in_lines(str: String, available_width: u32, format: &Style) -> Vec<String> {
@@ -84,15 +85,17 @@ pub fn take_element(ui: &mut UI, reference: String) -> Option<(UIElement, String
     let parent_ref = get_parent_ref(reference.clone());
     if !parent_ref.contains(".") {
         let uibox = ui.get_box_mut(parent_ref.clone());
-        let mut index = 0;
+        let mut index = None;
         for i in 0..uibox.elems.len() {
             if uibox.elems[i].reference == reference {
-                index = i;
+                index = Some(i);
                 break;
             }
         }
-        let elem = uibox.elems.swap_remove(index);
-        return Some((elem, parent_ref, index));
+        if let Some(index) = index {
+            let elem = uibox.elems.remove(index);
+            return Some((elem, parent_ref, index));
+        }
     } else {
         let elem = ui.get_element_by_reference_mut(parent_ref.clone()).unwrap();
         if let ElemType::Category(cat) = &mut elem.elem_type {
@@ -103,7 +106,7 @@ pub fn take_element(ui: &mut UI, reference: String) -> Option<(UIElement, String
                     break;
                 }
             }
-            let elem = cat.elems.swap_remove(index);
+            let elem = cat.elems.remove(index);
             return Some((elem, parent_ref, index));
         } else if let ElemType::Row(elems) = &mut elem.elem_type {
             let mut index = 0;
@@ -113,7 +116,7 @@ pub fn take_element(ui: &mut UI, reference: String) -> Option<(UIElement, String
                     break;
                 }
             }
-            let elem = elems.swap_remove(index);
+            let elem = elems.remove(index);
             return Some((elem, parent_ref, index));
         }
     }
