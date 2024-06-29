@@ -7,113 +7,107 @@ use crate::{
 
 use super::{settings, uisettings::UISettings, utils::get_line_position};
 
-pub struct TextFormat {
+pub struct Style {
     size: Vec2,
     pub font_size: f32,
     font_color: Rgba<u8>,
     background_color: Rgba<u8>,
     pub width: u32,
     pub height: u32,
+    pub fill_width: bool,
+    pub visible: bool,
+    pub disabled: bool,
     pub bg_color: Option<Rgba<u8>>,
     pub border_radius: u32,
     pub padding_left: u32,
     pub padding_right: u32,
     pub padding_top: u32,
     pub padding_bot: u32,
-    pub margin_left: u32,
 }
 
-pub struct FormatBuilder {
-    format: TextFormat,
+pub struct StyleBuilder {
+    style: Style,
     settings: UISettings,
 }
+pub trait Formattable {
+    fn base_style(&self, settings: &UISettings) -> Style {
+        Style::default(settings)
+    }
+}
 
-impl FormatBuilder {
+impl StyleBuilder {
     pub fn default(settings: &UISettings) -> Self {
         Self {
             settings: settings.clone(),
-            format: TextFormat::base_format(settings)
-        }   
+            style: Style::default(settings),
+        }
     }
     pub fn from_btn(settings: &UISettings) -> Self {
-        FormatBuilder::default(settings)
+        StyleBuilder::default(settings)
             .bg_color(Some(Rgba([200, 200, 200, 255])))
             .font_color(Rgba([0, 0, 0, 255]))
             .border_radius(3)
-            .margin_left(30)
     }
     pub fn padding_left(mut self, padding_left: u32) -> Self {
-        self.format.padding_left = padding_left;
+        self.style.padding_left = padding_left;
         self
     }
     pub fn padding_right(mut self, padding_right: u32) -> Self {
-        self.format.padding_right = padding_right;
+        self.style.padding_right = padding_right;
         self
     }
     pub fn padding_top(mut self, padding_top: u32) -> Self {
-        self.format.padding_top = padding_top;
+        self.style.padding_top = padding_top;
         self
     }
     pub fn padding_bot(mut self, padding_bot: u32) -> Self {
-        self.format.padding_bot = padding_bot;
+        self.style.padding_bot = padding_bot;
         self
     }
-    pub fn margin_left(mut self, margin_left: u32) -> Self {
-        self.format.margin_left = margin_left;
+    pub fn fill_width(mut self, fill_width: bool) -> Self {
+        self.style.fill_width = fill_width;
+        self
+    }
+    pub fn padding(mut self, padding: u32) -> Self {
+        self.padding_bot(padding)
+            .padding_top(padding)
+            .padding_left(padding)
+            .padding_right(padding)
+    }
+    pub fn visible(mut self, visible: bool) -> Self {
+        self.style.visible = visible;
+        self
+    }
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.style.disabled = disabled;
         self
     }
     pub fn border_radius(mut self, border_radius: u32) -> Self {
-        self.format.border_radius = border_radius;
+        self.style.border_radius = border_radius;
         self
     }
     pub fn width(mut self, width: u32) -> Self {
-        self.format.width = width;
+        self.style.width = width;
         self
     }
     pub fn height(mut self, height: u32) -> Self {
-        self.format.height = height;
+        self.style.height = height;
         self
     }
     pub fn bg_color(mut self, bg_color: Option<Rgba<u8>>) -> Self {
-        self.format.bg_color = bg_color;
+        self.style.bg_color = bg_color;
         self
     }
     pub fn font_color(mut self, font_color: Rgba<u8>) -> Self {
-        self.format.font_color = font_color;
+        self.style.font_color = font_color;
         self
     }
-    pub fn build(self) -> TextFormat {
-        self.format
+    pub fn build(self) -> Style {
+        self.style
     }
 }
 
-impl Default for TextFormat {
-    fn default() -> Self {
-        TextFormat {
-            size: Vec2::new(0., 0.),
-            width: 0,
-            height: 0,
-            font_size: 24.,
-            font_color: Rgba([255, 255, 255, 255]),
-            background_color: Rgba([50, 50, 50, 255]),
-            bg_color: None,
-            border_radius: 0,
-            margin_left: 0,
-            padding_left: FIELD_PADDING_X,
-            padding_right: FIELD_PADDING_X,
-            padding_bot: FIELD_PADDING_Y,
-            padding_top: FIELD_PADDING_Y,
-        }
-    }
-}
-
-pub trait Formattable {
-    fn base_format(&self, settings: &UISettings) -> TextFormat {
-        TextFormat::default()
-    }
-}
-
-impl TextFormat {
+impl Style {
     pub fn size(&self) -> &Vec2 {
         &self.size
     }
@@ -140,35 +134,7 @@ impl TextFormat {
         self.background_color = background_color;
     }
 
-    pub fn new(
-        size: Vec2,
-        font_size: f32,
-        font_color: Rgba<u8>,
-        bg_color: Option<Rgba<u8>>,
-        padding_left: u32,
-        padding_right: u32,
-        padding_top: u32,
-        padding_bot: u32,
-        margin_left: u32
-    ) -> Self {
-        Self {
-            size,
-            width: 0,
-            height: 0,
-            font_size,
-            font_color,
-            background_color: Rgba([0, 0, 0, 0]),
-            bg_color: bg_color,
-            border_radius: 0,
-            padding_left,
-            padding_right,
-            padding_top,
-            padding_bot,
-            margin_left
-        }
-    }
-
-    pub fn base_format(settings: &UISettings) -> Self {
+    pub fn default(settings: &UISettings) -> Self {
         Self {
             size: Vec2::new(0., 0.),
             width: 0,
@@ -182,45 +148,52 @@ impl TextFormat {
             padding_right: settings.padding_x,
             padding_top: settings.padding_y,
             padding_bot: settings.padding_y,
-            margin_left: 0
+            visible: true,
+            disabled: false,
+            fill_width: false,
         }
     }
 
-    pub fn field_format(settings: &UISettings) -> Self {
-        FormatBuilder::default(settings)
-            .width(settings.gui_width).build()
+    pub fn row(settings: &UISettings) -> Self {
+        StyleBuilder::default(settings)
+            .padding(0)
+            .fill_width(true)
+            .bg_color(None)
+            .build()
     }
 
-    pub fn new_editing_format(settings: &UISettings) -> Self {
-        FormatBuilder::default(settings)
+    pub fn field_format(settings: &UISettings) -> Self {
+        StyleBuilder::default(settings).fill_width(true).build()
+    }
+
+    pub fn editing(settings: &UISettings) -> Self {
+        StyleBuilder::default(settings)
             .bg_color(Some(Rgba([255, 255, 255, 255])))
             .font_color(Rgba([0, 0, 0, 255]))
             .build()
     }
 
-    pub fn new_category_format(settings: &UISettings) -> Self {
-        FormatBuilder::default(settings)
-            .width(settings.gui_width)
+    pub fn category(settings: &UISettings) -> Self {
+        StyleBuilder::default(settings)
+            .fill_width(true)
             .bg_color(Some(Rgba([40, 40, 40, 255])))
             .font_color(Rgba([200, 200, 200, 255]))
             .build()
     }
 
-    pub fn new_btn_format(settings: &UISettings) -> Self {
-        FormatBuilder::from_btn(settings).build()
+    pub fn button(settings: &UISettings) -> Self {
+        StyleBuilder::from_btn(settings).build()
     }
 
-    pub fn new_btn_apply_format(settings: &UISettings) -> Self {
-        FormatBuilder::from_btn(settings)
+    pub fn btn_apply(settings: &UISettings) -> Self {
+        StyleBuilder::from_btn(settings)
             .bg_color(Some(Rgba([70, 125, 70, 255])))
-            .margin_left(0)
             .build()
     }
 
-    pub fn new_btn_cancel_format(settings: &UISettings) -> Self {
-        FormatBuilder::from_btn(settings)
+    pub fn btn_cancel(settings: &UISettings) -> Self {
+        StyleBuilder::from_btn(settings)
             .bg_color(Some(Rgba([125, 70, 70, 255])))
-            .margin_left(0)
             .build()
     }
 

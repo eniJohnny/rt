@@ -1,6 +1,6 @@
 use crate::{
-    BASE_FONT_SIZE, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH,
-    INDENT_PADDING, MARGIN, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32,
+    BASE_FONT_SIZE, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH, INDENT_PADDING,
+    MARGIN, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32,
 };
 
 use super::elements::{
@@ -71,7 +71,7 @@ impl Displayable for UISettings {
                     if let Value::Unsigned(value) = value {
                         ui.uisettings_mut().gui_width = value;
                         let uibox = ui.get_box_mut("uisettings".to_string());
-                        uibox.pos = (SCREEN_WIDTH_U32 - value, uibox.pos.1) ;
+                        uibox.pos = (SCREEN_WIDTH_U32 - value, uibox.pos.1);
                     }
                 }),
                 Box::new(|value| {
@@ -87,7 +87,9 @@ impl Displayable for UISettings {
             settings,
         ));
 
-        category.elems.push(UIElement::new(
+        let mut btn_bar_vec = vec![];
+
+        btn_bar_vec.push(UIElement::new(
             "Test",
             "btn_test",
             ElemType::Button(Box::new(|scene, ui| {
@@ -97,7 +99,29 @@ impl Displayable for UISettings {
             })),
             settings,
         ));
+        btn_bar_vec.push(UIElement::new(
+            "Test2",
+            "btn_test2",
+            ElemType::Button(Box::new(|scene, ui| {
+                if let Some(edit_bar) = &mut ui.active_box_mut().unwrap().edit_bar {
+                    edit_bar.text.0 = Some("Test 2 reussi".to_string());
+                }
+            })),
+            settings,
+        ));
 
-        vec![UIElement::new("UI Settings", "uisettings", ElemType::Category(category), settings)]
+        category.elems.push(UIElement::new(
+            "",
+            "btnbar",
+            ElemType::Row(btn_bar_vec),
+            settings,
+        ));
+
+        vec![UIElement::new(
+            "UI Settings",
+            "uisettings",
+            ElemType::Category(category),
+            settings,
+        )]
     }
 }

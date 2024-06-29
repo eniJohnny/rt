@@ -1,38 +1,51 @@
+use std::borrow::Borrow;
+
 use image::RgbaImage;
 
-use crate::{display::utils::draw_text2, gui::{draw::draw_background, textformat::TextFormat}};
+use crate::{
+    display::utils::draw_text2,
+    gui::{
+        draw::draw_background,
+        textformat::{Formattable, Style},
+    },
+    model::scene::Scene,
+};
 
 use super::{
     ui::UI,
     uielement::{ElemType, UIElement},
+    HitBox,
 };
 
-pub fn get_pos(box_pos: (u32, u32), inline_pos: (u32, u32), indent: u32) -> (u32, u32) {
-    (box_pos.0 + inline_pos.0 + indent, box_pos.1 + inline_pos.1)
+pub fn get_pos(parent_pos: (u32, u32), offset_pos: (u32, u32), indent: u32) -> (u32, u32) {
+    (
+        parent_pos.0 + offset_pos.0 + indent,
+        parent_pos.1 + offset_pos.1,
+    )
 }
 
-pub fn get_size(text: &String, format: &TextFormat) -> (u32, u32) {
-    let mut height = format.font_size() as u32 + format.padding_bot + format.padding_top;
-    let mut width = format.font_size() as u32 / 2 * text.len() as u32
-        + format.padding_left
-        + format.padding_top;
-    if format.height > height {
-        height = format.height;
+pub fn get_size(text: &String, style: &Style, max_size: (u32, u32)) -> (u32, u32) {
+    let mut height = style.font_size() as u32 + style.padding_bot + style.padding_top;
+    let mut width =
+        style.font_size() as u32 / 2 * text.len() as u32 + style.padding_left + style.padding_top;
+
+    let mut wanted_width = style.width.max(max_size.0 * style.fill_width as u32);
+    let mut wanted_height = style.height;
+
+    if wanted_height > height {
+        height = wanted_height;
     }
-    if format.width == 0 {
-        return (width, height);
+    if wanted_width > width {
+        width = wanted_width;
     }
-    if width > format.width {
-        let lines = split_in_lines(text.clone(), format.width, format);
-        height += (format.font_size() as u32 + format.padding_bot) * lines.len() as u32;
+    if width > max_size.0 {
+        let lines = split_in_lines(text.clone(), style.width, style);
+        height += (style.font_size() as u32 + style.padding_bot) * lines.len() as u32;
     }
-    if format.width > width {
-        width = format.width;
-    }
-    (width, height)
+    (width.min(max_size.0), height.min(max_size.0))
 }
 
-pub fn split_in_lines(str: String, available_width: u32, format: &TextFormat) -> Vec<String> {
+pub fn split_in_lines(str: String, available_width: u32, format: &Style) -> Vec<String> {
     let mut current_width = 0;
     let mut lines = vec![];
     let mut txt_split = str.split(" ");
@@ -92,6 +105,16 @@ pub fn take_element(ui: &mut UI, reference: String) -> Option<(UIElement, String
             }
             let elem = cat.elems.swap_remove(index);
             return Some((elem, parent_ref, index));
+        } else if let ElemType::Row(elems) = &mut elem.elem_type {
+            let mut index = 0;
+            for i in 0..elems.len() {
+                if elems[i].reference == reference {
+                    index = i;
+                    break;
+                }
+            }
+            let elem = elems.swap_remove(index);
+            return Some((elem, parent_ref, index));
         }
     }
     None
@@ -105,6 +128,8 @@ pub fn give_back_element(ui: &mut UI, elem: UIElement, parent_ref: String, index
         let parent = ui.get_element_by_reference_mut(parent_ref.clone()).unwrap();
         if let ElemType::Category(cat) = &mut parent.elem_type {
             cat.elems.insert(index, elem);
+        } else if let ElemType::Row(elems) = &mut parent.elem_type {
+            elems.insert(index, elem);
         }
     }
 }
@@ -114,7 +139,7 @@ pub fn draw_element_text(
     text: String,
     pos: (u32, u32),
     size: (u32, u32),
-    format: &TextFormat,
+    format: &Style,
 ) {
     if let Some(color) = format.bg_color {
         draw_background(img, pos, size, color, format.border_radius);
@@ -126,3 +151,49 @@ pub fn draw_element_text(
         format,
     );
 }
+
+// pub fn refresh_formats(mut elems: &mut Vec<UIElement>, ui: &UI) {
+//     for_each_element(&mut elems, &None, &Some(ui), |elem, scene, ui| {
+//         if let Some(ui) = ui {
+//             elem.format = elem.elem_type.base_style(ui.uisettings());
+//         }
+//     });
+// }
+
+// pub fn for_each_element(
+//     elems: &mut Vec<UIElement>,
+//     scene: &Option<&Scene>,
+//     ui: &Option<&UI>,
+//     fonction: impl Fn(&mut UIElement, &Option<&Scene>, &Option<&UI>),
+// ) {
+//     for i in 0..elems.len() {
+//         let mut elem = elems.swap_remove(i);
+//         &fonction(&mut elem, scene, ui);
+//         elems.insert(i, elem);
+//         let elem = elems.get_mut(i).unwrap();
+//         if let ElemType::Category(cat) = &mut elem.elem_type {
+//             for_each_element(&mut cat.elems, scene, ui, &fonction);
+//         } else if let ElemType::Row(elems) = &mut elem.elem_type {
+//             for_each_element(elems, scene, ui, &fonction);
+//         }
+//     }
+// }
+
+// pub fn for_each_element_mut(
+//     elems: &mut Vec<UIElement>,
+//     scene: &Option<&mut Scene>,
+//     ui: &Option<&mut UI>,
+//     fonction: impl Fn(&mut UIElement, &Option<&mut Scene>, &Option<&mut UI>),
+// ) {
+//     for i in 0..elems.len() {
+//         let mut elem = elems.swap_remove(i);
+//         &fonction(&mut elem, scene, ui);
+//         elems.insert(i, elem);
+//         let elem = elems.get_mut(i).unwrap();
+//         if let ElemType::Category(cat) = &mut elem.elem_type {
+//             for_each_element_mut(&mut cat.elems, scene, ui, &fonction);
+//         } else if let ElemType::Row(elems) = &mut elem.elem_type {
+//             for_each_element_mut(elems, scene, ui, &fonction);
+//         }
+//     }
+// }

@@ -4,7 +4,10 @@ extern crate winit;
 
 use crate::{
     gui::{
-        draw::draw_gui, uisettings::UISettings, textformat::TextFormat, utils::{gui_clicked, hide_gui, hitbox_contains}, Gui
+        textformat::Style,
+        uisettings::UISettings,
+        utils::{gui_clicked, hide_gui, hitbox_contains},
+        Gui,
     },
     model::{
         materials::{
@@ -15,7 +18,7 @@ use crate::{
         scene::Scene,
     },
     render::{
-        lighting_real::get_lighting_from_hit,
+        lighting::lighting_real::get_lighting_from_hit,
         raycasting::{get_closest_hit, get_ray, get_ray_debug, sampling_ray},
     },
     CAM_MOVE_KEYS, FPS, RGB_KEYS,
@@ -56,8 +59,8 @@ pub fn event_manager(
     let mut image_requested = true;
     let mut final_image = false;
     let settings = UISettings::default();
-    let format = TextFormat::base_format(&settings);
-    let editing_format = TextFormat::new_editing_format(&settings);
+    let format = Style::default(&settings);
+    let editing_format = Style::editing(&settings);
     let mut full_img: RgbaImage = img.clone();
     let mut gui = Gui::new();
 

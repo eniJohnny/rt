@@ -7,6 +7,7 @@ use crate::{
         objects::light,
         scene::Scene,
     },
+    render::{raycasting::get_closest_hit, skysphere::get_skysphere_color},
     MAX_DEPTH,
 };
 
@@ -15,8 +16,6 @@ use super::{
         get_indirect_light_bucket, get_indirect_light_sample, get_reflected_light_sample,
         random_unit_vector, reflect_dir,
     },
-    raycasting::{get_closest_hit, get_ray},
-    restir::{PathBucket, Sample}, skysphere::get_skysphere_color,
 };
 
 pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
@@ -78,11 +77,7 @@ pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
     let rand = rand::thread_rng().gen_range(0.0..1.0);
     if rand > reflected + hit.metalness() {
         // Indirect Light
-        if scene.indirect_lightning() && ray.get_depth() < MAX_DEPTH as u8 {
-            // if ray.get_depth() == 0 {
-            //     let sample = get_indirect_light_sample(hit.clone(), scene, &ray);
-            //     light_color += sample.color * sample.weight * hit.color();
-            // } else {
+        if scene.settings().indirect && ray.get_depth() < MAX_DEPTH as u8 {
             let mut indirect_dir = hit.norm() + random_unit_vector();
             if indirect_dir.length() < 0.01 {
                 indirect_dir = hit.norm().clone();
@@ -90,14 +85,9 @@ pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
             indirect_dir = indirect_dir.normalize();
             let indirect_ray = Ray::new(hit.pos().clone(), indirect_dir, ray.get_depth() + 1);
             light_color = get_lighting_from_ray(scene, &indirect_ray) * hit.color();
-            // }
         }
-    } else if scene.imperfect_reflections() && ray.get_depth() < MAX_DEPTH as u8 {
+    } else if scene.settings().reflections && ray.get_depth() < scene.settings().depth as u8 {
         let reflect_color;
-        // if ray.get_depth() == 0 {
-        //     let sample = get_reflected_light_sample(hit.clone(), scene, &ray, hit.roughness());
-        //     reflect_color = &sample.color * sample.weight;
-        // } else {
         let dir = (reflect_dir(ray.get_dir(), hit.norm()) + random_unit_vector() * hit.roughness())
             .normalize();
         if dir.dot(hit.norm()) > f64::EPSILON {
@@ -106,7 +96,6 @@ pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
         } else {
             reflect_color = Color::new(0., 0., 0.);
         }
-        // }
         if rand > hit.metalness() {
             light_color += reflect_color
         } else {
