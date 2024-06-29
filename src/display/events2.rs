@@ -8,7 +8,7 @@ use std::{
 };
 
 use chrono::{DateTime, Utc};
-use image::{ImageBuffer, Rgba, RgbaImage};
+use image::{GenericImageView, ImageBuffer, Rgba, RgbaImage};
 use pixels::Pixels;
 use winit::{
     event::{Event, VirtualKeyCode, WindowEvent},
@@ -24,33 +24,54 @@ use crate::{
         Displayable,
     },
     model::scene::Scene,
+    render::render_threads::start_render_threads,
     SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32,
 };
 
 use super::display;
 
-pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixels: Pixels<Window>) {
-    let mut ui = UI::default();
+pub fn setup_edit_bar(ui: &mut UI, scene: &Arc<RwLock<Scene>>) {
     let mut settings_box = UIBox::default(&ui, "uisettings".to_string());
-    let mut img = RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32);
-
     settings_box.add_elements(
         ui.uisettings()
             .get_fields(&settings_box.reference, ui.uisettings()),
     );
-    settings_box.set_edit_bar(ui.uisettings(), Some(Box::new(|_, ui| {
-        ui.refresh_formats()
-    })));
+    settings_box.add_elements(
+        scene
+            .read()
+            .unwrap()
+            .settings()
+            .get_fields(&settings_box.reference, ui.uisettings()),
+    );
+    settings_box.set_edit_bar(
+        ui.uisettings(),
+        Some(Box::new(|_, ui| ui.refresh_formats())),
+    );
 
     let index = ui.add_box(settings_box);
     ui.set_active_box(index);
+}
+
+pub fn setup_ui(scene: &Arc<RwLock<Scene>>) -> UI {
+    let (ra, tb) = start_render_threads(Arc::clone(&scene));
+    tb.send(true).unwrap();
+    let mut ui = UI::default(ra, tb);
+    setup_edit_bar(&mut ui, scene);
+    ui
+}
+
+pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixels: Pixels<Window>) {
+    let mut ui = setup_ui(&scene);
 
     event_loop.run(move |event, _, control_flow: &mut ControlFlow| {
         *control_flow = ControlFlow::WaitUntil(Instant::now() + Duration::from_millis(20));
 
-        if ui.dirty() {
-            ui.draw(&scene, &mut img);
-            display(&mut pixels, &mut img);
+        redraw_if_necessary(&mut ui, &scene, &mut pixels);
+        if scene.read().unwrap().dirty() {
+            let context = ui.take_context();
+            context.transmitter.send(true).unwrap();
+            ui.give_back_context(context);
+            scene.write().unwrap().set_dirty(false);
         }
 
         match event {
@@ -60,6 +81,42 @@ pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixel
             _ => {}
         }
     })
+}
+
+fn redraw_if_necessary(ui: &mut UI, scene: &Arc<RwLock<Scene>>, mut pixels: &mut Pixels<Window>) {
+    let mut context = ui.take_context();
+    let ui_img = &mut context.ui_img;
+    let mut redraw = false;
+    if ui.dirty() {
+        ui.draw(&scene, ui_img);
+        redraw = true;
+    }
+    if let Ok((mut render_img, final_img)) = context.receiver.try_recv() {
+        context.scene_img = render_img;
+        if !final_img {
+            context.transmitter.send(false).unwrap();
+        } else {
+            println!(
+                "Final img, iterations {}",
+                scene.read().unwrap().settings().iterations
+            );
+        }
+        redraw = true;
+    }
+    if redraw {
+        let mut image = RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32);
+        for x in 0..SCREEN_WIDTH_U32 {
+            for y in 0..SCREEN_HEIGHT_U32 {
+                let mut pixel = ui_img.get_pixel(x, y);
+                if pixel.0 == [1; 4] {
+                    pixel = context.scene_img.get_pixel(x, y);
+                }
+                image.put_pixel(x, y, pixel.clone());
+            }
+        }
+        display(&mut pixels, &mut image);
+    }
+    ui.give_back_context(context);
 }
 
 fn handle_event(

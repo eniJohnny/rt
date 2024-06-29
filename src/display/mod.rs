@@ -2,7 +2,6 @@ extern crate image;
 extern crate pixels;
 extern crate winit;
 
-pub mod events;
 pub mod events2;
 pub mod update;
 pub mod utils;
@@ -42,7 +41,6 @@ pub fn display_scene(scene: Scene) {
 
     // // Setting up the render_threads and asking for the first image
     let scene = Arc::new(RwLock::new(scene));
-    // let (ra, tb) = start_render_threads(Arc::clone(&scene));
     // let scene_change = false;
     // tb.send(scene_change).unwrap();
 

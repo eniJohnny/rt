@@ -20,9 +20,8 @@ pub struct Scene {
     lights: Vec<Box<dyn Light + Sync + Send>>,
     ambient_light: AmbientLight,
     settings: Settings,
-    indirect_lightning: bool,
-    imperfect_reflections: bool,
     textures: HashMap<String, image::RgbaImage>,
+    dirty: bool,
 }
 
 impl Scene {
@@ -33,9 +32,8 @@ impl Scene {
             lights: Vec::new(),
             ambient_light: AmbientLight::default(),
             settings: Settings::default(),
-            indirect_lightning: true,
-            imperfect_reflections: true,
             textures: HashMap::new(),
+            dirty: true,
         }
     }
 
@@ -143,20 +141,20 @@ impl Scene {
         &self.ambient_light
     }
 
-    pub fn indirect_lightning(&self) -> bool {
-        self.indirect_lightning
-    }
-
-    pub fn imperfect_reflections(&self) -> bool {
-        self.imperfect_reflections
-    }
-
     pub fn textures(&self) -> &HashMap<String, image::RgbaImage> {
         &self.textures
     }
 
     pub fn get_texture(&self, name: &str) -> Option<&image::RgbaImage> {
         self.textures.get(name)
+    }
+    
+    pub fn dirty(&self) -> bool {
+        self.dirty
+    }
+
+    pub fn set_dirty(&mut self, dirty: bool) {
+        self.dirty = dirty;
     }
 
     // Mutators

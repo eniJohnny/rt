@@ -1,13 +1,18 @@
+use crate::{
+    gui::{textformat::Style, uisettings::UISettings, Gui},
+    model::{
+        maths::vec2::Vec2,
+        objects::{camera::Camera, light::Light},
+        shapes::Shape,
+        Element,
+    },
+    GUI_WIDTH,
+};
 use image::{ImageBuffer, Rgba, RgbaImage};
 use rusttype::{Font, Scale};
 use winit::event::VirtualKeyCode;
-use crate::{
-    gui::{draw::{draw_cone_gui, draw_cylinder_gui, draw_plane_gui, draw_pointlight_gui, draw_sphere_gui}, uisettings::UISettings, textformat::TextFormat, Gui},
-    model::{maths::vec2::Vec2, objects::{camera::Camera, light::Light}, shapes::Shape, Element}, GUI_WIDTH
-};
 
 pub fn move_camera(camera: &mut Camera, c: Option<VirtualKeyCode>) {
-
     match c {
         Some(VirtualKeyCode::W) => camera.move_forward(),
         Some(VirtualKeyCode::S) => camera.move_backward(),
@@ -24,44 +29,7 @@ pub fn move_camera(camera: &mut Camera, c: Option<VirtualKeyCode>) {
     // camera.debug_print();
 }
 
-pub fn display_element_infos(element: &Element, img: &mut ImageBuffer<Rgba<u8>, Vec<u8>>) -> Gui {
-    let img = img;
-    let shape = element.shape();
-    let material = element.material();
-
-    if shape.as_sphere().is_some() {
-        let sphere = shape.as_sphere().unwrap();
-        return draw_sphere_gui(img, sphere, material);
-    } else if shape.as_plane().is_some() {
-        let plane = shape.as_plane().unwrap();
-        return draw_plane_gui(img, plane, material);
-    } else if shape.as_cylinder().is_some() {
-        let cylinder = shape.as_cylinder().unwrap();
-        return draw_cylinder_gui(img, cylinder, material);
-    } else if shape.as_cone().is_some() {
-        return draw_cone_gui(img, shape.as_cone().unwrap(), material);
-    } else {
-        return Gui::new();
-    }
-}
-pub fn display_light_infos(light: &Box<dyn Light + Sync + Send>, img: &mut ImageBuffer<Rgba<u8>, Vec<u8>>) -> Gui {
-    let img = img;
-    
-    if light.as_pointlight().is_some() {
-        let point_light = light.as_pointlight().unwrap();
-        return draw_pointlight_gui(img, point_light);
-    } else if light.as_parallel_light().is_some() {
-        return Gui::new();
-    } else if light.as_spot_light().is_some() {
-        return Gui::new();
-    } else {
-        return Gui::new();
-    }
-    
-    
-}
-
-pub fn draw_text2(image: &mut RgbaImage, pos: (u32, u32), text: String, format: &TextFormat) {
+pub fn draw_text2(image: &mut RgbaImage, pos: (u32, u32), text: String, format: &Style) {
     // Load font
     let font_data = include_bytes!("../assets/JetBrainsMono-Regular.ttf");
     let font = &Font::try_from_bytes(font_data as &[u8]).expect("Error loading font");
@@ -88,8 +56,7 @@ pub fn draw_text2(image: &mut RgbaImage, pos: (u32, u32), text: String, format: 
     }
 }
 
-
-pub fn draw_text(image: &mut RgbaImage, pos: &Vec2, text: String, format: &TextFormat) {
+pub fn draw_text(image: &mut RgbaImage, pos: &Vec2, text: String, format: &Style) {
     let x = *pos.x() as u32 + 8;
     let y = *pos.y() as u32;
 
@@ -150,11 +117,11 @@ pub fn draw_text_background2(
     let mut height = size.1;
 
     if pos.0 + width > image.width() {
-        width = image.width() - pos.0 ;
+        width = image.width() - pos.0;
     }
 
     let x = image.width() - width;
-    let y = pos.1 ;
+    let y = pos.1;
 
     for x in x..(x + width) {
         for y in y..(y + height) {

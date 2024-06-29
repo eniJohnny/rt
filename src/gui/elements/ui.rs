@@ -1,22 +1,33 @@
 use std::{
+    any::Any,
+    borrow::Borrow,
     collections::HashMap,
-    sync::{Arc, RwLock},
+    sync::{
+        mpsc::{Receiver, Sender},
+        Arc, RwLock,
+    },
 };
 
-use image::{Rgba, RgbaImage};
+use image::{ImageBuffer, Rgba, RgbaImage};
 use winit::event::VirtualKeyCode;
 
 use crate::{
     display::utils::draw_text2,
     gui::{
-        draw::{draw_background, draw_button_background}, settings::Settings, uisettings::UISettings
+        draw::{draw_background, draw_button_background},
+        settings::Settings,
+        uisettings::UISettings,
     },
     model::{maths::vec2::Vec2, scene::Scene},
-    GUI_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH,
+    GUI_WIDTH, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32,
 };
 
 use super::{
-    uibox::UIBox, uieditbar::UIEditBar, uielement::{ElemType, Property, UIElement}, utils::{get_parent_ref, get_pos, get_size, give_back_element, take_element}, HitBox
+    uibox::UIBox,
+    uieditbar::UIEditBar,
+    uielement::{ElemType, Property, UIElement},
+    utils::{get_parent_ref, get_pos, get_size, give_back_element, take_element},
+    HitBox,
 };
 
 #[derive(Clone)]
@@ -25,10 +36,34 @@ pub struct Editing {
     pub value: String,
 }
 
+pub struct Statistics {
+    pub fps: u32,
+}
+
+pub struct UIContext {
+    pub ui_img: RgbaImage,
+    pub scene_img: RgbaImage,
+    pub receiver: Receiver<(ImageBuffer<Rgba<u8>, Vec<u8>>, bool)>,
+    pub transmitter: Sender<bool>,
+}
+
+impl UIContext {
+    pub fn new(
+        receiver: Receiver<(ImageBuffer<Rgba<u8>, Vec<u8>>, bool)>,
+        transmitter: Sender<bool>,
+    ) -> Self {
+        Self {
+            ui_img: RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32),
+            scene_img: RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32),
+            receiver,
+            transmitter,
+        }
+    }
+}
+
 pub struct UI {
     boxes: HashMap<String, UIBox>,
     uisettings: UISettings,
-    settings: Settings,
     box_index: usize,
     active_box_reference: String,
     editing: Option<Editing>,
@@ -36,10 +71,14 @@ pub struct UI {
     inputs: Vec<VirtualKeyCode>,
     hitbox_vec: Vec<HitBox>,
     dirty: bool,
+    context: Option<UIContext>,
 }
 
 impl UI {
-    pub fn default() -> Self {
+    pub fn default(
+        receiver: Receiver<(ImageBuffer<Rgba<u8>, Vec<u8>>, bool)>,
+        transmitter: Sender<bool>,
+    ) -> Self {
         UI {
             box_index: 0,
             boxes: HashMap::new(),
@@ -48,9 +87,9 @@ impl UI {
             editing: None,
             mouse_position: (0, 0),
             inputs: vec![],
-            dirty: false,
+            dirty: true,
             hitbox_vec: vec![],
-            settings: Settings::default()
+            context: Some(UIContext::new(receiver, transmitter)),
         }
     }
 
@@ -62,12 +101,12 @@ impl UI {
         &mut self.uisettings
     }
 
-    pub fn settings(&self) -> &Settings {
-        &self.settings
+    pub fn take_context(&mut self) -> UIContext {
+        self.context.take().unwrap()
     }
 
-    pub fn settings_mut(&mut self) -> &mut Settings {
-        &mut self.settings
+    pub fn give_back_context(&mut self, context: UIContext) {
+        self.context = Some(context);
     }
 
     pub fn mouse_position(&self) -> (u32, u32) {
@@ -106,9 +145,10 @@ impl UI {
     }
 
     pub fn get_box_mut(&mut self, reference: String) -> &mut UIBox {
-        self.boxes
-            .get_mut(&reference)
-            .expect(&format!("ERROR : Couldn't find the added UIBox {}", reference))
+        self.boxes.get_mut(&reference).expect(&format!(
+            "ERROR : Couldn't find the added UIBox {}",
+            reference
+        ))
     }
 
     pub fn get_element_by_reference_mut(&mut self, reference: String) -> Option<&mut UIElement> {
@@ -209,43 +249,63 @@ impl UI {
     }
 
     pub fn draw(&mut self, scene: &Arc<RwLock<Scene>>, img: &mut RgbaImage) {
-        img.fill_with(|| 0);
+        let settings_snapshot = self.uisettings.clone();
+        img.fill_with(|| 1);
         let width = self.uisettings.gui_width;
         let mut hitbox_vec = vec![];
-        if self.active_box_reference != "" {
-            let uibox = self
-                .boxes
-                .get(&self.active_box_reference)
-                .expect("Destroyed UIBox still referenced as active");
+
+        for (_, uibox) in &mut self.boxes {
+            if !uibox.visible {
+                continue;
+            }
+            uibox.size.1 = uibox.height(&settings_snapshot);
+        }
+
+        for (_, uibox) in &self.boxes {
+            if !uibox.visible {
+                continue;
+            }
             let pos = uibox.pos;
-            let uibox_height = uibox.height(self.uisettings());
             if let Some(color) = &uibox.background_color {
-                for x in pos.0..(pos.0 + width) {
-                    for y in pos.1..(pos.1 + uibox_height) {
-                        img.put_pixel(x as u32, y as u32, color.to_rgba());
-                    }
-                }
+                draw_background(img, pos, uibox.size, color.to_rgba(), 0);
             }
 
-            let mut height = 0;
+            // let hitbox = HitBox {
+            //     pos: uibox.pos,
+            //     size: uibox.size,
+            //     reference: uibox.reference,
+            //     disabled: true,
+            // };
+
+            let mut offset_y = 0;
             for elem in &uibox.elems {
                 if elem.visible {
                     let hitbox = HitBox {
-                        pos: get_pos(uibox.pos, (0, pos.1 + height), 0),
-                        size: get_size(&elem.text, &elem.format),
+                        pos: get_pos(uibox.pos, (0, pos.1 + offset_y), 0),
+                        size: get_size(
+                            &elem.text,
+                            &elem.format,
+                            (uibox.size.0, uibox.size.1 - offset_y),
+                        ),
                         reference: elem.reference.clone(),
+                        disabled: matches!(elem.elem_type, ElemType::Row(_)),
                     };
-                    let vec = elem.draw(img, self, scene, &hitbox);
-                    height += hitbox.size.1 + self.uisettings().margin;
+                    let vec = elem.draw(img, self, scene, &hitbox, uibox.max_height - offset_y);
+                    offset_y += hitbox.size.1 + settings_snapshot.margin;
                     hitbox_vec.push(hitbox);
                     for hitbox in vec {
-                        height += hitbox.size.1 + self.uisettings().margin;
+                        offset_y += hitbox.size.1 + settings_snapshot.margin;
                         hitbox_vec.push(hitbox)
                     }
                 }
             }
             if let Some(edit_bar) = &uibox.edit_bar {
-                hitbox_vec.append(&mut edit_bar.draw(img, (pos.0, pos.1 + height), &self.uisettings, width));
+                hitbox_vec.append(&mut edit_bar.draw(
+                    img,
+                    (pos.0, pos.1 + offset_y),
+                    &self.uisettings,
+                    width,
+                ));
             }
         }
         self.dirty = false;
