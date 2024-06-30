@@ -13,7 +13,7 @@ use winit::{
     dpi::LogicalSize,
     event::{Event, MouseScrollDelta, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
-    platform::run_return::EventLoopExtRunReturn,
+    keyboard::{Key, NamedKey},
     window::{Window, WindowBuilder},
 };
 
@@ -124,7 +124,7 @@ fn get_hitbox(pos: &Vec2) -> (Vec2, Vec2) {
 fn draw_files_and_update_hitboxes(
     start: usize,
     files: &Vec<String>,
-    pixels: &mut Pixels<Window>,
+    pixels: &mut Pixels,
 ) -> (Vec<(Vec2, Vec2)>, RgbaImage) {
     let mut hitboxes: Vec<(Vec2, Vec2)> = Vec::new();
     let mut img = RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32);
@@ -162,7 +162,7 @@ fn draw_files_and_update_hitboxes(
 }
 
 fn display_files(files: Vec<String>) -> String {
-    let mut event_loop = EventLoop::new();
+    let mut event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new()
         .with_inner_size(LogicalSize::new(SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32))
         .with_title("Scene Picker")
@@ -188,14 +188,14 @@ fn display_files(files: Vec<String>) -> String {
 
     // Set up event manager
     let mut mouse_position = (0.0, 0.0);
-    event_loop.run_return(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Wait;
+    event_loop.run(move |event, window_target| {
+        window_target.set_control_flow(ControlFlow::Wait);
         match event {
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::CloseRequested => {
                     // Close the window
                     sender.send("".to_string()).unwrap();
-                    *control_flow = ControlFlow::Exit
+                    window_target.exit();
                 }
                 WindowEvent::CursorMoved { position, .. } => {
                     // Update the mouse position
@@ -237,18 +237,16 @@ fn display_files(files: Vec<String>) -> String {
                         }
                     }
                 }
-                WindowEvent::KeyboardInput { input, .. } => {
+                WindowEvent::KeyboardInput { event, .. } => {
                     // If the escape key is pressed
-                    if let Some(key_code) = input.virtual_keycode {
-                        if key_code == winit::event::VirtualKeyCode::Escape {
-                            // Close the window
-                            sender.send("".to_string()).unwrap();
-                            *control_flow = ControlFlow::Exit;
-                        } else if key_code == winit::event::VirtualKeyCode::Return {
-                            if file_clicked != "" {
-                                sender.send(file_clicked.clone()).unwrap();
-                                *control_flow = ControlFlow::Exit;
-                            }
+                    if event.logical_key == Key::Named(NamedKey::Escape) {
+                        // Close the window
+                        sender.send("".to_string()).unwrap();
+                        window_target.exit();
+                    } else if event.logical_key == Key::Named(NamedKey::Backspace) {
+                        if file_clicked != "" {
+                            sender.send(file_clicked.clone()).unwrap();
+                            window_target.exit();
                         }
                     }
                 }
@@ -315,7 +313,7 @@ pub fn pick_scene() -> String {
     return path;
 }
 
-fn render_preview(mut scene: Scene, img: &mut RgbaImage, pixels: &mut Pixels<Window>) {
+fn render_preview(mut scene: Scene, img: &mut RgbaImage, pixels: &mut Pixels) {
     // Setting up the render_threads and asking for the first image
     let camera = scene.camera_mut();
     camera.set_pos(camera.pos() + Vec3::new(0., 0., -10.));

@@ -17,7 +17,7 @@ use std::{
 };
 
 use crate::render::render_threads::start_render_threads;
-use pixels::{Pixels, SurfaceTexture};
+use pixels::Pixels;
 use winit::{
     dpi::LogicalSize,
     event_loop::EventLoop,
@@ -28,7 +28,7 @@ pub fn display_scene(scene: Scene) {
     let scene = scene;
 
     // Set up window and event loop (can't move them elsewhere because of the borrow checker)
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new()
         .with_inner_size(LogicalSize::new(SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32))
         .with_title("Image Viewer")
@@ -38,8 +38,8 @@ pub fn display_scene(scene: Scene) {
     // Set up pixels object
     let mut pixels = {
         let window_size = window.inner_size();
-        let surface_texture = SurfaceTexture::new(window_size.width, window_size.height, &window);
-        Pixels::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32, surface_texture).unwrap()
+        let texture = pixels::SurfaceTexture::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32, &window);
+        Pixels::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32, texture).unwrap()
     };
 
     // // Setting up the render_threads and asking for the first image
@@ -57,14 +57,14 @@ pub fn display_scene(scene: Scene) {
     main_loop(event_loop, scene, pixels);
 }
 
-pub fn display(pixels: &mut Pixels<Window>, img: &mut RgbaImage) {
+pub fn display(pixels: &mut Pixels, img: &mut RgbaImage) {
     // Copy image data to pixels buffer
 
     // unsafe {
     //     copy_nonoverlapping(img_data.as_ptr(), frame.as_mut_ptr(), img_data.len());
     // }
 
-    pixels.get_frame().copy_from_slice(&img);
+    pixels.frame_mut().copy_from_slice(&img);
 
     // Render the pixels buffer
     pixels.render().unwrap();

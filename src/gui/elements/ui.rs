@@ -10,7 +10,6 @@ use std::{
 };
 
 use image::{ImageBuffer, Rgba, RgbaImage};
-use winit::event::VirtualKeyCode;
 
 use crate::{
     display::utils::draw_text2,
@@ -73,7 +72,7 @@ pub struct UI {
     active_box_reference: String,
     editing: Option<Editing>,
     mouse_position: (u32, u32),
-    inputs: Vec<VirtualKeyCode>,
+    // inputs: Vec<VirtualKeyCode>,
     hitbox_vec: Vec<HitBox>,
     dirty: bool,
     context: Option<UIContext>,
@@ -91,7 +90,7 @@ impl UI {
             active_box_reference: "".to_string(),
             editing: None,
             mouse_position: (0, 0),
-            inputs: vec![],
+            // inputs: vec![],
             dirty: true,
             hitbox_vec: vec![],
             context: Some(UIContext::new(receiver, transmitter)),
@@ -222,21 +221,21 @@ impl UI {
         self.dirty = true;
     }
 
-    pub fn input_pressed(&mut self, pressed: VirtualKeyCode) {
-        self.inputs.push(pressed)
-    }
+    // pub fn input_pressed(&mut self, pressed: VirtualKeyCode) {
+    //     self.inputs.push(pressed)
+    // }
 
-    pub fn input_released(&mut self, released: VirtualKeyCode) {
-        for i in 0..self.inputs.len() {
-            if self.inputs.get(i).unwrap() == &released {
-                self.inputs.remove(i);
-            }
-        }
-    }
+    // pub fn input_released(&mut self, released: VirtualKeyCode) {
+    //     for i in 0..self.inputs.len() {
+    //         if self.inputs.get(i).unwrap() == &released {
+    //             self.inputs.remove(i);
+    //         }
+    //     }
+    // }
 
-    pub fn inputs(&self) -> &Vec<VirtualKeyCode> {
-        &self.inputs
-    }
+    // pub fn inputs(&self) -> &Vec<VirtualKeyCode> {
+    //     &self.inputs
+    // }
 
     pub fn validate_properties(&mut self, reference: String) {
         let uibox = self.get_box_mut(reference.clone());
