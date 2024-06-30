@@ -10,20 +10,20 @@ use crate::{
 };
 use image::{ImageBuffer, Rgba, RgbaImage};
 use rusttype::{Font, Scale};
-use winit::event::VirtualKeyCode;
+use winit::keyboard::Key;
 
-pub fn move_camera(camera: &mut Camera, c: Option<VirtualKeyCode>) {
+pub fn move_camera(camera: &mut Camera, c: Key) {
     match c {
-        Some(VirtualKeyCode::W) => camera.move_forward(),
-        Some(VirtualKeyCode::S) => camera.move_backward(),
-        Some(VirtualKeyCode::A) => camera.move_left(),
-        Some(VirtualKeyCode::D) => camera.move_right(),
-        Some(VirtualKeyCode::Up) => camera.look_up(),
-        Some(VirtualKeyCode::Down) => camera.look_down(),
-        Some(VirtualKeyCode::Left) => camera.look_left(),
-        Some(VirtualKeyCode::Right) => camera.look_right(),
-        Some(VirtualKeyCode::LShift) => camera.move_up(),
-        Some(VirtualKeyCode::Space) => camera.move_down(),
+        // Some(VirtualKeyCode::W) => camera.move_forward(),
+        // Some(VirtualKeyCode::S) => camera.move_backward(),
+        // Some(VirtualKeyCode::A) => camera.move_left(),
+        // Some(VirtualKeyCode::D) => camera.move_right(),
+        // Some(VirtualKeyCode::Up) => camera.look_up(),
+        // Some(VirtualKeyCode::Down) => camera.look_down(),
+        // Some(VirtualKeyCode::Left) => camera.look_left(),
+        // Some(VirtualKeyCode::Right) => camera.look_right(),
+        // Some(VirtualKeyCode::LShift) => camera.move_up(),
+        // Some(VirtualKeyCode::Space) => camera.move_down(),
         _ => (),
     }
     // camera.debug_print();

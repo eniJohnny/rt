@@ -3,7 +3,7 @@ use display::display_scene;
 use gui::settings::ViewMode;
 use image::flat::View;
 use parsing::get_scene;
-use winit::event::VirtualKeyCode;
+use winit::keyboard::KeyCode;
 
 pub mod display;
 pub mod gui;
@@ -40,17 +40,17 @@ const PICKER_LINE_HEIGHT: f64 = 30.0;
 const FPS: u64 = 20;
 
 const RGB_KEYS: [&str; 3] = ["colr", "colg", "colb"];
-const CAM_MOVE_KEYS: [VirtualKeyCode; 10] = [
-    VirtualKeyCode::W,
-    VirtualKeyCode::A,
-    VirtualKeyCode::S,
-    VirtualKeyCode::D,
-    VirtualKeyCode::Up,
-    VirtualKeyCode::Left,
-    VirtualKeyCode::Down,
-    VirtualKeyCode::Right,
-    VirtualKeyCode::Space,
-    VirtualKeyCode::LShift,
+const CAM_MOVE_KEYS: [KeyCode; 10] = [
+    KeyCode::KeyW,
+    KeyCode::KeyA,
+    KeyCode::KeyS,
+    KeyCode::KeyD,
+    KeyCode::ArrowUp,
+    KeyCode::ArrowLeft,
+    KeyCode::ArrowDown,
+    KeyCode::ArrowRight,
+    KeyCode::Space,
+    KeyCode::ShiftLeft,
 ];
 
 pub fn run() {
