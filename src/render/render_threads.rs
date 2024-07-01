@@ -178,7 +178,7 @@ fn build_image_from_tilesets(
     let mut iterations_done = 0;
     let mut img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
     let mut final_img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
-    let mut to_send = true;
+    let mut to_send = false;
     loop {
         loop {
             // Reception des tiles render par les worker_threads
@@ -260,7 +260,6 @@ fn build_image_from_tilesets(
         }
         // On recoit les demandes d'images du main_thread (une seule a la fois, pas de nouvelle demande tant qu'on a pas envoye une image)
         if let Ok(scene_change) = rb.try_recv() {
-            to_send = true;
             // Si la scene a change entre temps depuis le GUI, on reset tout
             if scene_change {
                 img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
@@ -273,6 +272,8 @@ fn build_image_from_tilesets(
                 max_res_to_do = low_res_to_do;
                 //TODO: Actuellement les worker_threads en cours de render vont probablement envoyer la tile qu'ils sont en train de render
                 //      au moment du reset. Il faut trouver un moyen de les empecher.
+            } else {
+                to_send = true;
             }
         }
     }
