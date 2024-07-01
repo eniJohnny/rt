@@ -13,7 +13,6 @@ rusttype = "0.9.3"
 rand = "0.8.5"
 chrono = "0.4.10"
 pixels = "0.13.0"
-wgpu = "0.20.1"
 
 [profile.dev]
 opt-level = 3

@@ -224,12 +224,14 @@ fn build_image_from_tilesets(
                     }
                 }
             }
-            if max_res_to_do == 0
-                && iterations_done < scene.read().unwrap().settings().iterations as i32
-            {
-                println!("Regenerating tiles");
-                low_res_to_do = generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
-                max_res_to_do = low_res_to_do;
+            if let ViewMode::HighDef = scene.read().unwrap().settings().view_mode {
+                if max_res_to_do == 0
+                    && iterations_done < scene.read().unwrap().settings().iterations as i32
+                {
+                    low_res_to_do =
+                        generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
+                    max_res_to_do = low_res_to_do;
+                }
             }
             if low_res_to_do == 0 {
                 break;
@@ -244,21 +246,20 @@ fn build_image_from_tilesets(
                         ta.send((
                             vec_to_image(&final_img),
                             iterations_done == scene.read().unwrap().settings().iterations as i32,
-                        ));
+                        ))
+                        .unwrap();
                     } else {
-                        ta.send((vec_to_image(&img), false));
+                        ta.send((vec_to_image(&img), false)).unwrap();
                     }
                 }
                 _ => {
-                    ta.send((vec_to_image(&img), false));
+                    ta.send((vec_to_image(&img), max_res_to_do == 0)).unwrap();
                 }
             }
-            // println!("Sent");
             to_send = false;
         }
         // On recoit les demandes d'images du main_thread (une seule a la fois, pas de nouvelle demande tant qu'on a pas envoye une image)
         if let Ok(scene_change) = rb.try_recv() {
-            // println!("Received");
             to_send = true;
             // Si la scene a change entre temps depuis le GUI, on reset tout
             if scene_change {

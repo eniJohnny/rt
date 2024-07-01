@@ -3,7 +3,6 @@ extern crate pixels;
 extern crate winit;
 
 pub mod events2;
-pub mod update;
 pub mod utils;
 
 use crate::{
@@ -36,24 +35,13 @@ pub fn display_scene(scene: Scene) {
         .unwrap();
 
     // Set up pixels object
-    let mut pixels = {
-        let window_size = window.inner_size();
+    let pixels = {
         let texture = pixels::SurfaceTexture::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32, &window);
         Pixels::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32, texture).unwrap()
     };
 
-    // // Setting up the render_threads and asking for the first image
     let scene = Arc::new(RwLock::new(scene));
-    // let scene_change = false;
-    // tb.send(scene_change).unwrap();
 
-    // let mut img = RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32);
-
-    // // Display the scene
-    // display(&mut pixels, &mut img);
-
-    // // Set up event manager
-    // events::event_manager(event_loop, scene, img, pixels, ra, tb);
     main_loop(event_loop, scene, pixels);
 }
 

@@ -68,13 +68,13 @@ impl Formattable for ElemType {
             ElemType::Row(..) => Style::row(settings),
             ElemType::Button(..) => Style::button(settings),
             ElemType::Category(..) => Style::category(settings),
-            ElemType::Property(..) => Style::field_format(settings),
+            ElemType::Property(..) => Style::property(settings),
             ElemType::Stat(..) => StyleBuilder::default(settings)
                 .bg_color(None)
                 .fill_width(true)
                 .build(),
             ElemType::Text => {
-                let mut format = Style::field_format(settings);
+                let mut format = Style::property(settings);
                 format.bg_color = None;
                 format
             }
@@ -387,7 +387,6 @@ impl UIElement {
                         let value_width = value.len() as u32 * self.style.font_size as u32 / 2
                             + self.style.padding_left
                             + self.style.padding_right;
-                        println!("{}, {}, {}", value, hitbox.size.0, value_width);
                         let offset = hitbox.size.0 - value_width;
                         draw_element_text(
                             img,

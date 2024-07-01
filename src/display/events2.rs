@@ -1,32 +1,23 @@
 use std::{
-    path::Path,
-    sync::{
-        mpsc::{Receiver, Sender},
-        Arc, RwLock,
-    },
+    sync::{Arc, RwLock},
     time::{Duration, Instant},
 };
 
-use chrono::{DateTime, Utc};
-use image::{GenericImageView, ImageBuffer, Rgba, RgbaImage};
 use pixels::Pixels;
 use winit::{
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
     keyboard::{Key, NamedKey},
-    window::Window,
 };
 
 use crate::{
     gui::elements::{
         ui::{ui_clicked, Editing, UI},
         uibox::UIBox,
-        uielement::ElemType,
         Displayable,
     },
     model::scene::Scene,
     render::render_threads::start_render_threads,
-    SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32,
 };
 
 use super::display;
@@ -62,29 +53,31 @@ pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixel
     let mut ui = setup_ui(&scene);
     let mut last_draw = Instant::now();
 
-    event_loop.run(move |event, window_target| {
-        window_target.set_control_flow(ControlFlow::WaitUntil(
-            Instant::now() + Duration::from_millis(20),
-        ));
+    event_loop
+        .run(move |event, window_target| {
+            window_target.set_control_flow(ControlFlow::WaitUntil(
+                Instant::now() + Duration::from_millis(20),
+            ));
 
-        if last_draw.elapsed().as_millis() > 20 {
-            redraw_if_necessary(&mut ui, &scene, &mut pixels);
-            last_draw = Instant::now();
-        }
-        if scene.read().unwrap().dirty() {
-            let context = ui.take_context();
-            context.transmitter.send(true).unwrap();
-            ui.give_back_context(context);
-            scene.write().unwrap().set_dirty(false);
-        }
-
-        match event {
-            Event::WindowEvent { window_id, event } => {
-                handle_event(event, &scene, &mut ui, window_target);
+            if last_draw.elapsed().as_millis() > 20 {
+                redraw_if_necessary(&mut ui, &scene, &mut pixels);
+                last_draw = Instant::now();
             }
-            _ => {}
-        }
-    });
+            if scene.read().unwrap().dirty() {
+                let context = ui.take_context();
+                context.transmitter.send(true).unwrap();
+                ui.give_back_context(context);
+                scene.write().unwrap().set_dirty(false);
+            }
+
+            match event {
+                Event::WindowEvent { event, .. } => {
+                    handle_event(event, &scene, &mut ui, window_target);
+                }
+                _ => {}
+            }
+        })
+        .expect("ERROR : Unexpected error when running the event loop");
 }
 
 fn redraw_if_necessary(ui: &mut UI, scene: &Arc<RwLock<Scene>>, mut pixels: &mut Pixels) {
@@ -98,15 +91,10 @@ fn redraw_if_necessary(ui: &mut UI, scene: &Arc<RwLock<Scene>>, mut pixels: &mut
         ui.draw(&scene, ui_img);
         redraw = true;
     }
-    if let Ok((mut render_img, final_img)) = context.receiver.try_recv() {
+    if let Ok((render_img, final_img)) = context.receiver.try_recv() {
         context.scene_img = render_img;
         if !final_img {
             context.transmitter.send(false).unwrap();
-        } else {
-            println!(
-                "Final img, iterations {}",
-                scene.read().unwrap().settings().iterations
-            );
         }
         redraw = true;
     }
@@ -118,21 +106,11 @@ fn redraw_if_necessary(ui: &mut UI, scene: &Arc<RwLock<Scene>>, mut pixels: &mut
                 i.2 .0 = context.scene_img.get_pixel(i.0, i.1).0
             }
         }
-        // for x in 0..SCREEN_WIDTH_U32 {
-        //     for y in 0..SCREEN_HEIGHT_U32 {
-        //         let mut pixel = ui_img.get_pixel(x, y);
-        //         if pixel.0 == [1; 4] {
-        //             pixel = context.scene_img.get_pixel(x, y);
-        //         }
-        //         image.put_pixel(x, y, pixel.clone());
-        //     }
-        // }
         display(&mut pixels, &mut image);
         let nb_samples = context.draw_time_samples as f64;
         context.draw_time_avg = nb_samples * context.draw_time_avg / (nb_samples + 1.)
             + time.elapsed().as_millis() as f64 / (nb_samples + 1.);
         context.draw_time_samples += 1;
-        // println!("{}", context.draw_time_avg);
     }
     ui.give_back_context(context);
 }
@@ -173,69 +151,85 @@ fn handle_event(
     }
 }
 
+fn key_pressed_editing(
+    scene: &Arc<RwLock<Scene>>,
+    ui: &mut UI,
+    flow: &EventLoopWindowTarget<()>,
+    input: &Key,
+    edit: Editing,
+) {
+    let mut value = edit.value;
+    match input {
+        Key::Named(NamedKey::Escape) => {
+            ui.set_editing(None);
+        }
+        Key::Named(NamedKey::Backspace) => {
+            value.truncate(value.len() - 1);
+            ui.set_editing(Some(Editing {
+                reference: edit.reference,
+                value,
+            }));
+        }
+        Key::Named(NamedKey::Enter) => {
+            let mut err = None;
+            if let Some(property) = ui.get_property_by_reference(&edit.reference) {
+                match property.get_value_from_string(value.clone()) {
+                    Err(error) => {
+                        err = Some(error);
+                    }
+                    Ok(value) => {
+                        if let Err(e) = (property.fn_validate)(&value) {
+                            err = Some(e.to_string());
+                        } else {
+                            property.initial_value = property.value.clone();
+                            property.value = value;
+                        }
+                    }
+                }
+            }
+            let tmp_ref = edit.reference.clone();
+            let box_ref = tmp_ref.split(".").next().unwrap().to_string();
+            let uibox = ui.get_box_mut(box_ref);
+            if let Some(edit_bar) = &mut uibox.edit_bar {
+                if let Some(err) = err {
+                    edit_bar.text.0 = Some(err);
+                } else {
+                    edit_bar.text.0 = None
+                }
+            }
+            ui.set_editing(None);
+        }
+        Key::Character(char) => {
+            if char.len() == 1 {
+                let c = char.chars().next().unwrap();
+                if c.is_alphanumeric() || c == '.' {
+                    value += &c.to_string();
+                    ui.set_editing(Some(Editing {
+                        reference: edit.reference,
+                        value,
+                    }));
+                }
+            }
+        }
+        _ => {}
+    }
+}
+
+fn key_pressed_non_editing(
+    scene: &Arc<RwLock<Scene>>,
+    ui: &mut UI,
+    flow: &EventLoopWindowTarget<()>,
+    input: &Key,
+) {
+}
+
 fn handle_keyboard_press(
     scene: &Arc<RwLock<Scene>>,
     ui: &mut UI,
     flow: &EventLoopWindowTarget<()>,
     input: Key,
 ) {
-    if let Some(edit) = ui.editing().clone() {
-        let mut value = edit.value;
-        match input {
-            Key::Named(NamedKey::Escape) => {
-                ui.set_editing(None);
-            }
-            Key::Named(NamedKey::Backspace) => {
-                value.truncate(value.len() - 1);
-                ui.set_editing(Some(Editing {
-                    reference: edit.reference,
-                    value,
-                }));
-            }
-            Key::Named(NamedKey::Enter) => {
-                let mut err = None;
-                if let Some(property) = ui.get_property_by_reference(&edit.reference) {
-                    match property.get_value_from_string(value.clone()) {
-                        Err(error) => {
-                            err = Some(error);
-                        }
-                        Ok(value) => {
-                            if let Err(e) = (property.fn_validate)(&value) {
-                                err = Some(e.to_string());
-                            } else {
-                                property.initial_value = property.value.clone();
-                                property.value = value;
-                            }
-                        }
-                    }
-                }
-                let tmp_ref = edit.reference.clone();
-                let box_ref = tmp_ref.split(".").next().unwrap().to_string();
-                let uibox = ui.get_box_mut(box_ref);
-                if let Some(edit_bar) = &mut uibox.edit_bar {
-                    if let Some(err) = err {
-                        edit_bar.text.0 = Some(err);
-                    } else {
-                        edit_bar.text.0 = None
-                    }
-                }
-                ui.set_editing(None);
-            }
-            Key::Character(char) => {
-                if char.len() == 1 {
-                    let c = char.chars().next().unwrap();
-                    if c.is_alphanumeric() || c == '.' {
-                        value += &c.to_string();
-                        ui.set_editing(Some(Editing {
-                            reference: edit.reference,
-                            value,
-                        }));
-                    }
-                }
-            }
-            _ => {}
-        }
-    }
+    if let Some(edit) = ui.editing().clone() {}
 }
 
 // fn handle_inputs_long_press(scene: &Arc<RwLock<Scene>>, ui: &mut UI, flow: &mut ControlFlow) {}

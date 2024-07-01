@@ -12,7 +12,7 @@ use image::{ImageBuffer, Rgba, RgbaImage};
 use rusttype::{Font, Scale};
 use winit::keyboard::Key;
 
-pub fn move_camera(camera: &mut Camera, c: Key) {
+pub fn move_camera(camera: &mut Camera, c: Key) -> bool {
     match c {
         // Some(VirtualKeyCode::W) => camera.move_forward(),
         // Some(VirtualKeyCode::S) => camera.move_backward(),
@@ -24,8 +24,9 @@ pub fn move_camera(camera: &mut Camera, c: Key) {
         // Some(VirtualKeyCode::Right) => camera.look_right(),
         // Some(VirtualKeyCode::LShift) => camera.move_up(),
         // Some(VirtualKeyCode::Space) => camera.move_down(),
-        _ => (),
+        _ => return false,
     }
+    true
     // camera.debug_print();
 }
 
@@ -41,47 +42,6 @@ pub fn draw_text2(image: &mut RgbaImage, pos: (u32, u32), text: String, format: 
     // Draw text
     let v_metrics = font.v_metrics(scale);
     let offset = rusttype::point(pos.0 as f32, pos.1 as f32 + v_metrics.ascent);
-
-    for glyph in font.layout(&text, scale, offset) {
-        if let Some(bb) = glyph.pixel_bounding_box() {
-            glyph.draw(|x, y, v| {
-                let x = x as i32 + bb.min.x;
-                let y = y as i32 + bb.min.y;
-                if x >= 0 && x < image.width() as i32 && y >= 0 && y < image.height() as i32 {
-                    let pixel = image.get_pixel_mut(x as u32, y as u32);
-                    *pixel = blend(color, pixel, v);
-                }
-            });
-        }
-    }
-}
-
-pub fn draw_text(image: &mut RgbaImage, pos: &Vec2, text: String, format: &Style) {
-    let x = *pos.x() as u32 + 8;
-    let y = *pos.y() as u32;
-
-    // Load font
-    let font_data = include_bytes!("../assets/JetBrainsMono-Regular.ttf");
-    let font = &Font::try_from_bytes(font_data as &[u8]).expect("Error loading font");
-
-    // Set font size and color
-    let scale = Scale::uniform(format.font_size());
-    let background_color = *format.background_color();
-    let color = format.font_color();
-
-    if background_color != Rgba([50, 50, 50, 255]) {
-        draw_text_background(
-            image,
-            pos,
-            format.size(),
-            background_color,
-            format.font_size() as u32,
-        );
-    }
-
-    // Draw text
-    let v_metrics = font.v_metrics(scale);
-    let offset = rusttype::point(x as f32, y as f32 + v_metrics.ascent);
 
     for glyph in font.layout(&text, scale, offset) {
         if let Some(bb) = glyph.pixel_bounding_box() {
