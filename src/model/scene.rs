@@ -200,10 +200,10 @@ impl Scene {
         &self.bvh
     }
 
-    pub fn planes(&self) -> Vec<&crate::model::Element> {
+    pub fn non_bvh_elements(&self) -> Vec<&crate::model::Element> {
         self.elements
             .iter()
-            .filter(|element| element.shape().as_plane().is_some())
+            .filter(|element| element.shape().aabb().is_none())
             .collect()
     }
 

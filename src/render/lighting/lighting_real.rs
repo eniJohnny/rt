@@ -16,107 +16,45 @@ use super::{
         get_indirect_light_bucket, get_indirect_light_sample, get_reflected_light_sample,
         random_unit_vector, reflect_dir,
     },
-    raycasting::{get_closest_hit, get_closest_plane_hit, get_ray},
-    restir::{PathBucket, Sample}, skysphere::get_skysphere_color,
+    raycasting::{get_closest_hit, get_ray},
+    restir::{PathBucket, Sample},
 };
 
 pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
-    let node = scene.bvh().as_ref().unwrap(); // ~19 nanoseconds
-    // let debug = false;
-
-    // let perf_timer = std::time::Instant::now();
-    // let bvh_hit = traverse_bvh(ray, Some(node), scene);
-    // let bvh_time = perf_timer.elapsed().as_nanos();
+    let node = scene.bvh().as_ref().unwrap();
     
-
-    // let perf_timer = std::time::Instant::now();
-    // let old_hit = get_closest_hit(scene, ray);
-    // let old_time = perf_timer.elapsed().as_nanos();
-
-    // if debug {
-
-    //     let mut is_bvh = false;
-    //     let mut bvhstr = "None".to_string();
-    //     let mut oldstr = "None".to_string();
-    
-    //     if bvh_hit.is_some() {
-    //         bvhstr = format!("{:?}", bvh_hit.as_ref().unwrap());
-    //     }
-
-    //     if old_hit.is_some() {
-    //         oldstr = format!("{:?}", old_hit.as_ref().unwrap());
-    //         if old_hit.unwrap().element().shape().as_plane().is_none() {
-    //             is_bvh = true;
-    //         }
-    //     }
-
-    //     if is_bvh  {
-
-    //         println!("\n---------------------");
-    //         println!("BVH: {}", bvhstr);
-    //         println!("OLD: {}", oldstr);
-    //         println!("BVH == OLD: {}", bvhstr == oldstr);
-    //         println!("BVH Time: {}ns", bvh_time);
-    //         println!("OLD Time: {}ns", old_time);
-    //     }
-    // }
-    
-    // let match_hit = match bvh_hit {
-    //     Some(hit) => {
-    //         // println!("BVH");
-    //         Some(hit)
-    //     },
-    //     None => {
-    //         // println!("NOT BVH");
-    //         get_closest_non_bvh_hit(scene, ray)
-    //     },
-    // };
-
-    // let perf_timer = std::time::Instant::now();
-    
-    let plane_hit = get_closest_plane_hit(scene.textures(), ray, scene.planes());
-
-    // let plane_time = perf_timer.elapsed().as_nanos();
-    // let perf_timer = std::time::Instant::now();
-
+    let mut hit = None;
+    let non_bvh_hit = get_closest_hit(scene, ray);
     let bvh_hit = traverse_bvh(ray, Some(node), scene);
 
-    // let bvh_time = perf_timer.elapsed().as_nanos();
-    // println!("Plane: {}ns, BVH: {}ns, Plane takes more time than BVH: {}", plane_time, bvh_time, plane_time > bvh_time);
-
-
-    let match_hit = match (plane_hit, bvh_hit) {
-        (Some(plane), Some(bvh)) => {
-            if plane.dist() < bvh.dist() {
-                Some(plane)
+    match (non_bvh_hit, bvh_hit) {
+        (Some(non_bvh), Some(bvh)) => {
+            if non_bvh.dist() < bvh.dist() {
+                hit = Some(non_bvh);
             } else {
-                Some(bvh)
+                hit = Some(bvh);
             }
         },
-        (Some(plane), None) => {
-            Some(plane)
+        (Some(non_bvh), None) => {
+            hit = Some(non_bvh);
         },
         (None, Some(bvh)) => {
-            Some(bvh)
+            hit = Some(bvh);
         },
         (None, None) => {
-            None
+            return Color::new(0., 0., 0.);
         },
     };
+
+    // let mut hit = match get_closest_hit(scene, ray) {
+    //     Some(hit) => hit,
+    //     None => return Color::new(0., 0., 0.),
+    // };
+
+    let mut hit = hit.unwrap();
+    hit.map_textures(scene.textures());
     
-    // match get_closest_hit(scene, ray) {
-    // match traverse_bvh(ray, Some(node), scene) {
-    match match_hit {
-        Some(hit) => {
-            // println!("Time elapsed: {}ns", perf_timer.elapsed().as_nanos());
-            get_lighting_from_hit(scene, &hit, ray)
-        },
-        //TODO : Handle BG on None
-        // None => Color::new(0., 0., 0.),
-        None => {
-            get_skysphere_color(scene, ray)
-        }
-    }
+    get_lighting_from_hit(scene, &hit, ray)
 }
 
 pub fn fresnel_reflect_ratio(n1: f64, n2: f64, norm: &Vec3, ray: &Vec3, f0: f64, f90: f64) -> f64 {
