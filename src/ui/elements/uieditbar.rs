@@ -1,22 +1,16 @@
+use std::sync::{Arc, RwLock};
+
 use image::RgbaImage;
 
 use crate::{
-    gui::{
-        elements::utils::get_size,
-        settings,
-        textformat::{self, Style},
-        uisettings::UISettings,
+    ui::{
+        draw_utils::draw_element_text, settings, style::{self, Style}, ui::UI, uisettings::UISettings, utils::{get_size, split_in_lines}
     },
     model::{maths::hit::Hit, scene::Scene},
     SCREEN_HEIGHT_U32,
 };
 
-use super::{
-    ui::UI,
-    uielement::{ElemType, FnApply, FnSubmit, UIElement},
-    utils::{draw_element_text, split_in_lines},
-    HitBox,
-};
+use super::{utils::FnApply, HitBox};
 
 pub const TXT_MESSAGE: &str = "txtMessage";
 pub const BTN_APPLY: &str = "btnApply";
@@ -31,13 +25,13 @@ pub struct UIEditBar {
 }
 
 impl UIEditBar {
-    pub fn cancel(scene: &mut Scene, ui: &mut UI, reference: String) {
+    pub fn cancel(scene: &Arc<RwLock<Scene>>, ui: &mut UI, reference: String) {
         let uibox = ui.get_box_mut(reference);
         for elem in &mut uibox.elems {
             elem.reset_properties(scene);
         }
     }
-    pub fn apply(scene: &mut Scene, ui: &mut UI, reference: String) {
+    pub fn apply(scene: &Arc<RwLock<Scene>>, ui: &mut UI, reference: String) {
         let mut vector = ui.get_box_mut(reference.clone()).elems.split_off(0);
         for elem in &mut vector {
             elem.submit_properties(scene, ui);

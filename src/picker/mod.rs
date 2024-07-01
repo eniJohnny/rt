@@ -18,8 +18,8 @@ use winit::{
 };
 
 use crate::{
-    display::{display, utils::blend},
-    gui::{self, textformat::Style, uisettings::UISettings},
+    display::display::{self, display},
+    ui::{self, draw_utils::blend, style::Style, uisettings::UISettings},
     model::{
         maths::{vec2::Vec2, vec3::Vec3},
         objects::camera,
@@ -129,7 +129,7 @@ fn draw_files_and_update_hitboxes(
     let mut hitboxes: Vec<(Vec2, Vec2)> = Vec::new();
     let mut img = RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32);
     let settings = UISettings::default();
-    let format = gui::textformat::Style::default(&settings);
+    let format = ui::style::Style::default(&settings);
 
     for i in start..files.len() {
         let file = &files[i];
@@ -254,7 +254,7 @@ fn display_files(files: Vec<String>) -> String {
             },
             _ => (),
         }
-    });
+    }).unwrap();
 
     let path = receiver.recv().unwrap_or_else(|_| "".to_string());
     if path == "" {

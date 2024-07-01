@@ -5,10 +5,8 @@ use crate::model::maths::vec2::Vec2;
 use super::uisettings::UISettings;
 
 pub struct Style {
-    size: Vec2,
     pub font_size: f32,
-    font_color: Rgba<u8>,
-    background_color: Rgba<u8>,
+    pub font_color: Rgba<u8>,
     pub width: u32,
     pub height: u32,
     pub fill_width: bool,
@@ -105,21 +103,11 @@ impl StyleBuilder {
 }
 
 impl Style {
-    pub fn size(&self) -> &Vec2 {
-        &self.size
-    }
     pub fn font_size(&self) -> f32 {
         self.font_size
     }
     pub fn font_color(&self) -> &Rgba<u8> {
         &self.font_color
-    }
-    pub fn background_color(&self) -> &Rgba<u8> {
-        &self.background_color
-    }
-
-    pub fn set_size(&mut self, size: Vec2) {
-        self.size = size;
     }
     pub fn set_font_size(&mut self, font_size: f32) {
         self.font_size = font_size;
@@ -127,18 +115,12 @@ impl Style {
     pub fn set_font_color(&mut self, font_color: Rgba<u8>) {
         self.font_color = font_color;
     }
-    pub fn set_background_color(&mut self, background_color: Rgba<u8>) {
-        self.background_color = background_color;
-    }
-
     pub fn default(settings: &UISettings) -> Self {
         Self {
-            size: Vec2::new(0., 0.),
             width: 0,
             height: 0,
             font_size: settings.font_size as f32,
             font_color: Rgba([255, 255, 255, 255]),
-            background_color: Rgba([89, 89, 89, 255]),
             bg_color: Some(Rgba([89, 89, 89, 255])),
             border_radius: 0,
             padding_left: settings.padding_x,

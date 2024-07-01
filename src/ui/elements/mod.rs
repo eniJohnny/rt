@@ -1,12 +1,9 @@
-use ui::UI;
 use uielement::UIElement;
 
 use crate::model::maths::vec2::Vec2;
 
-use super::{textformat::Style, uisettings::UISettings};
+use super::{style::Style, uisettings::UISettings};
 
-pub mod ui;
-pub mod uibox;
 pub mod uieditbar;
 pub mod uielement;
 pub mod utils;

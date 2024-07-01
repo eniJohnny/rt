@@ -1,21 +1,56 @@
-use std::borrow::Borrow;
+use std::{borrow::Borrow, sync::mpsc::{Receiver, Sender}};
 
-use image::RgbaImage;
+use image::{ImageBuffer, Rgba, RgbaImage};
 
 use crate::{
-    display::utils::draw_text2,
-    gui::{
-        draw::draw_background,
-        textformat::{Formattable, Style},
-    },
-    model::scene::Scene,
+    ui::style::{Formattable, Style}, model::scene::Scene, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32
 };
 
 use super::{
-    ui::UI,
-    uielement::{ElemType, UIElement},
-    HitBox,
+    elements::{uielement::UIElement, utils::ElemType}, ui::UI
 };
+
+
+#[derive(Clone)]
+pub struct Editing {
+    pub reference: String,
+    pub value: String,
+}
+
+pub struct Statistics {
+    pub fps: u32,
+}
+
+pub struct UIContext {
+    pub ui_img: RgbaImage,
+    pub scene_img: RgbaImage,
+    pub receiver: Receiver<(ImageBuffer<Rgba<u8>, Vec<u8>>, bool)>,
+    pub transmitter: Sender<bool>,
+    pub draw_time_avg: f64,
+    pub draw_time_samples: u32,
+    pub last_input_time: u32,
+    pub final_img: bool,
+    pub image_asked: bool
+}
+
+impl UIContext {
+    pub fn new(
+        receiver: Receiver<(ImageBuffer<Rgba<u8>, Vec<u8>>, bool)>,
+        transmitter: Sender<bool>,
+    ) -> Self {
+        Self {
+            ui_img: RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32),
+            scene_img: RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32),
+            receiver,
+            transmitter,
+            draw_time_avg: 0.,
+            draw_time_samples: 0,
+            last_input_time: 0,
+            final_img: false,
+            image_asked: false
+        }
+    }
+}
 
 pub fn get_pos(parent_pos: (u32, u32), offset_pos: (u32, u32), indent: u32) -> (u32, u32) {
     (
@@ -136,67 +171,3 @@ pub fn give_back_element(ui: &mut UI, elem: UIElement, parent_ref: String, index
         }
     }
 }
-
-pub fn draw_element_text(
-    img: &mut RgbaImage,
-    text: String,
-    pos: (u32, u32),
-    size: (u32, u32),
-    format: &Style,
-) {
-    if let Some(color) = format.bg_color {
-        draw_background(img, pos, size, color, format.border_radius);
-    }
-    draw_text2(
-        img,
-        (pos.0 + format.padding_left, pos.1 + format.padding_top),
-        text,
-        format,
-    );
-}
-
-// pub fn refresh_formats(mut elems: &mut Vec<UIElement>, ui: &UI) {
-//     for_each_element(&mut elems, &None, &Some(ui), |elem, scene, ui| {
-//         if let Some(ui) = ui {
-//             elem.format = elem.elem_type.base_style(ui.uisettings());
-//         }
-//     });
-// }
-
-// pub fn for_each_element(
-//     elems: &mut Vec<UIElement>,
-//     scene: &Option<&Scene>,
-//     ui: &Option<&UI>,
-//     fonction: impl Fn(&mut UIElement, &Option<&Scene>, &Option<&UI>),
-// ) {
-//     for i in 0..elems.len() {
-//         let mut elem = elems.swap_remove(i);
-//         &fonction(&mut elem, scene, ui);
-//         elems.insert(i, elem);
-//         let elem = elems.get_mut(i).unwrap();
-//         if let ElemType::Category(cat) = &mut elem.elem_type {
-//             for_each_element(&mut cat.elems, scene, ui, &fonction);
-//         } else if let ElemType::Row(elems) = &mut elem.elem_type {
-//             for_each_element(elems, scene, ui, &fonction);
-//         }
-//     }
-// }
-
-// pub fn for_each_element_mut(
-//     elems: &mut Vec<UIElement>,
-//     scene: &Option<&mut Scene>,
-//     ui: &Option<&mut UI>,
-//     fonction: impl Fn(&mut UIElement, &Option<&mut Scene>, &Option<&mut UI>),
-// ) {
-//     for i in 0..elems.len() {
-//         let mut elem = elems.swap_remove(i);
-//         &fonction(&mut elem, scene, ui);
-//         elems.insert(i, elem);
-//         let elem = elems.get_mut(i).unwrap();
-//         if let ElemType::Category(cat) = &mut elem.elem_type {
-//             for_each_element_mut(&mut cat.elems, scene, ui, &fonction);
-//         } else if let ElemType::Row(elems) = &mut elem.elem_type {
-//             for_each_element_mut(elems, scene, ui, &fonction);
-//         }
-//     }
-// }

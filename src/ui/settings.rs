@@ -1,25 +1,20 @@
 use rusttype::Font;
 
 use crate::{
-    model::{
+    ui::elements::{uielement::Category, utils::{ElemType, Property, Value}}, model::{
         materials::color::Color,
         maths::vec3::Vec3,
         objects::light::{AmbientLight, ParallelLight},
-    },
-    ANTIALIASING, BASE_FONT_SIZE, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH,
-    INDENT_PADDING, MARGIN, MAX_DEPTH, MAX_ITERATIONS, VIEW_MODE,
+    }, ANTIALIASING, BASE_FONT_SIZE, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH, INDENT_PADDING, MARGIN, MAX_DEPTH, MAX_ITERATIONS, VIEW_MODE
 };
 
 use super::{
     elements::{
-        ui::UI,
-        uielement::{Category, ElemType, Property, UIElement, Value},
-        Displayable,
-    },
-    uisettings::UISettings,
+        uielement::UIElement, Displayable
+    }, ui::UI, uisettings::UISettings
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ViewMode {
     Simple(Color, ParallelLight),
     Norm,
@@ -61,10 +56,12 @@ impl Displayable for Settings {
             "iterations",
             ElemType::Property(Property::new(
                 Value::Unsigned(self.iterations as u32),
-                Box::new(|value, scene, ui| {
+                Box::new(|value: Value, scene, ui| {
                     if let Value::Unsigned(value) = value {
-                        scene.settings_mut().iterations = value as usize;
-                        scene.set_dirty(true);
+                        println!("settings iterations");
+                        scene.write().unwrap().settings_mut().iterations = value as usize;
+                        scene.write().unwrap().set_dirty(true);
+                        println!("set done");
                     }
                 }),
                 Box::new(|_| Ok(())),
@@ -79,8 +76,8 @@ impl Displayable for Settings {
                 Value::Bool(self.reflections),
                 Box::new(|value, scene, ui| {
                     if let Value::Bool(value) = value {
-                        scene.settings_mut().reflections = value;
-                        scene.set_dirty(true);
+                        scene.write().unwrap().settings_mut().reflections = value;
+                        scene.write().unwrap().set_dirty(true);
                     }
                 }),
                 Box::new(|_| Ok(())),

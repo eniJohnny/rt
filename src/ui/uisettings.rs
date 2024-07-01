@@ -1,11 +1,9 @@
 use crate::{
-    BASE_FONT_SIZE, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH, INDENT_PADDING,
-    MARGIN, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32,
+    ui::elements::{uielement::Category, utils::{ElemType, Property, Value}}, BASE_FONT_SIZE, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH, INDENT_PADDING, MARGIN, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32
 };
 
 use super::elements::{
-    uielement::{Category, ElemType, Property, UIElement, Value},
-    Displayable,
+    uielement::UIElement, Displayable
 };
 
 #[derive(Clone)]

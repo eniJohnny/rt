@@ -12,7 +12,7 @@ use std::{
 use image::{GenericImageView, Rgba, RgbaImage};
 
 use crate::{
-    gui::settings::ViewMode,
+    ui::settings::ViewMode,
     model::{
         materials::color::{self, Color},
         scene::Scene,
@@ -204,7 +204,8 @@ fn build_image_from_tilesets(
                 }
 
                 if max_res_to_do == 0 {
-                    match scene.read().unwrap().settings().view_mode {
+                    let viewmode = scene.read().unwrap().settings().view_mode.clone();
+                    match viewmode {
                         ViewMode::HighDef => {
                             iterations_done += 1;
                             final_img = add_iteration_to_final_img(img, final_img, iterations_done);
@@ -224,7 +225,8 @@ fn build_image_from_tilesets(
                     }
                 }
             }
-            if let ViewMode::HighDef = scene.read().unwrap().settings().view_mode {
+            let viewmode = scene.read().unwrap().settings().view_mode.clone();
+            if let ViewMode::HighDef = viewmode {
                 if max_res_to_do == 0
                     && iterations_done < scene.read().unwrap().settings().iterations as i32
                 {
@@ -239,8 +241,9 @@ fn build_image_from_tilesets(
         }
 
         if to_send {
+            let viewmode = scene.read().unwrap().settings().view_mode.clone();
             // Si aucun changement n'a ete detecte on envoie l'image actuelle
-            match scene.read().unwrap().settings().view_mode {
+            match viewmode {
                 ViewMode::HighDef => {
                     if iterations_done > 0 {
                         ta.send((

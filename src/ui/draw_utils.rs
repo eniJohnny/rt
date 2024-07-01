@@ -1,59 +1,54 @@
-use std::{sync::{Arc, RwLock}, time::Instant};
-
 use image::{Rgba, RgbaImage};
-use pixels::Pixels;
+use rusttype::{Font, Scale};
 
-use crate::{
-    display::display, model::{
-        materials::{color::Color, material::Material, texture::Texture},
-        maths::vec2::Vec2,
-        objects::light::{Light, PointLight},
-        scene::Scene,
-        shapes::{cone, cylinder, plane, sphere},
-        Element,
-    }, GUI_HEIGHT, GUI_WIDTH, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32
-};
+use crate::{ui::style::Style, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32};
 
-use super::{elements::{ui::{UIContext, UI}, uibox::UIBox}, textformat::Style, Gui};
 
-pub fn blend_scene_and_ui(context: &UIContext) -> RgbaImage {
-    let mut image = context.ui_img.clone();
-    for i in image.enumerate_pixels_mut() {
-        if i.2 .0 == [1; 4] {
-            i.2 .0 = context.scene_img.get_pixel(i.0, i.1).0
-        }
+
+pub fn draw_element_text(
+    img: &mut RgbaImage,
+    text: String,
+    pos: (u32, u32),
+    size: (u32, u32),
+    format: &Style,
+) {
+    if let Some(color) = format.bg_color {
+        draw_background(img, pos, size, color, format.border_radius);
     }
-    return image;
+    draw_text2(
+        img,
+        (pos.0 + format.padding_left, pos.1 + format.padding_top),
+        text,
+        format,
+    );
 }
 
-pub fn redraw_if_necessary(ui: &mut UI, scene: &Arc<RwLock<Scene>>, mut pixels: &mut Pixels) {
-    if ui.dirty() {
-        ui.process(&scene);
+
+pub fn draw_text2(image: &mut RgbaImage, pos: (u32, u32), text: String, format: &Style) {
+    // Load font
+    let font_data = include_bytes!("../assets/JetBrainsMono-Regular.ttf");
+    let font = &Font::try_from_bytes(font_data as &[u8]).expect("Error loading font");
+
+    // Set font size and color
+    let scale = Scale::uniform(format.font_size());
+    let color = format.font_color();
+
+    // Draw text
+    let v_metrics = font.v_metrics(scale);
+    let offset = rusttype::point(pos.0 as f32, pos.1 as f32 + v_metrics.ascent);
+
+    for glyph in font.layout(&text, scale, offset) {
+        if let Some(bb) = glyph.pixel_bounding_box() {
+            glyph.draw(|x, y, v| {
+                let x = x as i32 + bb.min.x;
+                let y = y as i32 + bb.min.y;
+                if x >= 0 && x < image.width() as i32 && y >= 0 && y < image.height() as i32 {
+                    let pixel = image.get_pixel_mut(x as u32, y as u32);
+                    *pixel = blend(color, pixel, v);
+                }
+            });
+        }
     }
-    let mut context = ui.take_context();
-    let ui_img = &mut context.ui_img;
-    let mut redraw = false;
-    if ui.dirty() {
-        ui.draw(&scene, ui_img);
-        redraw = true;
-    }
-    if let Ok((render_img, final_img)) = context.receiver.try_recv() {
-        context.scene_img = render_img;
-        context.final_img = final_img;
-        context.image_asked = false;
-        redraw = true;
-    }
-    if redraw {
-        let time = Instant::now();
-        let mut img = blend_scene_and_ui(&context);
-        display(&mut pixels, &mut img);
-        let nb_samples = context.draw_time_samples as f64;
-        context.draw_time_avg = nb_samples * context.draw_time_avg / (nb_samples + 1.)
-            + time.elapsed().as_millis() as f64 / (nb_samples + 1.);
-        context.draw_time_samples += 1;
-        
-    }
-    ui.give_back_context(context);
 }
 
 fn is_corner(
@@ -149,4 +144,15 @@ pub fn draw_background(
             }
         }
     }
+}
+
+
+// Blend function to combine text color with background color
+pub fn blend(text_color: &Rgba<u8>, background_color: &Rgba<u8>, alpha: f32) -> Rgba<u8> {
+    let inv_alpha = 1.0 - alpha;
+    let r = (text_color[0] as f32 * alpha + background_color[0] as f32 * inv_alpha) as u8;
+    let g = (text_color[1] as f32 * alpha + background_color[1] as f32 * inv_alpha) as u8;
+    let b = (text_color[2] as f32 * alpha + background_color[2] as f32 * inv_alpha) as u8;
+    let a = (text_color[3] as f32 * alpha + background_color[3] as f32 * inv_alpha) as u8;
+    Rgba([r, g, b, a])
 }
