@@ -1,12 +1,12 @@
 extern crate image;
-use display::display_scene;
-use gui::settings::ViewMode;
+use display::mainloop::start_scene;
+use ui::settings::ViewMode;
 use image::flat::View;
 use parsing::get_scene;
 use winit::keyboard::KeyCode;
 
 pub mod display;
-pub mod gui;
+pub mod ui;
 pub mod model;
 pub mod parsing;
 pub mod picker;
@@ -58,7 +58,7 @@ pub fn run() {
     if path != "" {
         let mut scene = get_scene(&path);
         scene.add_skysphere_texture("skysphere.jpg");
-        display_scene(scene);
+        start_scene(scene);
     }
 }
 

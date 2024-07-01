@@ -1,18 +1,15 @@
-use std::cell::{Ref, RefCell};
+use std::{cell::{Ref, RefCell}, sync::{Arc, RwLock}};
 
 use image::RgbaImage;
 
 use crate::{
-    gui::{gui::Property, textformat::Style, uisettings::UISettings, Gui},
+    ui::{style::Style, uisettings::UISettings},
     model::{materials::color::Color, scene::Scene},
     SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH,
 };
 
 use super::{
-    ui::UI,
-    uieditbar::UIEditBar,
-    uielement::{ElemType, FnApply, UIElement},
-    HitBox,
+    elements::{uieditbar::UIEditBar, uielement::UIElement, utils::FnApply}, ui::UI
 };
 
 pub struct UIBox {
@@ -53,20 +50,12 @@ impl UIBox {
         self.edit_bar = Some(UIEditBar::new(self.reference.clone(), settings, on_apply))
     }
 
-    pub fn validate_properties(&self, scene: &mut Scene, ui: &mut UI) -> Result<(), String> {
+    pub fn validate_properties(&self, scene: &Arc<RwLock<Scene>>, ui: &mut UI) -> Result<(), String> {
         for elem in &self.elems {
             elem.validate_properties()?;
         }
         Ok(())
     }
-
-    // pub fn refresh_formats(&mut self) {
-    //     for_each_element(&mut self.elems, &None, &None, |elem, scene, ui| {
-    //         // if let Some(ui) = ui {
-    //         //     elem.format = elem.elem_type.base_format(ui.settings());
-    //         // }
-    //     });
-    // }
 
     pub fn refresh_formats(&mut self, settings: &UISettings) {
         for elem in &mut self.elems {

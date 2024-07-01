@@ -10,59 +10,13 @@ use image::{ImageBuffer, Rgba, RgbaImage};
 use winit::keyboard::Key;
 
 use crate::{
-    gui::{draw::draw_background, uisettings::UISettings},
+    ui::{uisettings::UISettings},
     model::scene::Scene,
     SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32,
 };
 
-use super::{
-    uibox::UIBox,
-    uieditbar::UIEditBar,
-    uielement::{ElemType, Property, UIElement},
-    utils::{get_parent_ref, get_pos, get_size, give_back_element, take_element},
-    HitBox,
-};
+use super::{draw_utils::draw_background, elements::{uieditbar::UIEditBar, uielement::UIElement, utils::{ElemType, Property}, HitBox}, uibox::UIBox, utils::{get_parent_ref, get_pos, get_size, give_back_element, take_element, Editing, UIContext}};
 
-#[derive(Clone)]
-pub struct Editing {
-    pub reference: String,
-    pub value: String,
-}
-
-pub struct Statistics {
-    pub fps: u32,
-}
-
-pub struct UIContext {
-    pub ui_img: RgbaImage,
-    pub scene_img: RgbaImage,
-    pub receiver: Receiver<(ImageBuffer<Rgba<u8>, Vec<u8>>, bool)>,
-    pub transmitter: Sender<bool>,
-    pub draw_time_avg: f64,
-    pub draw_time_samples: u32,
-    pub last_input_time: u32,
-    pub final_img: bool,
-    pub image_asked: bool
-}
-
-impl UIContext {
-    pub fn new(
-        receiver: Receiver<(ImageBuffer<Rgba<u8>, Vec<u8>>, bool)>,
-        transmitter: Sender<bool>,
-    ) -> Self {
-        Self {
-            ui_img: RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32),
-            scene_img: RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32),
-            receiver,
-            transmitter,
-            draw_time_avg: 0.,
-            draw_time_samples: 0,
-            last_input_time: 0,
-            final_img: false,
-            image_asked: false
-        }
-    }
-}
 
 pub struct UI {
     boxes: HashMap<String, UIBox>,
@@ -373,9 +327,9 @@ pub fn ui_clicked(click: (u32, u32), scene: &Arc<RwLock<Scene>>, ui: &mut UI) ->
                 let uibox = ui.get_box_mut(box_ref.clone());
                 if let Some(_) = uibox.edit_bar {
                     if hitbox.reference.ends_with("btnApply") {
-                        UIEditBar::apply(&mut scene.write().unwrap(), ui, box_ref);
+                        UIEditBar::apply(scene, ui, box_ref);
                     } else if hitbox.reference.ends_with("btnCancel") {
-                        UIEditBar::cancel(&mut scene.write().unwrap(), ui, box_ref);
+                        UIEditBar::cancel(scene, ui, box_ref);
                     }
                 }
                 return true;

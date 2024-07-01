@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use image::{RgbImage, RgbaImage};
 
 use crate::{
-    gui::{settings::Settings, Gui},
+    ui::{settings::Settings},
     model::objects::light::{AmbientLight, Light},
 };
 
