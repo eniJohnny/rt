@@ -1,5 +1,5 @@
 use crate::{
-    ui::elements::{uielement::Category, utils::{ElemType, Property, Value}}, BASE_FONT_SIZE, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH, INDENT_PADDING, MARGIN, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32
+    ui::elements::{uielement::Category, utils::{ElemType, Property, Value}}, BASE_FONT_SIZE, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH, INDENT_PADDING, MARGIN, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32, UI_REFRESH_TIME
 };
 
 use super::elements::{
@@ -15,6 +15,7 @@ pub struct UISettings {
     pub indent_padding: u32,
     pub gui_height: u32,
     pub gui_width: u32,
+    pub ui_refresh_time: u32
 }
 
 impl UISettings {
@@ -27,6 +28,7 @@ impl UISettings {
             padding_x: FIELD_PADDING_X,
             padding_y: FIELD_PADDING_Y,
             indent_padding: INDENT_PADDING,
+            ui_refresh_time: UI_REFRESH_TIME
         }
     }
 }
@@ -41,7 +43,7 @@ impl Displayable for UISettings {
             "Margin",
             "margin",
             ElemType::Property(Property::new(
-                Value::Unsigned(self.margin),
+                Value               ::Unsigned(self.margin),
                 Box::new(|value, _, ui| {
                     if let Value::Unsigned(value) = value {
                         ui.uisettings_mut().margin = value
@@ -50,7 +52,7 @@ impl Displayable for UISettings {
                 Box::new(|value| {
                     if let Value::Unsigned(value) = value {
                         if value > &20 {
-                            return Err("Too much padding is bad for your health");
+                            return Err("Too much margin is bad for your health");
                         }
                     }
                     Ok(())
@@ -61,21 +63,19 @@ impl Displayable for UISettings {
         ));
 
         category.elems.push(UIElement::new(
-            "UI Width",
-            "uiwidth",
+            "UI Refresh(in ms)",
+            "refresh",
             ElemType::Property(Property::new(
-                Value::Unsigned(self.gui_width),
+                Value               ::Unsigned(self.ui_refresh_time),
                 Box::new(|value, _, ui| {
                     if let Value::Unsigned(value) = value {
-                        ui.uisettings_mut().gui_width = value;
-                        let uibox = ui.get_box_mut("uisettings".to_string());
-                        uibox.pos = (SCREEN_WIDTH_U32 - value, uibox.pos.1);
+                        ui.uisettings_mut().ui_refresh_time = value
                     }
                 }),
                 Box::new(|value| {
                     if let Value::Unsigned(value) = value {
-                        if *value > 800 {
-                            return Err("Cannot be more that the window width.");
+                        if value < &50 {
+                            return Err("Don't be unreasonable");
                         }
                     }
                     Ok(())
@@ -85,45 +85,15 @@ impl Displayable for UISettings {
             settings,
         ));
 
-        let mut btn_bar_vec = vec![];
-
-        btn_bar_vec.push(UIElement::new(
-            "Test",
-            "btn_test",
-            ElemType::Button(Box::new(|scene, ui| {
-                if let Some(edit_bar) = &mut ui.active_box_mut().unwrap().edit_bar {
-                    edit_bar.text.0 = Some("Test reussi".to_string());
-                }
-            })),
-            settings,
-        ));
-        btn_bar_vec.push(UIElement::new(
-            "Test2",
-            "btn_test2",
-            ElemType::Button(Box::new(|scene, ui| {
-                if let Some(edit_bar) = &mut ui.active_box_mut().unwrap().edit_bar {
-                    edit_bar.text.0 = Some("Test 2 reussi".to_string());
-                }
-            })),
-            settings,
-        ));
-
         category.elems.push(UIElement::new(
-            "Fps",
-            "fps",
+            "Display time",
+            "display_time",
             ElemType::Stat(Box::new(|_, ui| {
                 if let Some(context) = ui.context() {
-                    return context.draw_time_avg.to_string();
+                    return format!("{:.2}", context.draw_time_avg);
                 }
                 "".to_string()
             })),
-            settings,
-        ));
-
-        category.elems.push(UIElement::new(
-            "",
-            "btnbar",
-            ElemType::Row(btn_bar_vec),
             settings,
         ));
 

@@ -74,8 +74,6 @@ fn key_pressed_editing(
             }));
         }
         Key::Named(NamedKey::Enter) => {
-            println!("Enter pressed");
-            
             let mut err = None;
             if let Some(property) = ui.get_property_by_reference(&edit.reference) {
                 match property.get_value_from_string(value.clone()) {
@@ -175,7 +173,6 @@ pub fn key_held(scene: &Arc<RwLock<Scene>>,
         }
         _ => ()
     }
-    println!("End key_held");
 }
 
 fn key_pressed_non_editing(

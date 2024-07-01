@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, sync::mpsc::{Receiver, Sender}};
+use std::{borrow::Borrow, sync::mpsc::{Receiver, Sender}, time::Instant};
 
 use image::{ImageBuffer, Rgba, RgbaImage};
 
@@ -28,7 +28,7 @@ pub struct UIContext {
     pub transmitter: Sender<bool>,
     pub draw_time_avg: f64,
     pub draw_time_samples: u32,
-    pub last_input_time: u32,
+    pub last_ui_draw: Instant,
     pub final_img: bool,
     pub image_asked: bool
 }
@@ -45,7 +45,7 @@ impl UIContext {
             transmitter,
             draw_time_avg: 0.,
             draw_time_samples: 0,
-            last_input_time: 0,
+            last_ui_draw: Instant::now(),
             final_img: false,
             image_asked: false
         }

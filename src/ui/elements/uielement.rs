@@ -189,18 +189,18 @@ impl UIElement {
         if max_height == 0 {
             return vec;
         }
-        if let Some(hitbox) = &self.hitbox {
+        if let Some(parent_hitbox) = &self.hitbox {
             match &mut self.elem_type {
                 ElemType::Row(elems) => {
                     let available_width =
-                        hitbox.size.0 / elems.len() as u32 - ui.uisettings().margin * 2;
-                    let mut offset_x = ui.uisettings().margin;
+                        parent_hitbox.size.0 / elems.len() as u32 - ui.uisettings().margin;
+                    let mut offset_x = 0;
                     for elem in elems {
                         let size = get_size(&elem.text, &elem.style, (available_width, max_height));
-                        let center = (available_width / 2, hitbox.size.1);
+                        let center = (available_width / 2, parent_hitbox.size.1);
                         let pos = (
-                            hitbox.pos.0 + offset_x + center.0 - size.0 / 2,
-                            hitbox.pos.1 + center.1 - size.1 / 2,
+                            parent_hitbox.pos.0 + offset_x + center.0 - size.0 / 2,
+                            parent_hitbox.pos.1 + center.1 - size.1 / 2,
                         );
                         let hitbox = HitBox {
                             pos,
@@ -219,26 +219,37 @@ impl UIElement {
                 }
                 ElemType::Category(cat) => {
                     if !cat.collapsed {
-                        let mut offset_y = hitbox.size.1 + ui.uisettings().margin;
+                        let mut offset_y = parent_hitbox.size.1;
+                        if !parent_hitbox.disabled {
+                            offset_y += ui.uisettings().margin;
+                        }
                         for i in 0..cat.elems.len() {
                             let mut elem = cat.elems.remove(i);
                             if elem.visible {
                                 let hitbox = HitBox {
                                     pos: get_pos(
-                                        (hitbox.pos.0, hitbox.pos.1 + offset_y),
+                                        (parent_hitbox.pos.0, parent_hitbox.pos.1 + offset_y),
                                         (0, 0),
                                         0,
                                     ),
-                                    size: get_size(&elem.text, &elem.style, hitbox.size),
+                                    size: get_size(&elem.text, &elem.style, parent_hitbox.size),
                                     reference: elem.reference.clone(),
                                     disabled: matches!(elem.elem_type, ElemType::Row(_)),
                                 };
                                 elem.hitbox = Some(hitbox.clone());
                                 let hitbox_list = elem.process(ui, scene, max_height - offset_y);
-                                offset_y += hitbox.size.1 + ui.uisettings().margin;
+                                let needed_height =
+                                    hitbox.pos.1 + hitbox.size.1 + ui.uisettings().margin - parent_hitbox.pos.1;
+                                if !hitbox.disabled && needed_height > offset_y {
+                                    offset_y = needed_height;
+                                }
                                 vec.push(hitbox);
                                 for hitbox in hitbox_list {
-                                    offset_y += hitbox.size.1 + ui.uisettings().margin;
+                                    let needed_height =
+                                        hitbox.pos.1 + hitbox.size.1 + ui.uisettings().margin - parent_hitbox.pos.1;
+                                    if !hitbox.disabled && needed_height > offset_y {
+                                        offset_y = needed_height;
+                                    }
                                     vec.push(hitbox)
                                 }
                                 if offset_y > max_height {
