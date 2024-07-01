@@ -72,56 +72,12 @@ pub fn sampling_ray(scene: &Scene, ray: &Ray) -> PathBucket {
     }
 }
 
-pub fn get_closest_plane_hit<'a>(textures: &HashMap<String, ImageBuffer<Rgba<u8>, Vec<u8>>>, ray: &Ray, planes: Vec<&'a Element>) -> Option<Hit<'a>> {
-    let mut closest: Option<Hit> = None;
-    for element in planes {
-        let mut t = None;
-
-        t = element.shape().intersect(ray);
-        if let Some(t) = t {
-            for dist in t {
-                if dist > 0.0 {
-                    if let Some(hit) = &closest {
-                        if &dist < hit.dist() {
-                            let new_hit = Hit::new(
-                                element,
-                                dist,
-                                ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
-                                ray.get_dir(),
-                                textures,
-                            );
-                            if new_hit.opacity() > 0.5 {
-                                closest = Some(new_hit);
-                            }
-                        }
-                    } else {
-                        let new_hit = Hit::new(
-                            element,
-                            dist,
-                            ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
-                            ray.get_dir(),
-                            textures,
-                        );
-                        if new_hit.opacity() > 0.5 {
-                            closest = Some(new_hit);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    match closest {
-        None => None,
-        Some(mut hit) => {
-            hit.map_textures(textures);
-            Some(hit)
-        }
-    }
-}
-
 pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     let mut closest: Option<Hit> = None;
-    for element in scene.elements().iter() {
+    let elements = &scene.non_bvh_elements();
+    // let elements = scene.elements();
+
+    for element in elements {
         let mut t = None;
 
         t = element.shape().intersect(ray);
@@ -159,8 +115,8 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     }
     match closest {
         None => None,
-        Some(mut hit) => {
-            hit.map_textures(scene.textures());
+        Some(hit) => {
+            // hit.map_textures(scene.textures());
             Some(hit)
         }
     }

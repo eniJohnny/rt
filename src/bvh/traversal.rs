@@ -85,15 +85,14 @@ pub fn get_closest_aabb_hit<'a>(scene: &'a  Scene, ray: &'a Ray) -> Option<&'a N
 }
 
 pub fn traverse_bvh<'a>(ray: &Ray, node: Option<&Node>, scene: &'a Scene) -> Option<Hit<'a>> {
-    let node = if let Some(node) = node {
-        node
-    } else {
-        return None;
+    let node = match node {
+        Some(node) => node,
+        None => return None,
     };
 
-    if !ray_intersects_aabb(ray, &node.aabb()) && !node.aabb().contains_point(ray.get_pos()) {
-        return None;
-    }
+    // if !ray_intersects_aabb(ray, &node.aabb()) && !node.aabb().contains_point(ray.get_pos()) {
+    //     return None;
+    // }
     
     if node.is_leaf() {
         let mut closest_hit: HitInfo = HitInfo {
@@ -125,30 +124,89 @@ pub fn traverse_bvh<'a>(ray: &Ray, node: Option<&Node>, scene: &'a Scene) -> Opt
         }
     }
 
-    let hit_left = if let Some(ref left) = node.left() {
-        traverse_bvh(ray, Some(left), &scene)
+    let left_t = if let Some(ref left) = node.left() {
+        left.aabb().intersect(ray)
     } else {
         None
     };
 
-    let hit_right = if let Some(ref right) = node.right() {
-        traverse_bvh(ray, Some(right), &scene)
+    let right_t = if let Some(ref right) = node.right() {
+        right.aabb().intersect(ray)
     } else {
         None
     };
 
-    return match (hit_left, hit_right) {
-        (Some(left), Some(right)) => {
-            if left.dist() < right.dist() {
-                Some(left)
+    // If ray intersects both left and right children
+    if left_t.is_some() && right_t.is_some() {
+        // If left child is closer
+        if left_t.unwrap() < right_t.unwrap() {
+            let hit = traverse_bvh(ray, node.left().as_deref(), scene);
+            // If leaf node hit on left child
+            if hit.is_some() {
+                return hit;
             } else {
-                Some(right)
+                let hit = traverse_bvh(ray, node.right().as_deref(), scene);
+                // If leaf node hit on right child
+                if hit.is_some() {
+                    return hit;
+                }
+            }
+        // If right child is closer
+        } else {
+            let hit = traverse_bvh(ray, node.right().as_deref(), scene);
+            // If leaf node hit on right child
+            if hit.is_some() {
+                return hit;
+            } else {
+                let hit = traverse_bvh(ray, node.left().as_deref(), scene);
+                // If leaf node hit on left child
+                if hit.is_some() {
+                    return hit;
+                }
             }
         }
-        (Some(left), None) => Some(left),
-        (None, Some(right)) => Some(right),
-        (None, None) => None,
-    };
+    // If ray intersects only the left children
+    } else if left_t.is_some() {
+        let hit = traverse_bvh(ray, node.left().as_deref(), scene);
+        if hit.is_some() {
+            return hit;
+        }
+    // If ray intersects only the right children
+    } else if right_t.is_some() {
+        let hit = traverse_bvh(ray, node.right().as_deref(), scene);
+        if hit.is_some() {
+            return hit;
+        }
+    }
+
+    return None;
+
+
+
+    // let hit_left = if let Some(ref left) = node.left() {
+    //     traverse_bvh(ray, Some(left), &scene)
+    // } else {
+    //     None
+    // };
+
+    // let hit_right = if let Some(ref right) = node.right() {
+    //     traverse_bvh(ray, Some(right), &scene)
+    // } else {
+    //     None
+    // };
+
+    // return match (hit_left, hit_right) {
+    //     (Some(left), Some(right)) => {
+    //         if left.dist() < right.dist() {
+    //             Some(left)
+    //         } else {
+    //             Some(right)
+    //         }
+    //     }
+    //     (Some(left), None) => Some(left),
+    //     (None, Some(right)) => Some(right),
+    //     (None, None) => None,
+    // };
 }
 
 struct HitInfo {
