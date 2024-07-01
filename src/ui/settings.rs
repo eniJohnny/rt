@@ -58,10 +58,8 @@ impl Displayable for Settings {
                 Value::Unsigned(self.iterations as u32),
                 Box::new(|value: Value, scene, ui| {
                     if let Value::Unsigned(value) = value {
-                        println!("settings iterations");
                         scene.write().unwrap().settings_mut().iterations = value as usize;
                         scene.write().unwrap().set_dirty(true);
-                        println!("set done");
                     }
                 }),
                 Box::new(|_| Ok(())),
@@ -69,7 +67,7 @@ impl Displayable for Settings {
             )),
             settings,
         ));
-        category.elems.push(UIElement::new(
+        let chkReflect = UIElement::new(
             "Reflections",
             "chk_reflect",
             ElemType::Property(Property::new(
@@ -84,7 +82,26 @@ impl Displayable for Settings {
                 settings,
             )),
             settings,
-        ));
+        );
+        let chkIndirect = UIElement::new(
+            "Indirect light",
+            "chk_indirect",
+            ElemType::Property(Property::new(
+                Value::Bool(self.indirect),
+                Box::new(|value, scene, ui| {
+                    if let Value::Bool(value) = value {
+                        scene.write().unwrap().settings_mut().indirect = value;
+                        scene.write().unwrap().set_dirty(true);
+                    }
+                }),
+                Box::new(|_| Ok(())),
+                settings,
+            )),
+            settings,
+        );
+        let vec = vec![chkIndirect, chkReflect];
+        let row = UIElement::new("", "row_indirect_reflection", ElemType::Row(vec), settings);
+        category.elems.push(row);
 
         let mut view_mode_radio = UIElement::new("", "viewmode", ElemType::Row(vec![]), settings);
         let mut simple = UIElement::new(

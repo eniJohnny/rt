@@ -18,15 +18,16 @@ pub fn blend_scene_and_ui(context: &UIContext) -> RgbaImage {
 }
 
 pub fn redraw_if_necessary(ui: &mut UI, scene: &Arc<RwLock<Scene>>, mut pixels: &mut Pixels) {
-    if ui.dirty() {
+    if ui.dirty() || ui.context().unwrap().last_ui_draw.elapsed().as_millis() > ui.uisettings().ui_refresh_time as u128 {
         ui.process(&scene);
     }
     let mut context = ui.take_context();
     let ui_img = &mut context.ui_img;
     let mut redraw = false;
-    if ui.dirty() {
+    if ui.dirty() || context.last_ui_draw.elapsed().as_millis() > ui.uisettings().ui_refresh_time as u128 {
         ui.draw(&scene, ui_img);
         redraw = true;
+        context.last_ui_draw = Instant::now();
     }
     if let Ok((render_img, final_img)) = context.receiver.try_recv() {
         context.scene_img = render_img;

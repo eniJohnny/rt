@@ -73,7 +73,7 @@ pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixel
 
     event_loop
         .run(move |event, flow| {
-            sleep(Duration::from_millis(10));
+            // sleep(Duration::from_millis(10));
             flow.set_control_flow(ControlFlow::WaitUntil(
                 Instant::now() + Duration::from_millis(20),
             ));
@@ -85,7 +85,7 @@ pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixel
             }
 
             // We handle every held inputs every 20ms. This basically is only used to handle camera movements
-            if ui.editing().is_none() && ui.inputs().len() > 0 && last_input.elapsed().as_millis() > 20 {
+            if ui.editing().is_none() && ui.inputs().len() > 0 && last_input.elapsed().as_millis() > 10 {
                 let inputs = ui.inputs().clone();
                 for input in inputs {
                     key_held(&scene, &mut ui, flow, input);
