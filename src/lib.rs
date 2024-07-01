@@ -55,7 +55,7 @@ const CAM_MOVE_KEYS: [KeyCode; 10] = [
 ];
 
 pub fn run() {
-    let path = String::from("scenes/testing.json");
+    let path = String::from("scenes/metalrough.json");
     if path != "" {
         let mut scene = get_scene(&path);
         scene.add_skysphere_texture("skysphere.jpg");
