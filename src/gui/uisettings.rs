@@ -115,10 +115,8 @@ impl Displayable for UISettings {
             "fps",
             ElemType::Stat(Box::new(|_, ui| {
                 if let Some(context) = ui.context() {
-                    println!("Youpi");
                     return context.draw_time_avg.to_string();
                 }
-                println!("Not normal");
                 "".to_string()
             })),
             settings,

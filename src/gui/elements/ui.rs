@@ -1,8 +1,5 @@
 use std::{
-    any::Any,
-    borrow::Borrow,
     collections::HashMap,
-    os::unix::raw::off_t,
     sync::{
         mpsc::{Receiver, Sender},
         Arc, RwLock,
@@ -12,14 +9,9 @@ use std::{
 use image::{ImageBuffer, Rgba, RgbaImage};
 
 use crate::{
-    display::utils::draw_text2,
-    gui::{
-        draw::{draw_background, draw_button_background},
-        settings::Settings,
-        uisettings::UISettings,
-    },
-    model::{maths::vec2::Vec2, scene::Scene},
-    GUI_WIDTH, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32,
+    gui::{draw::draw_background, uisettings::UISettings},
+    model::scene::Scene,
+    SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32,
 };
 
 use super::{
@@ -319,7 +311,6 @@ impl UI {
                 uibox.edit_bar = Some(edit_bar);
             }
             uibox.size.1 = offset_y;
-            println!("{}", offset_y);
             self.boxes.insert(reference, uibox);
         }
         self.hitbox_vec = hitbox_vec;

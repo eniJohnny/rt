@@ -142,13 +142,13 @@ impl UIEditBar {
     pub fn refresh_formats(&mut self, settings: &UISettings) {
         self.apply.1 = Style::btn_apply(settings);
         self.cancel.1 = Style::btn_cancel(settings);
-        let mut textformat = Style::field_format(settings);
+        let mut textformat = Style::property(settings);
         textformat.bg_color = None;
         self.text.1 = textformat;
     }
 
     pub fn new(reference: String, settings: &UISettings, on_apply: Option<FnApply>) -> Self {
-        let mut textformat = Style::field_format(settings);
+        let mut textformat = Style::property(settings);
         textformat.bg_color = None;
         Self {
             apply: ("Apply".to_string(), Style::btn_apply(settings), None),

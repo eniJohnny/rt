@@ -26,10 +26,10 @@ fn is_corner(
     radius: u32,
 ) -> bool {
     let corners = [
-        (x_start + radius, y_start + radius),     // Top-left
-        (x_end - radius - 1, y_start + radius),   // Top-right
-        (x_start + radius, y_end - radius - 1),   // Bottom-left
-        (x_end - radius - 1, y_end - radius - 1), // Bottom-right
+        (x_start + radius, y_start + radius),
+        (x_end - radius - 1, y_start + radius),
+        (x_start + radius, y_end - radius - 1),
+        (x_end - radius - 1, y_end - radius - 1),
     ];
 
     for &(cx, cy) in &corners {
@@ -45,7 +45,7 @@ fn is_corner(
         || (x < x_start + radius && y >= y_start + radius && y < y_end - radius)
         || (x >= x_end - radius && y >= y_start + radius && y < y_end - radius)
     {
-        return false; // Top and bottom edges
+        return false;
     }
 
     true
@@ -105,28 +105,6 @@ pub fn draw_background(
     for x in x_start..x_end {
         for y in y_start..y_end {
             if is_corner(x, y, x_start, y_start, x_end, y_end, border_radius) == false {
-                img.put_pixel(x, y, color);
-            }
-        }
-    }
-}
-
-pub fn draw_button_background(
-    img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>,
-    hitbox: &(Vec2, Vec2),
-    color: Rgba<u8>,
-) {
-    let upper_left_corner = &hitbox.0;
-    let lower_right_corner = &hitbox.1;
-
-    let x_start = *upper_left_corner.x() as u32;
-    let x_end = *lower_right_corner.x() as u32;
-    let y_start = *upper_left_corner.y() as u32;
-    let y_end = *lower_right_corner.y() as u32;
-
-    for x in x_start..x_end {
-        for y in y_start..y_end {
-            if is_corner(x, y, x_start, y_start, x_end, y_end, 2) == false {
                 img.put_pixel(x, y, color);
             }
         }

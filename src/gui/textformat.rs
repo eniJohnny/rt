@@ -1,11 +1,8 @@
-use image::{Rgba, RgbaImage};
+use image::Rgba;
 
-use crate::{
-    display::utils::draw_text, model::maths::vec2::Vec2, FIELD_PADDING_X, FIELD_PADDING_Y,
-    GUI_HEIGHT, GUI_WIDTH,
-};
+use crate::model::maths::vec2::Vec2;
 
-use super::{settings, uisettings::UISettings, utils::get_line_position};
+use super::uisettings::UISettings;
 
 pub struct Style {
     size: Vec2,
@@ -162,7 +159,7 @@ impl Style {
             .build()
     }
 
-    pub fn field_format(settings: &UISettings) -> Self {
+    pub fn property(settings: &UISettings) -> Self {
         StyleBuilder::default(settings).fill_width(true).build()
     }
 
@@ -195,43 +192,6 @@ impl Style {
         StyleBuilder::from_btn(settings)
             .bg_color(Some(Rgba([125, 70, 70, 255])))
             .build()
-    }
-
-    pub fn get_spacer(&self, text: &str, value: &str) -> String {
-        let text_len = text.len();
-        let value_len = value.len();
-        let char_width = 10;
-        let char_num = (*self.size.x() as usize) / char_width;
-        let spacer_len = char_num - text_len - value_len - 5;
-
-        " ".repeat(spacer_len)
-    }
-
-    pub fn parse_and_draw_text(
-        &mut self,
-        img: &mut RgbaImage,
-        i: u32,
-        text: &str,
-        value: &str,
-    ) -> (Vec2, Vec2) {
-        let spacer = self.get_spacer(text, value);
-        let pos = get_line_position(i, &self.size);
-
-        if value == "" {
-            draw_text(img, &pos, text.to_string(), self);
-            return (Vec2::new(0., 0.), Vec2::new(0., 0.));
-        }
-
-        self.font_color = self.get_axis_color(text);
-        draw_text(img, &pos, text.to_string(), self);
-
-        let offset = (spacer.len() + text.len() + 3) as f64 * 10.0;
-        let pos = Vec2::new(pos.x() + offset, *pos.y());
-        self.font_color = Rgba([255, 255, 255, 255]);
-        draw_text(img, &pos, value.to_string(), self);
-
-        let end_pos = Vec2::new(pos.x() + (value.len() + 1) as f64 * 10.0, *pos.y() + 26.);
-        (pos, end_pos)
     }
 
     pub fn get_axis_color(&self, text: &str) -> Rgba<u8> {
