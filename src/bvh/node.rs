@@ -54,11 +54,6 @@ impl Node {
             self.left.as_mut().unwrap().split(scene);
             self.right.as_mut().unwrap().split(scene);
         } else {
-            // if self.left.is_none() && self.right.is_some() {
-            //     self.right.as_mut().unwrap().set_children_elements(scene);
-            // } else if self.right.is_none() && self.left.is_some() {
-            //     self.left.as_mut().unwrap().set_children_elements(scene);
-            // }
             self.set_children_elements(scene);
         }
     }
@@ -66,24 +61,23 @@ impl Node {
     pub fn set_children_elements(&mut self, scene: &mut Scene) {
         let aabb = self.aabb();
         let elements = aabb.get_children_elements_only(scene);
-
         self.set_elements(elements);
     }
 
     pub fn add_node(&mut self, scene: &mut Scene) {
-        let mut aabb = self.aabb().clone();
-        let children = aabb.get_children_aabbs_id(scene);
+        // let mut aabb = self.aabb().clone();
+        // let children = aabb.get_children_aabbs_id(scene);
 
         // if children.len() < 1 {
         //     return;
         // }
 
-        let (aabb1, aabb2) = aabb.better_split(scene);
-        let left_children = aabb1.get_children_elements(scene);
-        let right_children = aabb2.get_children_elements(scene);
+        let (aabb1, aabb2) = self.aabb.better_split(scene);
+        let left_children = aabb1.get_children_aabbs_id(scene);
+        let right_children = aabb2.get_children_aabbs_id(scene);
 
         if left_children == right_children || left_children.len() == 0 || right_children.len() == 0 {
-            self.set_elements(children);
+            self.set_children_elements(scene);
             return;
         }
 

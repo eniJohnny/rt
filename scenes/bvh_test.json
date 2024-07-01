@@ -25,7 +25,8 @@
         "radius": 1.5,
         "normal": "plates_normal.jpg",
         "roughness": "plates_roughness.jpg",
-        "metalness": "plates_metal.jpg"
+        "metalness": "plates_metal.jpg",
+        "emissive": 2.0
     },
     {
         "type": "sphere",
@@ -35,61 +36,6 @@
         "radius": 1.5,
         "normal": "tiles_normal.jpg",
         "roughness": "tiles_roughness.jpg"
-    },
-    {
-        "type": "sphere",
-        "pos": [-3.5, 0, 1],
-        "dir": [0, 1, 0],
-        "color": "bricks_color.jpg",
-        "radius": 1.2,
-        "normal": "bricks_normal.jpg",
-        "roughness": "bricks_roughness.jpg"
-    },
-    {
-        "type": "sphere",
-        "pos": [3.5, 0, 1],
-        "dir": [0, 1, 0],
-        "color": "wood_color.jpg",
-        "radius": 1.2,
-        "normal": "wood_normal.jpg",
-        "roughness": "wood_roughness.jpg"
-    },
-    {
-        "type": "sphere",
-        "pos": [-1, -1, 3],
-        "dir": [0, 1, 0],
-        "color": "plates_color.jpg",
-        "radius": 1.0,
-        "normal": "plates_normal.jpg",
-        "roughness": "plates_roughness.jpg",
-        "metalness": "plates_metal.jpg"
-    },
-    {
-        "type": "sphere",
-        "pos": [1, -1, 3],
-        "dir": [0, 1, 0],
-        "color": "tiles_color.jpg",
-        "radius": 1.0,
-        "normal": "tiles_normal.jpg",
-        "roughness": "tiles_roughness.jpg"
-    },
-    {
-        "type": "sphere",
-        "pos": [-1.5, 1.5, -1],
-        "dir": [0, 1, 0],
-        "color": "bricks_color.jpg",
-        "radius": 1.5,
-        "normal": "bricks_normal.jpg",
-        "roughness": "bricks_roughness.jpg"
-    },
-    {
-        "type": "sphere",
-        "pos": [1.5, 1.5, -1],
-        "dir": [0, 1, 0],
-        "color": "wood_color.jpg",
-        "radius": 1.5,
-        "normal": "wood_normal.jpg",
-        "roughness": "wood_roughness.jpg"
     },
     {
         "type": "camera",
