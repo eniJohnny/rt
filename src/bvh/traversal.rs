@@ -52,33 +52,36 @@ pub fn ray_intersects_aabb(ray: &Ray, aabb: &Aabb) -> bool {
 }
 
 pub fn get_closest_aabb_hit<'a>(scene: &'a  Scene, ray: &'a Ray) -> Option<&'a Node> {
-    let mut node = scene.bvh().as_ref().unwrap();
+    // Get the first aabb hit
 
+    let mut root = scene.bvh().as_ref()?;
+    
     loop {
-        let node_hit = ray_intersects_aabb(ray, node.aabb());
-        let left_hit = if let Some(ref left) = node.left() {
-            ray_intersects_aabb(ray, &left.aabb())
-        } else {
-            false
-        };
-        let right_hit = if let Some(ref right) = node.right() {
-            ray_intersects_aabb(ray, &right.aabb())
-        } else {
-            false
-        };
+        if root.aabb().intersect(ray).is_some() || root.aabb().contains_point(ray.get_pos()) {
+            let left = root.left().as_ref()?;
+            let right = root.right().as_ref()?;
 
-        if node_hit && !left_hit && !right_hit {
-            break;
-        } else if left_hit {
-            node = &node.left().as_ref().unwrap();
-        } else if right_hit {
-            node = &node.right().as_ref().unwrap();
+            let left_hit = left.aabb().intersect(ray);
+            let right_hit = right.aabb().intersect(ray);
+
+            if left_hit.is_some() && right_hit.is_some() {
+                if left_hit.unwrap() < right_hit.unwrap() {
+                    root = left;
+                } else {
+                    root = right;
+                }
+            } else if left_hit.is_some() {
+                root = left;
+            } else if right_hit.is_some() {
+                root = right;
+            } else {
+                break;
+            }
         } else {
             return None;
         }
     }
-    
-    return Some(&node);
+    return Some(root);
 }
 
 pub fn traverse_bvh<'a>(ray: &Ray, node: Option<&Node>, scene: &'a Scene) -> Option<Hit<'a>> {
@@ -91,7 +94,7 @@ pub fn traverse_bvh<'a>(ray: &Ray, node: Option<&Node>, scene: &'a Scene) -> Opt
     if !ray_intersects_aabb(ray, &node.aabb()) && !node.aabb().contains_point(ray.get_pos()) {
         return None;
     }
-
+    
     if node.is_leaf() {
         let mut closest_hit: HitInfo = HitInfo {
             element_index: 0,
@@ -116,7 +119,8 @@ pub fn traverse_bvh<'a>(ray: &Ray, node: Option<&Node>, scene: &'a Scene) -> Opt
         
         if closest_hit.tmin < std::f64::MAX {
             let element = scene.get_element(closest_hit.element_index);
-            let hit = Hit::new(element, closest_hit.tmin, ray.get_pos() + ray.get_dir() * closest_hit.tmin, &ray.get_dir(), scene.textures());
+            let mut hit = Hit::new(element, closest_hit.tmin, ray.get_pos() + ray.get_dir() * closest_hit.tmin, &ray.get_dir(), scene.textures());
+            hit.map_textures(scene.textures());
             return Some(hit);
         }
     }

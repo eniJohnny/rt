@@ -169,6 +169,13 @@ impl Scene {
         &self.bvh
     }
 
+    pub fn planes(&self) -> Vec<&crate::model::Element> {
+        self.elements
+            .iter()
+            .filter(|element| element.shape().as_plane().is_some())
+            .collect()
+    }
+
     // Mutators
 
     pub fn set_elements(&mut self, elements: Vec<Element>) {

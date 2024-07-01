@@ -1,7 +1,10 @@
+use std::collections::HashMap;
+
+use image::{ImageBuffer, Rgba};
 use rand::Rng;
 
 use crate::{
-    bvh::traversal::{get_closest_aabb_hit, traverse_bvh}, model::{
+    bvh::traversal::traverse_bvh, model::{
         materials::color::Color,
         maths::{hit::Hit, quaternion::Quaternion, ray::Ray, vec3::Vec3},
         scene::Scene,
@@ -43,8 +46,6 @@ pub fn get_ray(scene: &Scene, x: usize, y: usize) -> Ray {
 
 pub fn sampling_ray(scene: &Scene, ray: &Ray) -> PathBucket {
     match get_closest_hit(scene, ray) {
-    // let node = get_closest_aabb_hit(scene, ray);
-    // match traverse_bvh(ray, node, scene) {
         Some(hit) => {
             let mut bucket = get_reflected_light_bucket(hit.clone(), scene, ray);
             let mut path = Path {
@@ -68,6 +69,53 @@ pub fn sampling_ray(scene: &Scene, ray: &Ray) -> PathBucket {
             weight: 0.,
             nbSamples: 0,
         }, //TODO Handle background on None
+    }
+}
+
+pub fn get_closest_plane_hit<'a>(textures: &HashMap<String, ImageBuffer<Rgba<u8>, Vec<u8>>>, ray: &Ray, planes: Vec<&'a Element>) -> Option<Hit<'a>> {
+    let mut closest: Option<Hit> = None;
+    for element in planes {
+        let mut t = None;
+
+        t = element.shape().intersect(ray);
+        if let Some(t) = t {
+            for dist in t {
+                if dist > 0.0 {
+                    if let Some(hit) = &closest {
+                        if &dist < hit.dist() {
+                            let new_hit = Hit::new(
+                                element,
+                                dist,
+                                ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
+                                ray.get_dir(),
+                                textures,
+                            );
+                            if new_hit.opacity() > 0.5 {
+                                closest = Some(new_hit);
+                            }
+                        }
+                    } else {
+                        let new_hit = Hit::new(
+                            element,
+                            dist,
+                            ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
+                            ray.get_dir(),
+                            textures,
+                        );
+                        if new_hit.opacity() > 0.5 {
+                            closest = Some(new_hit);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    match closest {
+        None => None,
+        Some(mut hit) => {
+            hit.map_textures(textures);
+            Some(hit)
+        }
     }
 }
 
