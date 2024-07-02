@@ -2,6 +2,7 @@ use self::cone::Cone;
 use self::cylinder::Cylinder;
 use self::plane::Plane;
 use self::sphere::Sphere;
+use self::torus::Torus;
 use std::fmt::Debug;
 
 use super::{
@@ -13,6 +14,7 @@ pub mod cone;
 pub mod cylinder;
 pub mod plane;
 pub mod sphere;
+pub mod torus;
 
 pub trait Shape: Debug + Sync + Send {
     fn distance(&self, vec: &Vec3) -> f64;
@@ -31,6 +33,9 @@ pub trait Shape: Debug + Sync + Send {
         None
     }
     fn as_cone(&self) -> Option<&Cone> {
+        None
+    }
+    fn as_torus(&self) -> Option<&Torus> {
         None
     }
 }

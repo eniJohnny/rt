@@ -7,6 +7,7 @@ use crate::model::materials::texture::Texture;
 use crate::model::maths::vec3::Vec3;
 use crate::model::objects::camera::Camera;
 use crate::model::objects::light::{AmbientLight, Light, ParallelLight, PointLight};
+use crate::model::shapes::torus::Torus;
 use crate::model::{scene, Element};
 use crate::model::{
     scene::Scene, shapes::cone::Cone, shapes::cylinder::Cylinder, shapes::plane::Plane,
@@ -38,7 +39,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let material = get_material(&object, color);
                 scene.add_textures(&material);
                 let element = Element::new(shape, material);
-                scene.add_element(element)
+                scene.add_element(element);
             }
             "plane" => {
                 let pos = get_position(&object);
@@ -49,7 +50,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let material = get_material(&object, color);
                 scene.add_textures(&material);
                 let element = Element::new(shape, material);
-                scene.add_element(element)
+                scene.add_element(element);
             }
             "cylinder" => {
                 let pos = get_position(&object);
@@ -62,7 +63,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let material = get_material(&object, color);
                 scene.add_textures(&material);
                 let element = Element::new(shape, material);
-                scene.add_element(element)
+                scene.add_element(element);
             }
             "cone" => {
                 let pos = get_position(&object);
@@ -75,7 +76,20 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let material = get_material(&object, color);
                 scene.add_textures(&material);
                 let element = Element::new(shape, material);
-                scene.add_element(element)
+                scene.add_element(element);
+            }
+            "torus" => {
+                let pos = get_position(&object);
+                let radius = get_radius(&object);
+                let radius2 = get_radius2(&object);
+                let color = get_color(&object);
+                let dir = get_direction(&object);
+
+                let shape = Box::new(Torus::new(pos, dir, radius, radius2));
+                let material = get_material(&object, color);
+                // scene.add_textures(&material);
+                let element = Element::new(shape, material);
+                scene.add_element(element);
             }
             "camera" => {
                 let pos = get_position(&object);
@@ -296,6 +310,17 @@ fn get_radius(object: &HashMap<String, String>) -> f64 {
     object["radius"]
         .parse::<f64>()
         .expect("Error parsing radius")
+}
+
+fn get_radius2(object: &HashMap<String, String>) -> f64 {
+    // Testing if the radius is a float
+    if object["radius2"].parse::<f64>().is_err() {
+        error("Radius must be a float.");
+    }
+
+    object["radius2"]
+        .parse::<f64>()
+        .expect("Error parsing radius2")
 }
 
 fn get_height(object: &HashMap<String, String>) -> f64 {
