@@ -1,17 +1,23 @@
 use rusttype::Font;
 
 use crate::{
-    ui::elements::{uielement::Category, utils::{ElemType, Property, Value}}, model::{
+    model::{
         materials::color::Color,
         maths::vec3::Vec3,
         objects::light::{AmbientLight, ParallelLight},
-    }, ANTIALIASING, BASE_FONT_SIZE, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH, INDENT_PADDING, MARGIN, MAX_DEPTH, MAX_ITERATIONS, VIEW_MODE
+    },
+    ui::elements::{
+        uielement::Category,
+        utils::{ElemType, Property, Value},
+    },
+    ANTIALIASING, BASE_FONT_SIZE, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH,
+    INDENT_PADDING, MARGIN, MAX_DEPTH, MAX_ITERATIONS, VIEW_MODE,
 };
 
 use super::{
-    elements::{
-        uielement::UIElement, Displayable
-    }, ui::UI, uisettings::UISettings
+    elements::{uielement::UIElement, Displayable},
+    ui::UI,
+    uisettings::UISettings,
 };
 
 #[derive(Debug, Clone)]
@@ -49,7 +55,7 @@ impl Settings {
 }
 
 impl Displayable for Settings {
-    fn get_fields(&self, reference: &String, settings: &UISettings) -> Vec<UIElement> {
+    fn get_fields(&self, settings: &UISettings) -> Vec<UIElement> {
         let mut category = Category::default();
         category.elems.push(UIElement::new(
             "Iterations",

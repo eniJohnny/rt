@@ -9,14 +9,22 @@ use std::{
 use image::{ImageBuffer, Rgba, RgbaImage};
 use winit::keyboard::Key;
 
-use crate::{
-    ui::{uisettings::UISettings},
-    model::scene::Scene,
-    SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32,
+use crate::{model::scene::Scene, ui::uisettings::UISettings, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32};
+
+use super::{
+    draw_utils::draw_background,
+    elements::{
+        uieditbar::UIEditBar,
+        uielement::UIElement,
+        utils::{ElemType, Property},
+        HitBox,
+    },
+    uibox::UIBox,
+    utils::{
+        get_parent_ref, get_pos, get_size, give_back_element, is_inside_box, take_element, Editing,
+        UIContext,
+    },
 };
-
-use super::{draw_utils::draw_background, elements::{uieditbar::UIEditBar, uielement::UIElement, utils::{ElemType, Property}, HitBox}, uibox::UIBox, utils::{get_parent_ref, get_pos, get_size, give_back_element, take_element, Editing, UIContext}};
-
 
 pub struct UI {
     boxes: HashMap<String, UIBox>,
@@ -185,8 +193,7 @@ impl UI {
     }
 
     pub fn input_released(&mut self, released: Key) {
-        if self.inputs.contains(&released) {
-        }
+        if self.inputs.contains(&released) {}
         for i in 0..self.inputs.len() {
             if let Some(input) = self.inputs().get(i) {
                 if input == &released {
@@ -233,55 +240,7 @@ impl UI {
             if !uibox.visible {
                 continue;
             }
-            let mut offset_y = 0;
-            uibox.size.1 = uibox.max_height;
-            for i in 0..uibox.elems.len() {
-                let mut elem = uibox.elems.remove(i);
-                if elem.visible {
-                    let hitbox = HitBox {
-                        pos: get_pos(uibox.pos, (0, uibox.pos.1 + offset_y), 0),
-                        size: get_size(
-                            &elem.text,
-                            &elem.style,
-                            (uibox.size.0, uibox.size.1 - offset_y),
-                        ),
-                        reference: elem.reference.clone(),
-                        disabled: matches!(elem.elem_type, ElemType::Row(_)),
-                    };
-                    elem.hitbox = Some(hitbox.clone());
-                    let vec = elem.process(self, scene, uibox.max_height - offset_y);
-                    let needed_height =
-                        hitbox.pos.1 + hitbox.size.1 + settings_snapshot.margin - uibox.pos.1;
-                    if needed_height >= uibox.size.1 {
-                        break;
-                    }
-                    if needed_height > offset_y {
-                        offset_y = needed_height;
-                    }
-                    hitbox_vec.push(hitbox);
-
-                    for hitbox in vec {
-                        let needed_height =
-                            hitbox.pos.1 + hitbox.size.1 + settings_snapshot.margin - uibox.pos.1;
-                        if needed_height > offset_y {
-                            offset_y = needed_height;
-                        }
-                        hitbox_vec.push(hitbox)
-                    }
-                }
-                uibox.elems.insert(i, elem);
-            }
-            if let Some(mut edit_bar) = uibox.edit_bar.take() {
-                let mut vec = edit_bar.process(
-                    (uibox.pos.0, uibox.pos.1 + offset_y),
-                    &self.uisettings,
-                    uibox.size,
-                );
-                offset_y = vec[1].pos.1 + vec[1].size.1 + self.uisettings().margin * 2;
-                hitbox_vec.append(&mut vec);
-                uibox.edit_bar = Some(edit_bar);
-            }
-            uibox.size.1 = offset_y;
+            hitbox_vec.append(&mut uibox.process(self, scene, &settings_snapshot));
             self.boxes.insert(reference, uibox);
         }
         self.hitbox_vec = hitbox_vec;
@@ -290,20 +249,13 @@ impl UI {
     pub fn draw(&mut self, scene: &Arc<RwLock<Scene>>, img: &mut RgbaImage) {
         img.fill_with(|| 1);
         for (_, uibox) in &self.boxes {
-            if !uibox.visible {
+            if !uibox.visible || uibox.reference == self.active_box_reference {
                 continue;
             }
-            if let Some(color) = &uibox.background_color {
-                draw_background(img, uibox.pos, uibox.size, color.to_rgba(), 0);
-            }
-            for elem in &uibox.elems {
-                if elem.visible {
-                    elem.draw(img, self, scene);
-                }
-            }
-            if let Some(edit_bar) = &uibox.edit_bar {
-                edit_bar.draw(img);
-            }
+            uibox.draw(img, self, scene);
+        }
+        if let Some(active_box) = self.active_box() {
+            active_box.draw(img, self, scene);
         }
         self.dirty = false;
     }
@@ -315,12 +267,17 @@ impl UI {
 
 pub fn ui_clicked(click: (u32, u32), scene: &Arc<RwLock<Scene>>, ui: &mut UI) -> bool {
     let hitbox_list = ui.hitbox_vec.split_off(0);
+    let mut active_box_ref: String = "".to_string();
+    if let Some(active_box) = ui.active_box() {
+        if !is_inside_box(click, active_box.pos, active_box.size) {
+            return false;
+        }
+        active_box_ref = active_box.reference.clone();
+    }
     for hitbox in hitbox_list {
         if !hitbox.disabled
-            && click.0 > hitbox.pos.0
-            && click.0 < hitbox.pos.0 + hitbox.size.0
-            && click.1 > hitbox.pos.1
-            && click.1 < hitbox.pos.1 + hitbox.size.1
+            && hitbox.reference.starts_with(&active_box_ref)
+            && is_inside_box(click, hitbox.pos, hitbox.size)
         {
             if hitbox.reference.ends_with("btnApply") || hitbox.reference.ends_with("btnCancel") {
                 let box_ref = get_parent_ref(hitbox.reference.clone());

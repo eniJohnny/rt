@@ -1,9 +1,25 @@
-use std::{path::Path, sync::{Arc, RwLock}};
+use std::{
+    path::Path,
+    sync::{Arc, RwLock},
+};
 
 use chrono::{DateTime, Utc};
-use winit::{event::WindowEvent, event_loop::EventLoopWindowTarget, keyboard::{Key, NamedKey}};
+use winit::{
+    event::WindowEvent,
+    event_loop::EventLoopWindowTarget,
+    keyboard::{Key, NamedKey},
+};
 
-use crate::{ui::{elements::utils::Value, style::{Formattable, Style}, ui::{ui_clicked, UI}, uisettings::UISettings, utils::Editing}, model::scene::Scene};
+use crate::{
+    model::scene::Scene,
+    ui::{
+        elements::utils::Value,
+        style::{Formattable, Style},
+        ui::{ui_clicked, UI},
+        uisettings::UISettings,
+        utils::Editing,
+    },
+};
 
 use super::display::blend_scene_and_ui;
 
@@ -118,10 +134,7 @@ fn key_pressed_editing(
     }
 }
 
-pub fn key_held(scene: &Arc<RwLock<Scene>>,
-    _: &mut UI,
-    _: &EventLoopWindowTarget<()>,
-    input: Key) {
+pub fn key_held(scene: &Arc<RwLock<Scene>>, _: &mut UI, _: &EventLoopWindowTarget<()>, input: Key) {
     match input {
         Key::Named(NamedKey::ArrowDown) => {
             scene.write().unwrap().camera_mut().look_down();
@@ -154,24 +167,24 @@ pub fn key_held(scene: &Arc<RwLock<Scene>>,
                     'w' => {
                         scene.write().unwrap().camera_mut().move_forward();
                         scene.write().unwrap().set_dirty(true);
-                    },
+                    }
                     's' => {
                         scene.write().unwrap().camera_mut().move_backward();
                         scene.write().unwrap().set_dirty(true);
-                    },
+                    }
                     'a' => {
                         scene.write().unwrap().camera_mut().move_left();
                         scene.write().unwrap().set_dirty(true);
-                    },
+                    }
                     'd' => {
                         scene.write().unwrap().camera_mut().move_right();
                         scene.write().unwrap().set_dirty(true);
-                    },
-                    _ => ()
+                    }
+                    _ => (),
                 }
             }
         }
-        _ => ()
+        _ => (),
     }
 }
 
@@ -196,10 +209,12 @@ fn key_pressed_non_editing(
                         std::fs::create_dir("screenshots").unwrap();
                     }
                     let path = format!("screenshots/screenshot_{}.png", datestring);
-                    blend_scene_and_ui(ui.context().unwrap()).save(path).unwrap();
+                    blend_scene_and_ui(ui.context().unwrap(), ui.active_box())
+                        .save(path)
+                        .unwrap();
                 }
             }
         }
-        _ => ()
+        _ => (),
     }
 }

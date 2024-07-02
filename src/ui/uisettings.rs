@@ -1,10 +1,13 @@
 use crate::{
-    ui::elements::{uielement::Category, utils::{ElemType, Property, Value}}, BASE_FONT_SIZE, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH, INDENT_PADDING, MARGIN, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32, UI_REFRESH_TIME
+    ui::elements::{
+        uielement::Category,
+        utils::{ElemType, Property, Value},
+    },
+    BASE_FONT_SIZE, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH, INDENT_PADDING,
+    MARGIN, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32, UI_REFRESH_TIME,
 };
 
-use super::elements::{
-    uielement::UIElement, Displayable
-};
+use super::elements::{uielement::UIElement, Displayable};
 
 #[derive(Clone)]
 pub struct UISettings {
@@ -12,10 +15,10 @@ pub struct UISettings {
     pub font_size: u32,
     pub padding_x: u32,
     pub padding_y: u32,
-    pub indent_padding: u32,
+    // pub indent_padding: u32,
     pub gui_height: u32,
     pub gui_width: u32,
-    pub ui_refresh_time: u32
+    pub ui_refresh_time: u32,
 }
 
 impl UISettings {
@@ -27,14 +30,14 @@ impl UISettings {
             font_size: BASE_FONT_SIZE,
             padding_x: FIELD_PADDING_X,
             padding_y: FIELD_PADDING_Y,
-            indent_padding: INDENT_PADDING,
-            ui_refresh_time: UI_REFRESH_TIME
+            // indent_padding: INDENT_PADDING,
+            ui_refresh_time: UI_REFRESH_TIME,
         }
     }
 }
 
 impl Displayable for UISettings {
-    fn get_fields(&self, reference: &String, settings: &UISettings) -> Vec<UIElement> {
+    fn get_fields(&self, settings: &UISettings) -> Vec<UIElement> {
         let mut category = Category {
             collapsed: false,
             elems: vec![],
@@ -43,7 +46,7 @@ impl Displayable for UISettings {
             "Margin",
             "margin",
             ElemType::Property(Property::new(
-                Value               ::Unsigned(self.margin),
+                Value::Unsigned(self.margin),
                 Box::new(|value, _, ui| {
                     if let Value::Unsigned(value) = value {
                         ui.uisettings_mut().margin = value
@@ -66,7 +69,7 @@ impl Displayable for UISettings {
             "UI Refresh(in ms)",
             "refresh",
             ElemType::Property(Property::new(
-                Value               ::Unsigned(self.ui_refresh_time),
+                Value::Unsigned(self.ui_refresh_time),
                 Box::new(|value, _, ui| {
                     if let Value::Unsigned(value) = value {
                         ui.uisettings_mut().ui_refresh_time = value
