@@ -13,7 +13,7 @@ use crate::{
 };
 
 use super::{
-    elements::{uielement::UIElement, utils::ElemType},
+    elements::{uielement::UIElement, utils::ElemType, HitBox},
     ui::UI,
 };
 
@@ -63,6 +63,24 @@ pub fn get_pos(parent_pos: (u32, u32), offset_pos: (u32, u32), indent: u32) -> (
         parent_pos.0 + offset_pos.0 + indent,
         parent_pos.1 + offset_pos.1,
     )
+}
+
+pub fn translate_hitboxes(hitbox_vec: &mut Vec<HitBox>, offset_x: u32, offset_y: u32) {
+    for hitbox in hitbox_vec {
+        hitbox.pos.0 += offset_x;
+        hitbox.pos.1 += offset_y;
+    }
+}
+
+pub fn get_needed_height(hitbox_vec: &Vec<HitBox>) -> u32 {
+    let mut max_needed_height = 0;
+    for hitbox in hitbox_vec {
+        let needed_height = hitbox.pos.1 + hitbox.size.1;
+        if needed_height > max_needed_height {
+            max_needed_height = needed_height;
+        }
+    }
+    max_needed_height
 }
 
 pub fn get_size(text: &String, style: &Style, max_size: (u32, u32)) -> (u32, u32) {

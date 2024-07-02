@@ -240,7 +240,7 @@ impl UI {
             if !uibox.visible {
                 continue;
             }
-            hitbox_vec.append(&mut uibox.process(self, scene, &settings_snapshot));
+            hitbox_vec.append(&mut uibox.generate_hitboxes(self, scene, &settings_snapshot));
             self.boxes.insert(reference, uibox);
         }
         self.hitbox_vec = hitbox_vec;
@@ -269,7 +269,7 @@ pub fn ui_clicked(click: (u32, u32), scene: &Arc<RwLock<Scene>>, ui: &mut UI) ->
     let hitbox_list = ui.hitbox_vec.split_off(0);
     let mut active_box_ref: String = "".to_string();
     if let Some(active_box) = ui.active_box() {
-        if !is_inside_box(click, active_box.pos, active_box.size) {
+        if !is_inside_box(click, active_box.absolute_pos, active_box.size) {
             return false;
         }
         active_box_ref = active_box.reference.clone();

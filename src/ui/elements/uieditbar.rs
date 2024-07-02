@@ -48,7 +48,7 @@ impl UIEditBar {
         }
     }
 
-    pub fn process(
+    pub fn generate_hitboxes(
         &mut self,
         pos: (u32, u32),
         settings: &UISettings,
@@ -90,6 +90,21 @@ impl UIEditBar {
         hitbox_vec.push(cancel_hitbox);
 
         hitbox_vec
+    }
+
+    pub fn translate_hitboxes (&mut self, absolute_pos: (u32, u32)) {
+        if let Some(hitbox) = &mut self.apply.2 {
+            hitbox.pos.0 += absolute_pos.0;
+            hitbox.pos.1 += absolute_pos.1;
+        }
+        if let Some(hitbox) = &mut self.cancel.2 {
+            hitbox.pos.0 += absolute_pos.0;
+            hitbox.pos.1 += absolute_pos.1;
+        }
+        if let Some(hitbox) = &mut self.text.2 {
+            hitbox.pos.0 += absolute_pos.0;
+            hitbox.pos.1 += absolute_pos.1;
+        }
     }
 
     pub fn draw(&self, img: &mut RgbaImage) {
