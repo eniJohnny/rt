@@ -1,32 +1,36 @@
 use std::{
-    path::Path, sync::{Arc, RwLock}, thread::sleep, time::{Duration, Instant}
+    path::Path,
+    sync::{Arc, RwLock},
+    thread::sleep,
+    time::{Duration, Instant},
 };
 
 use chrono::{DateTime, Utc};
 use pixels::Pixels;
 use winit::{
-    dpi::LogicalSize, event::{Event, WindowEvent}, event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget}, keyboard::{Key, NamedKey}, window::WindowBuilder
+    dpi::LogicalSize,
+    event::{Event, WindowEvent},
+    event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
+    keyboard::{Key, NamedKey},
+    window::WindowBuilder,
 };
 
 use crate::{
-    ui::{elements::Displayable, ui::UI, uibox::UIBox}, model::scene::Scene, render::render_threads::start_render_threads, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32
+    model::scene::Scene,
+    render::render_threads::start_render_threads,
+    ui::{elements::Displayable, ui::UI, uibox::UIBox},
+    SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32,
 };
 
-use super::{display::{self, blend_scene_and_ui, redraw_if_necessary}, events::{handle_event, key_held}};
+use super::{
+    display::{self, blend_scene_and_ui, redraw_if_necessary},
+    events::{handle_event, key_held},
+};
 
 pub fn setup_uisettings(ui: &mut UI, scene: &Arc<RwLock<Scene>>) {
-    let mut settings_box = UIBox::default(&ui, "uisettings".to_string());
-    settings_box.add_elements(
-        ui.uisettings()
-            .get_fields(&settings_box.reference, ui.uisettings()),
-    );
-    settings_box.add_elements(
-        scene
-            .read()
-            .unwrap()
-            .settings()
-            .get_fields(&settings_box.reference, ui.uisettings()),
-    );
+    let mut settings_box = UIBox::new("uisettings".to_string(), (0, 0), ui.uisettings().gui_width);
+    settings_box.add_elements(ui.uisettings().get_fields(ui.uisettings()));
+    settings_box.add_elements(scene.read().unwrap().settings().get_fields(ui.uisettings()));
     settings_box.set_edit_bar(ui.uisettings(), None);
 
     let index = ui.add_box(settings_box);
@@ -40,8 +44,6 @@ pub fn setup_ui(scene: &Arc<RwLock<Scene>>) -> UI {
     setup_uisettings(&mut ui, scene);
     ui
 }
-
-
 
 pub fn start_scene(scene: Scene) {
     let scene = scene;
@@ -85,7 +87,10 @@ pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixel
             }
 
             // We handle every held inputs every 20ms. This basically is only used to handle camera movements
-            if ui.editing().is_none() && ui.inputs().len() > 0 && last_input.elapsed().as_millis() > 10 {
+            if ui.editing().is_none()
+                && ui.inputs().len() > 0
+                && last_input.elapsed().as_millis() > 10
+            {
                 let inputs = ui.inputs().clone();
                 for input in inputs {
                     key_held(&scene, &mut ui, flow, input);
@@ -100,7 +105,7 @@ pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixel
             // keep the scene dirty for a couple loops.
             if last_scene_change.elapsed().as_millis() > 50 {
                 let context = ui.context().unwrap();
-                if !context.final_img && !context.image_asked{
+                if !context.final_img && !context.image_asked {
                     context.transmitter.send(false).unwrap();
                     ui.context_mut().unwrap().image_asked = true;
                 }

@@ -1,15 +1,21 @@
-use std::{borrow::Borrow, sync::mpsc::{Receiver, Sender}, time::Instant};
+use std::{
+    borrow::Borrow,
+    sync::mpsc::{Receiver, Sender},
+    time::Instant,
+};
 
 use image::{ImageBuffer, Rgba, RgbaImage};
 
 use crate::{
-    ui::style::{Formattable, Style}, model::scene::Scene, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32
+    model::scene::Scene,
+    ui::style::{Formattable, Style},
+    SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32,
 };
 
 use super::{
-    elements::{uielement::UIElement, utils::ElemType}, ui::UI
+    elements::{uielement::UIElement, utils::ElemType},
+    ui::UI,
 };
-
 
 #[derive(Clone)]
 pub struct Editing {
@@ -30,7 +36,7 @@ pub struct UIContext {
     pub draw_time_samples: u32,
     pub last_ui_draw: Instant,
     pub final_img: bool,
-    pub image_asked: bool
+    pub image_asked: bool,
 }
 
 impl UIContext {
@@ -47,7 +53,7 @@ impl UIContext {
             draw_time_samples: 0,
             last_ui_draw: Instant::now(),
             final_img: false,
-            image_asked: false
+            image_asked: false,
         }
     }
 }
@@ -170,4 +176,11 @@ pub fn give_back_element(ui: &mut UI, elem: UIElement, parent_ref: String, index
             elems.insert(index, elem);
         }
     }
+}
+
+pub fn is_inside_box(to_check: (u32, u32), box_pos: (u32, u32), box_size: (u32, u32)) -> bool {
+    return to_check.0 > box_pos.0
+        && to_check.0 < box_pos.0 + box_size.0
+        && to_check.1 > box_pos.1
+        && to_check.1 < box_pos.1 + box_size.1;
 }
