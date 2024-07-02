@@ -24,26 +24,8 @@ use crate::{
 
 use super::{
     display::{self, blend_scene_and_ui, redraw_if_necessary},
-    events::{handle_event, key_held},
+    events::{handle_event, key_held}, ui_setup::setup_ui,
 };
-
-pub fn setup_uisettings(ui: &mut UI, scene: &Arc<RwLock<Scene>>) {
-    let mut settings_box = UIBox::new("uisettings".to_string(), (0, 0), ui.uisettings().gui_width);
-    settings_box.add_elements(ui.uisettings().get_fields(ui.uisettings()));
-    settings_box.add_elements(scene.read().unwrap().settings().get_fields(ui.uisettings()));
-    settings_box.set_edit_bar(ui.uisettings(), None);
-
-    let index = ui.add_box(settings_box);
-    ui.set_active_box(index);
-}
-
-pub fn setup_ui(scene: &Arc<RwLock<Scene>>) -> UI {
-    let (ra, tb) = start_render_threads(Arc::clone(&scene));
-    tb.send(true).unwrap();
-    let mut ui = UI::default(ra, tb);
-    setup_uisettings(&mut ui, scene);
-    ui
-}
 
 pub fn start_scene(scene: Scene) {
     let scene = scene;

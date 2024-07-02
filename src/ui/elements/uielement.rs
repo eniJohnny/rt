@@ -184,7 +184,7 @@ impl UIElement {
         }
     }
 
-    pub fn process(&mut self, ui: &UI, scene: &Arc<RwLock<Scene>>, max_height: u32) -> Vec<HitBox> {
+    pub fn generate_hitbox(&mut self, ui: &UI, scene: &Arc<RwLock<Scene>>, max_height: u32) -> Vec<HitBox> {
         let mut vec = vec![];
         if max_height == 0 {
             return vec;
@@ -209,7 +209,7 @@ impl UIElement {
                             disabled: matches!(elem.elem_type, ElemType::Row(_)),
                         };
                         elem.hitbox = Some(hitbox.clone());
-                        let hitbox_list = elem.process(ui, scene, max_height);
+                        let hitbox_list = elem.generate_hitbox(ui, scene, max_height);
                         offset_x += available_width + ui.uisettings().margin;
                         vec.push(hitbox);
                         for hitbox in hitbox_list {
@@ -237,7 +237,7 @@ impl UIElement {
                                     disabled: matches!(elem.elem_type, ElemType::Row(_)),
                                 };
                                 elem.hitbox = Some(hitbox.clone());
-                                let hitbox_list = elem.process(ui, scene, max_height - offset_y);
+                                let hitbox_list = elem.generate_hitbox(ui, scene, max_height - offset_y);
                                 let needed_height =
                                     hitbox.pos.1 + hitbox.size.1 + ui.uisettings().margin - parent_hitbox.pos.1;
                                 if !hitbox.disabled && needed_height > offset_y {
@@ -278,6 +278,22 @@ impl UIElement {
         }
 
         vec
+    }
+
+    pub fn translate_hitboxes(&mut self, absolute_pos: (u32, u32)) {
+        if let Some(hitbox) = &mut self.hitbox {
+            hitbox.pos.0 += absolute_pos.0;
+            hitbox.pos.1 += absolute_pos.1;
+        }
+        if let ElemType::Category(cat) = &mut self.elem_type {
+            for elem in &mut cat.elems {
+                elem.translate_hitboxes(absolute_pos);
+            }
+        } else if let ElemType::Row(elems) = &mut self.elem_type {
+            for elem in elems {
+                elem.translate_hitboxes(absolute_pos);
+            }
+        }
     }
 
     pub fn draw(&self, img: &mut RgbaImage, ui: &UI, scene: &Arc<RwLock<Scene>>) {

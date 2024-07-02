@@ -18,7 +18,7 @@ use crate::{
 pub fn blend_scene_and_ui(context: &UIContext, active_box: Option<&UIBox>) -> RgbaImage {
     let mut active_hitbox: Option<((u32, u32), (u32, u32))> = None;
     if let Some(active_box) = active_box {
-        active_hitbox = Some((active_box.pos, active_box.size));
+        active_hitbox = Some((active_box.absolute_pos, active_box.size));
     }
     let mut image = context.ui_img.clone();
     for (x, y, pixel) in image.enumerate_pixels_mut() {
