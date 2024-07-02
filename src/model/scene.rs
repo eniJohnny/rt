@@ -207,6 +207,12 @@ impl Scene {
             .collect()
     }
 
+    pub fn test_all_elements(&self) -> Vec<&crate::model::Element> {
+        self.elements
+            .iter()
+            .collect()
+    }
+
     // Mutators
 
     pub fn set_elements(&mut self, elements: Vec<Element>) {

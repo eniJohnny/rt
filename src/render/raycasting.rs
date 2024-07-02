@@ -9,7 +9,7 @@ use crate::{
         maths::{hit::Hit, quaternion::Quaternion, ray::Ray, vec3::Vec3},
         scene::Scene,
         Element,
-    }, ANTIALIASING, MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH
+    }, ANTIALIASING, DEBUG_BVH, MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH
 };
 
 use super::{
@@ -74,8 +74,16 @@ pub fn sampling_ray(scene: &Scene, ray: &Ray) -> PathBucket {
 
 pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     let mut closest: Option<Hit> = None;
-    let elements = &scene.non_bvh_elements();
-    // let elements = scene.elements();
+    // let elements = scene.non_bvh_elements();
+
+    // TESTING PURPOSES
+    let elements;
+    if DEBUG_BVH {
+        elements = scene.non_bvh_elements();
+    } else {
+        elements = scene.test_all_elements();
+    }
+    // END TESTING PURPOSES
 
     for element in elements {
         let mut t = None;

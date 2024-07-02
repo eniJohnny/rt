@@ -13,6 +13,10 @@ pub mod picker;
 pub mod render;
 pub mod bvh;
 
+const DEBUG_BVH: bool = true;
+const SCENE_FOLDER: &str = "scenes";
+const SCENE: &str = "random100";
+
 const AABB_OPACITY: f64 = 0.0;
 const AABB_STEPS_NB: usize = 10;
 const DISPLAY_WIREFRAME: bool = false;
@@ -46,9 +50,7 @@ const UISETTINGS: &str = "uisettings";
 const SETTINGS: &str = "settings";
 const TOOLBAR: &str = "toolbar";
 
-const SCENE_FOLDER: &str = "scenes";
 const PICKER_LINE_HEIGHT: f64 = 30.0;
-// const SCENE: &str = "scenes/sphere.json";
 const FPS: u64 = 20;
 
 const RGB_KEYS: [&str; 3] = ["colr", "colg", "colb"];
@@ -66,7 +68,7 @@ const CAM_MOVE_KEYS: [KeyCode; 10] = [
 ];
 
 pub fn run() {
-    let path = String::from("scenes/metalrough.json");
+    let path = String::from(format!("{}/{}.json", SCENE_FOLDER, SCENE));
     if path != "" {
         let mut scene = get_scene(&path);
         scene.add_skysphere_texture("skysphere.jpg");

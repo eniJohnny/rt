@@ -22,34 +22,37 @@ use super::{
 
 pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
     let node = scene.bvh().as_ref().unwrap();
+    let hit;
     
-    let mut hit = None;
-    let non_bvh_hit = get_closest_hit(scene, ray);
-    let bvh_hit = traverse_bvh(ray, Some(node), scene);
+    if DEBUG_BVH {
+        let non_bvh_hit = get_closest_hit(scene, ray);
+        let bvh_hit = traverse_bvh(ray, Some(node), scene);
 
-    match (non_bvh_hit, bvh_hit) {
-        (Some(non_bvh), Some(bvh)) => {
-            if non_bvh.dist() < bvh.dist() {
+
+        match (non_bvh_hit, bvh_hit) {
+            (Some(non_bvh), Some(bvh)) => {
+                if non_bvh.dist() < bvh.dist() {
+                    hit = Some(non_bvh);
+                } else {
+                    hit = Some(bvh);
+                }
+            },
+            (Some(non_bvh), None) => {
                 hit = Some(non_bvh);
-            } else {
+            },
+            (None, Some(bvh)) => {
                 hit = Some(bvh);
-            }
-        },
-        (Some(non_bvh), None) => {
-            hit = Some(non_bvh);
-        },
-        (None, Some(bvh)) => {
-            hit = Some(bvh);
-        },
-        (None, None) => {
-            return Color::new(0., 0., 0.);
-        },
-    };
-
-    // let mut hit = match get_closest_hit(scene, ray) {
-    //     Some(hit) => hit,
-    //     None => return Color::new(0., 0., 0.),
-    // };
+            },
+            (None, None) => {
+                return Color::new(0., 0., 0.);
+            },
+        };
+    } else {
+            hit = match get_closest_hit(scene, ray) {
+            Some(hit) => Some(hit),
+            None => return Color::new(0., 0., 0.),
+        };
+    }
 
     let mut hit = hit.unwrap();
     hit.map_textures(scene.textures());
