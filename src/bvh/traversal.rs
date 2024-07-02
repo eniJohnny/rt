@@ -90,10 +90,6 @@ pub fn traverse_bvh<'a>(ray: &Ray, node: Option<&Node>, scene: &'a Scene) -> Opt
         None => return None,
     };
 
-    // if !ray_intersects_aabb(ray, &node.aabb()) && !node.aabb().contains_point(ray.get_pos()) {
-    //     return None;
-    // }
-    
     if node.is_leaf() {
         let mut closest_hit: HitInfo = HitInfo {
             element_index: 0,
@@ -106,7 +102,7 @@ pub fn traverse_bvh<'a>(ray: &Ray, node: Option<&Node>, scene: &'a Scene) -> Opt
             let hit = element.shape().intersect(ray);
             if let Some(hit) = hit {
                 let tmin = hit[0];
-                let tmax = hit[1];
+                let tmax = if hit.len() > 1 {hit[1]} else {tmin};
 
                 if (tmin == closest_hit.tmin && tmax < closest_hit.tmax) || tmin < closest_hit.tmin {
                     closest_hit.element_index = element_index;

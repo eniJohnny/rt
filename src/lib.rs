@@ -11,6 +11,10 @@ pub mod picker;
 pub mod render;
 pub mod bvh;
 
+const DEBUG_BVH: bool = true;
+const SCENE_FOLDER: &str = "scenes";
+const SCENE: &str = "random100";
+
 const AABB_OPACITY: f64 = 0.0;
 const AABB_STEPS_NB: usize = 10;
 const DISPLAY_WIREFRAME: bool = false;
@@ -29,9 +33,7 @@ const ANTIALIASING: f64 = 0.001;
 const MAX_ITERATIONS: i32 = 1000;
 const MAX_EMISSIVE: f64 = 100.;
 
-const SCENE_FOLDER: &str = "scenes";
 const PICKER_LINE_HEIGHT: f64 = 30.0;
-// const SCENE: &str = "scenes/sphere.json";
 const FPS: u64 = 20;
 
 const RGB_KEYS: [&str; 3] = ["colr", "colg", "colb"];
@@ -49,7 +51,7 @@ const CAM_MOVE_KEYS: [VirtualKeyCode; 10] = [
 ];
 
 pub fn run() {
-    let path = String::from("scenes/bvh_test.json");
+    let path = String::from(format!("{}/{}.json", SCENE_FOLDER, SCENE));
     if path != "" {
         let mut scene = get_scene(&path);
         if DISPLAY_WIREFRAME {
@@ -63,6 +65,11 @@ pub fn run() {
         // testing nodes
         // bvh::node::test_node_insertion(&mut scene);
 
+        if DEBUG_BVH {
+            println!("Debugging BVH");
+        } else {
+            println!("Debugging non BVH");
+        }
         display_scene(scene);
     }
 }
