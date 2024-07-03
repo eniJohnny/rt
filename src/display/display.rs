@@ -41,7 +41,7 @@ pub fn redraw_if_necessary(ui: &mut UI, scene: &Arc<RwLock<Scene>>, mut pixels: 
         || ui.context().unwrap().last_ui_draw.elapsed().as_millis()
             > ui.uisettings().ui_refresh_time as u128
     {
-        ui.process(&scene);
+        ui.generate_hitboxes(&scene);
     }
     let mut context = ui.take_context();
     let ui_img = &mut context.ui_img;

@@ -55,14 +55,14 @@ impl Settings {
 }
 
 impl Displayable for Settings {
-    fn get_fields(&self, settings: &UISettings) -> Vec<UIElement> {
+    fn get_fields(&self, name: &str, settings: &UISettings) -> Vec<UIElement> {
         let mut category = Category::default();
         category.elems.push(UIElement::new(
             "Iterations",
             "iterations",
             ElemType::Property(Property::new(
                 Value::Unsigned(self.iterations as u32),
-                Box::new(|value: Value, scene, ui| {
+                Box::new(|_, value: Value, scene, ui| {
                     if let Value::Unsigned(value) = value {
                         scene.write().unwrap().settings_mut().iterations = value as usize;
                         scene.write().unwrap().set_dirty(true);
@@ -78,7 +78,7 @@ impl Displayable for Settings {
             "chk_reflect",
             ElemType::Property(Property::new(
                 Value::Bool(self.reflections),
-                Box::new(|value, scene, ui| {
+                Box::new(|_, value, scene, ui| {
                     if let Value::Bool(value) = value {
                         scene.write().unwrap().settings_mut().reflections = value;
                         scene.write().unwrap().set_dirty(true);
@@ -94,7 +94,7 @@ impl Displayable for Settings {
             "chk_indirect",
             ElemType::Property(Property::new(
                 Value::Bool(self.indirect),
-                Box::new(|value, scene, ui| {
+                Box::new(|_, value, scene, ui| {
                     if let Value::Bool(value) = value {
                         scene.write().unwrap().settings_mut().indirect = value;
                         scene.write().unwrap().set_dirty(true);
@@ -136,7 +136,7 @@ impl Displayable for Settings {
         view_mode_radio.add_element(gi);
         view_mode_radio.add_element(simple);
         let mut category = UIElement::new(
-            "Render settings",
+            name,
             "settings",
             ElemType::Category(category),
             settings,

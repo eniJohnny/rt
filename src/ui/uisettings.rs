@@ -37,7 +37,7 @@ impl UISettings {
 }
 
 impl Displayable for UISettings {
-    fn get_fields(&self, settings: &UISettings) -> Vec<UIElement> {
+    fn get_fields(&self, name: &str, settings: &UISettings) -> Vec<UIElement> {
         let mut category = Category {
             collapsed: false,
             elems: vec![],
@@ -47,7 +47,7 @@ impl Displayable for UISettings {
             "margin",
             ElemType::Property(Property::new(
                 Value::Unsigned(self.margin),
-                Box::new(|value, _, ui| {
+                Box::new(|_, value, _, ui| {
                     if let Value::Unsigned(value) = value {
                         ui.uisettings_mut().margin = value
                     }
@@ -70,7 +70,7 @@ impl Displayable for UISettings {
             "refresh",
             ElemType::Property(Property::new(
                 Value::Unsigned(self.ui_refresh_time),
-                Box::new(|value, _, ui| {
+                Box::new(|_, value, _, ui| {
                     if let Value::Unsigned(value) = value {
                         ui.uisettings_mut().ui_refresh_time = value
                     }
@@ -101,7 +101,7 @@ impl Displayable for UISettings {
         ));
 
         vec![UIElement::new(
-            "UI Settings",
+            name,
             "uisettings",
             ElemType::Category(category),
             settings,

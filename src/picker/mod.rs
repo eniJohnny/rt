@@ -31,11 +31,11 @@ use crate::{
     SCREEN_WIDTH_U32,
 };
 
-fn get_files_in_folder() -> io::Result<Vec<String>> {
+pub fn get_files_in_folder(path: &str) -> io::Result<Vec<String>> {
     let mut files = Vec::new();
 
     // Read the directory
-    for entry in fs::read_dir(SCENE_FOLDER)? {
+    for entry in fs::read_dir(path)? {
         let entry = entry?;
         let path = entry.path();
 
@@ -305,7 +305,7 @@ fn get_file_name(
 
 pub fn pick_scene() -> String {
     // Get the list of scenes
-    let files = get_files_in_folder();
+    let files = get_files_in_folder(SCENE_FOLDER);
 
     // Display the list of scenes
     let path = display_files(files.unwrap());

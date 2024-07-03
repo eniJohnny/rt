@@ -1,10 +1,12 @@
 use std::sync::{Arc, RwLock};
 
-use crate::{ui::{style::{Formattable, Style, StyleBuilder}, ui::UI, uisettings::UISettings}, model::scene::Scene};
+use crate::{model::scene::Scene, ui::{style::{Formattable, Style, StyleBuilder}, ui::UI, uibox::UIBox, uisettings::UISettings}};
 
 use super::uielement::{Category, UIElement};
 
-
+pub type FnSubmit = Box<dyn Fn(Option<&UIElement>, Value, &Arc<RwLock<Scene>>, &mut UI)>;
+pub type FnApply = Box<dyn Fn(Option<&mut UIElement>, &Arc<RwLock<Scene>>, &mut UI)>;
+pub type FnValidate = Box<dyn Fn(&Value) -> Result<(), &'static str>>;
 
 #[derive(Debug, Clone)]
 pub enum Value {
@@ -59,12 +61,6 @@ impl Formattable for ElemType {
         }
     }
 }
-
-
-
-pub type FnSubmit = Box<dyn Fn(Value, &Arc<RwLock<Scene>>, &mut UI)>;
-pub type FnApply = Box<dyn Fn(&Arc<RwLock<Scene>>, &mut UI)>;
-pub type FnValidate = Box<dyn Fn(&Value) -> Result<(), &'static str>>;
 
 pub struct Property {
     pub value: Value,

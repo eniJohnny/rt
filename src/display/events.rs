@@ -91,7 +91,7 @@ fn key_pressed_editing(
         }
         Key::Named(NamedKey::Enter) => {
             let mut err = None;
-            if let Some(property) = ui.get_property_by_reference(&edit.reference) {
+            if let Some(property) = ui.get_property_mut(&edit.reference) {
                 match property.get_value_from_string(value.clone()) {
                     Err(error) => {
                         err = Some(error);
@@ -108,7 +108,7 @@ fn key_pressed_editing(
             }
             let tmp_ref = edit.reference.clone();
             let box_ref = tmp_ref.split(".").next().unwrap().to_string();
-            let uibox = ui.get_box_mut(box_ref);
+            let uibox = ui.get_box_mut(&box_ref);
             if let Some(edit_bar) = &mut uibox.edit_bar {
                 if let Some(err) = err {
                     edit_bar.text.0 = Some(err);
