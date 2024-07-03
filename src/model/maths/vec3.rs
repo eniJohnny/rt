@@ -176,6 +176,17 @@ impl Sub<&Vec3> for &Vec3 {
     }
 }
 
+impl Sub<f64> for Vec3 {
+    type Output = Self;
+    fn sub(self, rhs: f64) -> Self::Output {
+        Self {
+            x: self.x - rhs,
+            y: self.y - rhs,
+            z: self.z - rhs,
+        }
+    }
+}
+
 impl Mul<Self> for Vec3 {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self::Output {

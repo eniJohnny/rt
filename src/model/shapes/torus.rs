@@ -1,6 +1,7 @@
 use super::Shape;
 use crate::model::materials::material::Projection;
-use crate::model::maths::ray;
+use crate::model::maths::{hit, ray};
+use crate::model::maths::vec2::Vec2;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 use roots::{find_roots_quartic, Roots};
 
@@ -21,62 +22,102 @@ impl Shape for Torus {
     }
 
     fn intersect(&self, ray: &Ray) -> Option<Vec<f64>> {
-        /*
-            (x² + y² + z² + R² − r²)² − 4 * R² * (x² + y²) = 0
-            P(t) = O + t * D where O is the origin of the ray and D is the direction of the ray
-            ((Oˣ ​+ tDˣ​)² + (Oʸ​ + tDʸ​)² + (Oᶻ​ + tDᶻ​)² + R² − r²)² − 4 * R² * ((Oˣ​ + tDˣ​)² + (Oʸ​ + tDʸ​)²) = 0
-            At⁴ + Bt³ + Ct² + Dt + E = 0
-        */
-        let ray_origin = ray.get_pos();
-        let ray_direction = ray.get_dir().normalize();
-        let torus_center = self.pos();
-        let torus_direction = self.dir().normalize();
-        let major_radius = self.radius;
-        let minor_radius = self.radius2;
-        
-        let rotation_axis = ray_direction.cross(&torus_direction);
-        let rotation_angle = ray_direction.angle(&torus_direction);
+        let ro = ray.get_pos();
+        let rd = ray.get_dir();
 
-        let rotated_ray_origin = ray_origin;
-        let rotated_ray_direction = ray_direction.rotate_from_axis_angle(rotation_angle, &rotation_axis);
+        // let cos_theta = ray.get_dir().dot(&self.dir);
+        // let ro = ray.get_pos() - self.pos;
+        // let rd = ray.get_dir() - self.dir * cos_theta;
 
-        let ox = *rotated_ray_origin.x() - torus_center.x();
-        let oy = *rotated_ray_origin.y() - torus_center.y();
-        let oz = *rotated_ray_origin.z() - torus_center.z();
-        let dx = *rotated_ray_direction.x();
-        let dy = *rotated_ray_direction.y();
-        let dz = *rotated_ray_direction.z();
-        let r = major_radius;
-        let R = minor_radius;
-        let r2 = r * r;
-        let R2 = R * R;
 
-        let a4 = dx * dx + dy * dy + dz * dz;
-        let a3 = 4.0 * (ox * dx + oy * dy + oz * dz);
-        let a2 = 2.0 * (ox * ox + oy * oy + oz * oz + r2 - R2 + r * (dx * dx + dy * dy + dz * dz));
-        let a1 = 4.0 * r * (ox * dx + oy * dy + oz * dz);
-        let a0 = ox * ox + oy * oy + oz * oz + r2 - R2;
+        let mut po = 1.0;
+        let Ra2 = self.radius * self.radius;
+        let ra2 = self.radius2 * self.radius2;
+        let m = ro.dot(&ro);
+        let n = rd.dot(&ro);
+        let k = (m + Ra2 - ra2) / 2.0;
+        let mut k3 = n;
+        let mut k2 = n * n - Ra2 * rd.dot(&rd) + k;
+        let mut k1 = n * k - Ra2 * ro.dot(&rd);
+        let mut k0 = k * k - Ra2 * ro.dot(&ro);
 
-        let roots = find_roots_quartic(a4, a3, a2, a1, a0);
+        if (k3 * (k3 * k3 - k2) + k1).abs() - f64::EPSILON < 0.0 {
+            (k1, k3) = (k3, k1);
 
-        // println!("\n\nRay Origin: {:?}", ray.get_pos());
-        // println!("Ray Direction: {:?}", ray.get_dir());
-        // println!("Torus Center: {:?}", self.pos());
-        // println!("Torus Direction: {:?}", self.dir());
-        // println!("Rotation Axis: {:?}", rotation_axis);
-        // println!("Rotation Angle: {:?}", rotation_angle);
-        // println!("Rotated Ray Origin: {:?}", rotated_ray_origin);
-        // println!("Rotated Ray Direction: {:?}", rotated_ray_direction);
-        // println!("Coefficients: a={}, b={}, c={}, d={}, e={}", a, b, c, d, e);
-        // println!("Roots: {:?}", roots);
-
-        return match roots {
-            Roots::No(_) => None,
-            Roots::One([t]) => Some(vec![t]),
-            Roots::Two([t1, t2]) => Some(vec![t1, t2]),
-            Roots::Three([t1, t2, t3]) => Some(vec![t1, t2, t3]),
-            Roots::Four([t1, t2, t3, t4]) => Some(vec![t1, t2, t3, t4]),
+            po = -1.0;
+            k0 = 1.0 / k0;
+            k1 *= k0;
+            k2 *= k0;
+            k3 *= k0;
         }
+
+        let mut c2 = k2 * 2.0 - 3.0 * k3 * k3;
+        let mut c1 = k3 * (k3 * k3 - k2) + k1;
+        let mut c0 = k3 * (k3 * (c2 + 2.0 * k2) - 8.0 * k1) + 4.0 * k0;
+
+        c2 /= 3.0;
+        c1 *= 2.0;
+        c0 /= 3.0;
+
+        let Q = c2 * c2 + c0;
+        let R = c2 * c2 * c2 - 3.0 * c2 * c0 + c1 * c1;
+        let mut h = R * R - Q * Q * Q;
+        
+        if h >= 0.0 {
+            h = h.sqrt();
+            let v = (R + h).cbrt();
+            let u = (R - h).cbrt();
+            let s = Vec2::new((v + u) + 4.0 * c2, (v - u) * 3.0_f64.sqrt());
+            let y = (0.5 * (s.length() + s.x())).sqrt();
+            let x = 0.5 * s.y() / y;
+            let r = 2.0 * c1 / (x * x + y * y);
+            let t1 = if po < 0.0 {x - r - k3} else {2.0 / (x - r - k3)};
+            let t2 = if po < 0.0 {-x - r - k3} else {2.0 / (-x - r - k3)};
+            let mut t = f64::MAX;
+
+            if t1 > 0.0 {
+                t = t1;
+            }
+            if t2 > 0.0 && t2 < t {
+                t = t2;
+            }
+            if t != f64::MAX {
+                return Some(vec![t]);
+            }
+            return None;
+        }
+
+        let sQ = Q.sqrt();
+        let w = sQ * ((-R / (sQ * Q).acos()) / 3.0).cos();
+        let d2 = -(w + c2);
+
+        if  d2 < 0.0 {
+            return None;
+        }
+
+        let d1 = d2.sqrt();
+        let h2 = (w - 2.0 * c2 - c1 / d1).sqrt();
+        let h1 = (w - 2.0 * c2 + c1 / d1).sqrt();
+        let mut t = f64::MAX;
+
+
+        let tx = vec![
+            if po < 0.0 {-d1 - h1 - k3} else {2.0 / (-d1 - h1 - k3)},
+            if po < 0.0 {-d1 + h1 - k3} else {2.0 / (-d1 + h1 - k3)},
+            if po < 0.0 {d1 - h2 - k3} else {2.0 / (d1 - h2 - k3)},
+            if po < 0.0 {d1 + h2 - k3} else {2.0 / (d1 + h2 - k3)},
+        ];
+        
+        for i in 0..4 {
+            if tx[i] > 0.0 && tx[i] < t {
+                t = tx[i];
+            }
+        }
+
+        if t != f64::MAX {
+            return Some(vec![t]);
+        }
+        None
     }
 
     fn projection(&self, hit: &Hit) -> Projection {
@@ -84,15 +125,15 @@ impl Shape for Torus {
     }
 
     fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {
-        let theta = hit_position.y().atan2(*hit_position.x());
-        let center = Vec3::new(
-            self.radius * theta.cos(),
-            self.radius * theta.sin(),
-            0.0,
-        );
+        let x2 = self.radius * self.radius;
+        let y2 = self.radius2 * self.radius2;
+        
+        let a = hit_position.dot(&hit_position);
+        let b = y2;
+        let c = x2 * Vec3::new(1.0, 1.0, -1.0);
+        let d = c - (a - b);
 
-        let normal = hit_position - center;
-        normal.normalize()
+        (hit_position * d).normalize()
     }
 
     fn as_torus(&self) -> Option<&Torus> {

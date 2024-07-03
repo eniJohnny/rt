@@ -2,11 +2,10 @@
     {
         "type": "torus",
         "pos": [0, 0, 0],
-        "dir": [0, 0, -1],
+        "dir": [0, 0, 1],
         "color": [255, 255, 255],
-        "radius": 5.0,
-        "radius2": 0.2,
-        "metalness": 1.0
+        "radius": 2.5,
+        "radius2": 0.3
     },
     {
         "type": "camera",
