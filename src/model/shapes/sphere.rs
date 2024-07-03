@@ -5,7 +5,7 @@ use crate::model::materials::material::Projection;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 use crate::model::scene::Scene;
 use crate::model::Element;
-use crate::render::raycasting::get_closest_hit_from_t;
+use crate::render::raycasting::{get_closest_hit_from_t, get_sorted_hit_from_t};
 
 #[derive(Debug)]
 pub struct Sphere {
@@ -48,20 +48,28 @@ impl Shape for Sphere {
 		let step = 0.1;
 
 		let mut current_step = 1.;
-		let mut t = self.outer_intersect(ray, current_step, displaced_factor);
-		if let Some(mut hit) = get_closest_hit_from_t(scene, ray, &t, element) {
+		let mut t: Option<Vec<f64>> = self.outer_intersect(ray, current_step, displaced_factor);
+		if let Some(mut hits) = get_sorted_hit_from_t(scene, ray, &t, element) {
+			let mut hit = hits.remove(0);
+			let sec_hit;
+			if hits.len() == 0 {
+				sec_hit = hit.clone();
+			}
+			else {
+				sec_hit = hits.remove(0);
+			}
+
 			let mut sphere_to_hit = hit.pos() - self.pos();
 			let mut hit_distance = sphere_to_hit.length() - self.radius;
 			let mut hit_ratio = hit_distance / total_displacement;
 
 			let mut displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures()).to_value();
-			let mut old_hit_ratio = hit_ratio + 1.;
+			let mut displaced_dist = (hit_ratio - displaced_ratio) * total_displacement;
 			let mut old_displaced_ratio = displaced_ratio;
-			while displaced_ratio < hit_ratio && old_hit_ratio > hit_ratio {
-				let mut displaced_dist = (hit_ratio - displaced_ratio) * total_displacement;
+			while displaced_ratio < hit_ratio && hit.dist() <= sec_hit.dist() && displaced_dist > 0.01 {
 				hit = Hit::new(
 					element,
-					displaced_dist,
+					hit.dist() + displaced_dist,
 					hit.pos() + ray.get_dir() * displaced_dist,
 					ray.get_dir(),
 					scene.textures()
@@ -89,7 +97,7 @@ impl Shape for Sphere {
 				}
 				old_displaced_ratio = displaced_ratio;
 				displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures()).to_value();
-				old_hit_ratio = hit_ratio;
+				displaced_dist = (hit_ratio - displaced_ratio) * total_displacement;
 			}
 			return self.outer_intersect(ray, (displaced_ratio + old_displaced_ratio) / 2., displaced_factor)
 		}

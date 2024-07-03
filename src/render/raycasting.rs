@@ -83,6 +83,31 @@ fn intersect2(plane: &Plane, r: Ray) -> Option<Vec<f64>> {
     None
 }
 
+pub fn get_sorted_hit_from_t<'a>(scene: &'a Scene, ray: &Ray, t: &Option<Vec<f64>>, element: &'a Element) -> Option<Vec<Hit<'a>>> {
+	let mut hits: Vec<Hit> = Vec::new();
+	if let Some(t) = t {
+		for dist in t {
+			if *dist > 0.0 {
+				let new_hit = Hit::new(
+					element,
+					*dist,
+					ray.get_pos() + ray.get_dir() * (*dist - f64::EPSILON),
+					ray.get_dir(),
+					scene.textures(),
+				);
+				if new_hit.opacity() > 0.5 {
+					hits.push(new_hit);
+				}
+			}
+		}
+	}
+	if hits.len() == 0 {
+		return None;
+	}
+	hits.sort_by(|a, b| a.dist().partial_cmp(b.dist()).unwrap());
+	Some(hits)
+}
+
 pub fn get_closest_hit_from_t<'a>(scene: &'a Scene, ray: &Ray, t: &Option<Vec<f64>>, element: &'a Element) -> Option<Hit<'a>> {
     let mut closest: Option<Hit> = None;
 	if let Some(t) = t {
@@ -130,18 +155,6 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     for element in scene.elements().iter() {
         let mut t = None;
 		if let Texture::Texture(file) = element.material().displacement() {
-			// let mut iter_ratio = 1.1;
-			// let mut previous_ratio = 0.;
-			// let mut displaced_ratio = 0.;
-			// while iter_ratio > 0. && displaced_ratio < iter_ratio {
-			// 	iter_ratio -= 0.1;
-			// 	previous_ratio = displaced_ratio;
-			// 	t = element.shape().outer_intersect(ray, iter_ratio);
-			// 	if let Some(mut hit) = get_closest_hit_from_t(scene, ray, &t, element) {
-			// 		displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures()).to_value();
-			// 	}
-			// }
-			// t = element.shape().outer_intersect(ray, (previous_ratio + iter_ratio) / 2.);
 			t = element.shape().intersect_displacement(ray, element, scene);
 		}
 		else {
