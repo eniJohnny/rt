@@ -43,7 +43,7 @@ impl Shape for Sphere {
 	}
 
     fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
-		let displaced_factor = 0.2;
+		let displaced_factor = 0.1;
 		let total_displacement = self.radius * displaced_factor;
 		let step = 0.1;
 
@@ -55,8 +55,9 @@ impl Shape for Sphere {
 			let mut hit_ratio = hit_distance / total_displacement;
 
 			let mut displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures()).to_value();
-			let mut old_ratio = hit_ratio + 1.;
-			while displaced_ratio < hit_ratio && old_ratio > hit_ratio {
+			let mut old_hit_ratio = hit_ratio + 1.;
+			let mut old_displaced_ratio = displaced_ratio;
+			while displaced_ratio < hit_ratio && old_hit_ratio > hit_ratio {
 				let mut displaced_dist = (hit_ratio - displaced_ratio) * total_displacement;
 				hit = Hit::new(
 					element,
@@ -86,10 +87,11 @@ impl Shape for Sphere {
 						difference = current_step - hit_ratio;
 					}
 				}
+				old_displaced_ratio = displaced_ratio;
 				displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures()).to_value();
-				old_ratio = hit_ratio;
+				old_hit_ratio = hit_ratio;
 			}
-			return self.outer_intersect(ray, displaced_ratio, displaced_factor)
+			return self.outer_intersect(ray, (displaced_ratio + old_displaced_ratio) / 2., displaced_factor)
 		}
 		t
 	}
