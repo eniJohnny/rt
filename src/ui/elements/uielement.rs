@@ -8,17 +8,16 @@ use chrono::offset;
 use image::{Rgba, RgbaImage};
 
 use crate::{
-    ui::{
-        draw_utils::{draw_checkbox, draw_element_text}, style::{Formattable, Style, StyleBuilder}, ui::UI, uisettings::UISettings, utils::{get_pos, get_size, split_in_lines, Editing}
-    },
     model::{
         materials::{color::Color, texture::Texture},
         scene::Scene,
-    },
-    SCREEN_WIDTH_U32,
+    }, ui::{
+        draw_utils::{draw_checkbox, draw_element_text}, style::{Formattable, Style, StyleBuilder}, ui::UI, uibox::UIBox, uisettings::UISettings, utils::{get_pos, get_size, split_in_lines, Editing}
+    }, SCREEN_WIDTH_U32
 };
 
-use super::{utils::{ElemType, Property, Value}, HitBox};
+use super::{utils::{ElemType, FnApply, Property, Value}, HitBox};
+
 pub struct UIElement {
     pub visible: bool,
     pub elem_type: ElemType,
@@ -29,6 +28,7 @@ pub struct UIElement {
     pub reference: String,
     pub value: Option<String>,
     pub hitbox: Option<HitBox>,
+    pub on_click: Option<FnApply>
 }
 
 impl UIElement {
@@ -43,6 +43,7 @@ impl UIElement {
             id: id.to_string(),
             value: None,
             hitbox: None,
+            on_click: None
         }
     }
 
@@ -89,7 +90,21 @@ impl UIElement {
         }
     }
 
-    pub fn get_property_by_reference(&mut self, reference: &String) -> Option<&mut Property> {
+    pub fn get_properties_reference(&self, vec: &mut Vec<String>)  {
+        if let ElemType::Property(_) = &self.elem_type {
+            vec.push(self.reference.clone());
+        } else if let ElemType::Row(elems) = &self.elem_type {
+            for elem in elems {
+                elem.get_properties_reference(vec);
+            }
+        } else if let ElemType::Category(cat) = &self.elem_type {
+            for elem in &cat.elems {
+                elem.get_properties_reference(vec);
+            }
+        }
+    }
+
+    pub fn get_property_mut(&mut self, reference: &str) -> Option<&mut Property> {
         match &mut self.elem_type {
             ElemType::Property(property) => {
                 if &self.reference == reference {
@@ -98,14 +113,14 @@ impl UIElement {
             }
             ElemType::Category(cat) => {
                 for elem in &mut cat.elems {
-                    if let Some(property) = elem.get_property_by_reference(reference) {
+                    if let Some(property) = elem.get_property_mut(reference) {
                         return Some(property);
                     }
                 }
             }
             ElemType::Row(elems) => {
                 for elem in elems {
-                    if let Some(property) = elem.get_property_by_reference(reference) {
+                    if let Some(property) = elem.get_property_mut(reference) {
                         return Some(property);
                     }
                 }
@@ -115,14 +130,14 @@ impl UIElement {
         None
     }
 
-    pub fn get_element_by_reference_mut(&mut self, reference: &String) -> Option<&mut UIElement> {
+    pub fn get_element_mut(&mut self, reference: &str) -> Option<&mut UIElement> {
         if &self.reference == reference {
             return Some(self);
         }
         match &mut self.elem_type {
             ElemType::Category(cat) => {
                 for elem in &mut cat.elems {
-                    let result = elem.get_element_by_reference_mut(reference);
+                    let result = elem.get_element_mut(reference);
                     if result.is_some() {
                         return result;
                     }
@@ -130,7 +145,7 @@ impl UIElement {
             }
             ElemType::Row(elems) => {
                 for elem in elems {
-                    let result = elem.get_element_by_reference_mut(reference);
+                    let result = elem.get_element_mut(reference);
                     if result.is_some() {
                         return result;
                     }
@@ -176,7 +191,7 @@ impl UIElement {
                 elem.submit_properties(scene, ui);
             }
         } else if let ElemType::Property(prop) = &self.elem_type {
-            (prop.fn_submit)(prop.value.clone(), scene, ui);
+            (prop.fn_submit)(Some(self), prop.value.clone(), scene, ui);
         } else if let ElemType::Row(elems) = &self.elem_type {
             for elem in elems {
                 elem.submit_properties(scene, ui);
@@ -196,24 +211,26 @@ impl UIElement {
                         parent_hitbox.size.0 / elems.len() as u32 - ui.uisettings().margin;
                     let mut offset_x = 0;
                     for elem in elems {
-                        let size = get_size(&elem.text, &elem.style, (available_width, max_height));
-                        let center = (available_width / 2, parent_hitbox.size.1);
-                        let pos = (
-                            parent_hitbox.pos.0 + offset_x + center.0 - size.0 / 2,
-                            parent_hitbox.pos.1 + center.1 - size.1 / 2,
-                        );
-                        let hitbox = HitBox {
-                            pos,
-                            size,
-                            reference: elem.reference.clone(),
-                            disabled: matches!(elem.elem_type, ElemType::Row(_)),
-                        };
-                        elem.hitbox = Some(hitbox.clone());
-                        let hitbox_list = elem.generate_hitbox(ui, scene, max_height);
-                        offset_x += available_width + ui.uisettings().margin;
-                        vec.push(hitbox);
-                        for hitbox in hitbox_list {
+                        if elem.visible {
+                            let size = get_size(&elem.text, &elem.style, (available_width, max_height));
+                            let center = (available_width / 2, parent_hitbox.size.1);
+                            let pos = (
+                                parent_hitbox.pos.0 + offset_x + center.0 - size.0 / 2,
+                                parent_hitbox.pos.1 + center.1 - size.1 / 2,
+                            );
+                            let hitbox = HitBox {
+                                pos,
+                                size,
+                                reference: elem.reference.clone(),
+                                disabled: matches!(elem.elem_type, ElemType::Row(_)),
+                            };
+                            elem.hitbox = Some(hitbox.clone());
+                            let hitbox_list = elem.generate_hitbox(ui, scene, max_height);
+                            offset_x += available_width + ui.uisettings().margin;
                             vec.push(hitbox);
+                            for hitbox in hitbox_list {
+                                vec.push(hitbox);
+                            }
                         }
                     }
                 }
@@ -301,7 +318,9 @@ impl UIElement {
             match &self.elem_type {
                 ElemType::Row(elems) => {
                     for elem in elems {
-                        elem.draw(img, ui, scene);
+                        if elem.visible {
+                            elem.draw(img, ui, scene);
+                        }
                     }
                 }
                 ElemType::Button(..) => {
@@ -312,7 +331,9 @@ impl UIElement {
 
                     if !cat.collapsed {
                         for elem in &cat.elems {
-                            elem.draw(img, ui, scene);
+                            if elem.visible {
+                                elem.draw(img, ui, scene);
+                            }
                         }
                     }
                 }
@@ -408,6 +429,23 @@ impl UIElement {
                 cat.collapsed = !cat.collapsed;
             }
             _ => (),
+        }
+        if let Some(click) = self.on_click.take() {
+            click(Some(self), scene, ui);
+            self.on_click = Some(click);
+        }
+    }
+
+    pub fn set_disabled(&mut self, disabled: bool) {
+        self.style.disabled = disabled;
+        if let ElemType::Category(cat) = &mut self.elem_type {
+            for elem in &mut cat.elems {
+                elem.set_disabled(disabled);
+            }
+        } else if let ElemType::Row(elems) = &mut self.elem_type {
+            for elem in elems {
+                elem.set_disabled(disabled);
+            }
         }
     }
 }

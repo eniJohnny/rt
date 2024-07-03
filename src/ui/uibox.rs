@@ -16,7 +16,7 @@ use super::{
     elements::{
         uieditbar::UIEditBar,
         uielement::UIElement,
-        utils::{ElemType, FnApply},
+        utils::{ElemType, FnApply, Property},
         HitBox,
     },
     ui::UI,
@@ -37,7 +37,7 @@ pub struct UIBox {
 }
 
 impl UIBox {
-    pub fn new(reference: String, pos: BoxPosition, width: u32) -> UIBox {
+    pub fn new(reference: &str, pos: BoxPosition, width: u32) -> UIBox {
         UIBox {
             relative_pos: pos,
             absolute_pos: (0, 0),
@@ -47,7 +47,7 @@ impl UIBox {
             // borders: None,
             visible: true,
             elems: vec![],
-            reference: reference.clone(),
+            reference: reference.to_string(),
             edit_bar: None,
         }
     }
@@ -85,6 +85,24 @@ impl UIBox {
 
     pub fn show(&mut self) {
         self.visible = true;
+    }
+
+    pub fn get_property_mut(&mut self, reference: &str) -> Option<&mut Property> {
+        for elem in &mut self.elems {
+            if let Some(property) = elem.get_property_mut(reference) {
+                return Some(property);
+            }
+        }
+        None
+    }
+
+    pub fn get_element_mut(&mut self, reference: &str) -> Option<&mut UIElement>{
+        for elem in &mut self.elems {
+            if let Some(elem) = elem.get_element_mut(reference) {
+                return Some(elem);
+            }
+        }
+        None
     }
 
     pub fn generate_hitboxes(

@@ -28,6 +28,16 @@ impl Vec3 {
         &self.z
     }
 
+    pub fn set_x(&mut self, x: f64) {
+        self.x = x;
+    }
+    pub fn set_y(&mut self, y: f64) {
+        self.y = y;
+    }
+    pub fn set_z(&mut self, z: f64) {
+        self.z = z;
+    }
+
     pub fn dot(&self, other: &Self) -> f64 {
         self.x * other.x + self.y * other.y + self.z * other.z
     }

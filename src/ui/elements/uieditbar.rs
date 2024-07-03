@@ -3,11 +3,9 @@ use std::sync::{Arc, RwLock};
 use image::RgbaImage;
 
 use crate::{
-    ui::{
-        draw_utils::draw_element_text, settings, style::{self, Style}, ui::UI, uisettings::UISettings, utils::{get_size, split_in_lines}
-    },
-    model::{maths::hit::Hit, scene::Scene},
-    SCREEN_HEIGHT_U32,
+    model::{maths::hit::Hit, scene::Scene}, ui::{
+        draw_utils::draw_element_text, settings, style::{self, Style}, ui::UI, uisettings::UISettings, utils::{get_size, give_back_element, split_in_lines, take_element}
+    }, SCREEN_HEIGHT_U32
 };
 
 use super::{utils::FnApply, HitBox};
@@ -26,24 +24,33 @@ pub struct UIEditBar {
 
 impl UIEditBar {
     pub fn cancel(scene: &Arc<RwLock<Scene>>, ui: &mut UI, reference: String) {
-        let uibox = ui.get_box_mut(reference);
+        let uibox = ui.get_box_mut(&reference);
         for elem in &mut uibox.elems {
             elem.reset_properties(scene);
         }
     }
     pub fn apply(scene: &Arc<RwLock<Scene>>, ui: &mut UI, reference: String) {
-        let mut vector = ui.get_box_mut(reference.clone()).elems.split_off(0);
-        for elem in &mut vector {
-            elem.submit_properties(scene, ui);
+        let mut properties_vec = vec![];
+        let uibox = ui.get_box(&reference);
+        for elem in &uibox.elems {
+            elem.get_properties_reference(&mut properties_vec);
         }
-        let uibox = ui.get_box_mut((reference).clone());
-        uibox.elems.append(&mut vector);
-
+        for reference in properties_vec {
+            if let Some((mut elem, parent_ref, index)) =
+                take_element(ui, reference.clone())
+            {
+                elem.submit_properties(scene, ui);
+                give_back_element(ui, elem, parent_ref, index);
+            } else {
+                println!("ERROR: UIElement {} not found", reference)
+            }
+        }
+        let uibox = ui.get_box_mut(&reference);
         if let Some(edit_bar) = uibox.edit_bar.take() {
             if let Some(on_apply) = &edit_bar.on_apply {
-                on_apply(scene, ui);
+                on_apply(None, scene, ui);
             }
-            let uibox = ui.get_box_mut((reference).clone());
+            let uibox = ui.get_box_mut(&reference);
             uibox.edit_bar = Some(edit_bar);
         }
     }

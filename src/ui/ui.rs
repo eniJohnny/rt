@@ -111,39 +111,40 @@ impl UI {
         self.dirty = true;
     }
 
-    pub fn get_box(&self, reference: String) -> &UIBox {
+    pub fn get_box(&self, reference: &str) -> &UIBox {
         self.boxes
-            .get(&reference)
+            .get(reference)
             .expect("ERROR : Couldn't find the added UIBox")
     }
 
-    pub fn get_box_mut(&mut self, reference: String) -> &mut UIBox {
-        self.boxes.get_mut(&reference).expect(&format!(
+    pub fn get_box_mut(&mut self, reference: &str) -> &mut UIBox {
+        self.boxes.get_mut(reference).expect(&format!(
             "ERROR : Couldn't find the added UIBox {}",
             reference
         ))
     }
 
-    pub fn get_element_by_reference_mut(&mut self, reference: String) -> Option<&mut UIElement> {
+    pub fn take_box(&mut self, reference: &str) -> UIBox {
+        self.boxes.remove(reference).expect("UIBox not found")
+    }
+
+    pub fn give_back_box(&mut self, uibox: UIBox) {
+        self.boxes.insert(uibox.reference.clone(), uibox);
+    }
+
+    pub fn get_element_mut(&mut self, reference: String) -> Option<&mut UIElement> {
         for uibox in self.boxes.values_mut() {
-            for elem in &mut uibox.elems {
-                if let Some(elem) = elem.get_element_by_reference_mut(&reference) {
-                    return Some(elem);
-                }
-            }
+            return uibox.get_element_mut(&reference);
         }
         println!("Element {} not found", reference);
         None
     }
 
-    pub fn get_property_by_reference(&mut self, reference: &String) -> Option<&mut Property> {
+    pub fn get_property_mut(&mut self, reference: &String) -> Option<&mut Property> {
         for uibox in self.boxes.values_mut() {
-            for elem in &mut uibox.elems {
-                if let Some(property) = elem.get_property_by_reference(reference) {
-                    return Some(property);
-                }
-            }
+            return uibox.get_property_mut(reference);
         }
+        println!("Property {} not found", reference);
         None
     }
 
@@ -208,7 +209,7 @@ impl UI {
     }
 
     pub fn validate_properties(&mut self, reference: String) {
-        let uibox = self.get_box_mut(reference.clone());
+        let uibox = self.get_box_mut(&reference);
         let mut error = None;
         for elem in &mut uibox.elems {
             if let Err(e) = elem.validate_properties() {
@@ -226,7 +227,7 @@ impl UI {
         }
     }
 
-    pub fn process(&mut self, scene: &Arc<RwLock<Scene>>) {
+    pub fn generate_hitboxes(&mut self, scene: &Arc<RwLock<Scene>>) {
         let settings_snapshot = self.uisettings.clone();
         let mut reference_vec = vec![];
         let mut hitbox_vec = vec![];
@@ -281,7 +282,7 @@ pub fn ui_clicked(click: (u32, u32), scene: &Arc<RwLock<Scene>>, ui: &mut UI) ->
         {
             if hitbox.reference.ends_with("btnApply") || hitbox.reference.ends_with("btnCancel") {
                 let box_ref = get_parent_ref(hitbox.reference.clone());
-                let uibox = ui.get_box_mut(box_ref.clone());
+                let uibox = ui.get_box_mut(&box_ref);
                 if let Some(_) = uibox.edit_bar {
                     if hitbox.reference.ends_with("btnApply") {
                         UIEditBar::apply(scene, ui, box_ref);

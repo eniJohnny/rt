@@ -2,7 +2,7 @@ use std::{fmt::Display, u8};
 
 use image::RgbaImage;
 
-use crate::model::maths::vec3::Vec3;
+use crate::{model::maths::vec3::Vec3, ui::{elements::{uielement::{Category, UIElement}, utils::{ElemType, Property, Value}, Displayable}, utils::get_parent_ref}};
 
 use super::{color::Color, material::Projection};
 
@@ -40,6 +40,22 @@ impl Texture {
             Texture::Value(default_vec, TextureType::Vector)
         } else {
             Texture::Texture(file.clone(), TextureType::Vector)
+        }
+    }
+
+    pub fn from_value(value: &Value) -> Self {
+        match value {
+            Value::Bool(value) => {
+                let value = match value {
+                    true => 1.,
+                    false => 0.
+                };
+                Texture::from_float_litteral(&"".to_string(), value)
+            }
+            Value::Float(value) => {
+                Texture::from_float_litteral(&"".to_string(), *value)
+            }
+            _ => panic!("Value is not convertible to texture")
         }
     }
 

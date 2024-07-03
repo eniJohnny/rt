@@ -33,5 +33,5 @@ impl HitBox {
 }
 
 pub trait Displayable {
-    fn get_fields(&self, ui: &UISettings) -> Vec<UIElement>;
+    fn get_fields(&self, name: &str, ui: &UISettings) -> Vec<UIElement>;
 }

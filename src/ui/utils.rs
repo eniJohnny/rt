@@ -1,6 +1,6 @@
 use std::{
     borrow::Borrow,
-    sync::mpsc::{Receiver, Sender},
+    sync::{mpsc::{Receiver, Sender}, Arc, RwLock},
     time::Instant,
 };
 
@@ -143,7 +143,7 @@ pub fn get_parent_ref(reference: String) -> String {
 pub fn take_element(ui: &mut UI, reference: String) -> Option<(UIElement, String, usize)> {
     let parent_ref = get_parent_ref(reference.clone());
     if !parent_ref.contains(".") {
-        let uibox = ui.get_box_mut(parent_ref.clone());
+        let uibox = ui.get_box_mut(&parent_ref);
         let mut index = None;
         for i in 0..uibox.elems.len() {
             if uibox.elems[i].reference == reference {
@@ -156,7 +156,7 @@ pub fn take_element(ui: &mut UI, reference: String) -> Option<(UIElement, String
             return Some((elem, parent_ref, index));
         }
     } else {
-        let elem = ui.get_element_by_reference_mut(parent_ref.clone()).unwrap();
+        let elem = ui.get_element_mut(parent_ref.clone()).unwrap();
         if let ElemType::Category(cat) = &mut elem.elem_type {
             let mut index = 0;
             for i in 0..cat.elems.len() {
@@ -184,10 +184,10 @@ pub fn take_element(ui: &mut UI, reference: String) -> Option<(UIElement, String
 
 pub fn give_back_element(ui: &mut UI, elem: UIElement, parent_ref: String, index: usize) {
     if !parent_ref.contains(".") {
-        let uibox = ui.get_box_mut(parent_ref.clone());
+        let uibox = ui.get_box_mut(&parent_ref);
         uibox.elems.insert(index, elem);
     } else {
-        let parent = ui.get_element_by_reference_mut(parent_ref.clone()).unwrap();
+        let parent = ui.get_element_mut(parent_ref.clone()).unwrap();
         if let ElemType::Category(cat) = &mut parent.elem_type {
             cat.elems.insert(index, elem);
         } else if let ElemType::Row(elems) = &mut parent.elem_type {
