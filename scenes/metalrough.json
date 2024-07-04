@@ -3,11 +3,11 @@
         "type": "sphere",
         "pos": [0, 0, -5],
         "dir": [0, 1, 0],
-        "color": "Bricks2_Color.jpg",
+        "color": "Bricks_gray_Color.jpg",
         "radius": 2.0,
-        "normal": "Bricks2_Normal.jpg",
-        "roughness": "Bricks2_Roughness.jpg",
-        "displacement": "Bricks2_Displacement.jpg"
+        "normal": "Bricks_gray_Normal.jpg",
+        "roughness": "Bricks_gray_Roughness.jpg",
+        "displacement": "Bricks_gray_Displacement.jpg"
     },
     {
         "type": "camera",
@@ -33,7 +33,8 @@
         "type": "plane",
         "pos": [0, -5, 0],
         "dir": [0, 1, 0],
-        "color": [255, 255, 255]
+        "color": [255, 255, 255],
+        "emissive": 2.0
     },
     {
         "type": "plane",

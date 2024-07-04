@@ -43,9 +43,9 @@ impl Shape for Sphere {
 	}
 
     fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
-		let displaced_factor = 0.1;
+		let displaced_factor = 0.2;
 		let total_displacement = self.radius * displaced_factor;
-		let step = 0.1;
+		let step = 0.01;
 
 		let mut current_step = 1.;
 		let mut t: Option<Vec<f64>> = self.outer_intersect(ray, current_step, displaced_factor);
@@ -61,12 +61,18 @@ impl Shape for Sphere {
 
 			let mut sphere_to_hit = hit.pos() - self.pos();
 			let mut hit_distance = sphere_to_hit.length() - self.radius;
-			let mut hit_ratio = hit_distance / total_displacement;
+			let mut hit_ratio: f64 = hit_distance / total_displacement;
 
 			let mut displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures()).to_value();
 			let mut displaced_dist = (hit_ratio - displaced_ratio) * total_displacement;
 			let mut old_displaced_ratio = displaced_ratio;
-			while displaced_ratio < hit_ratio && hit.dist() <= sec_hit.dist() && displaced_dist > 0.01 {
+			if displaced_dist < 0.001 {
+				return self.outer_intersect(ray, displaced_ratio, displaced_factor)
+			}
+			while displaced_ratio < hit_ratio && hit.dist() <= sec_hit.dist() {
+				if displaced_dist > step * total_displacement {
+					displaced_dist = step * total_displacement ;
+				}
 				hit = Hit::new(
 					element,
 					hit.dist() + displaced_dist,
@@ -79,25 +85,29 @@ impl Shape for Sphere {
 				hit_ratio = hit_distance / total_displacement;
 
 				current_step -= step;
-				if hit_ratio < current_step {
-					let mut difference = current_step - hit_ratio;
-					while difference > 0.01 {
-						let difference_dist = difference * total_displacement;
-						hit = Hit::new(element,
-							hit.dist() - difference_dist,
-							hit.pos() - difference_dist * ray.get_dir(),
-							ray.get_dir(),
-							scene.textures()
-						);
-						sphere_to_hit = hit.pos() - self.pos();
-						hit_distance = sphere_to_hit.length() - self.radius;
-						hit_ratio = hit_distance / total_displacement;
-						difference = current_step - hit_ratio;
-					}
-				}
+				// if hit_ratio < current_step {
+				// 	let mut difference = current_step - hit_ratio;
+				// 	while difference > 0.01 {
+				// 		let difference_dist = difference * total_displacement;
+				// 		hit = Hit::new(element,
+				// 			hit.dist() - difference_dist,
+				// 			hit.pos() - difference_dist * ray.get_dir(),
+				// 			ray.get_dir(),
+				// 			scene.textures()
+				// 		);
+				// 		sphere_to_hit = hit.pos() - self.pos();
+				// 		hit_distance = sphere_to_hit.length() - self.radius;
+				// 		hit_ratio = hit_distance / total_displacement;
+				// 		difference = current_step - hit_ratio;
+				// 	}
+				// }
 				old_displaced_ratio = displaced_ratio;
 				displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures()).to_value();
 				displaced_dist = (hit_ratio - displaced_ratio) * total_displacement;
+
+				if displaced_dist < 0.001 {
+					return self.outer_intersect(ray, displaced_ratio, displaced_factor)
+				}
 			}
 			return self.outer_intersect(ray, (displaced_ratio + old_displaced_ratio) / 2., displaced_factor)
 		}
