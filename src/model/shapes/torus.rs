@@ -22,102 +22,77 @@ impl Shape for Torus {
     }
 
     fn intersect(&self, ray: &Ray) -> Option<Vec<f64>> {
-        let ro = ray.get_pos();
-        let rd = ray.get_dir();
+        /*
+            C - center of the torus (pos)
+            A - axis of revolution of the torus (dir)
+            R - major radius of the torus (radius)
+            r - minor radius of the torus (radius2)
+                
+            P - ray
+            P0 - origin of the ray
+            P1 - direction of the ray
+                P = P0 + P1t 
+            y - distance along the axis of revolution
+                y = A•(P0 – C + P1t ) = A•(P0 – C) + A•P1t
+            D - radial position of the ray relative to the torus
+                D = P0 + P1t – (C + Ay) = P0 – C + P1t – A• (P0 – C + P1t )A
 
-        // let cos_theta = ray.get_dir().dot(&self.dir);
-        // let ro = ray.get_pos() - self.pos;
-        // let rd = ray.get_dir() - self.dir * cos_theta;
+            Q = P₀ – C
+            u = A•Q
+            v = A•P₁
 
+            a = 1 - v²
+            b = 2(Q•P₁ – uv)
+            c = Q•Q – u²
+            d = (Q•Q + R² – r²)
 
-        let mut po = 1.0;
-        let Ra2 = self.radius * self.radius;
-        let ra2 = self.radius2 * self.radius2;
-        let m = ro.dot(&ro);
-        let n = rd.dot(&ro);
-        let k = (m + Ra2 - ra2) / 2.0;
-        let mut k3 = n;
-        let mut k2 = n * n - Ra2 * rd.dot(&rd) + k;
-        let mut k1 = n * k - Ra2 * ro.dot(&rd);
-        let mut k0 = k * k - Ra2 * ro.dot(&ro);
+            A = 1
+            B = 4Q•P₁
+            C = 2d + B² * 0.25 – 4R²a
+            D = Bd– 4R²b
+            E = d² – 4R²c
+        */
 
-        if (k3 * (k3 * k3 - k2) + k1).abs() - f64::EPSILON < 0.0 {
-            (k1, k3) = (k3, k1);
+        let C = self.pos;
+        let Ax = self.dir;
+        let R = self.radius;
+        let r = self.radius2;
+        let P0 = ray.get_pos();
+        let P1 = ray.get_dir();      
 
-            po = -1.0;
-            k0 = 1.0 / k0;
-            k1 *= k0;
-            k2 *= k0;
-            k3 *= k0;
-        }
+        let Q = P0 - C;
+        let u = Ax.dot(&Q);
+        let v = Ax.dot(&P1);
 
-        let mut c2 = k2 * 2.0 - 3.0 * k3 * k3;
-        let mut c1 = k3 * (k3 * k3 - k2) + k1;
-        let mut c0 = k3 * (k3 * (c2 + 2.0 * k2) - 8.0 * k1) + 4.0 * k0;
+        let a = 1.0 - v.powi(2);
+        let b = 2.0 * (Q.dot(&P1) - u * v);
+        let c = Q.dot(&Q) - u.powi(2);
+        let d = Q.dot(&Q) + R.powi(2) - r.powi(2);
 
-        c2 /= 3.0;
-        c1 *= 2.0;
-        c0 /= 3.0;
+        let A = 1.0;
+        let B = 4.0 * Q.dot(&P1);
+        let C = 2.0 * d + B.powi(2) * 0.25 - 4.0 * R.powi(2) * a;
+        let D = B * d - 4.0 * R.powi(2) * b;
+        let E = d.powi(2) - 4.0 * R.powi(2) * c;
 
-        let Q = c2 * c2 + c0;
-        let R = c2 * c2 * c2 - 3.0 * c2 * c0 + c1 * c1;
-        let mut h = R * R - Q * Q * Q;
-        
-        if h >= 0.0 {
-            h = h.sqrt();
-            let v = (R + h).cbrt();
-            let u = (R - h).cbrt();
-            let s = Vec2::new((v + u) + 4.0 * c2, (v - u) * 3.0_f64.sqrt());
-            let y = (0.5 * (s.length() + s.x())).sqrt();
-            let x = 0.5 * s.y() / y;
-            let r = 2.0 * c1 / (x * x + y * y);
-            let t1 = if po < 0.0 {x - r - k3} else {2.0 / (x - r - k3)};
-            let t2 = if po < 0.0 {-x - r - k3} else {2.0 / (-x - r - k3)};
-            let mut t = f64::MAX;
+        let roots = find_roots_quartic(A, B, C, D, E);
 
-            if t1 > 0.0 {
-                t = t1;
+        return match roots {
+            Roots::No(_)=> None,
+            _ => {
+                let len = roots.as_ref().len();
+                let mut t = Vec::with_capacity(len);
+                for i in 0..len {
+                    if roots.as_ref()[i] > 0.0 {
+                        t.push(roots.as_ref()[i]);
+                    }
+                }
+                if t.len() > 0 {
+                    return Some(t);
+                }
+                return None;
             }
-            if t2 > 0.0 && t2 < t {
-                t = t2;
-            }
-            if t != f64::MAX {
-                return Some(vec![t]);
-            }
-            return None;
-        }
-
-        let sQ = Q.sqrt();
-        let w = sQ * ((-R / (sQ * Q).acos()) / 3.0).cos();
-        let d2 = -(w + c2);
-
-        if  d2 < 0.0 {
-            return None;
-        }
-
-        let d1 = d2.sqrt();
-        let h2 = (w - 2.0 * c2 - c1 / d1).sqrt();
-        let h1 = (w - 2.0 * c2 + c1 / d1).sqrt();
-        let mut t = f64::MAX;
-
-
-        let tx = vec![
-            if po < 0.0 {-d1 - h1 - k3} else {2.0 / (-d1 - h1 - k3)},
-            if po < 0.0 {-d1 + h1 - k3} else {2.0 / (-d1 + h1 - k3)},
-            if po < 0.0 {d1 - h2 - k3} else {2.0 / (d1 - h2 - k3)},
-            if po < 0.0 {d1 + h2 - k3} else {2.0 / (d1 + h2 - k3)},
-        ];
-        
-        for i in 0..4 {
-            if tx[i] > 0.0 && tx[i] < t {
-                t = tx[i];
-            }
-        }
-
-        if t != f64::MAX {
-            return Some(vec![t]);
-        }
-        None
+        };
     }
 
     fn projection(&self, hit: &Hit) -> Projection {
@@ -125,15 +100,17 @@ impl Shape for Torus {
     }
 
     fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {
-        let x2 = self.radius * self.radius;
-        let y2 = self.radius2 * self.radius2;
-        
-        let a = hit_position.dot(&hit_position);
-        let b = y2;
-        let c = x2 * Vec3::new(1.0, 1.0, -1.0);
-        let d = c - (a - b);
+        let P = hit_position;
+        let C = self.pos;
+        let A = self.dir;
+        let R = self.radius;
 
-        (hit_position * d).normalize()
+        let y = (P - C).dot(&A);
+        let D = (P - C) - A * y;
+        let X = D * (1.0 / D.dot(&D).sqrt()) * R;
+
+        let N = P - C - X;
+        N.normalize()
     }
 
     fn as_torus(&self) -> Option<&Torus> {

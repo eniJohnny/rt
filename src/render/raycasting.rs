@@ -89,8 +89,6 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
         let mut t = None;
         t = element.shape().intersect(ray);
 
-        println!("t: {:?}", t);
-
         if let Some(t) = t {
             for dist in t {
                 if dist > 0.0 {
