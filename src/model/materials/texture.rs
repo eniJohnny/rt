@@ -2,7 +2,7 @@ use std::{fmt::Display, u8};
 
 use image::RgbaImage;
 
-use crate::{model::maths::vec3::Vec3, ui::{elements::{uielement::{Category, UIElement}, utils::{ElemType, Property, Value}, Displayable}, utils::get_parent_ref}};
+use crate::{model::maths::vec3::Vec3, ui::utils::misc::Value};
 
 use super::{color::Color, material::Projection};
 

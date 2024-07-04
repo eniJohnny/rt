@@ -11,20 +11,7 @@ use winit::keyboard::Key;
 
 use crate::{model::scene::Scene, ui::uisettings::UISettings, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32};
 
-use super::{
-    draw_utils::draw_background,
-    elements::{
-        uieditbar::UIEditBar,
-        uielement::UIElement,
-        utils::{ElemType, Property},
-        HitBox,
-    },
-    uibox::UIBox,
-    utils::{
-        get_parent_ref, get_pos, get_size, give_back_element, is_inside_box, take_element, Editing,
-        UIContext,
-    },
-};
+use super::{uibox::UIBox, uieditbar::UIEditBar, uielement::UIElement, utils::{draw_utils::is_inside_box, misc::Property, ui_utils::{get_parent_ref, give_back_element, take_element, Editing, UIContext}, HitBox}};
 
 pub struct UI {
     boxes: HashMap<String, UIBox>,
@@ -111,17 +98,18 @@ impl UI {
         self.dirty = true;
     }
 
-    pub fn get_box(&self, reference: &str) -> &UIBox {
-        self.boxes
-            .get(reference)
-            .expect("ERROR : Couldn't find the added UIBox")
+    pub fn get_box(&self, reference: &str) -> Option<&UIBox> {
+        if let Some(uibox) = self.boxes.get(reference) {
+            return Some(uibox);
+        }
+        None
     }
 
-    pub fn get_box_mut(&mut self, reference: &str) -> &mut UIBox {
-        self.boxes.get_mut(reference).expect(&format!(
-            "ERROR : Couldn't find the added UIBox {}",
-            reference
-        ))
+    pub fn get_box_mut(&mut self, reference: &str) -> Option<&mut UIBox> {
+        if let Some(uibox) = self.boxes.get_mut(reference) {
+            return Some(uibox);
+        }
+        None
     }
 
     pub fn take_box(&mut self, reference: &str) -> UIBox {
@@ -132,9 +120,18 @@ impl UI {
         self.boxes.insert(uibox.reference.clone(), uibox);
     }
 
+    pub fn destroy_box(&mut self, reference: String) {
+        self.boxes.remove(&reference);
+        if reference == self.active_box_reference {
+            self.active_box_reference = "".to_string();
+        }
+    }
+
     pub fn get_element_mut(&mut self, reference: String) -> Option<&mut UIElement> {
         for uibox in self.boxes.values_mut() {
-            return uibox.get_element_mut(&reference);
+            if let Some(element) =  uibox.get_element_mut(&reference) {
+                return Some(element);
+            }
         }
         println!("Element {} not found", reference);
         None
@@ -142,7 +139,9 @@ impl UI {
 
     pub fn get_property_mut(&mut self, reference: &String) -> Option<&mut Property> {
         for uibox in self.boxes.values_mut() {
-            return uibox.get_property_mut(reference);
+            if let Some(property) = uibox.get_property_mut(reference) {
+                return Some(property);
+            }
         }
         println!("Property {} not found", reference);
         None
@@ -210,19 +209,21 @@ impl UI {
 
     pub fn validate_properties(&mut self, reference: String) {
         let uibox = self.get_box_mut(&reference);
-        let mut error = None;
-        for elem in &mut uibox.elems {
-            if let Err(e) = elem.validate_properties() {
-                error = Some(e);
-                break;
+        if let Some(uibox) = uibox {
+            let mut error = None;
+            for elem in &mut uibox.elems {
+                if let Err(e) = elem.validate_properties() {
+                    error = Some(e);
+                    break;
+                }
             }
-        }
-        if let Some(edit_bar) = &mut uibox.edit_bar {
-            if let Some(error) = error {
-                edit_bar.text.0 = Some(error);
-                return;
-            } else {
-                edit_bar.text.0 = None
+            if let Some(edit_bar) = &mut uibox.edit_bar {
+                if let Some(error) = error {
+                    edit_bar.text.0 = Some(error);
+                    return;
+                } else {
+                    edit_bar.text.0 = None
+                }
             }
         }
     }
@@ -283,11 +284,13 @@ pub fn ui_clicked(click: (u32, u32), scene: &Arc<RwLock<Scene>>, ui: &mut UI) ->
             if hitbox.reference.ends_with("btnApply") || hitbox.reference.ends_with("btnCancel") {
                 let box_ref = get_parent_ref(hitbox.reference.clone());
                 let uibox = ui.get_box_mut(&box_ref);
-                if let Some(_) = uibox.edit_bar {
-                    if hitbox.reference.ends_with("btnApply") {
-                        UIEditBar::apply(scene, ui, box_ref);
-                    } else if hitbox.reference.ends_with("btnCancel") {
-                        UIEditBar::cancel(scene, ui, box_ref);
+                if let Some(uibox) = uibox {
+                    if let Some(_) = uibox.edit_bar {
+                        if hitbox.reference.ends_with("btnApply") {
+                            UIEditBar::apply(scene, ui, box_ref);
+                        } else if hitbox.reference.ends_with("btnCancel") {
+                            UIEditBar::cancel(scene, ui, box_ref);
+                        }
                     }
                 }
                 return true;

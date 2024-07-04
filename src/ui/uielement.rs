@@ -12,11 +12,11 @@ use crate::{
         materials::{color::Color, texture::Texture},
         scene::Scene,
     }, ui::{
-        draw_utils::{draw_checkbox, draw_element_text}, style::{Formattable, Style, StyleBuilder}, ui::UI, uibox::UIBox, uisettings::UISettings, utils::{get_pos, get_size, split_in_lines, Editing}
+        
     }, SCREEN_WIDTH_U32
 };
 
-use super::{utils::{ElemType, FnApply, Property, Value}, HitBox};
+use super::{ui::UI, uisettings::UISettings, utils::{draw_utils::{draw_checkbox, draw_element_text, get_size, split_in_lines}, misc::{ElemType, FnAny, Property, Value}, style::{Formattable, Style}, ui_utils::{get_pos, Editing}, HitBox}};
 
 pub struct UIElement {
     pub visible: bool,
@@ -28,7 +28,7 @@ pub struct UIElement {
     pub reference: String,
     pub value: Option<String>,
     pub hitbox: Option<HitBox>,
-    pub on_click: Option<FnApply>
+    pub on_click: Option<FnAny>
 }
 
 impl UIElement {
@@ -205,19 +205,22 @@ impl UIElement {
             return vec;
         }
         if let Some(parent_hitbox) = &self.hitbox {
+            // println!("{} :\t\t\tPosition : {}, {}\t\t\t\tSize : {}, {}", self.reference, parent_hitbox.pos.0, parent_hitbox.pos.1, parent_hitbox.size.0, parent_hitbox.size.1);
             match &mut self.elem_type {
                 ElemType::Row(elems) => {
                     let available_width =
-                        parent_hitbox.size.0 / elems.len() as u32 - ui.uisettings().margin;
+                        (parent_hitbox.size.0 - ui.uisettings().margin * (elems.len() - 1) as u32) / elems.len() as u32;
+                    println!("{}", available_width);
                     let mut offset_x = 0;
                     for elem in elems {
                         if elem.visible {
                             let size = get_size(&elem.text, &elem.style, (available_width, max_height));
-                            let center = (available_width / 2, parent_hitbox.size.1);
+                            let center = (available_width / 2, parent_hitbox.size.1 / 2);
                             let pos = (
                                 parent_hitbox.pos.0 + offset_x + center.0 - size.0 / 2,
                                 parent_hitbox.pos.1 + center.1 - size.1 / 2,
                             );
+                            println!("{}, {}", pos.0, pos.1);
                             let hitbox = HitBox {
                                 pos,
                                 size,
@@ -255,10 +258,13 @@ impl UIElement {
                                 };
                                 elem.hitbox = Some(hitbox.clone());
                                 let hitbox_list = elem.generate_hitbox(ui, scene, max_height - offset_y);
-                                let needed_height =
-                                    hitbox.pos.1 + hitbox.size.1 + ui.uisettings().margin - parent_hitbox.pos.1;
-                                if !hitbox.disabled && needed_height > offset_y {
-                                    offset_y = needed_height;
+                                let mut needed_height =
+                                    hitbox.pos.1 + hitbox.size.1 - parent_hitbox.pos.1;
+                                if !hitbox.disabled {
+                                    needed_height += ui.uisettings().margin;
+                                    if needed_height > offset_y {
+                                        offset_y = needed_height;
+                                    }
                                 }
                                 vec.push(hitbox);
                                 for hitbox in hitbox_list {
@@ -404,31 +410,37 @@ impl UIElement {
     }
 
     pub fn clicked(&mut self, scene: &Arc<RwLock<Scene>>, ui: &mut UI) {
-        match &mut self.elem_type {
-            ElemType::Property(property) => {
-                if let Value::Bool(value) = property.value {
-                    property.value = Value::Bool(!value);
-                } else if let Some(edit) = ui.editing() {
-                    if &edit.reference != &self.reference {
+        if !self.style.disabled {
+            match &mut self.elem_type {
+                ElemType::Property(property) => {
+                    if let Value::Bool(value) = property.value {
+                        property.value = Value::Bool(!value);
+                    } else if let Some(edit) = ui.editing() {
+                        if &edit.reference != &self.reference {
+                            ui.set_editing(Some(Editing {
+                                reference: self.reference.clone(),
+                                value: property.value.to_string(),
+                            }));
+                        }
+                    } else {
                         ui.set_editing(Some(Editing {
                             reference: self.reference.clone(),
                             value: property.value.to_string(),
                         }));
                     }
-                } else {
-                    ui.set_editing(Some(Editing {
-                        reference: self.reference.clone(),
-                        value: property.value.to_string(),
-                    }));
                 }
+                ElemType::Category(cat) => {
+                    cat.collapsed = !cat.collapsed;
+                }
+                ElemType::Button(fn_click) => {
+                    let click = fn_click.take();
+                    if let Some(click) = click {
+                        click(Some(self), scene, ui);
+                        self.elem_type = ElemType::Button(Some(click));
+                    }
+                }
+                _ => (),
             }
-            ElemType::Button(fn_click) => {
-                fn_click(&mut scene.write().unwrap(), ui);
-            }
-            ElemType::Category(cat) => {
-                cat.collapsed = !cat.collapsed;
-            }
-            _ => (),
         }
         if let Some(click) = self.on_click.take() {
             click(Some(self), scene, ui);

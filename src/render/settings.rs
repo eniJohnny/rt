@@ -5,21 +5,8 @@ use crate::{
         materials::color::Color,
         maths::vec3::Vec3,
         objects::light::{AmbientLight, ParallelLight},
-    },
-    ui::elements::{
-        uielement::Category,
-        utils::{ElemType, Property, Value},
-    },
-    ANTIALIASING, BASE_FONT_SIZE, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH,
-    INDENT_PADDING, MARGIN, MAX_DEPTH, MAX_ITERATIONS, VIEW_MODE,
+    }, ui::{uielement::{Category, UIElement}, uisettings::UISettings, utils::{misc::{ElemType, Property, Value}, Displayable}}, ANTIALIASING, BASE_FONT_SIZE, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH, INDENT_PADDING, MARGIN, MAX_DEPTH, MAX_ITERATIONS, VIEW_MODE
 };
-
-use super::{
-    elements::{uielement::UIElement, Displayable},
-    ui::UI,
-    uisettings::UISettings,
-};
-
 #[derive(Debug, Clone)]
 pub enum ViewMode {
     Simple(Color, ParallelLight),
@@ -106,29 +93,29 @@ impl Displayable for Settings {
             settings,
         );
         let vec = vec![chkIndirect, chkReflect];
-        let row = UIElement::new("", "row_indirect_reflection", ElemType::Row(vec), settings);
+        let mut row = UIElement::new("", "row_indirect_reflection", ElemType::Row(vec), settings);
         category.elems.push(row);
 
         let mut view_mode_radio = UIElement::new("", "viewmode", ElemType::Row(vec![]), settings);
         let mut simple = UIElement::new(
             "Simple",
             "simple",
-            ElemType::Button(Box::new(|scene, ui| {
-                scene.settings_mut().view_mode = ViewMode::Simple(
+            ElemType::Button(Some(Box::new(|_, scene, ui| {
+                scene.write().unwrap().settings_mut().view_mode = ViewMode::Simple(
                     Color::new(0.2, 0.2, 0.2),
                     ParallelLight::new(Vec3::new(0.5, -0.5, 0.5), 1., Color::new(1., 1., 1.)),
                 );
-                scene.set_dirty(true);
-            })),
+                scene.write().unwrap().set_dirty(true);
+            }))),
             settings,
         );
         let mut gi = UIElement::new(
             "Global Illumination",
             "gi",
-            ElemType::Button(Box::new(|scene, ui| {
-                scene.settings_mut().view_mode = ViewMode::HighDef;
-                scene.set_dirty(true);
-            })),
+            ElemType::Button(Some(Box::new(|_, scene, ui| {
+                scene.write().unwrap().settings_mut().view_mode = ViewMode::HighDef;
+                scene.write().unwrap().set_dirty(true);
+            }))),
             settings,
         );
         gi.style_mut().fill_width = true;

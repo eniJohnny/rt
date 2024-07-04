@@ -10,8 +10,7 @@ use crate::{
     model::scene::Scene,
     ui::{
         ui::UI,
-        uibox::UIBox,
-        utils::{is_inside_box, UIContext},
+        uibox::UIBox, utils::{draw_utils::is_inside_box, ui_utils::UIContext},
     },
 };
 

@@ -7,21 +7,11 @@ use image::RgbaImage;
 
 use crate::{
     model::{materials::color::Color, scene::Scene},
-    ui::{style::Style, uisettings::UISettings},
+    ui::{uisettings::UISettings},
     SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32,
 };
 
-use super::{
-    draw_utils::draw_background,
-    elements::{
-        uieditbar::UIEditBar,
-        uielement::UIElement,
-        utils::{ElemType, FnApply, Property},
-        HitBox,
-    },
-    ui::UI,
-    utils::{get_needed_height, get_pos, get_size, translate_hitboxes},
-};
+use super::{ui::UI, uieditbar::UIEditBar, uielement::UIElement, utils::{draw_utils::{draw_background, get_needed_height, get_size}, misc::{ElemType, FnAny, Property}, ui_utils::translate_hitboxes, HitBox}};
 
 pub struct UIBox {
     pub relative_pos: BoxPosition,
@@ -59,7 +49,7 @@ impl UIBox {
         self.elems.append(&mut elems);
     }
 
-    pub fn set_edit_bar(&mut self, settings: &UISettings, on_apply: Option<FnApply>) {
+    pub fn set_edit_bar(&mut self, settings: &UISettings, on_apply: Option<FnAny>) {
         self.edit_bar = Some(UIEditBar::new(self.reference.clone(), settings, on_apply))
     }
 
@@ -169,12 +159,12 @@ impl UIBox {
         translate_hitboxes(&mut hitbox_list, self.absolute_pos.0, self.absolute_pos.1);
         translate_hitboxes(&mut edit_bar_hitbox_list, self.absolute_pos.0, self.absolute_pos.1 + fields_height);
         hitbox_list.append(&mut edit_bar_hitbox_list);
-        self.translate_hitboxes_to_relative_position(fields_height, edit_bar_height);
+        self.translate_hitboxes_to_relative_position(fields_height, edit_bar_height, settings);
         hitbox_list
     }
 
-    pub fn translate_hitboxes_to_relative_position(&mut self, fields_height: u32, edit_bar_height: u32) {
-        self.size.1 = fields_height + edit_bar_height;
+    pub fn translate_hitboxes_to_relative_position(&mut self, fields_height: u32, edit_bar_height: u32, settings: &UISettings) {
+        self.size.1 = fields_height + edit_bar_height + settings.margin * 2;
         self.absolute_pos = self.relative_pos.get_pos(self.size);
         for elem in &mut self.elems {
             elem.translate_hitboxes(self.absolute_pos);

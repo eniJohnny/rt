@@ -13,11 +13,8 @@ use winit::{
 use crate::{
     model::scene::Scene,
     ui::{
-        elements::utils::Value,
-        style::{Formattable, Style},
         ui::{ui_clicked, UI},
-        uisettings::UISettings,
-        utils::Editing,
+        uisettings::UISettings, utils::ui_utils::Editing,
     },
 };
 
@@ -109,11 +106,13 @@ fn key_pressed_editing(
             let tmp_ref = edit.reference.clone();
             let box_ref = tmp_ref.split(".").next().unwrap().to_string();
             let uibox = ui.get_box_mut(&box_ref);
-            if let Some(edit_bar) = &mut uibox.edit_bar {
-                if let Some(err) = err {
-                    edit_bar.text.0 = Some(err);
-                } else {
-                    edit_bar.text.0 = None
+            if let Some(uibox) = uibox {
+                if let Some(edit_bar) = &mut uibox.edit_bar {
+                    if let Some(err) = err {
+                        edit_bar.text.0 = Some(err);
+                    } else {
+                        edit_bar.text.0 = None
+                    }
                 }
             }
             ui.set_editing(None);
