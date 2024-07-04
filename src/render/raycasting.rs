@@ -95,9 +95,7 @@ pub fn get_sorted_hit_from_t<'a>(scene: &'a Scene, ray: &Ray, t: &Option<Vec<f64
 					ray.get_dir(),
 					scene.textures(),
 				);
-				if new_hit.opacity() > 0.5 {
-					hits.push(new_hit);
-				}
+				hits.push(new_hit);
 			}
 		}
 	}
@@ -106,48 +104,6 @@ pub fn get_sorted_hit_from_t<'a>(scene: &'a Scene, ray: &Ray, t: &Option<Vec<f64
 	}
 	hits.sort_by(|a, b| a.dist().partial_cmp(b.dist()).unwrap());
 	Some(hits)
-}
-
-pub fn get_closest_hit_from_t<'a>(scene: &'a Scene, ray: &Ray, t: &Option<Vec<f64>>, element: &'a Element) -> Option<Hit<'a>> {
-    let mut closest: Option<Hit> = None;
-	if let Some(t) = t {
-		for dist in t {
-			if *dist > 0.0 {
-				if let Some(hit) = &closest {
-					if dist < hit.dist() {
-						let new_hit = Hit::new(
-							element,
-							*dist,
-							ray.get_pos() + ray.get_dir() * (*dist - f64::EPSILON),
-							ray.get_dir(),
-							scene.textures(),
-						);
-						if new_hit.opacity() > 0.5 {
-							closest = Some(new_hit);
-						}
-					}
-				} else {
-					let new_hit = Hit::new(
-						element,
-						*dist,
-						ray.get_pos() + ray.get_dir() * (*dist - f64::EPSILON),
-						ray.get_dir(),
-						scene.textures(),
-					);
-					if new_hit.opacity() > 0.5 {
-						closest = Some(new_hit);
-					}
-				}
-			}
-		}
-	}
-	match closest {
-		None => None,
-		Some(mut hit) => {
-			hit.map_textures(scene.textures());
-			Some(hit)
-		}
-	}
 }
 
 pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {

@@ -51,18 +51,18 @@ pub fn fresnel_reflect_ratio(n1: f64, n2: f64, norm: &Vec3, ray: &Vec3, f0: f64,
 pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
     let absorbed = 1.0 - hit.metalness() - hit.refraction();
 
-    if ray.debug {
-        println!(
-            "Metal : {}, Roughness: {}, Color: {}, Norm: {}, Emissive: {}, Opacity: {}, Refraction: {}",
-            hit.metalness(),
-            hit.roughness(),
-            hit.color(),
-            hit.norm(),
-            hit.emissive(),
-            hit.opacity(),
-            hit.refraction()
-        );
-    }
+    // if ray.debug {
+    //     println!(
+    //         "Metal : {}, Roughness: {}, Color: {}, Norm: {}, Emissive: {}, Opacity: {}, Refraction: {}",
+    //         hit.metalness(),
+    //         hit.roughness(),
+    //         hit.color(),
+    //         hit.norm(),
+    //         hit.emissive(),
+    //         hit.opacity(),
+    //         hit.refraction()
+    //     );
+    // }
 
     if hit.emissive() > f64::EPSILON {
         return hit.emissive() * hit.color();

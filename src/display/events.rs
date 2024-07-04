@@ -124,7 +124,6 @@ pub fn event_manager(
                             //For debug purposes
                             get_lighting_from_hit(&scene, hit, &ray);
                             let proj = hit.element().shape().projection(hit);
-                            dbg!(proj);
                         }
 
                         if gui_clicked(mouse_position, &scene.gui) {
