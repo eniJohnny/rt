@@ -1,9 +1,8 @@
 use image::Rgba;
 
-use crate::model::maths::vec2::Vec2;
+use crate::{model::maths::vec2::Vec2, ui::uisettings::UISettings};
 
-use super::uisettings::UISettings;
-
+#[derive(Clone)]
 pub struct Style {
     pub font_size: f32,
     pub font_color: Rgba<u8>,
@@ -135,7 +134,6 @@ impl Style {
 
     pub fn row(settings: &UISettings) -> Self {
         StyleBuilder::default(settings)
-            .padding(0)
             .fill_width(true)
             .bg_color(None)
             .build()
@@ -150,6 +148,12 @@ impl Style {
             .bg_color(Some(Rgba([255, 255, 255, 255])))
             .font_color(Rgba([0, 0, 0, 255]))
             .build()
+    }
+
+    pub fn text(settings: &UISettings) -> Self {
+        let mut format = Style::property(settings);
+        format.bg_color = None;
+        format
     }
 
     pub fn category(settings: &UISettings) -> Self {

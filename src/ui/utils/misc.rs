@@ -1,11 +1,11 @@
 use std::sync::{Arc, RwLock};
 
-use crate::{model::scene::Scene, ui::{style::{Formattable, Style, StyleBuilder}, ui::UI, uibox::UIBox, uisettings::UISettings}};
+use crate::{model::scene::Scene, ui::{ui::UI, uielement::{Category, UIElement}, uisettings::UISettings}};
 
-use super::uielement::{Category, UIElement};
+use super::style::{Formattable, Style, StyleBuilder};
 
-pub type FnSubmit = Box<dyn Fn(Option<&UIElement>, Value, &Arc<RwLock<Scene>>, &mut UI)>;
-pub type FnApply = Box<dyn Fn(Option<&mut UIElement>, &Arc<RwLock<Scene>>, &mut UI)>;
+pub type FnSubmitValue = Box<dyn Fn(Option<&UIElement>, Value, &Arc<RwLock<Scene>>, &mut UI)>;
+pub type FnAny = Box<dyn Fn(Option<&mut UIElement>, &Arc<RwLock<Scene>>, &mut UI)>;
 pub type FnValidate = Box<dyn Fn(&Value) -> Result<(), &'static str>>;
 
 #[derive(Debug, Clone)]
@@ -38,7 +38,7 @@ pub enum ElemType {
     Stat(Box<dyn Fn(&Scene, &UI) -> String>),
     Property(Property),
     Category(Category),
-    Button(Box<dyn Fn(&mut Scene, &mut UI)>),
+    Button(Option<FnAny>),
     Row(Vec<UIElement>),
 }
 
@@ -53,11 +53,7 @@ impl Formattable for ElemType {
                 .bg_color(None)
                 .fill_width(true)
                 .build(),
-            ElemType::Text => {
-                let mut format = Style::property(settings);
-                format.bg_color = None;
-                format
-            }
+            ElemType::Text => Style::text(settings)
         }
     }
 }
@@ -66,14 +62,14 @@ pub struct Property {
     pub value: Value,
     pub initial_value: Value,
     pub editing_format: Style,
-    pub fn_submit: FnSubmit,
+    pub fn_submit: FnSubmitValue,
     pub fn_validate: FnValidate,
 }
 
 impl Property {
     pub fn new(
         value: Value,
-        fn_submit: FnSubmit,
+        fn_submit: FnSubmitValue,
         fn_validate: FnValidate,
         settings: &UISettings,
     ) -> Self {

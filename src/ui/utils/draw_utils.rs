@@ -1,7 +1,9 @@
 use image::{Rgba, RgbaImage};
 use rusttype::{Font, Scale};
 
-use crate::{ui::style::Style, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32};
+use crate::{SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32};
+
+use super::{style::Style, HitBox};
 
 
 
@@ -26,7 +28,7 @@ pub fn draw_element_text(
 
 pub fn draw_text2(image: &mut RgbaImage, pos: (u32, u32), text: String, format: &Style) {
     // Load font
-    let font_data = include_bytes!("../assets/JetBrainsMono-Regular.ttf");
+    let font_data = include_bytes!("../../assets/JetBrainsMono-Regular.ttf");
     let font = &Font::try_from_bytes(font_data as &[u8]).expect("Error loading font");
 
     // Set font size and color
@@ -155,4 +157,68 @@ pub fn blend(text_color: &Rgba<u8>, background_color: &Rgba<u8>, alpha: f32) -> 
     let b = (text_color[2] as f32 * alpha + background_color[2] as f32 * inv_alpha) as u8;
     let a = (text_color[3] as f32 * alpha + background_color[3] as f32 * inv_alpha) as u8;
     Rgba([r, g, b, a])
+}
+
+
+pub fn is_inside_box(to_check: (u32, u32), box_pos: (u32, u32), box_size: (u32, u32)) -> bool {
+    return to_check.0 > box_pos.0
+        && to_check.0 < box_pos.0 + box_size.0
+        && to_check.1 > box_pos.1
+        && to_check.1 < box_pos.1 + box_size.1;
+}
+
+
+
+pub fn get_needed_height(hitbox_vec: &Vec<HitBox>) -> u32 {
+    let mut max_needed_height = 0;
+    for hitbox in hitbox_vec {
+        let needed_height = hitbox.pos.1 + hitbox.size.1;
+        if needed_height > max_needed_height {
+            max_needed_height = needed_height;
+        }
+    }
+    max_needed_height
+}
+
+pub fn get_size(text: &String, style: &Style, max_size: (u32, u32)) -> (u32, u32) {
+    let mut height = style.font_size() as u32 + style.padding_bot + style.padding_top;
+    let mut width = (style.font_size() / 2. * text.len() as f32) as u32
+        + style.padding_left
+        + style.padding_right;
+
+    let wanted_width = style.width.max(max_size.0 * style.fill_width as u32);
+    let wanted_height = style.height;
+
+    if wanted_height > height {
+        height = wanted_height;
+    }
+    if wanted_width > width {
+        width = wanted_width;
+    }
+    if width > max_size.0 {
+        let lines = split_in_lines(text.clone(), style.width, style);
+        height += (style.font_size() as u32 + style.padding_bot) * lines.len() as u32;
+    }
+    (width.min(max_size.0), height.min(max_size.1))
+}
+
+pub fn split_in_lines(str: String, available_width: u32, format: &Style) -> Vec<String> {
+    let mut current_width = 0;
+    let mut lines = vec![];
+    let mut txt_split = str.split(" ");
+    let mut line = String::from("");
+    while let Some(str) = txt_split.next() {
+        let word_width = format.font_size() as u32 / 2 * (str.len() + 1) as u32;
+        if current_width + word_width > available_width {
+            current_width = word_width;
+            lines.push(line.clone());
+            line = str.to_string() + " ";
+        } else {
+            line += str;
+            line += " ";
+            current_width += word_width;
+        }
+    }
+    lines.push(line);
+    lines
 }

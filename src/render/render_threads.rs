@@ -12,7 +12,6 @@ use std::{
 use image::{GenericImageView, Rgba, RgbaImage};
 
 use crate::{
-    ui::settings::ViewMode,
     model::{
         materials::color::{self, Color},
         scene::Scene,
@@ -23,7 +22,7 @@ use crate::{
 use super::{
     lighting::{lighting_real::get_lighting_from_ray, simple::simple_lighting_from_ray},
     raycasting::{get_closest_hit, get_ray, sampling_ray},
-    restir::PathBucket,
+    restir::PathBucket, settings::ViewMode,
 };
 
 #[derive(Clone)]

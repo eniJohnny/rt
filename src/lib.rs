@@ -1,8 +1,8 @@
 extern crate image;
 use display::mainloop::start_scene;
-use ui::settings::ViewMode;
 use image::flat::View;
 use parsing::get_scene;
+use render::settings::ViewMode;
 use winit::keyboard::KeyCode;
 
 pub mod display;

@@ -18,7 +18,6 @@ use winit::{
 use crate::{
     model::scene::Scene,
     render::render_threads::start_render_threads,
-    ui::{elements::Displayable, ui::UI, uibox::UIBox},
     SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32,
 };
 

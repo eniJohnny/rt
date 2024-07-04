@@ -18,17 +18,11 @@ use winit::{
 };
 
 use crate::{
-    display::display::{self, display},
-    ui::{self, draw_utils::blend, style::Style, uisettings::UISettings},
-    model::{
+    display::display::{self, display}, model::{
         maths::{vec2::Vec2, vec3::Vec3},
         objects::camera,
         scene::{self, Scene},
-    },
-    parsing::get_scene,
-    render::render_threads::start_render_threads,
-    PICKER_LINE_HEIGHT, SCENE_FOLDER, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH,
-    SCREEN_WIDTH_U32,
+    }, parsing::get_scene, render::render_threads::start_render_threads, ui::{uisettings::UISettings, utils::{draw_utils::blend, style::Style}}, PICKER_LINE_HEIGHT, SCENE_FOLDER, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32
 };
 
 pub fn get_files_in_folder(path: &str) -> io::Result<Vec<String>> {
@@ -129,7 +123,7 @@ fn draw_files_and_update_hitboxes(
     let mut hitboxes: Vec<(Vec2, Vec2)> = Vec::new();
     let mut img = RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32);
     let settings = UISettings::default();
-    let format = ui::style::Style::default(&settings);
+    let format = Style::default(&settings);
 
     for i in start..files.len() {
         let file = &files[i];

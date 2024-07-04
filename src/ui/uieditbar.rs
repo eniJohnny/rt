@@ -2,13 +2,9 @@ use std::sync::{Arc, RwLock};
 
 use image::RgbaImage;
 
-use crate::{
-    model::{maths::hit::Hit, scene::Scene}, ui::{
-        draw_utils::draw_element_text, settings, style::{self, Style}, ui::UI, uisettings::UISettings, utils::{get_size, give_back_element, split_in_lines, take_element}
-    }, SCREEN_HEIGHT_U32
-};
+use crate::model::scene::Scene;
 
-use super::{utils::FnApply, HitBox};
+use super::{ui::UI, uisettings::UISettings, utils::{draw_utils::{draw_element_text, get_size, split_in_lines}, misc::FnAny, style::Style, ui_utils::{give_back_element, take_element}, HitBox}};
 
 pub const TXT_MESSAGE: &str = "txtMessage";
 pub const BTN_APPLY: &str = "btnApply";
@@ -18,40 +14,48 @@ pub struct UIEditBar {
     pub text: (Option<String>, Style, Option<HitBox>),
     pub apply: (String, Style, Option<HitBox>),
     pub cancel: (String, Style, Option<HitBox>),
-    pub on_apply: Option<FnApply>,
+    pub on_apply: Option<FnAny>,
     pub reference: String,
 }
 
 impl UIEditBar {
     pub fn cancel(scene: &Arc<RwLock<Scene>>, ui: &mut UI, reference: String) {
         let uibox = ui.get_box_mut(&reference);
-        for elem in &mut uibox.elems {
-            elem.reset_properties(scene);
+        if let Some(uibox) = uibox {
+            for elem in &mut uibox.elems {
+                elem.reset_properties(scene);
+            }
         }
     }
     pub fn apply(scene: &Arc<RwLock<Scene>>, ui: &mut UI, reference: String) {
         let mut properties_vec = vec![];
         let uibox = ui.get_box(&reference);
-        for elem in &uibox.elems {
-            elem.get_properties_reference(&mut properties_vec);
-        }
-        for reference in properties_vec {
-            if let Some((mut elem, parent_ref, index)) =
-                take_element(ui, reference.clone())
-            {
-                elem.submit_properties(scene, ui);
-                give_back_element(ui, elem, parent_ref, index);
-            } else {
-                println!("ERROR: UIElement {} not found", reference)
+        if let Some(uibox) = uibox {
+            for elem in &uibox.elems {
+                elem.get_properties_reference(&mut properties_vec);
+            }
+            for reference in properties_vec {
+                if let Some((mut elem, parent_ref, index)) =
+                    take_element(ui, reference.clone())
+                {
+                    elem.submit_properties(scene, ui);
+                    give_back_element(ui, elem, parent_ref, index);
+                } else {
+                    println!("ERROR: UIElement {} not found", reference)
+                }
             }
         }
         let uibox = ui.get_box_mut(&reference);
-        if let Some(edit_bar) = uibox.edit_bar.take() {
-            if let Some(on_apply) = &edit_bar.on_apply {
-                on_apply(None, scene, ui);
+        if let Some(uibox) = uibox {
+            if let Some(edit_bar) = uibox.edit_bar.take() {
+                if let Some(on_apply) = &edit_bar.on_apply {
+                    on_apply(None, scene, ui);
+                }
+                let uibox = ui.get_box_mut(&reference);
+                if let Some(uibox) = uibox {
+                    uibox.edit_bar = Some(edit_bar);
+                }
             }
-            let uibox = ui.get_box_mut(&reference);
-            uibox.edit_bar = Some(edit_bar);
         }
     }
 
@@ -163,7 +167,7 @@ impl UIEditBar {
         self.text.1 = textformat;
     }
 
-    pub fn new(reference: String, settings: &UISettings, on_apply: Option<FnApply>) -> Self {
+    pub fn new(reference: String, settings: &UISettings, on_apply: Option<FnAny>) -> Self {
         let mut textformat = Style::property(settings);
         textformat.bg_color = None;
         Self {

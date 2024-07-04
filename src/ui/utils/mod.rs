@@ -1,12 +1,9 @@
-use uielement::UIElement;
+use super::{uielement::UIElement, uisettings::UISettings};
 
-use crate::model::maths::vec2::Vec2;
-
-use super::{style::Style, uisettings::UISettings};
-
-pub mod uieditbar;
-pub mod uielement;
-pub mod utils;
+pub mod draw_utils;
+pub mod misc;
+pub mod style;
+pub mod ui_utils;
 
 #[derive(Debug, Clone)]
 
