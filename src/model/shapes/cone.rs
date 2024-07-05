@@ -83,7 +83,7 @@ impl Shape for Cone {
         return Some(intersections);
     }
 
-	fn outer_intersect(&self, r: &Ray, factor: f64, displaced_factor: f64) -> Option<Vec<f64>> {
+	fn outer_intersect(&self, r: &Ray, displaced_factor: f64) -> Option<Vec<f64>> {
 		self.intersect(r)
 	}
 

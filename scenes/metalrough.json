@@ -3,13 +3,13 @@
         "type": "sphere",
         "pos": [0, 0, -5],
         "dir": [0, 1, 0],
-        "color": "MetalWalkway007_1K-JPG_Color.jpg",
+        "color": "Fence_Color.jpg",
         "radius": 2.0,
-        "normal": "MetalWalkway007_1K-JPG_Normal.jpg",
-        "roughness": "MetalWalkway007_1K-JPG_Roughness.jpg",
-        "displacement": "MetalWalkway007_1K-JPG_Displacement.jpg",
-        "opacity": "MetalWalkway007_1K-JPG_Opacity.jpg",
-        "metalness": "MetalWalkway007_1K-JPG_Metalness.jpg"
+        "normal": "Fence_Normal.jpg",
+        "roughness": "Fence_Roughness.jpg",
+        "displacement": "Fence_Displacement.jpg",
+        "opacity": "Fence_Opacity.jpg",
+        "metalness": "Fence_Metalness.jpg"
     },
     {
         "type": "camera",
