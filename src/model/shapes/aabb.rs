@@ -299,6 +299,23 @@ impl Aabb {
 
         children
     }
+    
+    pub fn get_children_non_bvh_elements(&self, scene: &Scene) -> Vec<usize> {
+        let elements = scene.elements();
+        let mut children = vec![];
+
+        for (i, element) in elements.iter().enumerate() {
+            let is_aabb = element.shape().as_aabb().is_some();
+            let aabb = element.shape().aabb();
+            let has_aabb = aabb.is_some();
+            
+            if !is_aabb && !has_aabb {
+                children.push(i);
+            }
+        }
+
+        children
+    }
 
     pub fn is_child(&self, aabb: &Aabb) -> bool {
         if self == aabb {

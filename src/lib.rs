@@ -11,9 +11,9 @@ pub mod picker;
 pub mod render;
 pub mod bvh;
 
-const DEBUG_BVH: bool = true;
+const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
-const SCENE: &str = "random100";
+const SCENE: &str = "metalrough";
 
 const AABB_OPACITY: f64 = 0.0;
 const AABB_STEPS_NB: usize = 10;
@@ -65,10 +65,10 @@ pub fn run() {
         // testing nodes
         // bvh::node::test_node_insertion(&mut scene);
 
-        if DEBUG_BVH {
-            println!("Debugging BVH");
+        if USING_BVH {
+            println!("Using BVH");
         } else {
-            println!("Debugging non BVH");
+            println!("Using non BVH");
         }
         display_scene(scene);
     }
