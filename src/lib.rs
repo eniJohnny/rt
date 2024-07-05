@@ -35,6 +35,11 @@ const BASE_FONT_SIZE: u32 = 16;
 const BUTTON_FONT_SIZE: u32 = 36;
 const UI_REFRESH_TIME: u32 = 1000;
 
+/*********** UI default references *********/
+const UISETTINGS: &str = "uisettings";
+const SETTINGS: &str = "settings";
+const TOOLBAR: &str = "toolbar";
+
 const SCENE_FOLDER: &str = "scenes";
 const PICKER_LINE_HEIGHT: f64 = 30.0;
 // const SCENE: &str = "scenes/sphere.json";

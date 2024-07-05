@@ -64,10 +64,10 @@ pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<impl Fn(Texture
                     let parent_ref = get_parent_ref(elem.reference.clone());
                         let file_element_reference = parent_ref.clone() + ".as_file";
                         let file_element = ui.get_element_mut(file_element_reference).unwrap();
-                        file_element.visible = is_file;
+                        file_element.style.visible = is_file;
                         let value_element_reference = parent_ref + ".as_value";
                         let value_element = ui.get_element_mut(value_element_reference).unwrap();
-                        value_element.visible = !is_file;
+                        value_element.style.visible = !is_file;
                 }
             }
         }));
@@ -85,7 +85,7 @@ pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<impl Fn(Texture
         }
         _ => panic!("There should not be a non float/vector/color texture")
     };
-    elem.visible = !as_file;
+    elem.style.visible = !as_file;
     category.add_element(elem);
     let as_text = as_text;
     let name = name.to_string();
@@ -103,7 +103,7 @@ pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<impl Fn(Texture
             ui.set_active_box(box_reference);
         }
     }));
-    elem.visible = as_file;
+    elem.style.visible = as_file;
     elem.style_mut().disabled = true;
     category.add_element(elem);
 

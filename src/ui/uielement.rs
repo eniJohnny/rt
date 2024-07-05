@@ -19,7 +19,6 @@ use crate::{
 use super::{ui::UI, uisettings::UISettings, utils::{draw_utils::{draw_checkbox, draw_element_text, get_size, split_in_lines}, misc::{ElemType, FnAny, Property, Value}, style::{Formattable, Style}, ui_utils::{get_pos, Editing}, HitBox}};
 
 pub struct UIElement {
-    pub visible: bool,
     pub elem_type: ElemType,
     pub text: String,
     pub style: Style,
@@ -34,7 +33,6 @@ pub struct UIElement {
 impl UIElement {
     pub fn new(name: &str, id: &str, elem: ElemType, settings: &UISettings) -> Self {
         UIElement {
-            visible: true,
             style: elem.base_style(settings),
             elem_type: elem,
             text: String::from(name),
@@ -210,17 +208,15 @@ impl UIElement {
                 ElemType::Row(elems) => {
                     let available_width =
                         (parent_hitbox.size.0 - ui.uisettings().margin * (elems.len() - 1) as u32) / elems.len() as u32;
-                    println!("{}", available_width);
                     let mut offset_x = 0;
                     for elem in elems {
-                        if elem.visible {
+                        if elem.style.visible {
                             let size = get_size(&elem.text, &elem.style, (available_width, max_height));
                             let center = (available_width / 2, parent_hitbox.size.1 / 2);
                             let pos = (
                                 parent_hitbox.pos.0 + offset_x + center.0 - size.0 / 2,
                                 parent_hitbox.pos.1 + center.1 - size.1 / 2,
                             );
-                            println!("{}, {}", pos.0, pos.1);
                             let hitbox = HitBox {
                                 pos,
                                 size,
@@ -245,7 +241,7 @@ impl UIElement {
                         }
                         for i in 0..cat.elems.len() {
                             let mut elem = cat.elems.remove(i);
-                            if elem.visible {
+                            if elem.style.visible {
                                 let hitbox = HitBox {
                                     pos: get_pos(
                                         (parent_hitbox.pos.0, parent_hitbox.pos.1 + offset_y),
@@ -324,7 +320,7 @@ impl UIElement {
             match &self.elem_type {
                 ElemType::Row(elems) => {
                     for elem in elems {
-                        if elem.visible {
+                        if elem.style.visible {
                             elem.draw(img, ui, scene);
                         }
                     }
@@ -337,7 +333,7 @@ impl UIElement {
 
                     if !cat.collapsed {
                         for elem in &cat.elems {
-                            if elem.visible {
+                            if elem.style.visible {
                                 elem.draw(img, ui, scene);
                             }
                         }

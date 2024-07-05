@@ -20,10 +20,14 @@ pub struct UIEditBar {
 
 impl UIEditBar {
     pub fn cancel(scene: &Arc<RwLock<Scene>>, ui: &mut UI, reference: String) {
-        let uibox = ui.get_box_mut(&reference);
-        if let Some(uibox) = uibox {
-            for elem in &mut uibox.elems {
-                elem.reset_properties(scene);
+        if reference == *ui.active_box_reference() {
+            ui.destroy_box(reference);
+        } else {
+            let uibox = ui.get_box_mut(&reference);
+            if let Some(uibox) = uibox {
+                for elem in &mut uibox.elems {
+                    elem.reset_properties(scene);
+                }
             }
         }
     }

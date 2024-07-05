@@ -2,7 +2,7 @@ use image::Rgba;
 
 use crate::{model::maths::vec2::Vec2, ui::uisettings::UISettings};
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Style {
     pub font_size: f32,
     pub font_color: Rgba<u8>,
@@ -13,20 +13,25 @@ pub struct Style {
     pub disabled: bool,
     pub bg_color: Option<Rgba<u8>>,
     pub border_radius: u32,
+    pub border_color: Option<Rgba<u8>>,
+    pub border_left: u32,
+    pub border_right: u32,
+    pub border_top: u32,
+    pub border_bot: u32,
     pub padding_left: u32,
     pub padding_right: u32,
     pub padding_top: u32,
     pub padding_bot: u32,
 }
-
-pub struct StyleBuilder {
-    style: Style,
-    settings: UISettings,
-}
 pub trait Formattable {
     fn base_style(&self, settings: &UISettings) -> Style {
         Style::default(settings)
     }
+}
+
+pub struct StyleBuilder {
+    style: Style,
+    settings: UISettings,
 }
 
 impl StyleBuilder {
@@ -36,10 +41,18 @@ impl StyleBuilder {
             style: Style::default(settings),
         }
     }
+    pub fn from_existing(style: &Style, settings: &UISettings) -> Self {
+        Self {
+            settings: settings.clone(),
+            style: style.clone()
+        }
+    }
     pub fn from_btn(settings: &UISettings) -> Self {
         StyleBuilder::default(settings)
             .bg_color(Some(Rgba([200, 200, 200, 255])))
             .font_color(Rgba([0, 0, 0, 255]))
+            .border_size(2)
+            .border_color(Some(Rgba([30, 30, 30, 255])))
             .border_radius(3)
     }
     pub fn padding_left(mut self, padding_left: u32) -> Self {
@@ -62,7 +75,7 @@ impl StyleBuilder {
         self.style.fill_width = fill_width;
         self
     }
-    pub fn padding(mut self, padding: u32) -> Self {
+    pub fn padding(self, padding: u32) -> Self {
         self.padding_bot(padding)
             .padding_top(padding)
             .padding_left(padding)
@@ -78,6 +91,32 @@ impl StyleBuilder {
     }
     pub fn border_radius(mut self, border_radius: u32) -> Self {
         self.style.border_radius = border_radius;
+        self
+    }
+    pub fn border_top(mut self, border_top: u32) -> Self {
+        self.style.border_top = border_top;
+        self
+    }
+    pub fn border_left(mut self, border_left: u32) -> Self {
+        self.style.border_left = border_left;
+        self
+    }
+    pub fn border_right(mut self, border_right: u32) -> Self {
+        self.style.border_right = border_right;
+        self
+    }
+    pub fn border_bot(mut self, border_bot: u32) -> Self {
+        self.style.border_bot = border_bot;
+        self
+    }
+    pub fn border_size(self, border_size: u32) -> Self {
+        self.border_bot(border_size)
+            .border_left(border_size)
+            .border_right(border_size)
+            .border_top(border_size)
+    }
+    pub fn border_color(mut self, border_color: Option<Rgba<u8>>) -> Self {
+        self.style.border_color = border_color;
         self
     }
     pub fn width(mut self, width: u32) -> Self {
@@ -126,6 +165,11 @@ impl Style {
             padding_right: settings.padding_x,
             padding_top: settings.padding_y,
             padding_bot: settings.padding_y,
+            border_bot: 0,
+            border_top: 0,
+            border_left: 0,
+            border_right: 0,
+            border_color: None,
             visible: true,
             disabled: false,
             fill_width: false,
@@ -141,6 +185,15 @@ impl Style {
 
     pub fn property(settings: &UISettings) -> Self {
         StyleBuilder::default(settings).fill_width(true).build()
+    }
+
+    pub fn uibox(settings: &UISettings) -> Self {
+        StyleBuilder::default(settings)
+            .bg_color(Some(Rgba([20, 20, 20, 255])))
+            .border_size(2)
+            .border_color(Some(Rgba([200, 200, 200, 255])))
+            .padding(0)
+            .build()
     }
 
     pub fn editing(settings: &UISettings) -> Self {

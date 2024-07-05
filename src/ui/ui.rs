@@ -17,7 +17,8 @@ pub struct UI {
     boxes: HashMap<String, UIBox>,
     uisettings: UISettings,
     box_index: usize,
-    active_box_reference: String,
+    active_box_queue: Vec<String>,
+    // active_box_reference: String,
     editing: Option<Editing>,
     mouse_position: (u32, u32),
     inputs: Vec<Key>,
@@ -35,7 +36,8 @@ impl UI {
             box_index: 0,
             boxes: HashMap::new(),
             uisettings: UISettings::default(),
-            active_box_reference: "".to_string(),
+            // active_box_reference: "".to_string(),
+            active_box_queue: vec![],
             editing: None,
             mouse_position: (0, 0),
             inputs: vec![],
@@ -122,8 +124,10 @@ impl UI {
 
     pub fn destroy_box(&mut self, reference: String) {
         self.boxes.remove(&reference);
-        if reference == self.active_box_reference {
-            self.active_box_reference = "".to_string();
+        if let Some(last_reference) = self.active_box_queue.last() {
+            if reference == *last_reference {
+                self.active_box_queue.pop();
+            }
         }
     }
 
@@ -158,31 +162,41 @@ impl UI {
     }
 
     pub fn active_box(&self) -> Option<&UIBox> {
-        if self.active_box_reference == "" {
+        if self.active_box_queue.len() == 0 {
             None
         } else {
+            let last_reference = self.active_box_queue.last().expect("ERROR : No last element in active_box_queue despite len > 0");
             Some(
                 self.boxes
-                    .get(&self.active_box_reference)
+                    .get(last_reference)
                     .expect("ERROR : Couldn't find the added UIBox"),
             )
         }
     }
 
     pub fn active_box_mut(&mut self) -> Option<&mut UIBox> {
-        if self.active_box_reference == "" {
+        if self.active_box_queue.len() == 0 {
             None
         } else {
+            let last_reference = self.active_box_queue.last().expect("ERROR : No last element in active_box_queue despite len > 0");
             Some(
                 self.boxes
-                    .get_mut(&self.active_box_reference)
+                    .get_mut(last_reference)
                     .expect("ERROR : Couldn't find the added UIBox"),
             )
         }
     }
 
+    pub fn active_box_reference(&self) -> String {
+        if let Some(last_reference) = self.active_box_queue.last() {
+            last_reference.clone()
+        } else {
+            "".to_string()
+        }
+    }
+
     pub fn set_active_box(&mut self, id: String) {
-        self.active_box_reference = id;
+        self.active_box_queue.push(id);
         self.dirty = true;
     }
 
@@ -239,7 +253,7 @@ impl UI {
 
         for reference in reference_vec {
             let mut uibox = self.boxes.remove(&reference).unwrap();
-            if !uibox.visible {
+            if !uibox.style.visible {
                 continue;
             }
             hitbox_vec.append(&mut uibox.generate_hitboxes(self, scene, &settings_snapshot));
@@ -251,7 +265,7 @@ impl UI {
     pub fn draw(&mut self, scene: &Arc<RwLock<Scene>>, img: &mut RgbaImage) {
         img.fill_with(|| 1);
         for (_, uibox) in &self.boxes {
-            if !uibox.visible || uibox.reference == self.active_box_reference {
+            if !uibox.style.visible || uibox.reference == *self.active_box_reference() {
                 continue;
             }
             uibox.draw(img, self, scene);
