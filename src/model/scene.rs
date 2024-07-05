@@ -203,7 +203,16 @@ impl Scene {
     pub fn non_bvh_elements(&self) -> Vec<&crate::model::Element> {
         self.elements
             .iter()
-            .filter(|element| element.shape().aabb().is_none())
+            .filter(|element| element.shape().aabb().is_none() && element.shape().as_aabb().is_none())
+            .collect()
+    }
+
+    pub fn non_bvh_element_ids(&self) -> Vec<usize> {
+        self.elements
+            .iter()
+            .enumerate()
+            .filter(|(_, element)| element.shape().aabb().is_none() && element.shape().as_aabb().is_none())
+            .map(|(i, _)| i)
             .collect()
     }
 

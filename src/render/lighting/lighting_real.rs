@@ -1,14 +1,14 @@
 use rand::Rng;
 
 use crate::{
-    bvh::{self, traversal::{get_closest_aabb_hit, traverse_bvh}}, model::{
+    bvh::{self, traversal::{get_closest_aabb_hit, new_traverse_bvh, traverse_bvh}}, model::{
         materials::color::Color,
         maths::{hit::Hit, ray::Ray, vec3::Vec3},
         objects::light,
         scene::Scene,
     },
     render::{raycasting::get_closest_hit, skysphere::get_skysphere_color},
-    MAX_DEPTH,
+    MAX_DEPTH, USING_BVH,
 };
 
 use super::{
@@ -20,44 +20,51 @@ use super::{
     restir::{PathBucket, Sample},
 };
 
+
+/* old bvh traversal
+    let non_bvh_hit = get_closest_hit(scene, ray);
+    let bvh_hit = traverse_bvh(ray, Some(node), scene);
+    
+    match (non_bvh_hit, bvh_hit) {
+        (Some(non_bvh), Some(bvh)) => {
+            if non_bvh.dist() < bvh.dist() {
+                hit = Some(non_bvh);
+            } else {
+                hit = Some(bvh);
+            }
+        },
+        (Some(non_bvh), None) => {
+            hit = Some(non_bvh);
+        },
+        (None, Some(bvh)) => {
+            hit = Some(bvh);
+        },
+        (None, None) => {
+            return Color::new(0., 0., 0.);
+        },
+    };
+*/
+
 pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
-    let node = scene.bvh().as_ref().unwrap();
     let hit;
     
-    if DEBUG_BVH {
-        let non_bvh_hit = get_closest_hit(scene, ray);
-        let bvh_hit = traverse_bvh(ray, Some(node), scene);
+    match USING_BVH {
+        true => {
+            let node = scene.bvh().as_ref().unwrap();
+            hit = new_traverse_bvh(ray, Some(node), scene);
+        },
+        false => {
+            hit = get_closest_hit(scene, ray);
+        },
+    };
 
-
-        match (non_bvh_hit, bvh_hit) {
-            (Some(non_bvh), Some(bvh)) => {
-                if non_bvh.dist() < bvh.dist() {
-                    hit = Some(non_bvh);
-                } else {
-                    hit = Some(bvh);
-                }
-            },
-            (Some(non_bvh), None) => {
-                hit = Some(non_bvh);
-            },
-            (None, Some(bvh)) => {
-                hit = Some(bvh);
-            },
-            (None, None) => {
-                return Color::new(0., 0., 0.);
-            },
-        };
-    } else {
-            hit = match get_closest_hit(scene, ray) {
-            Some(hit) => Some(hit),
-            None => return Color::new(0., 0., 0.),
-        };
-    }
-
-    let mut hit = hit.unwrap();
-    hit.map_textures(scene.textures());
-    
-    get_lighting_from_hit(scene, &hit, ray)
+    return match hit {
+        Some(mut hit) => {
+            hit.map_textures(scene.textures());
+            get_lighting_from_hit(scene, &hit, ray)
+        },
+        None => Color::new(0., 0., 0.),
+    };
 }
 
 pub fn fresnel_reflect_ratio(n1: f64, n2: f64, norm: &Vec3, ray: &Vec3, f0: f64, f90: f64) -> f64 {

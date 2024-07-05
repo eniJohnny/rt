@@ -13,9 +13,9 @@ pub mod picker;
 pub mod render;
 pub mod bvh;
 
-const DEBUG_BVH: bool = true;
+const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
-const SCENE: &str = "random100";
+const SCENE: &str = "metalrough";
 
 const AABB_OPACITY: f64 = 0.0;
 const AABB_STEPS_NB: usize = 10;

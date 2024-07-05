@@ -9,7 +9,7 @@ use crate::{
         maths::{hit::Hit, quaternion::Quaternion, ray::Ray, vec3::Vec3},
         scene::Scene,
         Element,
-    }, ANTIALIASING, DEBUG_BVH, MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH
+    }, ANTIALIASING, USING_BVH, MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH
 };
 
 use super::{
@@ -78,7 +78,7 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
 
     // TESTING PURPOSES
     let elements;
-    if DEBUG_BVH {
+    if USING_BVH {
         elements = scene.non_bvh_elements();
     } else {
         elements = scene.test_all_elements();

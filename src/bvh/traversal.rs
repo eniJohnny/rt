@@ -1,4 +1,4 @@
-use crate::model::{maths::{hit::Hit, ray::Ray}, scene::{self, Scene}, shapes::{aabb::Aabb, Shape}};
+use crate::{model::{maths::{hit::{self, Hit}, ray::Ray}, scene::{self, Scene}, shapes::{aabb::Aabb, Shape}, Element}, render::raycasting::get_closest_hit};
 
 use super::node::Node;
 
@@ -205,8 +205,160 @@ pub fn traverse_bvh<'a>(ray: &Ray, node: Option<&Node>, scene: &'a Scene) -> Opt
     // };
 }
 
+pub fn new_traverse_bvh<'a>(ray: &Ray, node: Option<&Node>, scene: &'a Scene) -> Option<Hit<'a>> {
+    let mut node = match node {
+        Some(node) => node,
+        None => return None,
+    };
+
+    let closest_non_bvh_hit = get_closest_non_bvh_hit(scene, ray, &scene.non_bvh_elements());
+    let tn = if let Some(ref hit) = closest_non_bvh_hit {
+        Some(vec![*hit.dist()])
+    } else {
+        None
+    };
+
+    while node.is_leaf() == false {
+        // println!("is leaf: {}\nlen: {}\nelements: {:?}\nleft: {}\nright: {}\n", node.is_leaf(), node.len(), node.elements(), node.left().as_ref().unwrap(), node.right().as_ref().unwrap());
+
+        let (mut ta, mut tb): (Option<Vec<f64>>, Option<Vec<f64>>) = (None, None);
+
+        // Check if ray intersects left child
+        if let Some(ref left) = node.left() {
+            ta = left.aabb().intersect(ray);
+        }
+        
+        // Check if ray intersects right child
+        if let Some(ref right) = node.right() {
+            tb = right.aabb().intersect(ray);
+        }
+
+        // Check if ray intersects non_bvh element first
+        if let Some(ref n) = tn {
+            // For left children
+            if let Some(ref a) = ta {
+                if n[0] < a[0] || n[0] - a[0] < f64::EPSILON {
+                    ta = None;
+                }
+            }
+            
+            // For right children
+            if let Some(ref b) = tb {
+                if n[0] < b[0] || n[0] - b[0] < f64::EPSILON {
+                    tb = None;
+                }
+            }
+        }
+
+        if tn.is_some() || ta.is_some() || tb.is_some() || closest_non_bvh_hit.is_some() {
+            println!("tn: {:?}\nta: {:?}\ntb: {:?}\nclosest hit: {:?}\n", tn, ta, tb, closest_non_bvh_hit);
+        }
+
+        if tn.is_some() && ta.is_none() && tb.is_none() {
+            let mut hit = closest_non_bvh_hit.unwrap();
+            hit.map_textures(scene.textures());
+            return Some(hit);
+        }
+
+        // If there is a hit on left child
+        if let Some(a) = ta {
+            // If there is a hit on right child too
+            if let Some(b) = tb {
+                // If left child is closer
+                if a[0] < b[0] {
+                    node = node.left().as_ref()?;
+                    continue;
+                // If right child is closer
+                } else {
+                    node = node.right().as_ref()?;
+                    continue;
+                }
+            // If there is no hit on right child
+            } else {
+                node = node.left().as_ref()?;
+                continue;
+            }
+        }
+
+        // If there is a hit on right child only
+        if tb.is_some() {
+            node = node.right().as_ref()?;
+            continue;
+        }
+
+        // If there is no hit on both children
+        // println!("wtf");
+    }
+
+    // Node is now a leaf node and closest hit is part of bvh
+    let mut closest_hit = HitInfo::new();
+
+    // Check for closest hit
+    for &element_index in node.elements() {
+        let element = scene.get_element(element_index);
+        let hit = element.shape().intersect(ray);
+        if let Some(hit) = hit {
+            let tmin = hit[0];
+            let tmax = if hit.len() > 1 {hit[1]} else {tmin};
+
+            if (tmin == closest_hit.tmin && tmax < closest_hit.tmax) || tmin < closest_hit.tmin {
+                closest_hit.element_index = element_index;
+                closest_hit.tmin = tmin;
+                closest_hit.tmax = tmax;
+            }
+        }
+    }
+
+    // If there is a hit
+    if closest_hit.tmin < std::f64::MAX {
+        let element = scene.get_element(closest_hit.element_index);
+        let mut hit = Hit::new(element, closest_hit.tmin, ray.get_pos() + ray.get_dir() * closest_hit.tmin, &ray.get_dir(), scene.textures());
+        hit.map_textures(scene.textures());
+        return Some(hit);
+    }
+    None
+}
+
+fn get_closest_non_bvh_hit<'a>(scene: &'a Scene, ray: &Ray, elements: &Vec<&'a Element>) -> Option<Hit<'a>> {
+    let mut closest: Option<Hit> = None;
+
+    for element in elements {
+        let t = element.shape().intersect(ray);
+        let mut tmin = std::f64::MAX;
+
+        if let Some(t) = t {
+            for tx in t {
+                if tx < tmin && tx > 0.0 {
+                    tmin = tx;
+                }
+            }
+
+            if tmin < std::f64::MAX {
+                let hit = Hit::new(element, tmin, ray.get_pos() + ray.get_dir() * tmin, &ray.get_dir(), scene.textures());
+
+                if hit.opacity() > 0.5 {
+                    closest = Some(hit);
+                }
+            }
+        }
+    }
+
+    closest
+}
+
+#[derive(Debug)]
 struct HitInfo {
     element_index: usize,
     tmin: f64,
     tmax: f64,
+}
+
+impl HitInfo {
+    fn new() -> Self {
+        Self {
+            element_index: 0,
+            tmin: std::f64::MAX,
+            tmax: std::f64::MAX,
+        }
+    }
 }

@@ -65,13 +65,6 @@ impl Node {
     }
 
     pub fn add_node(&mut self, scene: &mut Scene) {
-        // let mut aabb = self.aabb().clone();
-        // let children = aabb.get_children_aabbs_id(scene);
-
-        // if children.len() < 1 {
-        //     return;
-        // }
-
         let (aabb1, aabb2) = self.aabb.better_split(scene);
         let left_children = aabb1.get_children_aabbs_id(scene);
         let right_children = aabb2.get_children_aabbs_id(scene);
@@ -169,6 +162,6 @@ pub fn test_node_insertion(scene: &mut Scene) {
     for (i, elem) in elements.iter().enumerate() {
         file.write_all(format!("\n{} : {:?}", i, elem.shape()).as_bytes()).expect("Unable to write data");
     }
-
+    file.write_all(format!("\n\n{:?}", node).as_bytes()).expect("Unable to write data");
     println!("Node written to logfile");
 }
