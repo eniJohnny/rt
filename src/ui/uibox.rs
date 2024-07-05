@@ -11,31 +11,28 @@ use crate::{
     SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32,
 };
 
-use super::{ui::UI, uieditbar::UIEditBar, uielement::UIElement, utils::{draw_utils::{draw_background, get_needed_height, get_size}, misc::{ElemType, FnAny, Property}, ui_utils::translate_hitboxes, HitBox}};
+use super::{ui::UI, uieditbar::UIEditBar, uielement::UIElement, utils::{draw_utils::{draw_background, draw_box, get_needed_height, get_size}, misc::{ElemType, FnAny, Property}, style::{Style, StyleBuilder}, ui_utils::translate_hitboxes, HitBox}};
 
 pub struct UIBox {
     pub relative_pos: BoxPosition,
     pub absolute_pos: (u32, u32),
     pub size: (u32, u32),
     pub max_height: u32,
-    pub visible: bool,
     // pub borders: Option<(Color, usize)>,
-    pub background_color: Option<Color>,
     pub elems: Vec<UIElement>,
     pub reference: String,
+    pub style: Style,
     pub edit_bar: Option<UIEditBar>,
 }
 
 impl UIBox {
-    pub fn new(reference: &str, pos: BoxPosition, width: u32) -> UIBox {
+    pub fn new(reference: &str, pos: BoxPosition, width: u32, settings: &UISettings) -> UIBox {
         UIBox {
             relative_pos: pos,
             absolute_pos: (0, 0),
             size: (width, 0),
             max_height: SCREEN_HEIGHT_U32,
-            background_color: Some(Color::new(0.1, 0.1, 0.1)),
-            // borders: None,
-            visible: true,
+            style: Style::uibox(settings),
             elems: vec![],
             reference: reference.to_string(),
             edit_bar: None,
@@ -74,7 +71,7 @@ impl UIBox {
     }
 
     pub fn show(&mut self) {
-        self.visible = true;
+        self.style.visible = true;
     }
 
     pub fn get_property_mut(&mut self, reference: &str) -> Option<&mut Property> {
@@ -95,6 +92,18 @@ impl UIBox {
         None
     }
 
+    pub fn style(&self) -> &Style {
+        &self.style
+    }
+
+    pub fn style_mut(&mut self) -> &mut Style {
+        &mut self.style
+    }
+
+    pub fn set_style(&mut self, style: Style) {
+        self.style = style;
+    }
+
     pub fn generate_hitboxes(
         &mut self,
         ui: &mut UI,
@@ -104,10 +113,12 @@ impl UIBox {
         let mut edit_bar_hitbox_list = vec![];
         let mut hitbox_list = vec![];
         let mut edit_bar_height = 0;
+        let pos = (self.style.border_left, self.style.border_top);
+        let mut size = (self.size.0 - self.style.border_left - self.style.border_right, self.max_height - self.style.border_top - self.style.border_bot);
         // We process the edit bar first
         if let Some(mut edit_bar) = self.edit_bar.take() {
             edit_bar_hitbox_list = 
-                edit_bar.generate_hitboxes((0, 0), settings, (self.size.0, self.max_height));
+                edit_bar.generate_hitboxes(pos, settings, size);
             edit_bar_height = get_needed_height(&edit_bar_hitbox_list);
             self.edit_bar = Some(edit_bar);
             if edit_bar_height > self.max_height {
@@ -117,27 +128,26 @@ impl UIBox {
         }
         let mut fields_height = 0;
         // We always show the edit_bar if present, it's the fields we truncate if needed
-        let max_height = self.max_height - edit_bar_height;
+        size.1 -= edit_bar_height;
         // We first calculate the positions from position 0,0, we will translate all of the hitboxes later. We need the height to accurately position the box in most cases.
-        let pos = (0, 0);
         for i in 0..self.elems.len() {
             // To avoid mutable borrows problems and be able to provide a mutable UI to the needed functions, we take the element out of the UI.
             let mut elem = self.elems.remove(i);
-            if elem.visible {
+            if elem.style.visible {
                 let hitbox = HitBox {
                     pos: (pos.0, pos.1 + fields_height + settings.margin),
                     size: get_size(
                         &elem.text,
                         &elem.style,
-                        (self.size.0, max_height - fields_height),
+                        (size.0, size.1 - fields_height),
                     ),
                     reference: elem.reference.clone(),
                     disabled: matches!(elem.elem_type, ElemType::Row(_)),
                 };
                 elem.hitbox = Some(hitbox.clone());
-                let vec = elem.generate_hitbox(ui, scene, max_height - fields_height);
+                let vec = elem.generate_hitbox(ui, scene, size.1 - fields_height);
                 let needed_height = (hitbox.pos.1 + hitbox.size.1 + settings.margin).max(get_needed_height(&vec));
-                if needed_height >= max_height {
+                if needed_height >= size.1 {
                     break;
                 }
                 if needed_height > fields_height {
@@ -164,7 +174,7 @@ impl UIBox {
     }
 
     pub fn translate_hitboxes_to_relative_position(&mut self, fields_height: u32, edit_bar_height: u32, settings: &UISettings) {
-        self.size.1 = fields_height + edit_bar_height + settings.margin * 2;
+        self.size.1 = fields_height + edit_bar_height + settings.margin * 2 + self.style.border_bot + self.style.border_top;
         self.absolute_pos = self.relative_pos.get_pos(self.size);
         for elem in &mut self.elems {
             elem.translate_hitboxes(self.absolute_pos);
@@ -175,11 +185,9 @@ impl UIBox {
     }
 
     pub fn draw(&self, img: &mut RgbaImage, ui: &UI, scene: &Arc<RwLock<Scene>>) {
-        if let Some(color) = &self.background_color {
-            draw_background(img, self.absolute_pos, self.size, color.to_rgba(), 0);
-        }
+        draw_background(img, self.absolute_pos, self.size, &self.style);
         for elem in &self.elems {
-            if elem.visible {
+            if elem.style.visible {
                 elem.draw(img, ui, scene);
             }
         }

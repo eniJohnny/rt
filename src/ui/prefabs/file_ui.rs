@@ -12,7 +12,7 @@ pub fn get_file_box(path: String, box_name: String, submit: FnSubmitValue, setti
 
     let files = get_files_in_folder(&path);
     if let Ok(files) = files {
-        let mut file_box =  UIBox::new("file_box", BoxPosition::Center, settings.gui_width);
+        let mut file_box =  UIBox::new("file_box", BoxPosition::Center, settings.gui_width, settings);
         let mut cat = UIElement::new(&box_name, "cat_file", ElemType::Category(Category::default()), settings);
         let mut i = 0;
 
@@ -59,7 +59,7 @@ pub fn get_file_box(path: String, box_name: String, submit: FnSubmitValue, setti
                 Box::new(|_| Ok(())),
                 settings)
         ), settings);
-        value_element.visible = false;
+        value_element.style.visible = false;
         cat.add_element(value_element);
 
         file_box.add_elements(vec![cat]);

@@ -12,21 +12,20 @@ pub fn draw_element_text(
     text: String,
     pos: (u32, u32),
     size: (u32, u32),
-    format: &Style,
+    style: &Style,
 ) {
-    if let Some(color) = format.bg_color {
-        draw_background(img, pos, size, color, format.border_radius);
-    }
-    draw_text2(
+    draw_background(img, pos, size, style);
+    
+    draw_text(
         img,
-        (pos.0 + format.padding_left, pos.1 + format.padding_top),
+        (pos.0 + style.padding_left, pos.1 + style.padding_top),
         text,
-        format,
+        style,
     );
 }
 
 
-pub fn draw_text2(image: &mut RgbaImage, pos: (u32, u32), text: String, format: &Style) {
+fn draw_text(image: &mut RgbaImage, pos: (u32, u32), text: String, format: &Style) {
     // Load font
     let font_data = include_bytes!("../../assets/JetBrainsMono-Regular.ttf");
     let font = &Font::try_from_bytes(font_data as &[u8]).expect("Error loading font");
@@ -102,14 +101,14 @@ pub fn draw_checkbox(
         pos.1 + (height - checkbox_size.1) / 2,
     );
 
-    draw_background(
+    draw_box(
         img,
         checkbox_pos,
         checkbox_size,
         Rgba([40, 10, 90, 255]),
         style.border_radius,
     );
-    draw_background(
+    draw_box(
         img,
         (checkbox_pos.0 + 2, checkbox_pos.1 + 2),
         (checkbox_size.0 - 4, checkbox_size.1 - 4),
@@ -117,7 +116,7 @@ pub fn draw_checkbox(
         style.border_radius,
     );
     if value {
-        draw_background(
+        draw_box(
             img,
             (checkbox_pos.0 + 4, checkbox_pos.1 + 4),
             (checkbox_size.0 - 8, checkbox_size.1 - 8),
@@ -128,6 +127,26 @@ pub fn draw_checkbox(
 }
 
 pub fn draw_background(
+    img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>,
+    pos: (u32, u32),
+    size: (u32, u32),
+    style: &Style
+) {
+    if style.border_top > 0 || style.border_bot > 0 || style.border_left > 0 || style.border_right > 0 {
+        if let Some(color) = style.border_color {
+            draw_box(img, pos, size, color, style.border_radius);
+            if let Some(color) = style.bg_color {
+                let pos = (pos.0 + style.border_left, pos.1 + style.border_top);
+                let size = (size.0 - style.border_left - style.border_right, size.1 - style.border_top - style.border_bot);
+                draw_box(img, pos, size, color, style.border_radius);
+            }
+        }
+    } else if let Some(color) = style.bg_color {
+        draw_box(img, pos, size, color, style.border_radius);
+    }
+}
+
+pub fn draw_box(
     img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>,
     pos: (u32, u32),
     size: (u32, u32),
