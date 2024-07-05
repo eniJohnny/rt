@@ -12,7 +12,7 @@ use crate::{
 };
 
 use super::{
-    lighting_sampling::get_reflected_light_bucket,
+    lighting::lighting_sampling::get_reflected_light_bucket,
     restir::{Path, PathBucket, Sample},
 };
 

@@ -2,7 +2,11 @@ use std::fmt::Debug;
 
 use crate::model::maths::{hit::Hit, vec3::Vec3};
 
-use super::{color::Color, diffuse::Diffuse, texture::Texture};
+use super::{
+    color::Color,
+    diffuse::Diffuse,
+    texture::{Texture, TextureType},
+};
 
 #[derive(Debug, Clone, Default)]
 pub struct Projection {
@@ -34,13 +38,13 @@ pub trait Material: Debug + Sync + Send {
 impl dyn Material {
     pub fn default() -> Box<Self> {
         Box::new(Diffuse::new(
-            Texture::Value(Vec3::from_value(0.)),
-            Texture::Value(Vec3::from_value(0.)),
-            Texture::Value(Vec3::from_value(0.)),
-            Texture::Value(Vec3::from_value(0.)),
-            Texture::Value(Vec3::from_value(0.)),
-            Texture::Value(Vec3::from_value(0.)),
-            Texture::Value(Vec3::from_value(0.)),
+            Texture::Value(Vec3::from_value(0.), TextureType::Color),
+            Texture::Value(Vec3::from_value(0.), TextureType::Float),
+            Texture::Value(Vec3::from_value(0.), TextureType::Float),
+            Texture::Value(Vec3::from_value(0.), TextureType::Float),
+            Texture::Value(Vec3::from_value(0.), TextureType::Float),
+            Texture::Value(Vec3::from_value(0.), TextureType::Vector),
+            Texture::Value(Vec3::from_value(0.), TextureType::Float),
         ))
     }
 }

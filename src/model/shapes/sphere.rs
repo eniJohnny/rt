@@ -42,22 +42,11 @@ impl Shape for Sphere {
         } else {
             constant_axis = Vec3::new(0., 0., 1.);
         }
-        projection.v = ((self.dir.dot(&hit.norm()) + 1.) / 2.);
-        projection.i = hit.norm().cross(&constant_axis).normalize();
-        projection.j = hit.norm().cross(&projection.i).normalize();
+        let i = self.dir().cross(&constant_axis).normalize();
+        let j = self.dir().cross(&i).normalize();
         projection.k = hit.norm().clone();
-        let constant_axis: Vec3;
-        if self.dir == Vec3::new(0., 0., 1.) {
-            constant_axis = Vec3::new(0., 1., 0.);
-        } else {
-            constant_axis = Vec3::new(0., 0., 1.);
-        }
-        projection.v = ((self.dir.dot(&hit.norm()) + 1.) / 2.).clamp(0., 1.);
-        projection.i = self.dir.cross(&constant_axis).normalize();
-        projection.j = self.dir.cross(&projection.i).normalize();
-        projection.k = hit.norm().clone();
-        let i_component: f64 = hit.norm().dot(&projection.i);
-        let j_component: f64 = hit.norm().dot(&projection.j);
+        let i_component: f64 = hit.norm().dot(&i);
+        let j_component: f64 = hit.norm().dot(&j);
         let k_component: f64 = hit.norm().dot(&self.dir);
         projection.u = (f64::atan2(i_component, j_component) + PI) / (2. * PI);
         projection.v = f64::acos(k_component) / PI;
