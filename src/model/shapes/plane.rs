@@ -3,7 +3,7 @@ use crate::model::{
     materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene, Element
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Plane {
     pos: Vec3,
     dir: Vec3,
@@ -45,12 +45,14 @@ impl Shape for Plane {
         // None
     }
 
-	fn outer_intersect(&self, r: &Ray, f: f64, displaced_factor: f64) -> Option<Vec<f64>> {
-		self.intersect(r)
+	fn outer_intersect(&self, r: &Ray, displaced_factor: f64) -> Option<Vec<f64>> {
+		let mut upper_plane = self.clone();
+		upper_plane.set_pos(upper_plane.pos() + upper_plane.dir() * displaced_factor);
+		upper_plane.intersect(r)
 	}
 
     fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
-		self.intersect(ray)
+		self.outer_intersect(ray, 0.2)
 	}
 
     fn projection(&self, hit: &Hit) -> Projection {

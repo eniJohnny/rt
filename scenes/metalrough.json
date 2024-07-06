@@ -3,13 +3,12 @@
         "type": "sphere",
         "pos": [0, 0, -5],
         "dir": [0, 1, 0],
-        "color": "Fence_Rust_Color.jpg",
+        "color": "Bricks_gray_Color.jpg",
         "radius": 2.0,
-        "normal": "Fence_Rust_Normal.jpg",
-        "roughness": "Fence_Rust_Roughness.jpg",
-        "displacement": "Fence_Rust_Displacement.jpg",
-        "opacity": "Fence_Rust_Opacity.jpg",
-        "metalness": "Fence_Rust_Metalness.jpg"
+        "normal": "Bricks_gray_Normal.jpg",
+        "roughness": "Bricks_gray_Roughness.jpg",
+        "displacement": "Bricks_gray_Displacement.jpg",
+        "metallness": 0.0
     },
     {
         "type": "camera",
