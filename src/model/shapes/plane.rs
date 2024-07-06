@@ -45,7 +45,7 @@ impl Shape for Plane {
         // None
     }
 
-	fn outer_intersect(&self, r: &Ray, displaced_factor: f64) -> Option<Vec<f64>> {
+	fn outer_intersect(&self, r: &Ray, f: f64, displaced_factor: f64) -> Option<Vec<f64>> {
 		self.intersect(r)
 	}
 

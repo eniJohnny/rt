@@ -36,19 +36,17 @@ impl Shape for Sphere {
         None
     }
 
-	fn outer_intersect(&self, r: &Ray, displaced_factor: f64) -> Option<Vec<f64>> {
+	fn outer_intersect(&self, r: &Ray, f: f64, displaced_factor: f64) -> Option<Vec<f64>> {
 		let mut outer_sphere = self.clone();
-		outer_sphere.set_radius(outer_sphere.radius() + outer_sphere.radius() * displaced_factor);
+		outer_sphere.set_radius(outer_sphere.radius() + outer_sphere.radius() * displaced_factor * f);
 		outer_sphere.intersect(r)
 	}
 
     fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
-		let displaced_factor = 0.1;
+		let displaced_factor = 0.05;
 		let total_displacement = self.radius * displaced_factor;
-		let step = 1.;
-		static mut i: i32 = 0; 
-		static mut j: i32 = 0; 
-		let mut t: Option<Vec<f64>> = self.outer_intersect(ray, displaced_factor);
+		let step = 0.1;
+		let mut t: Option<Vec<f64>> = self.outer_intersect(ray, 1., displaced_factor);
 		if let Some(mut hits) = get_sorted_hit_from_t(scene, ray, &t, element) {
 			let mut first_hit = hits.remove(0);
 			let mut sec_hit;
@@ -68,7 +66,7 @@ impl Shape for Sphere {
 			let mut displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures()).to_value();
 			let mut displaced_dist = (hit_ratio - displaced_ratio) * total_displacement;
 			let mut old_t = *hit.dist();
-			if displaced_dist < 0.001 {
+			if (displaced_ratio - hit_ratio).abs() < 0.01 {
 				t_list.push(*hit.dist());
 			} else {
 				while hit.dist() < sec_hit.dist() {
@@ -92,30 +90,16 @@ impl Shape for Sphere {
 
 					displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures()).to_value();
 					displaced_dist = (hit_ratio - displaced_ratio) * total_displacement;
-
+					let old_displaced_ratio = displaced_ratio;
 					if (displaced_ratio - hit_ratio).abs() < 0.01 {
 						t_list.push(*hit.dist());
-						unsafe {
-							i += 1;
-						}
-						
 						break ;
 					}
 					if displaced_ratio >= hit_ratio {
-						// let ratio_diff = (displaced_ratio - hit_ratio);
-						// let difference = ratio_diff - old_ratio_diff;
-						// let t = hit.dist() - (hit.dist() - old_t) * ratio_diff / difference;
-						// t_list.push(t);
-						unsafe {
-							j += 1;
-						}
 						t_list.push((*hit.dist() + old_t) / 2.);
 						break ;
 					}
 				}
-			}
-			unsafe {
-				dbg!(i, j);
 			}
 			// let mut hit = sec_hit.clone();
 			// let mut sphere_to_hit = hit.pos() - self.pos();
@@ -179,7 +163,7 @@ impl Shape for Sphere {
         let i_component: f64 = hit.norm().dot(&i);
         let j_component: f64 = hit.norm().dot(&j);
         let k_component: f64 = hit.norm().dot(&self.dir);
-        projection.u = (f64::atan2(i_component, j_component) + PI) / (2. * PI);
+        projection.u = 2. * (f64::atan2(i_component, j_component) + PI) / (2. * PI);
         projection.v = f64::acos(k_component) / PI;
         projection.i = hit.norm().cross(&self.dir).normalize();
         projection.j = hit.norm().cross(&projection.i).normalize();

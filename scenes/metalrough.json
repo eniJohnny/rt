@@ -3,13 +3,13 @@
         "type": "sphere",
         "pos": [0, 0, -5],
         "dir": [0, 1, 0],
-        "color": "Fence_Color.jpg",
+        "color": "Fence_Rust_Color.jpg",
         "radius": 2.0,
-        "normal": "Fence_Normal.jpg",
-        "roughness": "Fence_Roughness.jpg",
-        "displacement": "Fence_Displacement.jpg",
-        "opacity": "Fence_Opacity.jpg",
-        "metalness": "Fence_Metalness.jpg"
+        "normal": "Fence_Rust_Normal.jpg",
+        "roughness": "Fence_Rust_Roughness.jpg",
+        "displacement": "Fence_Rust_Displacement.jpg",
+        "opacity": "Fence_Rust_Opacity.jpg",
+        "metalness": "Fence_Rust_Metalness.jpg"
     },
     {
         "type": "camera",
@@ -18,44 +18,30 @@
         "fov": 75
     },
     {
-        "type": "plane",
-        "pos": [-5, 0, 0],
-        "dir": [1, 0, 0],
-        "color": [255, 0, 0],
-        "roughness": 1.0
-    },
-    {
-        "type": "plane",
-        "pos": [5, 0, 0],
-        "dir": [-1, 0, 0],
-        "color": [0, 255, 0],
-        "roughness": 1.0
-    },
-    {
-        "type": "plane",
-        "pos": [0, -5, 0],
-        "dir": [0, 1, 0],
+        "type": "cylinder",
+        "radius": 2.0,
+        "height": 0.1,
+        "pos": [0, -6, -5],
+        "dir": [0, 1, 1],
         "color": [255, 255, 255],
         "emissive": 2.0
     },
     {
-        "type": "plane",
-        "pos": [0, 5, 0],
-        "dir": [0, -1, 0],
+        "type": "cylinder",
+        "radius": 2.0,
+        "height": 0.1,
+        "pos": [0, 6, -5],
+        "dir": [0, -1, 1],
         "color": [255, 255, 255],
         "emissive": 2.0
     },
     {
-        "type": "plane",
-        "pos": [0, 0, 5],
-        "dir": [0, 0, -1],
-        "color": [0, 0, 255],
-        "roughness": 1.0
-    },
-    {
-        "type": "plane",
+        "type": "cylinder",
+        "radius": 5.0,
+        "height": 0.1,
         "pos": [0, 0, -15],
-        "dir": [0, 0, 1],
-        "color": [255, 255, 255]
+        "dir": [0, 0, -1],
+        "color": [255, 255, 255],
+        "emissive": 2.0
     }
 ]
