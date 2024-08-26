@@ -87,7 +87,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
 
                 let shape = Box::new(Torus::new(pos, dir, radius, radius2));
                 let material = get_material(&object, color);
-                // scene.add_textures(&material);
+                scene.add_textures(&material);
                 let element = Element::new(shape, material);
                 scene.add_element(element);
             }

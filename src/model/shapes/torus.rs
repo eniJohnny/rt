@@ -1,3 +1,4 @@
+use std::f64::consts::PI;
 use super::Shape;
 use crate::model::materials::material::Projection;
 use crate::model::maths::{hit, ray};
@@ -96,7 +97,24 @@ impl Shape for Torus {
     }
 
     fn projection(&self, hit: &Hit) -> Projection {
-        Projection::default()
+        let vector = hit.pos() - &self.pos;
+        let projected_v = vector - self.dir * self.dir.dot(&vector);
+        let phi = projected_v.y().atan2(*projected_v.x());
+        let r_center = projected_v.length() - self.radius;
+        let theta = (*hit.pos().z() - *self.pos.z()).atan2(r_center);
+
+        let phi_norm = (phi + PI) / (2.0 * PI);
+        let theta_norm = (theta + PI) / (2.0 * PI);
+        let u = phi_norm;
+        let v = theta_norm;
+
+        Projection {
+            u,
+            v,
+            i: Vec3::new(1.0, 0.0, 0.0),
+            j: Vec3::new(0.0, 1.0, 0.0),
+            k: Vec3::new(0.0, 0.0, 1.0),
+        }
     }
 
     fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {

@@ -3,9 +3,11 @@
         "type": "torus",
         "pos": [0, 0, 0],
         "dir": [0, 0, 1],
-        "color": [255, 255, 255],
         "radius": 2.5,
-        "radius2": 0.3
+        "radius2": 1,
+        "color": "bricks_color.jpg",
+        "roughness": "bricks_roughness.jpg",
+        "normal": "bricks_normal.jpg"
     },
     {
         "type": "camera",

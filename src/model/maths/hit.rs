@@ -167,4 +167,8 @@ impl<'a> Hit<'a> {
         self.map_refraction(textures);
         self.map_emissive(textures);
     }
+
+    pub fn set_norm(&mut self, norm: Vec3) {
+        self.norm = norm;
+    }
 }

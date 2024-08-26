@@ -67,6 +67,13 @@ pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
         );
     }
 
+    // Temp fix for torii color
+    let mut hit = hit.clone();
+    if hit.element().shape().as_torus().is_some() {
+        let shape = hit.element().shape();
+        hit.set_norm(shape.norm(&hit.pos(), &ray.get_dir()));
+    }
+
     if hit.emissive() > f64::EPSILON {
         return hit.emissive() * hit.color();
     }
