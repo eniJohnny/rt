@@ -119,7 +119,7 @@ impl Light for PointLight {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ParallelLight {
     dir: Vec3,
     intensity: f64,

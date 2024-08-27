@@ -12,15 +12,12 @@ use crate::{
         objects::light,
         scene::Scene,
     },
+    render::restir::{PathBucket, Sample},
     MAX_DEPTH,
 };
 use rand::Rng;
 
-use super::{
-    lighting_real::get_lighting_from_ray,
-    raycasting::{get_closest_hit, sampling_ray},
-    restir::{Path, PathBucket, Sample},
-};
+use super::lighting_real::get_lighting_from_ray;
 
 pub fn reflect_dir(dir: &Vec3, normal: &Vec3) -> Vec3 {
     (dir - 2. * dir.dot(normal) * normal).normalize()

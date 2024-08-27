@@ -1,9 +1,7 @@
-use pixels::wgpu::ShaderModule;
-
 use crate::model::materials::color::Color;
 use crate::model::materials::diffuse::Diffuse;
 use crate::model::materials::material::Material;
-use crate::model::materials::texture::Texture;
+use crate::model::materials::texture::{Texture, TextureType};
 use crate::model::maths::vec3::Vec3;
 use crate::model::objects::camera::Camera;
 use crate::model::objects::light::{AmbientLight, Light, ParallelLight, PointLight};
@@ -274,9 +272,12 @@ fn get_material(
     let normal_string = object.get("normal").unwrap_or(&default);
     let opacity_string = object.get("opacity").unwrap_or(&default);
     let color_texture = match object.get("color") {
-        Some(path) => Texture::Texture(path.clone()),
+        Some(path) => Texture::Texture(path.clone(), TextureType::Color),
         None => match color_opt {
-            Some(color) => Texture::Value(Vec3::new(color.r(), color.g(), color.b())),
+            Some(color) => Texture::Value(
+                Vec3::new(color.r(), color.g(), color.b()),
+                TextureType::Color,
+            ),
             None => panic!("Color must be provided for non-textured materials"),
         },
     };
@@ -286,7 +287,7 @@ fn get_material(
         Texture::from_float_litteral(roughness_string, 0.),
         Texture::from_float_scaled(emissive_string, 0., MAX_EMISSIVE),
         Texture::from_float_litteral(refraction_string, 0.),
-        Texture::from_file_or(normal_string, Vec3::new(0.5, 0.5, 1.)),
+        Texture::from_vector(normal_string, Vec3::new(0.5, 0.5, 1.)),
         Texture::from_float_litteral(opacity_string, 1.),
     ))
 }
