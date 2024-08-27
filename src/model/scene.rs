@@ -140,7 +140,7 @@ impl Scene {
         let aabbs = self.all_aabb();
         let biggest_aabb = Aabb::from_aabbs(&aabbs);
         let mut node = bvh::node::Node::new(&biggest_aabb);
-        node.split(self);
+        node.build_tree(self);
 
         self.bvh = Some(node);
     }

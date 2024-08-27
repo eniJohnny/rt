@@ -1,3 +1,7 @@
+use core::time;
+use std::time::Instant;
+
+use chrono::Duration;
 use rand::Rng;
 
 use crate::{
@@ -47,6 +51,7 @@ use super::{
 
 pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
     let hit;
+    let perf = Instant::now();
     
     match USING_BVH {
         true => {
@@ -61,7 +66,8 @@ pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
     return match hit {
         Some(mut hit) => {
             hit.map_textures(scene.textures());
-            get_lighting_from_hit(scene, &hit, ray)
+            let tmp = get_lighting_from_hit(scene, &hit, ray);
+            tmp
         },
         None => Color::new(0., 0., 0.),
     };

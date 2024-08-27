@@ -255,7 +255,6 @@ pub fn new_traverse_bvh<'a>(ray: &Ray, node: Option<&Node>, scene: &'a Scene) ->
         }
 
         if tn.is_some() && ta.is_none() && tb.is_none() {
-            println!("tn.is_some() && ta.is_none() && tb.is_none()");
             let mut hit = closest_non_bvh_hit.unwrap();
             hit.map_textures(scene.textures());
             return Some(hit);
@@ -294,11 +293,10 @@ pub fn new_traverse_bvh<'a>(ray: &Ray, node: Option<&Node>, scene: &'a Scene) ->
     // Node is now a leaf node and closest hit is part of bvh
     let mut closest_hit = HitInfo::new();
 
-    // Check for closest bvh hit
+    // Check for closest hit
     for &element_index in node.elements() {
         let element = scene.get_element(element_index);
         let hit = element.shape().intersect(ray);
-        
         if let Some(hit) = hit {
             let tmin = hit[0];
             let tmax = if hit.len() > 1 {hit[1]} else {tmin};
@@ -311,24 +309,11 @@ pub fn new_traverse_bvh<'a>(ray: &Ray, node: Option<&Node>, scene: &'a Scene) ->
         }
     }
 
-
-    let bvh_dist = closest_hit.tmin;
-    let non_bvh_dist = match &closest_non_bvh_hit {
-        Some(hit) => *hit.dist(),
-        None => std::f64::MAX,
-    };
-
     // If there is a hit
-    if bvh_dist < non_bvh_dist {
+    if closest_hit.tmin < std::f64::MAX {
         let element = scene.get_element(closest_hit.element_index);
         let mut hit = Hit::new(element, closest_hit.tmin, ray.get_pos() + ray.get_dir() * closest_hit.tmin, &ray.get_dir(), scene.textures());
-        // hit.map_textures(scene.textures());
-        // println!("bvh hit: {:?}", hit.element().shape());
-        return Some(hit);
-    } else if non_bvh_dist < bvh_dist {
-        let mut hit = closest_non_bvh_hit.unwrap();
-        // hit.map_textures(scene.textures());
-        // println!("non bvh hit: {:?}", hit.element().shape());
+        hit.map_textures(scene.textures());
         return Some(hit);
     }
     None
@@ -338,48 +323,27 @@ fn get_closest_non_bvh_hit<'a>(scene: &'a Scene, ray: &Ray, elements: &Vec<&'a E
     let mut closest: Option<Hit> = None;
 
     for element in elements {
-        let mut t = None;
+        let t = element.shape().intersect(ray);
+        let mut tmin = std::f64::MAX;
 
-        t = element.shape().intersect(ray);
         if let Some(t) = t {
-            for dist in t {
-                if dist > 0.0 {
-                    if let Some(hit) = &closest {
-                        if &dist < hit.dist() {
-                            let new_hit = Hit::new(
-                                element,
-                                dist,
-                                ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
-                                ray.get_dir(),
-                                scene.textures(),
-                            );
-                            if new_hit.opacity() > 0.5 {
-                                closest = Some(new_hit);
-                            }
-                        }
-                    } else {
-                        let new_hit = Hit::new(
-                            element,
-                            dist,
-                            ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
-                            ray.get_dir(),
-                            scene.textures(),
-                        );
-                        if new_hit.opacity() > 0.5 {
-                            closest = Some(new_hit);
-                        }
-                    }
+            for tx in t {
+                if tx < tmin && tx > 0.0 {
+                    tmin = tx;
+                }
+            }
+
+            if tmin < std::f64::MAX {
+                let hit = Hit::new(element, tmin, ray.get_pos() + ray.get_dir() * tmin, &ray.get_dir(), scene.textures());
+
+                if hit.opacity() > 0.5 {
+                    closest = Some(hit);
                 }
             }
         }
     }
-    match closest {
-        None => None,
-        Some(hit) => {
-            // hit.map_textures(scene.textures());
-            Some(hit)
-        }
-    }
+
+    closest
 }
 
 #[derive(Debug)]

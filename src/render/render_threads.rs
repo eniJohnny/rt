@@ -6,7 +6,7 @@ use std::{
         Arc, Mutex, RwLock,
     },
     thread,
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 use image::{GenericImageView, Rgba, RgbaImage};
@@ -178,6 +178,8 @@ fn build_image_from_tilesets(
     let mut img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
     let mut final_img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
     let mut to_send = false;
+    let mut perf = Instant::now();
+
     loop {
         loop {
             // Reception des tiles render par les worker_threads
@@ -218,7 +220,7 @@ fn build_image_from_tilesets(
                                 max_res_to_do = low_res_to_do;
                             }
                             img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
-                            println!("{} iterations done", iterations_done);
+                            println!("{} iterations done - {:?}", iterations_done, perf.elapsed());
                         }
                         _ => {}
                     }

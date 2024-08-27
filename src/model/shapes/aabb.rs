@@ -118,6 +118,38 @@ impl Aabb {
             (self.z_min + self.z_max) / 2.0,
         ));
     }
+
+    pub fn intersection(&self, aabb: &Aabb) -> Option<Aabb> {
+        let x_min = self.x_min().max(aabb.x_min());
+        let x_max = self.x_max().min(aabb.x_max());
+        let y_min = self.y_min().max(aabb.y_min());
+        let y_max = self.y_max().min(aabb.y_max());
+        let z_min = self.z_min().max(aabb.z_min());
+        let z_max = self.z_max().min(aabb.z_max());
+
+        if x_min < x_max && y_min < y_max && z_min < z_max {
+            Some(Aabb::new(x_min, x_max, y_min, y_max, z_min, z_max))
+        } else {
+            None
+        }
+    }
+
+    pub fn volume(&self) -> f64 {
+        let x = self.x_max - self.x_min;
+        let y = self.y_max - self.y_min;
+        let z = self.z_max - self.z_min;
+
+        x * y * z
+    }
+
+    pub fn min(&self) -> Vec<f64> {
+        vec![self.x_min, self.y_min, self.z_min]
+    }
+
+    pub fn max(&self) -> Vec<f64> {
+        vec![self.x_max, self.y_max, self.z_max]
+    }
+
     pub fn is_wireframe_point(&self, point: &Vec3) -> bool {
         let x = *point.x();
         let y = *point.y();
@@ -140,7 +172,7 @@ impl Aabb {
         let x = self.x_max - self.x_min;
         let y = self.y_max - self.y_min;
         let z = self.z_max - self.z_min;
-
+        
         2.0 * (x * y + y * z + z * x)
     }
 
@@ -166,34 +198,29 @@ impl Aabb {
 
         let original_cost = self.surface_area() * self.get_children_elements(scene).len() as f64;
         let t_vec = get_t_vec(AABB_STEPS_NB);
-        let dir_vec = vec![
-            Vec3::new(1.0, 0.0, 0.0),
-            Vec3::new(0.0, 1.0, 0.0),
-            Vec3::new(0.0, 0.0, 1.0),
-        ];
 
         // Default cost is 1.0 (worst case scenario, original traversal cost)
         let mut best_cost = Cost {
             cost: original_cost,
-            dir: Vec3::new(0.0, 0.0, 0.0),
+            axis: 0,
             t: 0.0,
         };
 
-        for dir in dir_vec {
+        for axis in 0..2 {
             for t in &t_vec {
-                let (aabb1_tmp, aabb2_tmp) = self.split(dir, *t);
+                let (aabb1_tmp, aabb2_tmp) = self.split(axis, *t);
                 let cost = self.calculate_sah_cost(&aabb1_tmp, &aabb2_tmp, scene);
 
                 if cost < best_cost.cost {
-                    best_cost = Cost { cost, dir, t: *t };
+                    best_cost = Cost { cost, axis, t: *t };
                 }
 
-                costs.push(Cost { cost, dir, t: *t });
+                costs.push(Cost { cost, axis, t: *t });
             }
         }
 
         if best_cost.cost < original_cost {
-            let (aabb1_tmp, aabb2_tmp) = self.split(best_cost.dir, best_cost.t);
+            let (aabb1_tmp, aabb2_tmp) = self.split(best_cost.axis, best_cost.t);
             aabb1 = aabb1_tmp;
             aabb2 = aabb2_tmp;
         }
@@ -203,26 +230,22 @@ impl Aabb {
         (aabb1, aabb2)
     }
 
-    pub fn split(&mut self, dir: Vec3, t: f64) -> (Aabb, Aabb) {
-        // Split AABB into two parts along the direction dir at distance t
-        // Dir should be along the x, y or z axis, otherwise the split will not wield two AABBs
+    pub fn split(&mut self, axis: usize, t: f64) -> (Aabb, Aabb) {
+        // Split AABB into two parts along the axis at distance t
 
-        let x_axis = *dir.x() == 1.0 || *dir.x() == -1.0;
-        let y_axis = *dir.y() == 1.0 || *dir.y() == -1.0;
-        let z_axis = *dir.z() == 1.0 || *dir.z() == -1.0;
 
         let mut aabb1 = self.clone();
         let mut aabb2 = self.clone();
 
-        if x_axis {
+        if axis == 0 {
             let new_x = self.x_min + (self.x_max - self.x_min) * t;
             aabb1.set_x_max(new_x);
             aabb2.set_x_min(new_x);
-        } else if y_axis {
+        } else if axis == 1 {
             let new_y = self.y_min + (self.y_max - self.y_min) * t;
             aabb1.set_y_max(new_y);
             aabb2.set_y_min(new_y);
-        } else if z_axis {
+        } else if axis == 2 {
             let new_z = self.z_min + (self.z_max - self.z_min) * t;
             aabb1.set_z_max(new_z);
             aabb2.set_z_min(new_z);
@@ -275,6 +298,19 @@ impl Aabb {
 
             if aabb_shape.is_some() && self.is_child(aabb_shape.unwrap()) {
                 children.push(i);
+            }
+        }
+
+        children
+    }
+
+    pub fn get_children_number(&self, scene: &Scene) -> usize {
+        let elements = scene.elements();
+        let mut children = 0;
+
+        for element in elements {
+            if element.shape().as_aabb().is_some() || element.shape().aabb().is_some() {
+                children += 1;
             }
         }
 
@@ -447,7 +483,7 @@ fn get_tmax(tmin_x: f64, tmax_x: f64, tmin_y: f64, tmax_y: f64, tmin_z: f64, tma
 #[derive(Debug, Clone, Copy)]
 struct Cost {
     cost: f64,
-    dir: Vec3,
+    axis: usize,
     t: f64,
 }
 
@@ -465,10 +501,10 @@ pub fn get_t_vec(steps: usize) -> Vec<f64> {
 
 pub fn aabb_split_test() {
     let mut aabb = Aabb::new(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
-    let dir = Vec3::new(1.0, 0.0, 0.0);
+    let axis = 0;
     let t = 0.75;
 
-    let (aabb1, aabb2) = aabb.split(dir, t);
+    let (aabb1, aabb2) = aabb.split(axis, t);
 
     dbg!(aabb, aabb1, aabb2);
 }

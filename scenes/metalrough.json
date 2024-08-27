@@ -45,38 +45,46 @@
     {
         "type": "plane",
         "pos": [-5, 0, 0],
-        "dir": [1, 0, 0],
-        "color": "bricks_color.jpg",
-        "roughness": "bricks_roughness.jpg",
-        "normal": "bricks_normal.jpg"
-    },
-    {
-        "type": "plane",
-        "pos": [5, 0, 0],
-        "dir": [-1, 0, 0],
-        "color": "bricks_color.jpg",
-        "roughness": "bricks_roughness.jpg",
-        "normal": "bricks_normal.jpg"
-    },
-    {
-        "type": "plane",
-        "pos": [0, -5, 0],
-        "dir": [0, 1, 0],
+        "dir": [1, 0.0, 0],
         "color": "wood_color.jpg",
         "roughness": "wood_roughness.jpg",
         "normal": "wood_normal.jpg"
     },
     {
         "type": "plane",
+        "pos": [5, 0, 0],
+        "dir": [-1, 0.0, 0],
+        "color": "wood_color.jpg",
+        "roughness": "wood_roughness.jpg",
+        "normal": "wood_normal.jpg"
+    },
+    {
+        "type": "plane",
+        "pos": [0, -5, 0],
+        "dir": [0, 1, 0],
+        "color": "bricks_color.jpg",
+        "roughness": "bricks_roughness.jpg",
+        "normal": "bricks_normal.jpg"
+    },
+    {
+        "type": "plane",
         "pos": [0, 5, 0],
         "dir": [0, -1, 0],
         "color": [255, 255, 255],
-        "emissive": 2.0
+        "emissive": 10.0
     },
     {
         "type": "plane",
         "pos": [0, 0, 5],
         "dir": [0, 0, -1],
+        "color": "bricks_color.jpg",
+        "roughness": "bricks_roughness.jpg",
+        "normal": "bricks_normal.jpg"
+    },
+    {
+        "type": "plane",
+        "pos": [0, 0, -20],
+        "dir": [0, 0, 1],
         "color": "bricks_color.jpg",
         "roughness": "bricks_roughness.jpg",
         "normal": "bricks_normal.jpg"
@@ -90,13 +98,5 @@
         "roughness": "barreaux-roughness.jpg",
         "metalness": "barreaux_metal.jpg",
         "opacity": "barreaux_opacity.jpg"
-    },
-    {
-        "type": "plane",
-        "pos": [0, 0, -15],
-        "dir": [0, 0, 1],
-        "color": [255, 255, 255],
-        "roughness": 0.0,
-        "metalness": 0.0
     }
 ]

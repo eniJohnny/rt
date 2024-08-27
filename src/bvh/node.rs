@@ -5,10 +5,13 @@ use crate::model::{maths::vec3::Vec3, scene::Scene, shapes::aabb::{self, Aabb}};
 #[derive(Debug, Clone)]
 pub struct Node {
     aabb: Aabb,
-    left: Option<Box<Node>>,
-    right: Option<Box<Node>>,
+    a: Option<Box<Node>>,
+    b: Option<Box<Node>>,
     elements: Vec<usize>,
-    len: usize,
+    len_elements: usize,
+    non_bvh_elements: Vec<usize>,
+    len_non_bvh_elements: usize,
+    is_leaf: bool
 }
 
 impl Node {
@@ -16,152 +19,211 @@ impl Node {
     pub fn new(aabb: &Aabb) -> Node {
         Node {
             aabb: aabb.clone(),
-            left: None,
-            right: None,
+            a: None,
+            b: None,
             elements: vec![],
-            len: 0,
+            len_elements: 0,
+            non_bvh_elements : vec![],
+            len_non_bvh_elements: 0,
+            is_leaf: false
         }
     }
 
     // Accessors
     pub fn aabb(&self) -> &Aabb { &self.aabb }
-    pub fn left(&self) -> &Option<Box<Node>> { &self.left }
-    pub fn right(&self) -> &Option<Box<Node>> { &self.right }
+    pub fn a(&self) -> &Option<Box<Node>> { &self.a }
+    pub fn b(&self) -> &Option<Box<Node>> { &self.b }
     pub fn elements(&self) -> &Vec<usize> { &self.elements }
-    pub fn len(&self) -> usize { self.len }
+    pub fn len_elements(&self) -> usize { self.len_elements }
+    pub fn non_bvh_elements(&self) -> &Vec<usize> { &self.non_bvh_elements }
+    pub fn len_non_bvh_elements(&self) -> usize { self.len_non_bvh_elements }
+    pub fn is_leaf(&self) -> bool { self.is_leaf }
     pub fn node(&self) -> &Node { self }
 
     // Mutators
     pub fn set_aabb(&mut self, aabb: Aabb) { self.aabb = aabb; }
-    pub fn set_left(&mut self, left: Option<Box<Node>>) { self.left = left; }
-    pub fn set_right(&mut self, right: Option<Box<Node>>) { self.right = right; }
+    pub fn set_a(&mut self, a: Option<Box<Node>>) { self.a = a; }
+    pub fn set_b(&mut self, b: Option<Box<Node>>) { self.b = b; }
     pub fn set_elements(&mut self, elements: Vec<usize>) {
-        self.len = elements.len();
+        self.len_elements = elements.len();
         self.elements = elements;
     }
+    pub fn set_non_bvh_elements(&mut self, non_bvh_elements: Vec<usize>) {
+        self.len_non_bvh_elements = non_bvh_elements.len();
+        self.non_bvh_elements = non_bvh_elements;
+    }
+    pub fn set_is_leaf(&mut self, is_leaf: bool) { self.is_leaf = is_leaf; }
 
     // Methods
-    pub fn split(&mut self, scene: &mut Scene) {
-        self.add_node(scene);
+    pub fn build_tree(&mut self, scene: &Scene) {
+        let mut tree_complete = false;
 
-        let children_nb = self.aabb().get_children_aabbs_id(&scene).len();
+        while !tree_complete {
+            self.build_node(scene);
 
-        if children_nb <= 1 {
-            return;
-        }
+            if self.a.is_none() && self.b.is_none() {
+                self.build_leaf(scene);
+            } 
 
-        if self.is_leaf() == false {
-            self.left.as_mut().unwrap().split(scene);
-            self.right.as_mut().unwrap().split(scene);
-        } else {
-            self.set_children_elements(scene);
-        }
-    }
-
-    pub fn set_children_elements(&mut self, scene: &mut Scene) {
-        let aabb = self.aabb();
-        let elements = aabb.get_children_elements_only(scene);
-        self.set_elements(elements);
-    }
-
-    pub fn add_node(&mut self, scene: &mut Scene) {
-        let (aabb1, aabb2) = self.aabb.better_split(scene);
-        let left_children = aabb1.get_children_aabbs_id(scene);
-        let right_children = aabb2.get_children_aabbs_id(scene);
-
-        if left_children == right_children || left_children.len() == 0 || right_children.len() == 0 {
-            self.set_children_elements(scene);
-            return;
-        }
-
-        self.set_left(Some(Box::new(Node::new(&aabb1))));
-        self.set_right(Some(Box::new(Node::new(&aabb2))));
-    }
-
-    pub fn add_element(&mut self, element: usize) {
-        self.elements.push(element);
-        self.len += 1;
-    }
-
-    pub fn is_leaf(&self) -> bool {
-        self.left.is_none() || self.right.is_none()
-    }
-
-    fn format_node(&self, indent: &str, last: bool) -> String {
-        let mut result = String::new();
-        result.push_str(indent);
-    
-        if !indent.is_empty() {
-            if last {
-                result.push_str("└── ");
+            if self.is_leaf {
+                tree_complete = true;
             } else {
-                result.push_str("├── ");
+                if self.a.is_some() {
+                    let a = self.a.as_mut().unwrap();
+                    a.build_tree(scene);
+                }
+
+                if self.b.is_some() {
+                    let b = self.b.as_mut().unwrap();
+                    b.build_tree(scene);
+                }
             }
-    
-            result.push_str("Node\n");
         }
-    
-        let new_indent = if last {
-            format!("{}    ", indent)
+    }
+
+    fn build_node(&mut self, scene: &Scene) {
+        let children_number = self.aabb().get_children_number(scene) as f64;
+        let surface_area = self.aabb().surface_area();
+        let cost = children_number * surface_area;
+
+        if split_cost(&self.aabb, scene) > cost {
+            self.build_leaf(scene);
+            return;
+        }
+
+        let (aabb_a, aabb_b) = &self.aabb.better_split(scene);
+        // let (aabb_a, aabb_b) = split_aabb(&self.aabb, scene);
+        let (mut node_a, mut node_b) = (Node::new(&aabb_a), Node::new(&aabb_b));
+
+        let split_cost_a = split_cost(&node_a.aabb, scene);
+        let split_cost_b = split_cost(&node_b.aabb, scene);
+
+        if split_cost_a >= 1.0 && split_cost_b >= 1.0 {
+            self.build_leaf(scene);
+            return;
+        }
+
+        if split_cost_a < 1.0 {
+            let (aabb_a_a, aabb_a_b) = &node_a.aabb.better_split(scene);
+            // let (aabb_a_a, aabb_a_b) = split_aabb(&node_a.aabb, scene);
+            let (node_a_a, node_a_b) = (Node::new(&aabb_a_a), Node::new(&aabb_a_b));
+            node_a.set_a(Some(Box::new(node_a_a)));
+            node_a.set_b(Some(Box::new(node_a_b)));
+        }
+
+        if split_cost_b < 1.0 {
+            let (aabb_b_a, aabb_b_b) = &node_b.aabb.better_split(scene);
+            // let (aabb_b_a, aabb_b_b) = split_aabb(&node_b.aabb, scene);
+            let (node_b_a, node_b_b) = (Node::new(&aabb_b_a), Node::new(&aabb_b_b));
+            node_b.set_a(Some(Box::new(node_b_a)));
+            node_b.set_b(Some(Box::new(node_b_b)));
+        }
+
+    }
+
+    fn build_leaf(&mut self, scene: &Scene) {
+        let mut elements = vec![];
+        let mut non_bvh_elements = vec![];
+
+        for i in 0..scene.elements().len() {
+            let element = scene.elements()[i].shape();
+            let element_aabb = element.aabb();
+            if element_aabb.is_none() {
+                non_bvh_elements.push(i);
+            } else {
+                let element_aabb = element_aabb.unwrap();
+                let intersection = self.aabb.intersection(element_aabb);
+
+                if intersection.is_some() {
+                    elements.push(i);
+                }
+            }
+        }
+
+        self.set_elements(elements);
+        self.set_non_bvh_elements(non_bvh_elements);
+        self.set_is_leaf(true);
+    }
+
+}
+
+pub fn split_cost(aabb: &Aabb, scene: &Scene) -> f64 {
+    let mut total_surface_area = 0.0;
+    let mut total_volume = 0.0;
+
+    for i in 0..scene.elements().len() {
+        let element = scene.elements()[i].shape();
+        let element_aabb = element.aabb();
+        if element_aabb.is_none() {
+            continue;
         } else {
-            format!("{}│   ", indent)
-        };
-    
-        if let Some(ref left) = self.left {
-            result.push_str(&format!("{}├── Left:\n{}", new_indent, left.format_node(&format!("{}│   ", new_indent), true)));
+            let element_aabb = element_aabb.unwrap();
+            let intersection = aabb.intersection(element_aabb);
+
+            if intersection.is_some() {
+                let intersection = intersection.unwrap();
+                let intersection_surface_area = intersection.surface_area();
+                let intersection_volume = intersection.volume();
+
+                total_surface_area += intersection_surface_area;
+                total_volume += intersection_volume;
+            }
         }
-    
-        if let Some(ref right) = self.right {
-            result.push_str(&format!("{}└── Right:\n{}", new_indent, right.format_node(&format!("{}    ", new_indent), true)));
-        }
-    
-        if !self.elements.is_empty() {
-            result.push_str(&format!("{}    └── Elements: {:?}\n", indent, self.elements));
-        }
-    
-        result
     }
+
+    let aabb_surface_area = aabb.surface_area();
+    let aabb_volume = aabb.volume();
+
+    total_surface_area / aabb_surface_area + total_volume / aabb_volume
 }
 
-impl fmt::Display for Node {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.format_node("", true))
+pub fn split_aabb(aabb: &Aabb, scene: &Scene) -> (Aabb, Aabb) {
+    let mut aabb = aabb.clone();
+
+    let mut best_cost = f64::INFINITY;
+    let mut best_axis = 0;
+    let mut best_position = 0.0;
+
+    for axis in 0..3 {
+        let mut min = f64::INFINITY;
+        let mut max = f64::NEG_INFINITY;
+
+        for i in 0..scene.elements().len() {
+            let element = scene.elements()[i].shape();
+            let element_aabb = element.aabb();
+            if element_aabb.is_none() {
+                continue;
+            } else {
+                let element_aabb = element_aabb.unwrap();
+                let element_min = element_aabb.min()[axis];
+                let element_max = element_aabb.max()[axis];
+
+                if element_min < min {
+                    min = element_min;
+                }
+
+                if element_max > max {
+                    max = element_max;
+                }
+            }
+        }
+
+        let step = (max - min) / 10.0;
+
+        for i in 0..10 {
+            let position = min + step * i as f64;
+            let (aabb_a, aabb_b) = aabb.split(axis, position);
+
+            let cost = split_cost(&aabb_a, scene) + split_cost(&aabb_b, scene);
+
+            if cost < best_cost {
+                best_cost = cost;
+                best_axis = axis;
+                best_position = position;
+            }
+        }
     }
-}
 
-
-// TESTS
-pub fn test_node(scene: &mut Scene) {
-    let aabbs = scene.all_aabb();
-    let mut node = Node::new(aabbs.first().expect("No AABBs in scene"));
-
-    let elements = scene.elements();
-    for (i, _) in elements.iter().enumerate() {
-            node.add_element(i);
-    }
-
-    // dbg!(&node);
-
-    for i in node.elements() {
-        dbg!(&elements[*i]);
-    }
-}
-
-pub fn test_node_insertion(scene: &mut Scene) {
-    let aabbs = scene.all_aabb();
-    let aabb = Aabb::from_aabbs(&aabbs);
-
-    let mut node = Node::new(&aabb);
-    node.split(scene);
-
-
-    let logfile = "node.log";
-    let mut file = std::fs::File::create(logfile).expect("Unable to create file");
-    let elements = scene.elements();
-    file.write_all(format!("{}", node).as_bytes()).expect("Unable to write data");
-    for (i, elem) in elements.iter().enumerate() {
-        file.write_all(format!("\n{} : {:?}", i, elem.shape()).as_bytes()).expect("Unable to write data");
-    }
-    file.write_all(format!("\n\n{:?}", node).as_bytes()).expect("Unable to write data");
-    println!("Node written to logfile");
+    println!("Best cost: {}\nBest axis: {}\nBest position: {}", best_cost, best_axis, best_position);
+    aabb.split(best_axis, best_position)
 }
