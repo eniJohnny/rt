@@ -33,6 +33,10 @@ const ANTIALIASING: f64 = 0.001;
 const MAX_ITERATIONS: usize = 500;
 const MAX_EMISSIVE: f64 = 100.;
 
+/************* Modifiers **************/
+const ANAGLYPH: bool = true;
+const ANAGLYPH_OFFSET: u32 = 5;
+
 /********* Default UISettings *********/
 const MARGIN: usize = 3;
 const GUI_WIDTH: u32 = 600;
