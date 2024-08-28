@@ -42,27 +42,6 @@ impl Anaglyph {
     }
 }
 
-// pub fn create(img: &mut image::ImageBuffer<image::Rgba<u8>, Vec<u8>>) -> Option<image::ImageBuffer::<image::Rgb<u8>, Vec<u8>>> {
-//     let offset = ANAGLYPH_OFFSET / 2; 
-    
-//     let (in_x, in_y) = img.dimensions();
-//     let (in_x, in_y) = (in_x as isize, in_y as isize);
-//     let out_x = in_x - offset.abs();
-//     let out_y = in_y - offset.abs();
-//     let in_buf = img.clone().into_raw();
-//     let mut out_buf = vec![0u8 ; (out_x * out_y * 3) as usize];
-
-//     let mut anaglyph = Anaglyph::new(in_buf, offset as usize, in_x as usize, out_x as usize);
-
-//     anaglyph.fill(&mut out_buf);
-
-//     match image::ImageBuffer::<image::Rgb<u8>, Vec<u8>>::from_raw(out_x as u32, out_y as u32, out_buf) {
-//         Some(output) => Some(output),
-//         None => None,
-//     }
-
-// }
-
 pub fn create(image: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>) -> RgbaImage {
     let (width, height) = image.dimensions();
     let shift = ANAGLYPH_OFFSET;
