@@ -74,15 +74,15 @@ pub fn sampling_ray(scene: &Scene, ray: &Ray) -> PathBucket {
 
 pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     let mut closest: Option<Hit> = None;
-    // let elements = scene.non_bvh_elements();
+    let elements = scene.elements();
 
     // TESTING PURPOSES
-    let elements;
-    if USING_BVH {
-        elements = scene.non_bvh_elements();
-    } else {
-        elements = scene.test_all_elements();
-    }
+    // let elements;
+    // if USING_BVH {
+    //     elements = scene.non_bvh_elements();
+    // } else {
+    //     elements = scene.test_all_elements();
+    // }
     // END TESTING PURPOSES
 
     for element in elements {
@@ -123,8 +123,8 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     }
     match closest {
         None => None,
-        Some(hit) => {
-            // hit.map_textures(scene.textures());
+        Some(mut hit) => {
+            hit.map_textures(scene.textures());
             Some(hit)
         }
     }

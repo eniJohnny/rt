@@ -19,9 +19,7 @@ use super::{
     lighting_sampling::{
         get_indirect_light_bucket, get_indirect_light_sample, get_reflected_light_sample,
         random_unit_vector, reflect_dir,
-    },
-    raycasting::{get_closest_hit, get_ray},
-    restir::{PathBucket, Sample},
+    }
 };
 
 
@@ -64,8 +62,7 @@ pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
     };
 
     return match hit {
-        Some(mut hit) => {
-            hit.map_textures(scene.textures());
+        Some(hit) => {
             let tmp = get_lighting_from_hit(scene, &hit, ray);
             tmp
         },

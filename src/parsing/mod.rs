@@ -40,7 +40,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let material = get_material(&object, color);
                 scene.add_textures(&material);
                 let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
-                aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY)));
+                aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
                 
                 let element = Element::new(shape, material);
                 let aabb_element = Element::new(aabb_shape, aabb_material);
@@ -72,7 +72,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let material = get_material(&object, color);
                 scene.add_textures(&material);
                 let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
-                aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY)));
+                aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
 
                 let element = Element::new(shape, material);
                 let aabb_element = Element::new(aabb_shape, aabb_material);
@@ -119,14 +119,14 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let material = get_material(&object, color);
 
                 scene.add_textures(&material);
-                let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
-                aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY)));
+                // let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
+                // aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
 
                 let element = Element::new(shape, material);
-                let aabb_element = Element::new(aabb_shape, aabb_material);
+                // let aabb_element = Element::new(aabb_shape, aabb_material);
 
                 scene.add_element(element);
-                scene.add_element(aabb_element);
+                // scene.add_element(aabb_element);
             }
             "camera" => {
                 let pos = get_coordinates_value(&object, "pos");
