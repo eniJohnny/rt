@@ -1,0 +1,89 @@
+[
+    {
+        "type": "cone",
+        "pos": [1, 0, 0],
+        "dir": [1, 1, 1],
+        "color": [128, 128, 0],
+        "radius": 0.5,
+        "metalness": 0.0,
+        "roughness": 0.0,
+        "height": 2,
+        "emissive": 0.0
+    },
+    {
+        "type": "sphere",
+        "pos": [-1, 0, 0],
+        "dir": [1, 1, 1],
+        "color": [128, 0, 128],
+        "radius": 0.5,
+        "metalness": 0.0,
+        "roughness": 0.0,
+        "emissive": 0.0
+    },
+    {
+        "type": "cylinder",
+        "pos": [0, -1, 0],
+        "dir": [1, 1, 1],
+        "color": [0, 128, 128],
+        "radius": 0.5,
+        "metalness": 0.0,
+        "roughness": 0.0,
+        "height": 2,
+        "emissive": 0.0
+    },
+    {
+        "type": "camera",
+        "pos": [0, 0, -9],
+        "dir": [0, 0, 1],
+        "fov": 60
+    },
+    {
+        "type": "plane",
+        "pos": [-5, 0, 0],
+        "dir": [1, 0, 0],
+        "color": [255, 255, 255],
+        "roughness": 1.0,
+        "emissive": 0.5
+    },
+    {
+        "type": "plane",
+        "pos": [5, 0, 0],
+        "dir": [-1, 0, 0],
+        "color": [255, 255, 255],
+        "roughness": 1.0,
+        "emissive": 0.5
+    },
+    {
+        "type": "plane",
+        "pos": [0, -5, 0],
+        "dir": [0, 1, 0],
+        "color": [255, 255, 255],
+        "roughness": 1.0,
+        "emissive": 0.5
+    },
+    {
+        "type": "plane",
+        "pos": [0, 5, 0],
+        "dir": [0, -1, 0],
+        "color": [255, 255, 255],
+        "roughness": 1.0,
+        "emissive": 0.5
+    },
+    {
+        "type": "plane",
+        "pos": [0, 0, 5],
+        "dir": [0, 0, -1],
+        "color": [255, 255, 255],
+        "roughness": 1.0,
+        "metalness": 0.0,
+        "emissive": 0.5
+    },
+    {
+        "type": "plane",
+        "pos": [0, 0, -10],
+        "dir": [0, 0, 1],
+        "color": [255, 255, 255],
+        "roughness": 1.0,
+        "emissive": 0.5
+    }
+]

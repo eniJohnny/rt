@@ -1,6 +1,6 @@
 use crate::model::maths::{hit::Hit, vec3::Vec3};
 
-use super::{color::Color, material::Material, texture::Texture};
+use super::{color::Color, material::Material, texture::{Texture, TextureType}};
 
 #[derive(Clone, Debug)]
 pub struct Diffuse {
@@ -32,6 +32,18 @@ impl Diffuse {
             norm_variation,
             opacity,
         }
+    }
+
+    pub fn default() -> Box<Self> {
+        Box::new(Diffuse::new(
+            Texture::Value(Vec3::from_value(1.), TextureType::Color),
+            Texture::Value(Vec3::from_value(0.), TextureType::Float),
+            Texture::Value(Vec3::from_value(1.), TextureType::Float),
+            Texture::Value(Vec3::from_value(0.1), TextureType::Float),
+            Texture::Value(Vec3::from_value(0.), TextureType::Float),
+            Texture::Value(Vec3::from_value(0.), TextureType::Vector),
+            Texture::Value(Vec3::from_value(1.), TextureType::Float),
+        ))
     }
 }
 
