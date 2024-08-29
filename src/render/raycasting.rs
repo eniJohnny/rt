@@ -1,14 +1,15 @@
+use std::collections::HashMap;
+
+use image::{ImageBuffer, Rgba};
 use rand::Rng;
 
 use crate::{
-    model::{
+    bvh::traversal::traverse_bvh, model::{
         materials::color::Color,
         maths::{hit::Hit, quaternion::Quaternion, ray::Ray, vec3::Vec3},
         scene::Scene,
-        shapes::plane::Plane,
         Element,
-    },
-    ANTIALIASING, MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH,
+    }, ANTIALIASING, USING_BVH, MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH
 };
 
 use super::{
@@ -70,23 +71,23 @@ pub fn sampling_ray(scene: &Scene, ray: &Ray) -> PathBucket {
         }, //TODO Handle background on None
     }
 }
-fn intersect2(plane: &Plane, r: Ray) -> Option<Vec<f64>> {
-    let dist = plane.pos() - r.get_pos();
-    let mut dir = plane.dir().clone();
-    let mut dot_product = r.get_dir().dot(plane.dir());
-    if dot_product > 0. {
-        dir = -dir;
-        dot_product = -dot_product;
-    }
-    let t = dist.dot(&dir) / dot_product;
-    return Some(Vec::from([t]));
-    None
-}
 
 pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     let mut closest: Option<Hit> = None;
-    for element in scene.elements().iter() {
+    let elements = scene.elements();
+
+    // TESTING PURPOSES
+    // let elements;
+    // if USING_BVH {
+    //     elements = scene.non_bvh_elements();
+    // } else {
+    //     elements = scene.test_all_elements();
+    // }
+    // END TESTING PURPOSES
+
+    for element in elements {
         let mut t = None;
+
         t = element.shape().intersect(ray);
         if let Some(t) = t {
             for dist in t {

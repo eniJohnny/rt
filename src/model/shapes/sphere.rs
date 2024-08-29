@@ -9,6 +9,7 @@ pub struct Sphere {
     pos: Vec3,
     dir: Vec3,
     radius: f64,
+    aabb: super::aabb::Aabb,
 }
 
 impl Shape for Sphere {
@@ -77,6 +78,10 @@ impl Shape for Sphere {
     fn pos(&self) -> &Vec3 {
         &self.pos
     }
+
+    fn aabb(&self) -> Option<&super::aabb::Aabb> {
+        Some(&self.aabb)
+    }
 }
 
 impl Sphere {
@@ -90,21 +95,30 @@ impl Sphere {
     pub fn radius(&self) -> f64 {
         self.radius
     }
+    pub fn aabb(&self) -> &super::aabb::Aabb {
+        &self.aabb
+    }
 
     // Mutators
     pub fn set_pos(&mut self, pos: Vec3) {
-        self.pos = pos
+        self.pos = pos;
+        self.update_aabb();
     }
     pub fn set_dir(&mut self, dir: Vec3) {
         self.dir = dir
     }
     pub fn set_radius(&mut self, radius: f64) {
-        self.radius = radius
+        self.radius = radius;
+        self.update_aabb();
+    }
+    pub fn set_aabb(&mut self, aabb: super::aabb::Aabb) {
+        self.aabb = aabb
     }
 
     // Constructor
     pub fn new(pos: Vec3, dir: Vec3, radius: f64) -> Sphere {
-        self::Sphere { pos, dir, radius }
+        let aabb = self::Sphere::compute_aabb(&pos, radius);
+        self::Sphere { pos, dir, radius, aabb }
     }
 
     // Methods
@@ -115,8 +129,30 @@ impl Sphere {
             pos: pos,
             dir: dir,
             radius: self.radius,
+            aabb: self.aabb.clone(),
         }
     }
+
+    fn update_aabb(&mut self) {
+        self.aabb.set_x_min(self.pos.x() - self.radius);
+        self.aabb.set_x_max(self.pos.x() + self.radius);
+        self.aabb.set_y_min(self.pos.y() - self.radius);
+        self.aabb.set_y_max(self.pos.y() + self.radius);
+        self.aabb.set_z_min(self.pos.z() - self.radius);
+        self.aabb.set_z_max(self.pos.z() + self.radius);
+    }
+
+    pub fn compute_aabb(pos: &Vec3, radius: f64) -> super::aabb::Aabb {
+        super::aabb::Aabb::new(
+            pos.x() - radius,
+            pos.x() + radius,
+            pos.y() - radius,
+            pos.y() + radius,
+            pos.z() - radius,
+            pos.z() + radius,
+        )
+    }
+
 }
 
 #[cfg(test)]

@@ -10,7 +10,7 @@ use crate::model::{
     scene::Scene, shapes::cone::Cone, shapes::cylinder::Cylinder, shapes::plane::Plane,
     shapes::sphere::Sphere, shapes::rectangle::Rectangle
 };
-use crate::{error, MAX_EMISSIVE};
+use crate::{error, MAX_EMISSIVE, AABB_OPACITY};
 // use crate::{error, SCENE};
 use std::collections::HashMap;
 use std::f64::consts::PI;
@@ -35,10 +35,18 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let dir = get_coordinates_value(&object, "dir");
 
                 let shape = Box::new(Sphere::new(pos, dir, radius));
+                let aabb_shape = Box::new(shape.aabb().clone());
+
                 let material = get_material(&object, color);
                 scene.add_textures(&material);
+                let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
+                aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
+                
                 let element = Element::new(shape, material);
-                scene.add_element(element)
+                let aabb_element = Element::new(aabb_shape, aabb_material);
+
+                scene.add_element(element);
+                scene.add_element(aabb_element);
             }
             "plane" => {
                 let pos = get_coordinates_value(&object, "pos");
@@ -59,10 +67,18 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let dir: Vec3 = get_coordinates_value(&object, "dir");
 
                 let shape = Box::new(Cylinder::new(pos, dir, radius, height));
+                let aabb_shape = Box::new(shape.aabb().clone());
+
                 let material = get_material(&object, color);
                 scene.add_textures(&material);
+                let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
+                aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
+
                 let element = Element::new(shape, material);
-                scene.add_element(element)
+                let aabb_element = Element::new(aabb_shape, aabb_material);
+
+                scene.add_element(element);
+                scene.add_element(aabb_element);
             }
             "cone" => {
                 let pos = get_coordinates_value(&object, "pos");
@@ -72,6 +88,8 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let dir: Vec3 = get_coordinates_value(&object, "dir");
 
                 let shape = Box::new(Cone::new(pos, dir, radius, height));
+                let aabb_shape = Box::new(shape.aabb().clone());
+
                 let material = get_material(&object, color);
 
                 let element = Element::new(shape, material);
@@ -101,8 +119,14 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let material = get_material(&object, color);
 
                 scene.add_textures(&material);
+                // let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
+                // aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
+
                 let element = Element::new(shape, material);
-                scene.add_element(element)
+                // let aabb_element = Element::new(aabb_shape, aabb_material);
+
+                scene.add_element(element);
+                // scene.add_element(aabb_element);
             }
             "camera" => {
                 let pos = get_coordinates_value(&object, "pos");
@@ -153,6 +177,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
 
 fn parse_json(scene_file: String) -> Vec<HashMap<String, String>> {
     let content = std::fs::read_to_string(scene_file).expect("Error reading file");
+    let content = content.replace('\t', "    ");
     let mut objects: Vec<HashMap<String, String>> = Vec::new();
     let mut i = 0;
 

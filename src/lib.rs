@@ -11,7 +11,17 @@ pub mod model;
 pub mod parsing;
 pub mod picker;
 pub mod render;
+pub mod bvh;
 
+const USING_BVH: bool = true;
+const SCENE_FOLDER: &str = "scenes";
+const SCENE: &str = "metalrough";
+
+const AABB_OPACITY: f64 = 0.0;
+const AABB_STEPS_NB: usize = 10;
+const DISPLAY_WIREFRAME: bool = false;
+const WIREFRAME_THICKNESS: f64 = 0.05;
+const ERROR_MARGIN: f64 = 0.000000000001;
 const SCREEN_WIDTH: usize = 1600;
 const SCREEN_HEIGHT: usize = 900;
 const SCREEN_WIDTH_U32: u32 = SCREEN_WIDTH as u32;
@@ -40,9 +50,7 @@ const UISETTINGS: &str = "uisettings";
 const SETTINGS: &str = "settings";
 const TOOLBAR: &str = "toolbar";
 
-const SCENE_FOLDER: &str = "scenes";
 const PICKER_LINE_HEIGHT: f64 = 30.0;
-// const SCENE: &str = "scenes/sphere.json";
 const FPS: u64 = 20;
 
 const RGB_KEYS: [&str; 3] = ["colr", "colg", "colb"];
@@ -60,10 +68,14 @@ const CAM_MOVE_KEYS: [KeyCode; 10] = [
 ];
 
 pub fn run() {
-    let path = String::from("scenes/metalrough.json");
+    let path = String::from(format!("{}/{}.json", SCENE_FOLDER, SCENE));
     if path != "" {
         let mut scene = get_scene(&path);
         scene.add_skysphere_texture("skysphere.jpg");
+        if DISPLAY_WIREFRAME {
+            scene.add_wireframes();
+        }
+        scene.update_bvh();
         start_scene(scene);
     }
 }

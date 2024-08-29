@@ -3,12 +3,17 @@ use std::collections::HashMap;
 use image::{RgbImage, RgbaImage};
 
 use crate::{
-    model::objects::light::{AmbientLight, Light}, render::settings::Settings,
+    model::objects::light::{AmbientLight, Light},
+    render::settings::Settings,
+    bvh
 };
 
 use super::{
-    materials::{material::Material, texture::Texture},
+    materials::{diffuse::{self, Diffuse},
+    material::{self, Material},
+    texture::Texture},
     objects::camera::Camera,
+    shapes::{self, aabb::Aabb},
     Element,
 };
 
@@ -21,6 +26,7 @@ pub struct Scene {
     settings: Settings,
     textures: HashMap<String, image::RgbaImage>,
     dirty: bool,
+    bvh: Option<bvh::node::Node>,
 }
 
 impl Scene {
@@ -33,6 +39,7 @@ impl Scene {
             settings: Settings::default(),
             textures: HashMap::new(),
             dirty: true,
+            bvh: None,
         }
     }
 
@@ -115,6 +122,28 @@ impl Scene {
             );
         }
     }
+    
+    pub fn add_wireframes(&mut self) {
+        let aabbs = self.all_aabb();
+        let mut new_elements = vec![];
+        for aabb in aabbs {
+            let new_material = Diffuse::default();
+            let new_shape = shapes::wireframe::Wireframe::from_aabb(aabb);
+            let new_element = Element::new(Box::new(new_shape), new_material);
+
+            new_elements.push(new_element);
+        }
+        self.elements.append(&mut new_elements);
+    }
+
+    pub fn update_bvh(&mut self) {
+        let aabbs = self.all_aabb();
+        let biggest_aabb = Aabb::from_aabbs(&aabbs);
+        let mut node = bvh::node::Node::new(&biggest_aabb);
+        node.build_tree(self);
+
+        self.bvh = Some(node);
+    }
 
     // Accessors
     pub fn elements(&self) -> &Vec<Element> {
@@ -155,6 +184,43 @@ impl Scene {
     pub fn set_dirty(&mut self, dirty: bool) {
         self.dirty = dirty;
     }
+    
+    pub fn get_element(&self, index: usize) -> &Element {
+        &self.elements[index]
+    }
+
+    pub fn all_aabb(&self) -> Vec<&crate::model::shapes::aabb::Aabb> {
+        self.elements
+            .iter()
+            .filter_map(|element| element.shape().as_aabb())
+            .collect()
+    }
+
+    pub fn bvh(&self) -> &Option<bvh::node::Node> {
+        &self.bvh
+    }
+
+    pub fn non_bvh_elements(&self) -> Vec<&crate::model::Element> {
+        self.elements
+            .iter()
+            .filter(|element| element.shape().aabb().is_none() && element.shape().as_aabb().is_none())
+            .collect()
+    }
+
+    pub fn non_bvh_element_ids(&self) -> Vec<usize> {
+        self.elements
+            .iter()
+            .enumerate()
+            .filter(|(_, element)| element.shape().aabb().is_none() && element.shape().as_aabb().is_none())
+            .map(|(i, _)| i)
+            .collect()
+    }
+
+    pub fn test_all_elements(&self) -> Vec<&crate::model::Element> {
+        self.elements
+            .iter()
+            .collect()
+    }
 
     // Mutators
 
@@ -172,5 +238,9 @@ impl Scene {
 
     pub fn set_ambient_light(&mut self, ambient_light: AmbientLight) {
         self.ambient_light = ambient_light;
+    }
+
+    pub fn set_bvh(&mut self, bvh: Option<bvh::node::Node>) {
+        self.bvh = bvh;
     }
 }
