@@ -35,7 +35,8 @@ const MAX_EMISSIVE: f64 = 100.;
 
 /************* Modifiers **************/
 const ANAGLYPH: bool = true;
-const ANAGLYPH_OFFSET: u32 = 5;
+const ANAGLYPH_OFFSET_X: isize = 80;
+const ANAGLYPH_OFFSET_Y: isize = 16;
 
 /********* Default UISettings *********/
 const MARGIN: usize = 3;
