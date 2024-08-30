@@ -34,7 +34,7 @@ const MAX_ITERATIONS: usize = 500;
 const MAX_EMISSIVE: f64 = 100.;
 
 /************* Modifiers **************/
-const ANAGLYPH: bool = true;
+const ANAGLYPH: bool = false;
 const ANAGLYPH_OFFSET_X: isize = 80;
 const ANAGLYPH_OFFSET_Y: isize = 16;
 
