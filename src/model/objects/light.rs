@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{any::Any, fmt::Debug};
 
 use crate::model::{
     materials::color::Color, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene
@@ -28,6 +28,35 @@ impl AmbientLight {
             intensity: 0.,
             color: Color::new(1., 1., 1.),
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct AnyLight {
+    id: u32,
+    light: Box<dyn Light + Sync + Send>
+}
+
+impl AnyLight {
+    pub fn new(light: Box<dyn Light + Sync + Send>) -> Self {
+        Self {
+            id: 0,
+            light
+        }
+    }
+
+    pub fn id(&self) -> u32 {
+        self.id
+    }
+    pub fn light(&self) -> &Box<dyn Light + Sync + Send> {
+        &self.light
+    }
+    pub fn light_mut(&mut self) -> &mut Box<dyn Light + Sync + Send> {
+        &mut self.light
+    }
+
+    pub fn set_id(&mut self, id: u32) {
+        self.id = id;
     }
 }
 

@@ -70,9 +70,9 @@
         "type": "plane",
         "pos": [0, 5, 0],
         "dir": [0, -1, 0],
-        "color": [255, 255, 255],
-        "emissive": 2.0
+        "color": [255, 255, 255]
     },
+
     {
         "type": "plane",
         "pos": [0, 0, 5],
@@ -98,5 +98,21 @@
         "roughness": "barreaux-roughness.jpg",
         "metalness": "barreaux_metal.jpg",
         "opacity": "barreaux_opacity.jpg"
+    },
+    {
+        "type": "sphere",
+        "pos": [0, 5, -2],
+        "dir": [0, 1, 0],
+        "color": [255, 255, 255],
+        "radius": 1.0,
+        "emissive": 50
+    },
+    {
+        "type": "plane",
+        "pos": [0, 0, -15],
+        "dir": [0, 0, 1],
+        "color": [255, 255, 255],
+        "roughness": 0.0,
+        "metalness": 0.0
     }
 ]

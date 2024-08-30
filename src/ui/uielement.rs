@@ -253,26 +253,26 @@ impl UIElement {
                                     disabled: matches!(elem.elem_type, ElemType::Row(_)),
                                 };
                                 elem.hitbox = Some(hitbox.clone());
-                                let hitbox_list = elem.generate_hitbox(ui, scene, max_height - offset_y);
-                                let mut needed_height =
-                                    hitbox.pos.1 + hitbox.size.1 - parent_hitbox.pos.1;
-                                if !hitbox.disabled {
-                                    needed_height += ui.uisettings().margin;
-                                    if needed_height > offset_y {
-                                        offset_y = needed_height;
+                                println!("{} - {}", max_height, offset_y);
+                                if offset_y <= max_height {
+                                    let hitbox_list = elem.generate_hitbox(ui, scene, max_height - offset_y);
+                                    let mut needed_height =
+                                        hitbox.pos.1 + hitbox.size.1 - parent_hitbox.pos.1;
+                                    if !hitbox.disabled {
+                                        needed_height += ui.uisettings().margin;
+                                        if needed_height > offset_y {
+                                            offset_y = needed_height;
+                                        }
                                     }
-                                }
-                                vec.push(hitbox);
-                                for hitbox in hitbox_list {
-                                    let needed_height =
-                                        hitbox.pos.1 + hitbox.size.1 + ui.uisettings().margin - parent_hitbox.pos.1;
-                                    if !hitbox.disabled && needed_height > offset_y {
-                                        offset_y = needed_height;
+                                    vec.push(hitbox);
+                                    for hitbox in hitbox_list {
+                                        let needed_height =
+                                            hitbox.pos.1 + hitbox.size.1 + ui.uisettings().margin - parent_hitbox.pos.1;
+                                        if !hitbox.disabled && needed_height > offset_y {
+                                            offset_y = needed_height;
+                                        }
+                                        vec.push(hitbox)
                                     }
-                                    vec.push(hitbox)
-                                }
-                                if offset_y > max_height {
-                                    return vec;
                                 }
                             }
                             cat.elems.insert(i, elem);

@@ -135,7 +135,7 @@ pub fn start_render_threads(
                 thread::sleep(Duration::from_millis(5));
             });
         }
-        build_image_from_tilesets(rc, rb, ta, work_queue, scene);
+        main_render_loop(rc, rb, ta, work_queue, scene);
     });
     (ra, tb)
 }
@@ -158,7 +158,7 @@ fn vec_to_image(vec: &Vec<Vec<Color>>) -> RgbaImage {
  * qu'il se tient pret a tout moment a envoyer au main_thread pour l'affichage. Lorsque la resolution finale (factor = 1)
  * est effectuee,
  */
-fn build_image_from_tilesets(
+fn main_render_loop(
     rc: Receiver<(Tile, Vec<Color>)>,
     rb: Receiver<bool>,
     ta: Sender<(RgbaImage, bool)>,

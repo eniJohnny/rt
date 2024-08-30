@@ -11,14 +11,13 @@ use winit::{
 };
 
 use crate::{
-    model::scene::Scene,
-    ui::{
+    model::scene::Scene, render::raycasting::{get_closest_hit, get_ray}, ui::{
         ui::{ui_clicked, UI},
         uisettings::UISettings, utils::ui_utils::Editing,
-    },
+    }
 };
 
-use super::display::blend_scene_and_ui;
+use super::{display::blend_scene_and_ui, ui_setup::setup_element_ui};
 
 pub fn handle_event(
     event: WindowEvent,
@@ -34,10 +33,18 @@ pub fn handle_event(
             if state == winit::event::ElementState::Released {
                 let pos = ui.mouse_position();
                 if !ui_clicked(pos, scene, ui) {
-                    ui.set_editing(None);
+                    if let None = ui.editing() {
+                        let scene_read = scene.read().unwrap();
+                        let ray = get_ray(&scene_read, pos.0 as usize, pos.1 as usize);
+                        if let Some(hit) = get_closest_hit(&scene_read, &ray) {
+                            setup_element_ui(hit.element(), ui, scene);
+                        }
+                    } else {
+                        ui.set_editing(None);
+                    }
                 }
-                ui.set_dirty()
             }
+            ui.set_dirty();
         }
         WindowEvent::KeyboardInput { event, .. } => {
             if event.state == winit::event::ElementState::Released {

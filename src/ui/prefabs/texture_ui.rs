@@ -4,8 +4,7 @@ use crate::{model::{materials::texture::{Texture, TextureType}, maths::vec3::Vec
 
 use super::{file_ui::get_file_box, vector_ui::{get_vector_from_vector_ui, get_vector_ui}};
 
-pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<impl Fn(Texture, &Arc<RwLock<Scene>>) + 'static>, settings: &UISettings) -> Vec<UIElement> {
-    let mut elements_vec = vec![];
+pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<dyn Fn(Texture, &Arc<RwLock<Scene>>)>, settings: &UISettings) -> UIElement {
     let mut category = UIElement::new(name, name, ElemType::Category(Category::default()), settings);
     
 
@@ -106,8 +105,5 @@ pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<impl Fn(Texture
     elem.style.visible = as_file;
     elem.style_mut().disabled = true;
     category.add_element(elem);
-
-
-    elements_vec.push(category);
-    elements_vec
+    category
 }

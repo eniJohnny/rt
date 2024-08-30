@@ -1,7 +1,9 @@
+use std::sync::{Arc, RwLock};
+
 use super::Shape;
 use crate::{model::{
     materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene, Element
-}, render::raycasting::get_sorted_hit_from_t};
+}, ui::{prefabs::{shape_ui::ShapeUI, vector_ui::get_vector_ui}, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Value}}};
 
 #[derive(Debug, Clone)]
 pub struct Plane {
@@ -22,10 +24,7 @@ impl Shape for Plane {
             dot_product = -dot_product;
         }
         let t = dist.dot(&dir) / dot_product;
-        // if t > 0.0 {
         return Some(Vec::from([t]));
-        // }
-        // None
     }
 
 	fn outer_intersect(&self, r: &Ray, displaced_factor: f64) -> Option<Vec<f64>> {
@@ -127,6 +126,73 @@ impl Shape for Plane {
 
     fn pos(&self) -> &Vec3 {
         &self.pos
+    }
+
+    fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
+        let mut category = UIElement::new("cone", "cone", ElemType::Category(Category::default()), ui.uisettings());
+
+        if let Some(plane) = element.shape().as_plane() {
+            let id = element.id().clone();
+            category.add_element(get_vector_ui(plane.pos.clone(), "Position", "pos", &ui.uisettings_mut(), 
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(plane) = elem.shape_mut().as_plane_mut() {
+                        if let Value::Float(value) = value {
+                            plane.pos.set_x(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(plane) = elem.shape_mut().as_plane_mut() {
+                        if let Value::Float(value) = value {
+                            plane.pos.set_y(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(plane) = elem.shape_mut().as_plane_mut() {
+                        if let Value::Float(value) = value {
+                            plane.pos.set_z(value);
+                        }
+                    }
+                }),
+                true));
+            category.add_element(get_vector_ui(plane.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
+                Box::new(move |_, value, scene, ui| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(plane) = elem.shape_mut().as_plane_mut() {
+                        if let Value::Float(value) = value {
+                            plane.dir.set_x(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(plane) = elem.shape_mut().as_plane_mut() {
+                        if let Value::Float(value) = value {
+                            plane.dir.set_y(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(plane) = elem.shape_mut().as_plane_mut() {
+                        if let Value::Float(value) = value {
+                            plane.dir.set_z(value);
+                        }
+                    }
+                }),
+                true));
+        }
+        category
     }
 }
 

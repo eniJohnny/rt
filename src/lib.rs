@@ -26,11 +26,11 @@ const SCREEN_WIDTH: usize = 1600;
 const SCREEN_HEIGHT: usize = 900;
 const SCREEN_WIDTH_U32: u32 = SCREEN_WIDTH as u32;
 const SCREEN_HEIGHT_U32: u32 = SCREEN_HEIGHT as u32;
-const MAX_THREADS: usize = 16;
+const MAX_THREADS: usize = 14;
 const BASE_SIMPLIFICATION: usize = 32;
 const MAX_DEPTH: usize = 10;
 const ANTIALIASING: f64 = 0.001;
-const MAX_ITERATIONS: usize = 500;
+const MAX_ITERATIONS: usize = 1500;
 const MAX_EMISSIVE: f64 = 100.;
 
 /************* Modifiers **************/

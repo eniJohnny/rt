@@ -4,7 +4,7 @@ use crate::model::materials::material::Material;
 use crate::model::materials::texture::{Texture, TextureType};
 use crate::model::maths::vec3::Vec3;
 use crate::model::objects::camera::Camera;
-use crate::model::objects::light::{AmbientLight, Light, ParallelLight, PointLight};
+use crate::model::objects::light::{AmbientLight, AnyLight, Light, ParallelLight, PointLight};
 use crate::model::{scene, Element};
 use crate::model::{
     scene::Scene, shapes::cone::Cone, shapes::cylinder::Cylinder, shapes::plane::Plane,
@@ -143,8 +143,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                     Some(color) => color,
                     None => panic!("Color must be provided for lights"),
                 };
-                let new_light = Box::new(PointLight::new(pos, intensity, color))
-                    as Box<dyn Light + Sync + Send>;
+                let new_light = AnyLight::new(Box::new(PointLight::new(pos, intensity, color)));
                 scene.add_light(new_light);
             }
             "ambient" => {
@@ -165,7 +164,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                     None => panic!("Color must be provided for lights"),
                 };
 
-                let new_light = Box::new(ParallelLight::new(dir, intensity, color));
+                let new_light = AnyLight::new(Box::new(ParallelLight::new(dir, intensity, color)));
                 scene.add_light(new_light);
             }
             _ => {}

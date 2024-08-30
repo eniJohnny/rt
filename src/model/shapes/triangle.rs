@@ -1,7 +1,15 @@
+use std::sync::{Arc, RwLock};
+
 use crate::model::materials::material::Projection;
-use crate::model::{maths::{hit::Hit, ray::Ray, vec3::Vec3}, Element};
+use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 use crate::model::scene::Scene;
 use crate::model::shapes::plane::Plane;
+use crate::model::Element;
+use crate::ui::prefabs::shape_ui::ShapeUI;
+use crate::ui::prefabs::vector_ui::get_vector_ui;
+use crate::ui::ui::UI;
+use crate::ui::uielement::{Category, UIElement};
+use crate::ui::utils::misc::{ElemType, Value};
 use super::Shape;
 
 #[derive(Debug)]
@@ -51,6 +59,102 @@ impl Shape for Triangle {
     }
     fn pos(&self) -> &Vec3 { &self.a }
     fn as_triangle(&self) -> Option<&Triangle> { Some(self) }
+
+    fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
+        let mut category = UIElement::new("Triangle", "triangle", ElemType::Category(Category::default()), ui.uisettings());
+
+        if let Some(triangle) = element.shape().as_triangle() {
+            let id = element.id().clone();
+            category.add_element(get_vector_ui(triangle.a.clone(), "Point A", "pA", &ui.uisettings_mut(), 
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                if let Some(triangle) = elem.shape_mut().as_triangle_mut() {
+                    if let Value::Float(value) = value {
+                        triangle.a.set_x(value);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                if let Some(triangle) = elem.shape_mut().as_triangle_mut() {
+                    if let Value::Float(value) = value {
+                        triangle.a.set_y(value);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                if let Some(triangle) = elem.shape_mut().as_triangle_mut() {
+                    if let Value::Float(value) = value {
+                        triangle.a.set_z(value);
+                    }
+                }
+            }),
+            true));
+            category.add_element(get_vector_ui(triangle.b.clone(), "Point B", "pB", &ui.uisettings_mut(), 
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                if let Some(triangle) = elem.shape_mut().as_triangle_mut() {
+                    if let Value::Float(value) = value {
+                        triangle.b.set_x(value);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                if let Some(triangle) = elem.shape_mut().as_triangle_mut() {
+                    if let Value::Float(value) = value {
+                        triangle.b.set_y(value);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                if let Some(triangle) = elem.shape_mut().as_triangle_mut() {
+                    if let Value::Float(value) = value {
+                        triangle.b.set_z(value);
+                    }
+                }
+            }),
+            true));
+            category.add_element(get_vector_ui(triangle.c.clone(), "Point C", "pC", &ui.uisettings_mut(), 
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                if let Some(triangle) = elem.shape_mut().as_triangle_mut() {
+                    if let Value::Float(value) = value {
+                        triangle.c.set_x(value);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                if let Some(triangle) = elem.shape_mut().as_triangle_mut() {
+                    if let Value::Float(value) = value {
+                        triangle.c.set_y(value);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                if let Some(triangle) = elem.shape_mut().as_triangle_mut() {
+                    if let Value::Float(value) = value {
+                        triangle.c.set_z(value);
+                    }
+                }
+            }),
+            true));
+        }
+        category
+    }
 }
 
 impl Triangle {
