@@ -322,12 +322,12 @@ pub fn new_traverse_bvh<'a>(ray: &Ray, node: Option<&Node>, scene: &'a Scene) ->
     if bvh_dist < non_bvh_dist {
         let element = scene.get_element(closest_hit.element_index);
         let mut hit = Hit::new(element, closest_hit.tmin, ray.get_pos() + ray.get_dir() * closest_hit.tmin, &ray.get_dir(), scene.textures());
-        // hit.map_textures(scene.textures());
+        hit.map_textures(scene.textures());
         // println!("bvh hit: {:?}", hit.element().shape());
         return Some(hit);
     } else if non_bvh_dist < bvh_dist {
         let mut hit = closest_non_bvh_hit.unwrap();
-        // hit.map_textures(scene.textures());
+        hit.map_textures(scene.textures());
         // println!("non bvh hit: {:?}", hit.element().shape());
         return Some(hit);
     }

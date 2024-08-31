@@ -14,7 +14,7 @@ use crate::{
 
 use super::{
     lighting::lighting_sampling::get_reflected_light_bucket,
-    restir::{Path, PathBucket, Sample},
+    restir::{Path, PathBucket, Sample}, skysphere::get_skysphere_color,
 };
 
 pub fn get_ray_debug(scene: &Scene, x: usize, y: usize, debug: bool) -> Ray {

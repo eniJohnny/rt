@@ -15,11 +15,11 @@ pub mod bvh;
 
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
-const SCENE: &str = "metalrough";
+const SCENE: &str = "testing";
 
 const AABB_OPACITY: f64 = 0.0;
 const AABB_STEPS_NB: usize = 10;
-const DISPLAY_WIREFRAME: bool = false;
+const DISPLAY_WIREFRAME: bool = true;
 const WIREFRAME_THICKNESS: f64 = 0.05;
 const ERROR_MARGIN: f64 = 0.000000000001;
 const SCREEN_WIDTH: usize = 1600;
@@ -72,6 +72,7 @@ pub fn run() {
     if path != "" {
         let mut scene = get_scene(&path);
         scene.add_skysphere_texture("skysphere.jpg");
+        
         if DISPLAY_WIREFRAME {
             scene.add_wireframes();
         }

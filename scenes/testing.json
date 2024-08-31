@@ -1,39 +1,32 @@
 [
     {
-        "type": "sphere",
-        "pos": [-2.5, 2.5, 2],
-        "dir": [0, 1, 0],
-        "color": "bricks_color.jpg",
-        "radius": 2.0,
-        "normal": "bricks_normal.jpg",
-        "roughness": "bricks_roughness.jpg"
+        "type": "rectangle",
+        "pos": [4, 0, 0],
+        "length": 5.0,
+        "width": 5.0,
+        "dir_l": [1, 0, 0],
+        "dir_w": [0, 1, 1],
+        "color": [255, 255, 0]
+    },
+    {
+        "type": "triangle",
+        "a": [1, 0, 0],
+        "b": [-1, 0, 0],
+        "c": [0, 2, 1],
+        "color": [0, 255, 255]
     },
     {
         "type": "sphere",
-        "pos": [2.5, 2.5, 2],
-        "dir": [0, 1, 0],
-        "color": "wood_color.jpg",
+        "pos": [10, 0, 0],
+        "color": [255, 0, 255],
         "radius": 2.0,
-        "normal": "wood_normal.jpg",
-        "roughness": "wood_roughness.jpg"
+        "dir": [1, 0, 0]
     },
     {
-        "type": "sphere",
-        "pos": [-2, -2, 0],
-        "dir": [0, 1, 0],
+        "type": "plane",
+        "pos": [0, 0, 10],
         "color": [255, 255, 255],
-        "radius": 1.5,
-        "roughness": 0.0,
-        "metalness": 1.0
-    },
-    {
-        "type": "sphere",
-        "pos": [2, -2, 0],
-        "dir": [0, 1, 0],
-        "color": "tiles_color.jpg",
-        "radius": 1.5,
-        "normal": "tiles_normal.jpg",
-        "roughness": "tiles_roughness.jpg"
+        "dir": [0, 0, 1]
     },
     {
         "type": "camera",
