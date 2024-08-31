@@ -8,7 +8,11 @@ use crate::{
     bvh
 };
 
-use super::{materials::{diffuse::Diffuse, material::Material, texture::Texture}, objects::{camera::Camera, light::AnyLight}, shapes::{aabb::Aabb, wireframe::Wireframe}, Element};
+use super::{
+    materials::{diffuse::{self, Diffuse},
+    material::{self, Material},
+    texture::{Texture, TextureType}}, maths::vec3::Vec3, objects::camera::Camera, shapes::{self, aabb::Aabb}, Element
+};
 
 #[derive(Debug)]
 pub struct Scene {
@@ -127,8 +131,10 @@ impl Scene {
         let aabbs = self.all_aabb();
         let mut new_elements = vec![];
         for aabb in aabbs {
-            let new_material = Diffuse::default();
-            let new_shape = Wireframe::from_aabb(aabb);
+            let mut new_material = Diffuse::default();
+            new_material.set_emissive(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
+
+            let new_shape = shapes::wireframe::Wireframe::from_aabb(aabb);
             let new_element = Element::new(Box::new(new_shape), new_material);
 
             new_elements.push(new_element);

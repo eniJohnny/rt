@@ -4,8 +4,8 @@ use crate::model::materials::material::Material;
 use crate::model::materials::texture::{Texture, TextureType};
 use crate::model::maths::vec3::Vec3;
 use crate::model::objects::camera::Camera;
-use crate::model::objects::light::{AmbientLight, AnyLight, Light, ParallelLight, PointLight};
-use crate::model::{scene, Element};
+use crate::model::objects::light::{AmbientLight, AnyLight, ParallelLight, PointLight};
+use crate::model::Element;
 use crate::model::{
     scene::Scene, shapes::cone::Cone, shapes::cylinder::Cylinder, shapes::plane::Plane,
     shapes::sphere::Sphere, shapes::rectangle::Rectangle
@@ -91,9 +91,14 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let aabb_shape = Box::new(shape.aabb().clone());
 
                 let material = get_material(&object, color);
+                let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
+                aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
+                scene.add_textures(&material);
 
                 let element = Element::new(shape, material);
-                scene.add_element(element)
+                let aabb_element = Element::new(aabb_shape, aabb_material);
+                scene.add_element(element);
+                scene.add_element(aabb_element);
             }
             "triangle" => {
                 let a = get_coordinates_value(&object, "a");
@@ -102,10 +107,19 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let color = get_color(&object);
 
                 let shape = Box::new(Triangle::new(a,b,c));
+                let aabb_shape = Box::new(shape.aabb().clone());
+
                 let material = get_material(&object, color);
+                let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
+                aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
+                
+                scene.add_textures(&material);
 
                 let element = Element::new(shape, material);
-                scene.add_element(element)
+                let aabb_element = Element::new(aabb_shape, aabb_material);
+
+                scene.add_element(element);
+                scene.add_element(aabb_element);
             }
             "rectangle" => {
                 let pos = get_coordinates_value(&object, "pos");
@@ -116,17 +130,20 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let color = get_color(&object);
 
                 let shape = Box::new(Rectangle::new(pos, length, width, dir_l, dir_w));
-                let material = get_material(&object, color);
+                let aabb_shape = Box::new(shape.aabb().clone());
 
+                let material = get_material(&object, color);
+                let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
+                aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
+                
                 scene.add_textures(&material);
-                // let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
-                // aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
 
                 let element = Element::new(shape, material);
-                // let aabb_element = Element::new(aabb_shape, aabb_material);
+                let aabb_element = Element::new(aabb_shape, aabb_material);
 
+                // println!("{:?}", &element);
                 scene.add_element(element);
-                // scene.add_element(aabb_element);
+                scene.add_element(aabb_element);
             }
             "camera" => {
                 let pos = get_coordinates_value(&object, "pos");

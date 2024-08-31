@@ -5,7 +5,7 @@ use crate::{
         objects::light::{Light, ParallelLight},
         scene::Scene,
     },
-    render::raycasting::get_closest_hit,
+    render::{raycasting::get_closest_hit, skysphere::get_skysphere_color},
 };
 
 pub fn simple_lighting_from_ray(
@@ -17,7 +17,9 @@ pub fn simple_lighting_from_ray(
     match get_closest_hit(scene, ray) {
         Some(hit) => simple_lighting_from_hit(&hit, ambient, light),
         //TODO : Handle BG on None
-        None => Color::new(0., 0., 0.),
+        None => {
+            get_skysphere_color(scene, ray)
+        }
     }
 }
 

@@ -11,6 +11,7 @@ use crate::ui::prefabs::vector_ui::get_vector_ui;
 use crate::ui::ui::UI;
 use crate::ui::uielement::{Category, UIElement};
 use crate::ui::utils::misc::{ElemType, Property, Value};
+use super::aabb::Aabb;
 use super::Shape;
 
 #[derive(Debug)]
@@ -24,7 +25,8 @@ pub struct Rectangle {
     b: Vec3,
     c: Vec3,
     d: Vec3,
-    plane: Plane
+    plane: Plane,
+    aabb: super::aabb::Aabb,
 }
 
 impl Shape for Rectangle {
@@ -209,13 +211,37 @@ impl Rectangle {
     pub fn width(&self) -> &f64 { &self.width }
     pub fn dir_l(&self) -> &Vec3 { &self.dir_l }
     pub fn dir_w(&self) -> &Vec3 { &self.dir_w }
+    pub fn aabb(&self) -> &Aabb { &self.aabb }
 
     // Mutators
-    pub fn set_pos(&mut self, pos: Vec3) { self.pos = pos }
-    pub fn set_length(&mut self, length: f64) { self.length = length }
-    pub fn set_width(&mut self, width: f64) { self.width = width }
-    pub fn set_dir_l(&mut self, dir_l: Vec3) { self.dir_l = dir_l }
-    pub fn set_dir_w(&mut self, dir_w: Vec3) { self.dir_w = dir_w }
+    pub fn set_pos(&mut self, pos: Vec3) {
+        self.pos = pos;
+        self.update_aabb();
+    }
+
+    pub fn set_length(&mut self, length: f64) {
+        self.length = length;
+        self.update_aabb();
+    }
+
+    pub fn set_width(&mut self, width: f64) {
+        self.width = width;
+        self.update_aabb();
+    }
+
+    pub fn set_dir_l(&mut self, dir_l: Vec3) {
+        self.dir_l = dir_l;
+        self.update_aabb();
+    }
+
+    pub fn set_dir_w(&mut self, dir_w: Vec3) {
+        self.dir_w = dir_w;
+        self.update_aabb();
+    }
+
+    pub fn set_aabb(&mut self, aabb: Aabb) {
+        self.aabb = aabb;
+    }
 
     // Constructor
     pub fn new(pos: Vec3, length: f64, width: f64, dir_l: Vec3, dir_w: Vec3) -> Rectangle {
@@ -226,8 +252,23 @@ impl Rectangle {
         let c= pos.clone() + &l_gap - &w_gap;
         let d= pos.clone() - &l_gap - &w_gap;
         let plane = Plane::new(a.clone(), dir_l.clone().cross(&dir_w).normalize());
+        let aabb = self::Rectangle::compute_aabb(&a, &d);
 
-        Rectangle { pos, length, width, dir_l, dir_w, a, b, c, d, plane }
+        Rectangle { pos, length, width, dir_l, dir_w, a, b, c, d, plane, aabb }
+    }
+
+    fn update_aabb(&mut self) {
+        self.set_aabb(self::Rectangle::compute_aabb(&self.a, &self.d));
+    }
+
+    pub fn compute_aabb(a: &Vec3, d: &Vec3) -> super::aabb::Aabb {
+        let x_min = a.x().min(*d.x());
+        let x_max = a.x().max(*d.x());
+        let y_min = a.y().min(*d.y());
+        let y_max = a.y().max(*d.y());
+        let z_min = a.z().min(*d.z());
+        let z_max = a.z().max(*d.z());
+        Aabb::new(x_min, x_max, y_min, y_max, z_min, z_max)
     }
 
 }
