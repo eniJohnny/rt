@@ -53,7 +53,7 @@ impl Shape for Triangle {
 	}
 
     fn projection(&self, hit: &Hit) -> Projection {
-        Projection::default()
+        self.plane.projection(hit)
     }
     fn norm(&self, hit: &Vec3, ray_dir: &Vec3) -> Vec3 {
         return self.plane.norm(hit, ray_dir);
