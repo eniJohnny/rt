@@ -125,7 +125,7 @@ impl Scene {
         let mut new_elements = vec![];
         for aabb in aabbs {
             let mut new_material = Diffuse::default();
-            new_material.set_emissive(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
+            new_material.set_emissive(Texture::Value(Vec3::from_value(0.0), TextureType::Float));
 
             let new_shape = shapes::wireframe::Wireframe::from_aabb(aabb);
             let new_element = Element::new(Box::new(new_shape), new_material);

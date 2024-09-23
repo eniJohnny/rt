@@ -9,7 +9,7 @@ use crate::{
         materials::color::Color,
         maths::{hit::Hit, ray::Ray, vec3::Vec3},
         objects::light,
-        scene::Scene,
+        scene::Scene, shapes::Shape,
     },
     render::{raycasting::get_closest_hit, skysphere::get_skysphere_color},
     MAX_DEPTH, USING_BVH,
@@ -34,6 +34,9 @@ pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
 
     return match hit {
         Some(hit) => {
+            if hit.element().shape().as_wireframe().is_some() {
+                return Color::new(1., 1., 1.);
+            }
             let tmp = get_lighting_from_hit(scene, &hit, ray);
             tmp
         },
