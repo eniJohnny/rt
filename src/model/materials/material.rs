@@ -47,4 +47,16 @@ impl dyn Material {
             Texture::Value(Vec3::from_value(0.), TextureType::Float),
         ))
     }
+
+    pub fn copy(&self) -> Box<dyn Material> {
+        Box::new(Diffuse::new(
+            self.color().clone(),
+            self.norm().clone(),
+            self.metalness().clone(),
+            self.refraction().clone(),
+            self.roughness().clone(),
+            self.emissive().clone(),
+            self.opacity().clone(),
+        ))
+    }
 }

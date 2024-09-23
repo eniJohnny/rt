@@ -22,6 +22,7 @@ pub mod rectangle;
 pub mod triangle;
 pub mod aabb;
 pub mod wireframe;
+pub mod torusphere;
 
 pub trait Shape: Debug + Sync + Send {
     fn distance(&self, vec: &Vec3) -> f64;

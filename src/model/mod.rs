@@ -42,3 +42,27 @@ impl Element {
         self.shape = shape;
     }
 }
+
+pub struct ComposedElement {
+    elements: Vec<Element>,
+}
+
+impl ComposedElement {
+    pub fn new(elements: Vec<Element>) -> Self {
+        Self {
+            elements,
+        }
+    }
+
+    pub fn elements(&self) -> &Vec<Element> {
+        &self.elements
+    }
+
+    pub fn elements_mut(&mut self) -> &mut Vec<Element> {
+        &mut self.elements
+    }
+
+    pub fn add_element(&mut self, element: Element) {
+        self.elements.push(element);
+    }
+}

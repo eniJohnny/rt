@@ -1,6 +1,7 @@
 extern crate image;
 use display::mainloop::start_scene;
 use image::flat::View;
+use model::maths::vec3::Vec3;
 use parsing::get_scene;
 use render::settings::ViewMode;
 use winit::keyboard::KeyCode;
@@ -67,17 +68,39 @@ const CAM_MOVE_KEYS: [KeyCode; 10] = [
     KeyCode::ShiftLeft,
 ];
 
+const TORUSPHERE_DEBUG: bool = true;
+
 pub fn run() {
-    let path = String::from(format!("{}/{}.json", SCENE_FOLDER, SCENE));
-    if path != "" {
-        let mut scene = get_scene(&path);
-        scene.add_skysphere_texture("skysphere.jpg");
-        
-        if DISPLAY_WIREFRAME {
-            scene.add_wireframes();
+    if TORUSPHERE_DEBUG == false {
+        let path = String::from(format!("{}/{}.json", SCENE_FOLDER, SCENE));
+        if path != "" {
+            let mut scene = get_scene(&path);
+            scene.add_skysphere_texture("skysphere.jpg");
+            
+            if DISPLAY_WIREFRAME {
+                scene.add_wireframes();
+            }
+
+            scene.update_bvh();
+            start_scene(scene);
         }
-        scene.update_bvh();
-        start_scene(scene);
+    } else {
+        let pos = Vec3::from_value(0.);
+        let dir = Vec3::new(0., 1., 0.);
+        let radius = 10.;
+        let color = Vec3::new(1., 0., 0.);
+
+        let torusphere = model::shapes::torusphere::Torusphere::new(pos, dir, radius, color);
+        let len = torusphere.elements.len();
+
+        for i in 0..len {
+            println!("Element {} - x: {} y: {}", i, torusphere.elements[i].shape().pos().x(), torusphere.elements[i].shape().pos().y());
+            // println!("Element {}:\n----------", i);
+            // println!("Position: {:?}", torusphere.elements[i].shape().pos());
+            // println!("Direction: {:?}", torusphere.elements[i].shape().as_sphere().unwrap().dir());
+            // println!("Radius: {:?}", torusphere.elements[i].shape().as_sphere().unwrap().radius());
+            // println!("Color: {:?}\n", torusphere.elements[i].material().color());
+        }
     }
 }
 
