@@ -43,33 +43,38 @@ impl Shape for Sphere {
 	}
 
     fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
-		let displaced_factor = 0.05;
-		let total_displacement = self.radius * displaced_factor;
-		let step = 0.1;
+		// Size of the displacement proportional to the radius
+		let displaced_factor: f64 = 0.05; // Maybe add possibility to change this value ?
+		let step_size: f64 = 0.1; // step number ~ 1 / step_size 
+
+		let biggest_sphere_size: f64 = self.radius * displaced_factor;
 		let mut t: Option<Vec<f64>> = self.outer_intersect(ray, displaced_factor);
 		if let Some(mut hits) = get_sorted_hit_from_t(scene, ray, &t, element) {
 			if hits.len() == 1 {
-				return None;
+				return None; // Inside the sphere
 			}
+
 			let mut hit = hits.remove(0);
-			let sec_hit = hits.remove(0);
+			let second_hit = hits.remove(0);
+
 			let mut old_t = *hit.dist();
-			while hit.dist() < sec_hit.dist() {
+			while hit.dist() < second_hit.dist() {
 				let sphere_to_hit = hit.pos() - self.pos();
 				let hit_distance = sphere_to_hit.length() - self.radius;
-				let hit_ratio: f64 = hit_distance / total_displacement;
+				let hit_ratio: f64 = hit_distance / biggest_sphere_size;
 
 				let displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures()).to_value();
 				if (displaced_ratio - hit_ratio).abs() < 0.01 {
-					return Some(vec![*hit.dist()]);
+					return Some(vec![*hit.dist()]); // Almost perfect match
 				}
 				if displaced_ratio >= hit_ratio {
-					return Some(vec![(*hit.dist() + old_t) / 2.]);
+					return Some(vec![(*hit.dist() + old_t) / 2.]); // Passed the displacement
 				}
+
 				old_t = *hit.dist();
-				let mut displaced_dist = (hit_ratio - displaced_ratio) * total_displacement;
-				if displaced_dist > step * total_displacement {
-					displaced_dist = step * total_displacement ;
+				let mut displaced_dist = (hit_ratio - displaced_ratio) * biggest_sphere_size;
+				if displaced_dist > step_size * biggest_sphere_size {
+					displaced_dist = step_size * biggest_sphere_size;
 				}
 				hit = Hit::new(
 					element,

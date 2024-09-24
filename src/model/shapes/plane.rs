@@ -8,23 +8,6 @@ pub struct Plane {
     pos: Vec3,
     dir: Vec3,
 }
-/*
-||||||||||||||||||||NEW RAY||||||||||||||||||
-Vec received from (-5, 0, 0)
-8.708350840339012
-Hit
-First hit
-|||||NEW_HIT : (-5, 0, 0), dist 8.708350840339012|||||||
-Vec received from (0, 5, 0)
-15.489034008383047
-Hit
-Vec received from (0, 0, 5)
-26.44806411152962
-Hit
-Vec received from (0, 0, -2)
-17.14472497682071
-Hit
- */
 
 impl Shape for Plane {
     fn distance(&self, vec: &Vec3) -> f64 {
