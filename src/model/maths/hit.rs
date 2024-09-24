@@ -82,7 +82,7 @@ impl<'a> Hit<'a> {
         self.metalness
     }
     pub fn refraction(&self) -> f64 {
-        self.refraction
+        0.5
     }
     pub fn roughness(&self) -> f64 {
         self.roughness
