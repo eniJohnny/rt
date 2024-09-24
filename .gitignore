@@ -17,3 +17,5 @@ Cargo.lock
 .vscode/
 
 scenes/johnny.json
+
+.DS_Store
