@@ -1,0 +1,46 @@
+[
+    {
+        "type": "sphere",
+        "pos": [0, 0, -5],
+        "dir": [0, 1, 0],
+        "color": "Bricks_gray_Color.jpg",
+        "radius": 2.0,
+        "normal": "Bricks_gray_Normal.jpg",
+        "roughness": "Bricks_gray_Roughness.jpg",
+        "displacement": "Bricks_gray_Displacement.jpg",
+        "metallness": 0.0
+    },
+    {
+        "type": "camera",
+        "pos": [0.0, 0.0, -14.9],
+        "dir": [0, 0, 1],
+        "fov": 75
+    },
+    {
+        "type": "cylinder",
+        "radius": 2.0,
+        "height": 0.1,
+        "pos": [0, -6, -5],
+        "dir": [0, 1, 1],
+        "color": [255, 255, 255],
+        "emissive": 2.0
+    },
+    {
+        "type": "cylinder",
+        "radius": 2.0,
+        "height": 0.1,
+        "pos": [0, 6, -5],
+        "dir": [0, -1, 1],
+        "color": [255, 255, 255],
+        "emissive": 2.0
+    },
+    {
+        "type": "cylinder",
+        "radius": 5.0,
+        "height": 0.1,
+        "pos": [0, 0, -15],
+        "dir": [0, 0, -1],
+        "color": [255, 255, 255],
+        "emissive": 2.0
+    }
+]

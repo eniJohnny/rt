@@ -5,7 +5,7 @@ use std::cmp::PartialEq;
 use std::fmt::{Display, Formatter, Result};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-#[derive(Default, PartialEq, Debug, Clone)]
+#[derive(Default, PartialEq, Debug, Clone, Copy)]
 pub struct Vec3 {
     x: f64,
     y: f64,
@@ -26,6 +26,16 @@ impl Vec3 {
 
     pub fn z(&self) -> &f64 {
         &self.z
+    }
+
+    pub fn set_x(&mut self, x: f64) {
+        self.x = x;
+    }
+    pub fn set_y(&mut self, y: f64) {
+        self.y = y;
+    }
+    pub fn set_z(&mut self, z: f64) {
+        self.z = z;
     }
 
     pub fn dot(&self, other: &Self) -> f64 {

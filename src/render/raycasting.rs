@@ -1,18 +1,19 @@
+use std::collections::HashMap;
+
+use image::{ImageBuffer, Rgba};
 use rand::Rng;
 
 use crate::{
-    model::{
-        materials::{color::Color, texture::Texture},
+    bvh::traversal::traverse_bvh, model::{
+        materials::{color::Color, texture::{Texture, TextureType}},
         maths::{hit::Hit, quaternion::Quaternion, ray::Ray, vec3::Vec3},
         scene::Scene,
-        shapes::plane::Plane,
         Element,
-    },
-    ANTIALIASING, MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH,
+    }, ANTIALIASING, MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH, USING_BVH
 };
 
 use super::{
-    lighting_sampling::get_reflected_light_bucket,
+    lighting::lighting_sampling::get_reflected_light_bucket,
     restir::{Path, PathBucket, Sample},
 };
 
@@ -70,18 +71,6 @@ pub fn sampling_ray(scene: &Scene, ray: &Ray) -> PathBucket {
         }, //TODO Handle background on None
     }
 }
-fn intersect2(plane: &Plane, r: Ray) -> Option<Vec<f64>> {
-    let dist = plane.pos() - r.get_pos();
-    let mut dir = plane.dir().clone();
-    let mut dot_product = r.get_dir().dot(plane.dir());
-    if dot_product > 0. {
-        dir = -dir;
-        dot_product = -dot_product;
-    }
-    let t = dist.dot(&dir) / dot_product;
-    return Some(Vec::from([t]));
-    None
-}
 
 pub fn get_sorted_hit_from_t<'a>(scene: &'a Scene, ray: &Ray, t: &Option<Vec<f64>>, element: &'a Element) -> Option<Vec<Hit<'a>>> {
 	let mut hits: Vec<Hit> = Vec::new();
@@ -108,9 +97,20 @@ pub fn get_sorted_hit_from_t<'a>(scene: &'a Scene, ray: &Ray, t: &Option<Vec<f64
 
 pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     let mut closest: Option<Hit> = None;
-    for element in scene.elements().iter() {
+    let elements = scene.elements();
+
+    // TESTING PURPOSES
+    // let elements;
+    // if USING_BVH {
+    //     elements = scene.non_bvh_elements();
+    // } else {
+    //     elements = scene.test_all_elements();
+    // }
+    // END TESTING PURPOSES
+
+    for element in elements {
         let mut t = None;
-		if let Texture::Texture(file) = element.material().displacement() {
+		if let Texture::Texture(file, TextureType::Float) = element.material().displacement() {
 			t = element.shape().intersect_displacement(ray, element, scene);
 		}
 		else {

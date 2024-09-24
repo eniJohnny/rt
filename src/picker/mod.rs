@@ -1,17 +1,35 @@
-use std::{fmt::format, fs, io, sync::{mpsc, Arc, RwLock}, thread, time::Duration};
+use std::{
+    fmt::format,
+    fs, io,
+    sync::{mpsc, Arc, RwLock},
+    thread,
+    time::Duration,
+};
 
 use image::{Rgba, RgbaImage};
 use pixels::{Pixels, SurfaceTexture};
 use rusttype::{Font, Scale};
-use winit::{dpi::LogicalSize, event::{Event, MouseScrollDelta, WindowEvent}, event_loop::{ControlFlow, EventLoop}, platform::run_return::EventLoopExtRunReturn, window::{Window, WindowBuilder}};
+use winit::{
+    dpi::LogicalSize,
+    event::{Event, MouseScrollDelta, WindowEvent},
+    event_loop::{ControlFlow, EventLoop},
+    keyboard::{Key, NamedKey},
+    window::{Window, WindowBuilder},
+};
 
-use crate::{display::{display, utils::blend}, gui::{self, textformat::TextFormat}, model::{maths::{vec2::Vec2, vec3::Vec3}, objects::camera, scene::{self, Scene}}, parsing::get_scene, render::render_threads::start_render_threads, PICKER_LINE_HEIGHT, SCENE_FOLDER, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32};
+use crate::{
+    display::display::{self, display}, model::{
+        maths::{vec2::Vec2, vec3::Vec3},
+        objects::camera,
+        scene::{self, Scene},
+    }, parsing::get_scene, render::render_threads::start_render_threads, ui::{uisettings::UISettings, utils::{draw_utils::blend, style::Style}}, PICKER_LINE_HEIGHT, SCENE_FOLDER, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32
+};
 
-fn get_files_in_folder() -> io::Result<Vec<String>> {
+pub fn get_files_in_folder(path: &str) -> io::Result<Vec<String>> {
     let mut files = Vec::new();
 
     // Read the directory
-    for entry in fs::read_dir(SCENE_FOLDER)? {
+    for entry in fs::read_dir(path)? {
         let entry = entry?;
         let path = entry.path();
 
@@ -36,7 +54,7 @@ fn get_line_position(i: usize) -> Vec2 {
     Vec2::new(x, y)
 }
 
-fn draw_text(image: &mut RgbaImage, pos: &Vec2, text: String, format: &TextFormat) {
+fn draw_text(image: &mut RgbaImage, pos: &Vec2, text: String, format: &Style) {
     let x = *pos.x() as u32 + 8;
     let y = *pos.y() as u32 + 2;
 
@@ -97,10 +115,15 @@ fn get_hitbox(pos: &Vec2) -> (Vec2, Vec2) {
     (Vec2::new(x, y), Vec2::new(x + width as f64, y + height))
 }
 
-fn draw_files_and_update_hitboxes(start: usize, files: &Vec<String>, pixels: &mut Pixels<Window>) -> (Vec<(Vec2, Vec2)> , RgbaImage) {
+fn draw_files_and_update_hitboxes(
+    start: usize,
+    files: &Vec<String>,
+    pixels: &mut Pixels,
+) -> (Vec<(Vec2, Vec2)>, RgbaImage) {
     let mut hitboxes: Vec<(Vec2, Vec2)> = Vec::new();
     let mut img = RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32);
-    let format = gui::textformat::TextFormat::new_base_format();
+    let settings = UISettings::default();
+    let format = Style::default(&settings);
 
     for i in start..files.len() {
         let file = &files[i];
@@ -110,15 +133,30 @@ fn draw_files_and_update_hitboxes(start: usize, files: &Vec<String>, pixels: &mu
         draw_text(&mut img, &pos, file.to_string(), &format);
     }
 
-    draw_text(&mut img, &Vec2::new(860., 770.0), "Choose a scene".to_string(), &format);
-    draw_text(&mut img, &Vec2::new(860., 790.0), "Use the mouse wheel to scroll".to_string(), &format);
-    draw_text(&mut img, &Vec2::new(860., 810.0), "Press Enter to load the scene".to_string(), &format);
+    draw_text(
+        &mut img,
+        &Vec2::new(860., 770.0),
+        "Choose a scene".to_string(),
+        &format,
+    );
+    draw_text(
+        &mut img,
+        &Vec2::new(860., 790.0),
+        "Use the mouse wheel to scroll".to_string(),
+        &format,
+    );
+    draw_text(
+        &mut img,
+        &Vec2::new(860., 810.0),
+        "Press Enter to load the scene".to_string(),
+        &format,
+    );
     display(pixels, &mut img);
     return (hitboxes, img);
 }
 
 fn display_files(files: Vec<String>) -> String {
-    let mut event_loop = EventLoop::new();
+    let mut event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new()
         .with_inner_size(LogicalSize::new(SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32))
         .with_title("Scene Picker")
@@ -133,7 +171,7 @@ fn display_files(files: Vec<String>) -> String {
     };
 
     let (sender, receiver) = mpsc::channel();
-    
+
     let mut hitboxes: Vec<(Vec2, Vec2)>;
     let mut img: RgbaImage;
     let mut file_clicked = "".to_string();
@@ -144,14 +182,14 @@ fn display_files(files: Vec<String>) -> String {
 
     // Set up event manager
     let mut mouse_position = (0.0, 0.0);
-    event_loop.run_return(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Wait;
+    event_loop.run(move |event, window_target| {
+        window_target.set_control_flow(ControlFlow::Wait);
         match event {
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::CloseRequested => {
                     // Close the window
                     sender.send("".to_string()).unwrap();
-                    *control_flow = ControlFlow::Exit
+                    window_target.exit();
                 }
                 WindowEvent::CursorMoved { position, .. } => {
                     // Update the mouse position
@@ -176,41 +214,41 @@ fn display_files(files: Vec<String>) -> String {
                 WindowEvent::MouseWheel { delta, .. } => {
                     // check if the mouse wheel is scrolled up or down
                     let dir = get_scroll_direction(delta);
-                    
+
                     if dir == "up" {
                         // Scroll up
                         if start > 0 {
                             start -= 1;
-                            (hitboxes, img) = draw_files_and_update_hitboxes(start, &files, &mut pixels);
+                            (hitboxes, img) =
+                                draw_files_and_update_hitboxes(start, &files, &mut pixels);
                         }
                     } else {
                         // Scroll down
                         if start < files.len() - 1 {
                             start += 1;
-                            (hitboxes, img) = draw_files_and_update_hitboxes(start, &files, &mut pixels);
+                            (hitboxes, img) =
+                                draw_files_and_update_hitboxes(start, &files, &mut pixels);
                         }
                     }
                 }
-                WindowEvent::KeyboardInput { input, .. } => {
+                WindowEvent::KeyboardInput { event, .. } => {
                     // If the escape key is pressed
-                    if let Some(key_code) = input.virtual_keycode {
-                        if key_code == winit::event::VirtualKeyCode::Escape {
-                            // Close the window
-                            sender.send("".to_string()).unwrap();
-                            *control_flow = ControlFlow::Exit;
-                        } else if key_code == winit::event::VirtualKeyCode::Return {
-                            if file_clicked != "" {
-                                sender.send(file_clicked.clone()).unwrap();
-                                *control_flow = ControlFlow::Exit;
-                            }
-                        } 
+                    if event.logical_key == Key::Named(NamedKey::Escape) {
+                        // Close the window
+                        sender.send("".to_string()).unwrap();
+                        window_target.exit();
+                    } else if event.logical_key == Key::Named(NamedKey::Backspace) {
+                        if file_clicked != "" {
+                            sender.send(file_clicked.clone()).unwrap();
+                            window_target.exit();
+                        }
                     }
                 }
                 _ => (),
             },
             _ => (),
         }
-    });
+    }).unwrap();
 
     let path = receiver.recv().unwrap_or_else(|_| "".to_string());
     if path == "" {
@@ -238,10 +276,20 @@ fn get_scroll_direction(delta: MouseScrollDelta) -> String {
     }
 }
 
-fn get_file_name(files: &Vec<String>, hitboxes: &Vec<(Vec2, Vec2)>, x: u32, y: u32, start: usize) -> String {
+fn get_file_name(
+    files: &Vec<String>,
+    hitboxes: &Vec<(Vec2, Vec2)>,
+    x: u32,
+    y: u32,
+    start: usize,
+) -> String {
     for (i, hitbox) in hitboxes.iter().enumerate() {
         let (min, max) = hitbox;
-        if x >= *min.x() as u32 && x <= *max.x() as u32 && y >= *min.y() as u32 && y <= *max.y() as u32 {
+        if x >= *min.x() as u32
+            && x <= *max.x() as u32
+            && y >= *min.y() as u32
+            && y <= *max.y() as u32
+        {
             return files[i + start].to_string();
         }
     }
@@ -251,7 +299,7 @@ fn get_file_name(files: &Vec<String>, hitboxes: &Vec<(Vec2, Vec2)>, x: u32, y: u
 
 pub fn pick_scene() -> String {
     // Get the list of scenes
-    let files = get_files_in_folder();
+    let files = get_files_in_folder(SCENE_FOLDER);
 
     // Display the list of scenes
     let path = display_files(files.unwrap());
@@ -259,8 +307,7 @@ pub fn pick_scene() -> String {
     return path;
 }
 
-
-fn render_preview(mut scene: Scene, img: &mut RgbaImage, pixels: &mut Pixels<Window>) {
+fn render_preview(mut scene: Scene, img: &mut RgbaImage, pixels: &mut Pixels) {
     // Setting up the render_threads and asking for the first image
     let camera = scene.camera_mut();
     camera.set_pos(camera.pos() + Vec3::new(0., 0., -10.));
@@ -269,7 +316,7 @@ fn render_preview(mut scene: Scene, img: &mut RgbaImage, pixels: &mut Pixels<Win
     tb.send(true).unwrap();
     let mut final_image = false;
     let mut preview_img: image::ImageBuffer<Rgba<u8>, Vec<u8>>;
-    
+
     thread::sleep(Duration::from_millis(2));
     tb.send(false).unwrap();
     let (render_img, _) = ra.recv().unwrap();
@@ -277,7 +324,6 @@ fn render_preview(mut scene: Scene, img: &mut RgbaImage, pixels: &mut Pixels<Win
     let start = std::time::Instant::now();
 
     while start.elapsed().as_millis() < 1200 {
-
         if let Ok((render_img, final_img)) = ra.try_recv() {
             preview_img = render_img;
             final_image = final_img;

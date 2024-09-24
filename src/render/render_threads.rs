@@ -6,7 +6,7 @@ use std::{
         Arc, Mutex, RwLock,
     },
     thread,
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 use image::{GenericImageView, Rgba, RgbaImage};
@@ -20,9 +20,9 @@ use crate::{
 };
 
 use super::{
-    lighting_real::{get_lighting_from_hit, get_lighting_from_ray},
+    lighting::{lighting_real::get_lighting_from_ray, simple::simple_lighting_from_ray},
     raycasting::{get_closest_hit, get_ray, sampling_ray},
-    restir::PathBucket,
+    restir::PathBucket, settings::ViewMode,
 };
 
 #[derive(Clone)]
@@ -123,17 +123,11 @@ pub fn start_render_threads(
                     for_each_uncalculated_pixel(&tile, |x, y| {
                         // On calcule le ray et on le cast
                         let ray = get_ray(&scene, x, y);
-
-                        // let bucket = sampling_ray(&scene, &ray);
-
-                        // if let Some(mut sample) = bucket.sample {
-                        //     sample.weight =
-                        //         bucket.weight / (sample.weight * bucket.nbSamples as f64);
-                        //     colors.push(get_real_lighting(&scene, &sample, &ray));
-                        // } else {
-                        //     colors.push(Color::new(0., 0., 0.));
-                        // }
-                        colors.push(get_lighting_from_ray(&scene, &ray))
+                        if let ViewMode::Simple(ambient, light) = &scene.settings().view_mode {
+                            colors.push(simple_lighting_from_ray(&scene, &ray, ambient, light))
+                        } else {
+                            colors.push(get_lighting_from_ray(&scene, &ray))
+                        }
                     });
                     cur_tx.send((tile, colors)).unwrap();
                 }
@@ -141,7 +135,7 @@ pub fn start_render_threads(
                 thread::sleep(Duration::from_millis(5));
             });
         }
-        build_image_from_tilesets(rc, rb, ta, work_queue);
+        build_image_from_tilesets(rc, rb, ta, work_queue, scene);
     });
     (ra, tb)
 }
@@ -169,6 +163,7 @@ fn build_image_from_tilesets(
     rb: Receiver<bool>,
     ta: Sender<(RgbaImage, bool)>,
     work_queue: Arc<Mutex<VecDeque<Tile>>>,
+    scene: Arc<RwLock<Scene>>,
 ) {
     // Bon c'est un peu le bordel, je pense que je pourrais faire un truc mieux que ca, je previens, la c'est un peu fouillis
 
@@ -176,13 +171,15 @@ fn build_image_from_tilesets(
     // La fonction renvoie le nombre de tile d'une resolution donnee.
     // Cela nous permet de traquer quand est-ce que l'image de la plus basse resolution possible est completee, car c'est le
     // point ou on peux l'envoyer au main_thread.
-    let max_iterations = MAX_ITERATIONS;
     let mut samplingMode = true;
     let mut low_res_to_do = generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
     let mut max_res_to_do = low_res_to_do;
     let mut iterations_done = 0;
     let mut img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
     let mut final_img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
+    let mut to_send = false;
+    let mut perf = Instant::now();
+
     loop {
         loop {
             // Reception des tiles render par les worker_threads
@@ -208,15 +205,35 @@ fn build_image_from_tilesets(
                 }
 
                 if max_res_to_do == 0 {
-                    iterations_done += 1;
-                    final_img = add_iteration_to_final_img(img, final_img, iterations_done);
-                    if iterations_done < max_iterations {
-                        low_res_to_do =
-                            generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
-                        max_res_to_do = low_res_to_do;
+                    let viewmode = scene.read().unwrap().settings().view_mode.clone();
+                    match viewmode {
+                        ViewMode::HighDef => {
+                            iterations_done += 1;
+                            final_img = add_iteration_to_final_img(img, final_img, iterations_done);
+                            if iterations_done < scene.read().unwrap().settings().iterations as i32
+                            {
+                                low_res_to_do = generate_tiles_for(
+                                    &work_queue,
+                                    samplingMode,
+                                    BASE_SIMPLIFICATION,
+                                );
+                                max_res_to_do = low_res_to_do;
+                            }
+                            img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
+                            println!("{} iterations done - {:?}", iterations_done, perf.elapsed());
+                        }
+                        _ => {}
                     }
-                    img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
-                    println!("{} iterations done", iterations_done);
+                }
+            }
+            let viewmode = scene.read().unwrap().settings().view_mode.clone();
+            if let ViewMode::HighDef = viewmode {
+                if max_res_to_do == 0
+                    && iterations_done < scene.read().unwrap().settings().iterations as i32
+                {
+                    low_res_to_do =
+                        generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
+                    max_res_to_do = low_res_to_do;
                 }
             }
             if low_res_to_do == 0 {
@@ -224,6 +241,27 @@ fn build_image_from_tilesets(
             }
         }
 
+        if to_send {
+            let viewmode = scene.read().unwrap().settings().view_mode.clone();
+            // Si aucun changement n'a ete detecte on envoie l'image actuelle
+            match viewmode {
+                ViewMode::HighDef => {
+                    if iterations_done > 0 {
+                        ta.send((
+                            vec_to_image(&final_img),
+                            iterations_done == scene.read().unwrap().settings().iterations as i32,
+                        ))
+                        .unwrap();
+                    } else {
+                        ta.send((vec_to_image(&img), false)).unwrap();
+                    }
+                }
+                _ => {
+                    ta.send((vec_to_image(&img), max_res_to_do == 0)).unwrap();
+                }
+            }
+            to_send = false;
+        }
         // On recoit les demandes d'images du main_thread (une seule a la fois, pas de nouvelle demande tant qu'on a pas envoye une image)
         if let Ok(scene_change) = rb.try_recv() {
             // Si la scene a change entre temps depuis le GUI, on reset tout
@@ -234,18 +272,12 @@ fn build_image_from_tilesets(
                 work_queue.lock().unwrap().clear();
                 // On vide egalement le channel.
                 while let Ok(_) = rc.try_recv() {}
-                // samplingMode = true;
                 low_res_to_do = generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
                 max_res_to_do = low_res_to_do;
                 //TODO: Actuellement les worker_threads en cours de render vont probablement envoyer la tile qu'ils sont en train de render
                 //      au moment du reset. Il faut trouver un moyen de les empecher.
             } else {
-                // Si aucun changement n'a ete detecte on envoie l'image actuelle
-                if iterations_done > 0 {
-                    ta.send((vec_to_image(&final_img), iterations_done == max_iterations));
-                } else {
-                    ta.send((vec_to_image(&img), false));
-                }
+                to_send = true;
             }
         }
     }
@@ -263,9 +295,8 @@ fn add_iteration_to_final_img(
                 let mut new_iter_color = iteration.get(x).unwrap().get(y).unwrap();
                 let iterations_done = iterations_done as f64;
                 base_color = (base_color * (iterations_done - 1.) / iterations_done)
-                    + (new_iter_color * (1. / iterations_done));
-                base_color.clone_into(final_img.get_mut(x).unwrap().get_mut(y).unwrap());
-                // final_img[x][y] = base_color;
+                    + (new_iter_color * (1. / iterations_done as f64));
+                final_img.get_mut(x).unwrap()[y] = base_color;
             }
         }
     } else {

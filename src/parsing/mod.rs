@@ -1,22 +1,22 @@
-use pixels::wgpu::ShaderModule;
-
 use crate::model::materials::color::Color;
 use crate::model::materials::diffuse::Diffuse;
 use crate::model::materials::material::Material;
-use crate::model::materials::texture::Texture;
+use crate::model::materials::texture::{Texture, TextureType};
 use crate::model::maths::vec3::Vec3;
 use crate::model::objects::camera::Camera;
 use crate::model::objects::light::{AmbientLight, Light, ParallelLight, PointLight};
 use crate::model::{scene, Element};
 use crate::model::{
     scene::Scene, shapes::cone::Cone, shapes::cylinder::Cylinder, shapes::plane::Plane,
-    shapes::sphere::Sphere,
+    shapes::sphere::Sphere, shapes::rectangle::Rectangle
 };
-use crate::{error, MAX_EMISSIVE};
+use crate::{error, MAX_EMISSIVE, AABB_OPACITY};
 // use crate::{error, SCENE};
 use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::io::Write;
+use std::ops::Add;
+use crate::model::shapes::triangle::Triangle;
 
 pub fn print_scene(scene: &Scene) {
     write!(std::io::stdout(), "{:#?}\n", scene).expect("Error printing scene");
@@ -29,20 +29,28 @@ pub fn get_scene(scene_file: &String) -> Scene {
     for object in objects {
         match object["type"].as_str() {
             "sphere" => {
-                let pos = get_position(&object);
-                let radius = get_radius(&object);
+                let pos = get_coordinates_value(&object, "pos");
+                let radius = get_float_value(&object, "radius");
                 let color = get_color(&object);
-                let dir = get_direction(&object);
+                let dir = get_coordinates_value(&object, "dir");
 
                 let shape = Box::new(Sphere::new(pos, dir, radius));
+                let aabb_shape = Box::new(shape.aabb().clone());
+
                 let material = get_material(&object, color);
                 scene.add_textures(&material);
+                let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
+                aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
+                
                 let element = Element::new(shape, material);
-                scene.add_element(element)
+                let aabb_element = Element::new(aabb_shape, aabb_material);
+
+                scene.add_element(element);
+                scene.add_element(aabb_element);
             }
             "plane" => {
-                let pos = get_position(&object);
-                let dir = get_direction(&object);
+                let pos = get_coordinates_value(&object, "pos");
+                let dir = get_coordinates_value(&object, "dir");
                 let color = get_color(&object);
 
                 let shape = Box::new(Plane::new(pos, dir));
@@ -52,42 +60,85 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 scene.add_element(element)
             }
             "cylinder" => {
-                let pos = get_position(&object);
-                let radius = get_radius(&object);
-                let height = get_height(&object);
+                let pos = get_coordinates_value(&object, "pos");
+                let radius = get_float_value(&object, "radius");
+                let height = get_float_value(&object, "height");
                 let color = get_color(&object);
-                let dir: Vec3 = get_direction(&object);
+                let dir: Vec3 = get_coordinates_value(&object, "dir");
 
                 let shape = Box::new(Cylinder::new(pos, dir, radius, height));
+                let aabb_shape = Box::new(shape.aabb().clone());
+
                 let material = get_material(&object, color);
                 scene.add_textures(&material);
+                let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
+                aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
+
                 let element = Element::new(shape, material);
-                scene.add_element(element)
+                let aabb_element = Element::new(aabb_shape, aabb_material);
+
+                scene.add_element(element);
+                scene.add_element(aabb_element);
             }
             "cone" => {
-                let pos = get_position(&object);
-                let radius = get_radius(&object);
-                let height = get_height(&object);
+                let pos = get_coordinates_value(&object, "pos");
+                let radius = get_float_value(&object, "radius");
+                let height = get_float_value(&object, "height");
                 let color = get_color(&object);
-                let dir: Vec3 = get_direction(&object);
+                let dir: Vec3 = get_coordinates_value(&object, "dir");
 
                 let shape = Box::new(Cone::new(pos, dir, radius, height));
+                let aabb_shape = Box::new(shape.aabb().clone());
+
                 let material = get_material(&object, color);
-                scene.add_textures(&material);
+
                 let element = Element::new(shape, material);
                 scene.add_element(element)
             }
+            "triangle" => {
+                let a = get_coordinates_value(&object, "a");
+                let b = get_coordinates_value(&object, "b");
+                let c = get_coordinates_value(&object, "c");
+                let color = get_color(&object);
+
+                let shape = Box::new(Triangle::new(a,b,c));
+                let material = get_material(&object, color);
+
+                let element = Element::new(shape, material);
+                scene.add_element(element)
+            }
+            "rectangle" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let length = get_float_value(&object, "length");
+                let width = get_float_value(&object, "width");
+                let dir_l = get_coordinates_value(&object, "dir_l");
+                let dir_w = get_coordinates_value(&object, "dir_w");
+                let color = get_color(&object);
+
+                let shape = Box::new(Rectangle::new(pos, length, width, dir_l, dir_w));
+                let material = get_material(&object, color);
+
+                scene.add_textures(&material);
+                // let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
+                // aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
+
+                let element = Element::new(shape, material);
+                // let aabb_element = Element::new(aabb_shape, aabb_material);
+
+                scene.add_element(element);
+                // scene.add_element(aabb_element);
+            }
             "camera" => {
-                let pos = get_position(&object);
-                let dir = get_direction(&object);
-                let fov = get_fov(&object) * 2. * PI / 360.;
+                let pos = get_coordinates_value(&object, "pos");
+                let dir = get_coordinates_value(&object, "dir");
+                let fov = get_float_value(&object, "fov") * 2. * PI / 360.;
 
                 let new_camera = Camera::new(pos, dir, fov);
                 scene.add_camera(new_camera);
             }
             "light" => {
-                let pos = get_position(&object);
-                let intensity = get_intensity(&object);
+                let pos = get_coordinates_value(&object, "pos");
+                let intensity = get_float_value(&object, "intensity");
                 let color = match get_color(&object) {
                     Some(color) => color,
                     None => panic!("Color must be provided for lights"),
@@ -97,7 +148,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 scene.add_light(new_light);
             }
             "ambient" => {
-                let intensity = get_intensity(&object);
+                let intensity = get_float_value(&object, "intensity");
                 let color = match get_color(&object) {
                     Some(color) => color,
                     None => panic!("Color must be provided for lights"),
@@ -107,8 +158,8 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 scene.add_ambient_light(new_ambient_light);
             }
             "parallel" => {
-                let intensity = get_intensity(&object);
-                let dir = get_direction(&object);
+                let intensity = get_float_value(&object, "intensity");
+                let dir = get_coordinates_value(&object, "dir");
                 let color = match get_color(&object) {
                     Some(color) => color,
                     None => panic!("Color must be provided for lights"),
@@ -126,6 +177,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
 
 fn parse_json(scene_file: String) -> Vec<HashMap<String, String>> {
     let content = std::fs::read_to_string(scene_file).expect("Error reading file");
+    let content = content.replace('\t', "    ");
     let mut objects: Vec<HashMap<String, String>> = Vec::new();
     let mut i = 0;
 
@@ -155,18 +207,15 @@ fn parse_json(scene_file: String) -> Vec<HashMap<String, String>> {
                 let str = value.trim_matches(['[', ']']).replace(", ", ",");
                 let tmp: Vec<&str> = str.split(",").collect();
 
-                if key == "pos" {
-                    object.insert("position_x".to_string(), tmp[0].to_string());
-                    object.insert("position_y".to_string(), tmp[1].to_string());
-                    object.insert("position_z".to_string(), tmp[2].to_string());
-                } else if key == "dir" {
-                    object.insert("direction_x".to_string(), tmp[0].to_string());
-                    object.insert("direction_y".to_string(), tmp[1].to_string());
-                    object.insert("direction_z".to_string(), tmp[2].to_string());
-                } else if key == "color" {
+                if key == "color" {
                     object.insert("color_r".to_string(), tmp[0].to_string());
                     object.insert("color_g".to_string(), tmp[1].to_string());
                     object.insert("color_b".to_string(), tmp[2].to_string());
+                }
+                else {
+                    object.insert(key.clone().add("_x"), tmp[0].to_string());
+                    object.insert(key.clone().add("_y"), tmp[1].to_string());
+                    object.insert(key.clone().add("_z"), tmp[2].to_string());
                 }
             } else {
                 object.insert(key, value);
@@ -209,53 +258,31 @@ fn get_color(object: &HashMap<String, String>) -> Option<Color> {
     ));
 }
 
-fn get_position(object: &HashMap<String, String>) -> Vec3 {
+fn get_coordinates_value(object: &HashMap<String, String>, key: &str) -> Vec3 {
     // Testing if the position is in the format [x, y, z]
     let pos_str = [
-        &object["position_x"],
-        &object["position_y"],
-        &object["position_z"],
+        &object[&(key.to_owned() + "_x")],
+        &object[&(key.to_owned() + "_y")],
+        &object[&(key.to_owned() + "_z")],
     ];
 
     for i in 0..3 {
         if pos_str[i].parse::<f64>().is_err() {
-            error("Position must be in the format [x, y, z] where x, y, z are floats.");
+            error(&(key.to_owned() + " must be in the format [x, y, z] where x, y, z are floats."));
         }
     }
 
     Vec3::new(
-        object["position_x"]
+        object[&(key.to_owned() + "_x")]
             .parse::<f64>()
-            .expect("Error parsing position"),
-        object["position_y"]
+            .expect(&("Error parsing ".to_owned() + &key)),
+        object[&(key.to_owned() + "_y")]
             .parse::<f64>()
-            .expect("Error parsing position"),
-        object["position_z"]
+            .expect(&("Error parsing ".to_owned() + &key)),
+        object[&(key.to_owned() + "_z")]
             .parse::<f64>()
-            .expect("Error parsing position"),
+            .expect(&("Error parsing ".to_owned() + &key)),
     )
-}
-
-fn get_direction(object: &HashMap<String, String>) -> Vec3 {
-    // Testing if the direction is in the format [x, y, z]
-    let dir = [
-        &object["direction_x"],
-        &object["direction_y"],
-        &object["direction_z"],
-    ];
-
-    for i in 0..3 {
-        if dir[i].parse::<f64>().is_err() {
-            error("Direction must be in the format [x, y, z] where x, y, z are floats.");
-        }
-    }
-
-    Vec3::new(
-        dir[0].parse::<f64>().expect("Error parsing direction"),
-        dir[1].parse::<f64>().expect("Error parsing direction"),
-        dir[2].parse::<f64>().expect("Error parsing direction"),
-    )
-    .normalize()
 }
 
 fn get_material(
@@ -271,9 +298,12 @@ fn get_material(
     let opacity_string = object.get("opacity").unwrap_or(&default);
 	let displacement_string = object.get("displacement").unwrap_or(&default);
     let color_texture = match object.get("color") {
-        Some(path) => Texture::Texture(path.clone()),
+        Some(path) => Texture::Texture(path.clone(), TextureType::Color),
         None => match color_opt {
-            Some(color) => Texture::Value(Vec3::new(color.r(), color.g(), color.b())),
+            Some(color) => Texture::Value(
+                Vec3::new(color.r(), color.g(), color.b()),
+                TextureType::Color,
+            ),
             None => panic!("Color must be provided for non-textured materials"),
         },
     };
@@ -283,50 +313,19 @@ fn get_material(
         Texture::from_float_litteral(roughness_string, 0.),
         Texture::from_float_scaled(emissive_string, 0., MAX_EMISSIVE),
         Texture::from_float_litteral(refraction_string, 0.),
-        Texture::from_file_or(normal_string, Vec3::new(0.5, 0.5, 1.)),
+        Texture::from_vector(normal_string, Vec3::new(0.5, 0.5, 1.)),
         Texture::from_float_litteral(opacity_string, 1.),
 		Texture::from_float_litteral(displacement_string, 0.),
     ))
 }
 
-fn get_radius(object: &HashMap<String, String>) -> f64 {
-    // Testing if the radius is a float
-    if object["radius"].parse::<f64>().is_err() {
-        error("Radius must be a float.");
-    }
-
-    object["radius"]
-        .parse::<f64>()
-        .expect("Error parsing radius")
-}
-
-fn get_height(object: &HashMap<String, String>) -> f64 {
-    // Testing if the height is a float
-    if object["height"].parse::<f64>().is_err() {
-        error("Height must be a float.");
-    }
-
-    object["height"]
-        .parse::<f64>()
-        .expect("Error parsing height")
-}
-
-fn get_intensity(object: &HashMap<String, String>) -> f64 {
+fn get_float_value(object: &HashMap<String, String>, key: &str) -> f64 {
     // Testing if the intensity is a float
-    if object["intensity"].parse::<f64>().is_err() {
-        error("Intensity must be a float.");
+    if object[key].parse::<f64>().is_err() {
+        error(&(key.to_owned() + " must be a float."));
     }
 
-    object["intensity"]
+    object[key]
         .parse::<f64>()
-        .expect("Error parsing intensity")
-}
-
-fn get_fov(object: &HashMap<String, String>) -> f64 {
-    // Testing if the fov is a float
-    if object["fov"].parse::<f64>().is_err() {
-        error("Field of view must be a float.");
-    }
-
-    object["fov"].parse::<f64>().expect("Error parsing fov")
+        .expect(&("Error parsing ".to_owned() + key))
 }
