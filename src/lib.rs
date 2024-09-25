@@ -1,6 +1,7 @@
 extern crate image;
 use display::mainloop::start_scene;
-use parsing::get_scene;
+use image::flat::View;
+use parsing::{get_scene, obj::Obj};
 use render::settings::ViewMode;
 
 pub mod display;
@@ -11,6 +12,7 @@ pub mod picker;
 pub mod render;
 pub mod bvh;
 
+const OBJ: bool = true;
 
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
@@ -74,7 +76,10 @@ pub fn run() {
         if DISPLAY_WIREFRAME {
             scene.add_wireframes();
         }
-
+        if OBJ {
+            scene.add_obj(String::from("obj/cat.obj"));
+            println!()
+        }
         scene.update_bvh();
         start_scene(scene);
     }

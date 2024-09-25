@@ -3,9 +3,7 @@ use std::collections::HashMap;
 use image::{RgbImage, RgbaImage};
 
 use crate::{
-    model::objects::light::{AmbientLight, Light},
-    render::settings::Settings,
-    bvh
+    bvh, model::objects::light::{AmbientLight, Light}, parsing::obj::Obj, render::settings::Settings
 };
 
 use super::{
@@ -134,6 +132,43 @@ impl Scene {
                     Err(_) => panic!("Error opening texture file {}", path),
                 },
             );
+        }
+    }
+
+    pub fn add_obj(&mut self, path: String) {
+        let mut obj = Obj::new();
+        let result = obj.parse_file(path);
+        match result {
+            Ok(_) => {
+                let len = obj.faces.len();
+
+                for i in 0..len {
+                    let face = &obj.faces[i];
+                    let mut vertices: Vec<Vec3> = vec![];
+                    let mut normals: Vec<Vec3> = vec![];
+                    let mut textures: Vec<Vec3> = vec![];
+        
+                    for j in 0..face.len() {
+                        if j % 3 == 0 {
+                            vertices.push(face[j]);
+                        } else if j % 3 == 1 {
+                            textures.push(face[j]);
+                        } else {
+                            normals.push(face[j]);
+                        }
+                    }
+                    let mut material = <dyn Material>::default();
+                    material.set_color(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
+                    material.set_opacity(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
+        
+                    let triangle = Triangle::new(vertices[0], vertices[1], vertices[2]);
+                    let elem = Element::new(Box::new(triangle), material);
+                    self.add_element(elem);
+                }
+            }
+            Err(e) => {
+                println!("Error: {:?}", e);
+            }
         }
     }
     

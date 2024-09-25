@@ -21,6 +21,8 @@ use std::f64::consts::PI;
 use std::io::Write;
 use std::ops::Add;
 
+pub mod obj;
+
 pub fn print_scene(scene: &Scene) {
     write!(std::io::stdout(), "{:#?}\n", scene).expect("Error printing scene");
 }
