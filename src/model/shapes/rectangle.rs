@@ -25,8 +25,7 @@ impl Shape for Rectangle {
         unimplemented!()
     }
     fn intersect(&self, r: &Ray) -> Option<Vec<f64>> {
-
-        let mut intersection: f64;
+        let intersection: f64;
         match self.plane.intersect(r) {
             Some(intersections) => {
                 intersection = intersections[0];

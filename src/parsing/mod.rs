@@ -1,23 +1,19 @@
-use crate::model::materials::color::Color;
+use crate::model::materials::color::{self, Color};
 use crate::model::materials::diffuse::Diffuse;
 use crate::model::materials::material::Material;
 use crate::model::materials::texture::{Texture, TextureType};
 use crate::model::maths::vec3::Vec3;
 use crate::model::objects::camera::Camera;
 use crate::model::objects::light::{AmbientLight, Light, ParallelLight, PointLight};
-use crate::model::shapes::aabb;
-use crate::model::{scene, Element};
-use crate::model::{
-    scene::Scene, shapes::cone::Cone, shapes::cylinder::Cylinder, shapes::plane::Plane,
-    shapes::sphere::Sphere, shapes::rectangle::Rectangle
-};
+use crate::model::{ComposedElement, Element};
+use crate::model::scene::Scene;
+use crate::model::shapes::{ cone::Cone, cylinder::Cylinder, plane::Plane, sphere::Sphere, rectangle::Rectangle, triangle::Triangle, ComposedShape, helix::Helix, torusphere::Torusphere, brick::Brick };
 use crate::{error, MAX_EMISSIVE, AABB_OPACITY};
 // use crate::{error, SCENE};
 use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::io::Write;
 use std::ops::Add;
-use crate::model::shapes::triangle::Triangle;
 
 pub fn print_scene(scene: &Scene) {
     write!(std::io::stdout(), "{:#?}\n", scene).expect("Error printing scene");
@@ -185,6 +181,45 @@ pub fn get_scene(scene_file: &String) -> Scene {
 
                 let new_light = Box::new(ParallelLight::new(dir, intensity, color));
                 scene.add_light(new_light);
+            }
+            "torusphere" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let dir = get_coordinates_value(&object, "dir");
+                let radius = get_float_value(&object, "radius");
+                let steps = get_float_value(&object, "steps") as usize;
+                let color = match get_color(&object) {
+                    Some(color) => Vec3::new(color.r(), color.g(), color.b()),
+                    None => panic!("Color must be provided for toruspheres"),
+                };
+
+                let torusphere = Torusphere::new(pos, dir, radius, steps, color);
+                let composed_shape = Box::new(torusphere) as Box<dyn ComposedShape + Sync + Send>;
+                let composed_element = ComposedElement::new(composed_shape);
+                scene.add_composed_element(composed_element);
+            }
+            "helix" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let dir = get_coordinates_value(&object, "dir");
+                let height = get_float_value(&object, "height");
+
+                let helix = Helix::new(pos, dir, height);
+                let composed_shape = Box::new(helix) as Box<dyn ComposedShape + Sync + Send>;
+                let composed_element = ComposedElement::new(composed_shape);
+                scene.add_composed_element(composed_element);
+            }
+            "brick" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let dir = get_coordinates_value(&object, "dir");
+                let dimensions = get_coordinates_value(&object, "dimensions");
+                let color = match get_color(&object) {
+                    Some(color) => Vec3::new(color.r(), color.g(), color.b()),
+                    None => panic!("Color must be provided for bricks"),
+                };
+
+                let brick = Brick::new(pos, dir, dimensions, color);
+                let composed_shape = Box::new(brick) as Box<dyn ComposedShape + Sync + Send>;
+                let composed_element = ComposedElement::new(composed_shape);
+                scene.add_composed_element(composed_element);
             }
             _ => {}
         }

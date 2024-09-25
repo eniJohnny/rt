@@ -1,36 +1,28 @@
 [
     {
-        "type": "rectangle",
-        "pos": [4, 0, 0],
-        "length": 5.0,
-        "width": 5.0,
-        "dir_l": [1, 0, 0],
-        "dir_w": [0, 1, 1],
+        "type": "torusphere",
+        "pos": [-5, 0, 0],
+        "dir": [0, 1, 0],
+        "radius": 5.0,
+        "steps": 24,
+        "color": [255, 0, 255]
+    },
+    {
+        "type": "helix",
+        "pos": [5, 0, 0],
+        "dir": [0, 1, 0],
+        "height": 10.0
+    },
+    {
+        "type": "brick",
+        "pos": [-5, 0, 0],
+        "dir": [0, 1, 0],
+        "dimensions": [5, 2, 2],
         "color": [255, 255, 0]
     },
     {
-        "type": "triangle",
-        "a": [1, 0, 0],
-        "b": [-1, 0, 0],
-        "c": [0, 2, 1],
-        "color": [0, 255, 255]
-    },
-    {
-        "type": "sphere",
-        "pos": [10, 0, 0],
-        "color": [255, 0, 255],
-        "radius": 2.0,
-        "dir": [1, 0, 0]
-    },
-    {
-        "type": "plane",
-        "pos": [0, 0, 10],
-        "color": [255, 255, 255],
-        "dir": [0, 0, 1]
-    },
-    {
         "type": "camera",
-        "pos": [0.0, 0.0, -14.9],
+        "pos": [0.0, 0.0, -17.0],
         "dir": [0, 0, 1],
         "fov": 75
     }

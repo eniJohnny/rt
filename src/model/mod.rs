@@ -1,4 +1,5 @@
 use materials::material::Material;
+use shapes::ComposedShape;
 
 use self::{shapes::Shape};
 
@@ -43,26 +44,27 @@ impl Element {
     }
 }
 
+#[derive(Debug)]
 pub struct ComposedElement {
-    elements: Vec<Element>,
+    composed_shape: Box<dyn Sync + ComposedShape>,
 }
 
 impl ComposedElement {
-    pub fn new(elements: Vec<Element>) -> Self {
+    pub fn new(composed_shape: Box<dyn Sync + ComposedShape>) -> Self {
         Self {
-            elements,
+            composed_shape,
         }
     }
 
-    pub fn elements(&self) -> &Vec<Element> {
-        &self.elements
+    pub fn composed_shape(&self) -> &Box<dyn Sync + ComposedShape> {
+        &self.composed_shape
     }
 
-    pub fn elements_mut(&mut self) -> &mut Vec<Element> {
-        &mut self.elements
+    pub fn composed_shape_mut(&mut self) -> &mut Box<dyn Sync + ComposedShape> {
+        &mut self.composed_shape
     }
 
-    pub fn add_element(&mut self, element: Element) {
-        self.elements.push(element);
+    pub fn material(&self) -> &dyn Material {
+        self.composed_shape().material()
     }
 }

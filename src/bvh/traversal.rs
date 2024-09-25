@@ -211,7 +211,7 @@ pub fn new_traverse_bvh<'a>(ray: &Ray, node: Option<&Node>, scene: &'a Scene) ->
         None => return None,
     };
 
-    let closest_non_bvh_hit = get_closest_non_bvh_hit(scene, ray, &scene.non_bvh_elements());
+    let closest_non_bvh_hit = get_closest_non_bvh_hit(scene, ray, &scene.non_bvh_elements(), &scene.non_bvh_composed_elements());
     let tn = if let Some(ref hit) = closest_non_bvh_hit {
         Some(vec![*hit.dist()])
     } else {
@@ -334,10 +334,46 @@ pub fn new_traverse_bvh<'a>(ray: &Ray, node: Option<&Node>, scene: &'a Scene) ->
     None
 }
 
-fn get_closest_non_bvh_hit<'a>(scene: &'a Scene, ray: &Ray, elements: &Vec<&'a Element>) -> Option<Hit<'a>> {
+fn get_closest_non_bvh_hit<'a>(scene: &'a Scene, ray: &Ray, elements: &Vec<&'a Element>, composed_elements: &Vec<&'a Element>) -> Option<Hit<'a>> {
     let mut closest: Option<Hit> = None;
 
     for element in elements {
+        let mut t = None;
+
+        t = element.shape().intersect(ray);
+        if let Some(t) = t {
+            for dist in t {
+                if dist > 0.0 {
+                    if let Some(hit) = &closest {
+                        if &dist < hit.dist() {
+                            let new_hit = Hit::new(
+                                element,
+                                dist,
+                                ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
+                                ray.get_dir(),
+                                scene.textures(),
+                            );
+                            if new_hit.opacity() > 0.5 {
+                                closest = Some(new_hit);
+                            }
+                        }
+                    } else {
+                        let new_hit = Hit::new(
+                            element,
+                            dist,
+                            ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
+                            ray.get_dir(),
+                            scene.textures(),
+                        );
+                        if new_hit.opacity() > 0.5 {
+                            closest = Some(new_hit);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    for element in composed_elements {
         let mut t = None;
 
         t = element.shape().intersect(ray);

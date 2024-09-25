@@ -11,12 +11,13 @@ use crate::{
 use super::{
     materials::{diffuse::{self, Diffuse},
     material::{self, Material},
-    texture::{Texture, TextureType}}, maths::vec3::Vec3, objects::camera::Camera, shapes::{self, aabb::Aabb}, Element
+    texture::{Texture, TextureType}}, maths::vec3::Vec3, objects::camera::Camera, shapes::{self, aabb::Aabb}, ComposedElement, Element
 };
 
 #[derive(Debug)]
 pub struct Scene {
     elements: Vec<Element>,
+    composed_elements: Vec<ComposedElement>,
     camera: Camera,
     lights: Vec<Box<dyn Light + Sync + Send>>,
     ambient_light: AmbientLight,
@@ -30,6 +31,7 @@ impl Scene {
     pub fn new() -> Self {
         Self {
             elements: Vec::new(),
+            composed_elements: Vec::new(),
             camera: Camera::default(),
             lights: Vec::new(),
             ambient_light: AmbientLight::default(),
@@ -43,6 +45,10 @@ impl Scene {
     // Adders
     pub fn add_element(&mut self, element: Element) {
         self.elements.push(element);
+    }
+
+    pub fn add_composed_element(&mut self, composed_element: ComposedElement) {
+        self.composed_elements.push(composed_element);
     }
 
     pub fn add_camera(&mut self, camera: Camera) {
@@ -153,6 +159,14 @@ impl Scene {
         &mut self.elements
     }
 
+    pub fn composed_elements(&self) -> &Vec<ComposedElement> {
+        &self.composed_elements
+    }
+
+    pub fn composed_elements_as_mut(&mut self) -> &mut Vec<ComposedElement> {
+        &mut self.composed_elements
+    }
+
     pub fn camera(&self) -> &Camera {
         &self.camera
     }
@@ -204,6 +218,14 @@ impl Scene {
             .iter()
             .filter(|element| element.shape().aabb().is_none() && element.shape().as_aabb().is_none())
             .collect()
+    }
+
+    pub fn non_bvh_composed_elements(&self) -> Vec<&crate::model::Element> {
+        self.composed_elements
+        .iter()
+        .filter(|composed_element| composed_element.composed_shape().elements().iter().all(|element| element.shape().aabb().is_none() && element.shape().as_aabb().is_none()))
+        .flat_map(|composed_element| composed_element.composed_shape().elements().iter())
+        .collect()
     }
 
     pub fn non_bvh_element_ids(&self) -> Vec<usize> {

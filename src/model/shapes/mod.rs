@@ -10,8 +10,8 @@ use std::fmt::Debug;
 use crate::model::shapes::triangle::Triangle;
 
 use super::{
-    materials::material::Projection,
-    maths::{hit::Hit, ray::Ray, vec3::Vec3},
+    materials::material::{Material, Projection},
+    maths::{hit::Hit, ray::Ray, vec3::Vec3}, Element,
 };
 
 pub mod cone;
@@ -20,9 +20,11 @@ pub mod plane;
 pub mod sphere;
 pub mod rectangle;
 pub mod triangle;
+pub mod brick;
 pub mod aabb;
 pub mod wireframe;
 pub mod torusphere;
+pub mod helix;
 
 pub trait Shape: Debug + Sync + Send {
     fn distance(&self, vec: &Vec3) -> f64;
@@ -52,31 +54,22 @@ pub trait Shape: Debug + Sync + Send {
         }
     }
 
-    fn as_sphere(&self) -> Option<&Sphere> {
-        None
-    }
-    fn as_plane(&self) -> Option<&Plane> {
-        None
-    }
-    fn as_cylinder(&self) -> Option<&Cylinder> {
-        None
-    }
-    fn as_cone(&self) -> Option<&Cone> {
-        None
-    }
-    fn as_rectangle(&self) -> Option<&Rectangle> {
-        None
-    }
-    fn as_triangle(&self) -> Option<&Triangle> {
-        None
-    }
-    fn as_aabb(&self) -> Option<&Aabb> {
-        None
-    }
-    fn as_wireframe(&self) -> Option<&Wireframe> {
-        None
-    }
-    fn aabb(&self) -> Option<&Aabb> {
-        None
-    }
+    fn as_sphere(&self) -> Option<&Sphere> { None }
+    fn as_plane(&self) -> Option<&Plane> { None }
+    fn as_cylinder(&self) -> Option<&Cylinder> { None }
+    fn as_cone(&self) -> Option<&Cone> { None }
+    fn as_rectangle(&self) -> Option<&Rectangle> { None }
+    fn as_triangle(&self) -> Option<&Triangle> { None }
+    fn as_aabb(&self) -> Option<&Aabb> { None }
+    fn as_wireframe(&self) -> Option<&Wireframe> { None }
+    fn aabb(&self) -> Option<&Aabb> { None }
+}
+
+pub trait ComposedShape: Debug + Sync + Send {
+    fn material(&self) -> &dyn Material;
+    fn elements(&self) -> &Vec<Element>;
+    fn elements_as_mut(&mut self) -> &mut Vec<Element>;
+    fn as_torusphere(&self) -> Option<&torusphere::Torusphere> { None }
+    fn as_helix(&self) -> Option<&helix::Helix> { None }
+    fn as_brick(&self) -> Option<&brick::Brick> { None }
 }

@@ -75,6 +75,7 @@ impl Shape for Plane {
 
     fn norm(&self, hit_pos: &Vec3, ray_dir: &Vec3) -> Vec3 {
         // On doit aussi prendre on compte quand on tape de l'autre cote du plane
+        // TODO: C'est sûr ça ??
         if ray_dir.dot(&self.dir) > 0. {
             return -self.dir.clone();
         }
