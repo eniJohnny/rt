@@ -16,9 +16,17 @@
     {
         "type": "brick",
         "pos": [-5, 0, 0],
-        "dir": [0, 1, 0],
+        "dir": [1, 1, 1],
         "dimensions": [5, 2, 2],
         "color": [255, 255, 0]
+    },
+    {
+        "type": "nagone",
+        "pos": [0, 0, -5],
+        "dir": [0, 1, 0],
+        "radius": 3.0,
+        "angles": 12,
+        "color": [0, 255, 255]
     },
     {
         "type": "camera",

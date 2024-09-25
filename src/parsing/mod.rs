@@ -7,7 +7,12 @@ use crate::model::objects::camera::Camera;
 use crate::model::objects::light::{AmbientLight, Light, ParallelLight, PointLight};
 use crate::model::{ComposedElement, Element};
 use crate::model::scene::Scene;
-use crate::model::shapes::{ cone::Cone, cylinder::Cylinder, plane::Plane, sphere::Sphere, rectangle::Rectangle, triangle::Triangle, ComposedShape, helix::Helix, torusphere::Torusphere, brick::Brick };
+use crate::model::shapes::{ 
+    cone::Cone, cylinder::Cylinder, plane::Plane,
+    sphere::Sphere, rectangle::Rectangle, triangle::Triangle,
+    ComposedShape, helix::Helix, torusphere::Torusphere,
+    brick::Brick, nagone::Nagone
+};
 use crate::{error, MAX_EMISSIVE, AABB_OPACITY};
 // use crate::{error, SCENE};
 use std::collections::HashMap;
@@ -218,6 +223,21 @@ pub fn get_scene(scene_file: &String) -> Scene {
 
                 let brick = Brick::new(pos, dir, dimensions, color);
                 let composed_shape = Box::new(brick) as Box<dyn ComposedShape + Sync + Send>;
+                let composed_element = ComposedElement::new(composed_shape);
+                scene.add_composed_element(composed_element);
+            }
+            "nagone" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let dir = get_coordinates_value(&object, "dir");
+                let radius = get_float_value(&object, "radius");
+                let angles = get_float_value(&object, "angles") as usize;
+                let color = match get_color(&object) {
+                    Some(color) => Vec3::new(color.r(), color.g(), color.b()),
+                    None => panic!("Color must be provided for nagones"),
+                };
+
+                let nagone = Nagone::new(pos, dir, radius, angles, color);
+                let composed_shape = Box::new(nagone) as Box<dyn ComposedShape + Sync + Send>;
                 let composed_element = ComposedElement::new(composed_shape);
                 scene.add_composed_element(composed_element);
             }
