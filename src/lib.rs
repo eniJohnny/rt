@@ -1,7 +1,7 @@
 extern crate image;
 use display::mainloop::start_scene;
 use image::flat::View;
-use parsing::get_scene;
+use parsing::{get_scene, obj::Obj};
 use render::settings::ViewMode;
 use winit::keyboard::KeyCode;
 
@@ -13,9 +13,11 @@ pub mod picker;
 pub mod render;
 pub mod bvh;
 
+const OBJ: bool = true;
+
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
-const SCENE: &str = "metalrough";
+const SCENE: &str = "empty";
 
 const AABB_OPACITY: f64 = 0.0;
 const AABB_STEPS_NB: usize = 10;
@@ -74,6 +76,10 @@ pub fn run() {
         scene.add_skysphere_texture("skysphere.jpg");
         if DISPLAY_WIREFRAME {
             scene.add_wireframes();
+        }
+        if OBJ {
+            scene.add_obj(String::from("obj/cat.obj"));
+            println!()
         }
         scene.update_bvh();
         start_scene(scene);

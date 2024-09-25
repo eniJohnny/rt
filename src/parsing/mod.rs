@@ -5,6 +5,7 @@ use crate::model::materials::texture::{Texture, TextureType};
 use crate::model::maths::vec3::Vec3;
 use crate::model::objects::camera::Camera;
 use crate::model::objects::light::{AmbientLight, Light, ParallelLight, PointLight};
+use crate::model::shapes::aabb;
 use crate::model::{scene, Element};
 use crate::model::{
     scene::Scene, shapes::cone::Cone, shapes::cylinder::Cylinder, shapes::plane::Plane,
@@ -17,6 +18,8 @@ use std::f64::consts::PI;
 use std::io::Write;
 use std::ops::Add;
 use crate::model::shapes::triangle::Triangle;
+
+pub mod obj;
 
 pub fn print_scene(scene: &Scene) {
     write!(std::io::stdout(), "{:#?}\n", scene).expect("Error printing scene");
@@ -91,9 +94,15 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let aabb_shape = Box::new(shape.aabb().clone());
 
                 let material = get_material(&object, color);
+                scene.add_textures(&material);
+                let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
+                aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
 
                 let element = Element::new(shape, material);
-                scene.add_element(element)
+                let aabb_element = Element::new(aabb_shape, aabb_material);
+
+                scene.add_element(element);
+                scene.add_element(aabb_element);
             }
             "triangle" => {
                 let a = get_coordinates_value(&object, "a");
@@ -102,6 +111,8 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let color = get_color(&object);
 
                 let shape = Box::new(Triangle::new(a,b,c));
+                let aabb_shape = Box::new(shape.aabb().clone());
+
                 let material = get_material(&object, color);
 
                 let element = Element::new(shape, material);
