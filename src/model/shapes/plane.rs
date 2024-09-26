@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 use super::Shape;
 use crate::{model::{
     materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene, Element
-}, ui::{prefabs::{shape_ui::ShapeUI, vector_ui::get_vector_ui}, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Value}}};
+}, render::raycasting::get_sorted_hit_from_t, ui::{prefabs::{shape_ui::ShapeUI, vector_ui::get_vector_ui}, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Value}}};
 
 #[derive(Debug, Clone)]
 pub struct Plane {

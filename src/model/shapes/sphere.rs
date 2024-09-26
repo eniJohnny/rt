@@ -6,6 +6,7 @@ use crate::model::materials::material::Projection;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 use crate::model::scene::Scene;
 use crate::model::Element;
+use crate::render::raycasting::get_sorted_hit_from_t;
 use crate::ui::prefabs::shape_ui::ShapeUI;
 use crate::ui::prefabs::vector_ui::get_vector_ui;
 use crate::ui::ui::UI;
