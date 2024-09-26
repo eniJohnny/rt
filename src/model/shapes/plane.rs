@@ -1,31 +1,13 @@
 use super::Shape;
-use crate::model::{
-    materials::material::Projection,
-    maths::{hit::Hit, ray::Ray, vec3::Vec3},
-};
+use crate::{model::{
+    materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene, Element
+}, render::raycasting::get_sorted_hit_from_t};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Plane {
     pos: Vec3,
     dir: Vec3,
 }
-/*
-||||||||||||||||||||NEW RAY||||||||||||||||||
-Vec received from (-5, 0, 0)
-8.708350840339012
-Hit
-First hit
-|||||NEW_HIT : (-5, 0, 0), dist 8.708350840339012|||||||
-Vec received from (0, 5, 0)
-15.489034008383047
-Hit
-Vec received from (0, 0, 5)
-26.44806411152962
-Hit
-Vec received from (0, 0, -2)
-17.14472497682071
-Hit
- */
 
 impl Shape for Plane {
     fn distance(&self, vec: &Vec3) -> f64 {
@@ -45,6 +27,65 @@ impl Shape for Plane {
         // }
         // None
     }
+
+	fn outer_intersect(&self, r: &Ray, displaced_factor: f64) -> Option<Vec<f64>> {
+		let mut upper_plane = self.clone();
+		upper_plane.set_pos(upper_plane.pos() + upper_plane.dir() * displaced_factor);
+		let mut t_list: Vec<f64> = Vec::new();
+		let t_up = upper_plane.intersect(r);
+		if !t_up.is_none() {
+			t_list.push(t_up.unwrap()[0]);
+		}
+		let t_down = self.intersect(r);
+		if !t_down.is_none() {
+			t_list.push(t_down.unwrap()[0]);
+		}
+		if t_list.len() == 0 {
+			return None;
+		}
+		Some(t_list)
+	}
+
+    fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
+		let displaced_factor = 0.5;
+		let total_displacement = displaced_factor;
+		let step = 0.1;
+		let mut t: Option<Vec<f64>> = self.outer_intersect(ray, displaced_factor);
+		if let Some(mut hits) = get_sorted_hit_from_t(scene, ray, &t, element) {
+			if hits.len() == 1 {
+				return None;
+			}
+			let mut hit = hits.remove(0);
+			let sec_hit = hits.remove(0);
+			let mut old_t = *hit.dist();
+			let mut current_step = 1.;
+			while hit.dist() < sec_hit.dist() {
+				let hit_ratio: f64 = current_step;
+
+				let displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures()).to_value();
+				if (displaced_ratio - hit_ratio).abs() < 0.01 {
+					return Some(vec![*hit.dist()]);
+				}
+				if displaced_ratio >= hit_ratio {
+					return Some(vec![(*hit.dist() + old_t) / 2.]);
+				}
+				old_t = *hit.dist();
+				let mut displaced_dist = (hit_ratio - displaced_ratio) * total_displacement;
+				if displaced_dist > step * total_displacement {
+					displaced_dist = step * total_displacement ;
+				}
+				hit = Hit::new(
+					element,
+					hit.dist() + displaced_dist,
+					hit.pos() + ray.get_dir() * displaced_dist,
+					ray.get_dir(),
+					scene.textures()
+				);
+				current_step += (displaced_dist * ray.get_dir()).dot(&self.dir) / total_displacement;
+			}
+		}
+		None
+	}
 
     fn projection(&self, hit: &Hit) -> Projection {
         let mut projection: Projection = Projection::default();

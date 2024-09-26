@@ -25,6 +25,7 @@ pub trait Material: Debug + Sync + Send {
     fn roughness(&self) -> &Texture;
     fn emissive(&self) -> &Texture;
     fn opacity(&self) -> &Texture;
+	fn displacement(&self) -> &Texture;
 
     fn set_color(&mut self, color: Texture);
     fn set_norm(&mut self, norm: Texture);
@@ -33,6 +34,7 @@ pub trait Material: Debug + Sync + Send {
     fn set_roughness(&mut self, roughness: Texture);
     fn set_emissive(&mut self, emissive: Texture);
     fn set_opacity(&mut self, opacity: Texture);
+	fn set_displacement(&mut self, displacement: Texture);
 }
 
 impl dyn Material {
@@ -45,6 +47,7 @@ impl dyn Material {
             Texture::Value(Vec3::from_value(0.), TextureType::Float),
             Texture::Value(Vec3::from_value(0.), TextureType::Vector),
             Texture::Value(Vec3::from_value(0.), TextureType::Float),
+			Texture::Value(Vec3::from_value(0.), TextureType::Float)
         ))
     }
 }

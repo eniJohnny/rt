@@ -94,7 +94,7 @@ impl<'a> Hit<'a> {
         self.opacity
     }
 
-    fn map_texture(&mut self, texture: &Texture, map: &HashMap<String, RgbaImage>) -> Vec3 {
+    pub fn map_texture(&mut self, texture: &Texture, map: &HashMap<String, RgbaImage>) -> Vec3 {
         match texture {
             Texture::Texture(file, _) => {
                 let projection = self.projection();

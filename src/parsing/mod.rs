@@ -296,6 +296,7 @@ fn get_material(
     let emissive_string = object.get("emissive").unwrap_or(&default);
     let normal_string = object.get("normal").unwrap_or(&default);
     let opacity_string = object.get("opacity").unwrap_or(&default);
+	let displacement_string = object.get("displacement").unwrap_or(&default);
     let color_texture = match object.get("color") {
         Some(path) => Texture::Texture(path.clone(), TextureType::Color),
         None => match color_opt {
@@ -314,6 +315,7 @@ fn get_material(
         Texture::from_float_litteral(refraction_string, 0.),
         Texture::from_vector(normal_string, Vec3::new(0.5, 0.5, 1.)),
         Texture::from_float_litteral(opacity_string, 1.),
+		Texture::from_float_litteral(displacement_string, 0.),
     ))
 }
 

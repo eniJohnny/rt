@@ -3,6 +3,9 @@ use std::f64::consts::PI;
 use super::Shape;
 use crate::model::materials::material::Projection;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
+use crate::model::scene::Scene;
+use crate::model::Element;
+use crate::render::raycasting::get_sorted_hit_from_t;
 
 #[derive(Debug)]
 pub struct Sphere {
@@ -34,9 +37,60 @@ impl Shape for Sphere {
         None
     }
 
-    fn projection(&self, hit: &Hit) -> Projection {
-        let mut projection: Projection = Projection::default();
+	fn outer_intersect(&self, r: &Ray, displaced_factor: f64) -> Option<Vec<f64>> {
+		let mut outer_sphere = self.clone();
+		outer_sphere.set_radius(outer_sphere.radius() + outer_sphere.radius() * displaced_factor);
+		outer_sphere.intersect(r)
+	}
 
+    fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
+		// Size of the displacement proportional to the radius
+		let displaced_factor: f64 = 0.05; // Maybe add possibility to change this value ?
+		let step_size: f64 = 0.1; // step number ~ 1 / step_size 
+
+		let biggest_sphere_size: f64 = self.radius * displaced_factor;
+		let mut t: Option<Vec<f64>> = self.outer_intersect(ray, displaced_factor);
+		if let Some(mut hits) = get_sorted_hit_from_t(scene, ray, &t, element) {
+			if hits.len() == 1 {
+				return None; // Inside the sphere
+			}
+
+			let mut hit = hits.remove(0);
+			let second_hit = hits.remove(0);
+
+			let mut old_t = *hit.dist();
+			while hit.dist() < second_hit.dist() {
+				let sphere_to_hit = hit.pos() - self.pos();
+				let hit_distance = sphere_to_hit.length() - self.radius;
+				let hit_ratio: f64 = hit_distance / biggest_sphere_size;
+
+				let displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures()).to_value();
+				if (displaced_ratio - hit_ratio).abs() < 0.01 {
+					return Some(vec![*hit.dist()]); // Almost perfect match
+				}
+				if displaced_ratio >= hit_ratio {
+					return Some(vec![(*hit.dist() + old_t) / 2.]); // Passed the displacement
+				}
+
+				old_t = *hit.dist();
+				let mut displaced_dist = (hit_ratio - displaced_ratio) * biggest_sphere_size;
+				if displaced_dist > step_size * biggest_sphere_size {
+					displaced_dist = step_size * biggest_sphere_size;
+				}
+				hit = Hit::new(
+					element,
+					hit.dist() + displaced_dist,
+					hit.pos() + ray.get_dir() * displaced_dist,
+					ray.get_dir(),
+					scene.textures()
+				);
+			}
+		}
+		None
+	}
+
+    fn projection(&self, hit: &Hit) -> Projection {
+		let mut projection = Projection::default();
         let constant_axis: Vec3;
         if *hit.norm() == Vec3::new(0., 0., 1.) {
             constant_axis = Vec3::new(0., 1., 0.);
@@ -49,7 +103,7 @@ impl Shape for Sphere {
         let i_component: f64 = hit.norm().dot(&i);
         let j_component: f64 = hit.norm().dot(&j);
         let k_component: f64 = hit.norm().dot(&self.dir);
-        projection.u = (f64::atan2(i_component, j_component) + PI) / (2. * PI);
+        projection.u = 2. * (f64::atan2(i_component, j_component) + PI) / (2. * PI);
         projection.v = f64::acos(k_component) / PI;
         projection.i = hit.norm().cross(&self.dir).normalize();
         projection.j = hit.norm().cross(&projection.i).normalize();

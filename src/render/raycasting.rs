@@ -5,11 +5,11 @@ use rand::Rng;
 
 use crate::{
     bvh::traversal::traverse_bvh, model::{
-        materials::color::Color,
+        materials::{color::Color, texture::{Texture, TextureType}},
         maths::{hit::Hit, quaternion::Quaternion, ray::Ray, vec3::Vec3},
         scene::Scene,
         Element,
-    }, ANTIALIASING, USING_BVH, MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH
+    }, ANTIALIASING, MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH, USING_BVH
 };
 
 use super::{
@@ -72,6 +72,29 @@ pub fn sampling_ray(scene: &Scene, ray: &Ray) -> PathBucket {
     }
 }
 
+pub fn get_sorted_hit_from_t<'a>(scene: &'a Scene, ray: &Ray, t: &Option<Vec<f64>>, element: &'a Element) -> Option<Vec<Hit<'a>>> {
+	let mut hits: Vec<Hit> = Vec::new();
+	if let Some(t) = t {
+		for dist in t {
+			if *dist > 0.0 {
+				let new_hit = Hit::new(
+					element,
+					*dist,
+					ray.get_pos() + ray.get_dir() * (*dist - f64::EPSILON),
+					ray.get_dir(),
+					scene.textures(),
+				);
+				hits.push(new_hit);
+			}
+		}
+	}
+	if hits.len() == 0 {
+		return None;
+	}
+	hits.sort_by(|a, b| a.dist().partial_cmp(b.dist()).unwrap());
+	Some(hits)
+}
+
 pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     let mut closest: Option<Hit> = None;
     let elements = scene.elements();
@@ -87,8 +110,12 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
 
     for element in elements {
         let mut t = None;
-
-        t = element.shape().intersect(ray);
+		if let Texture::Texture(file, TextureType::Float) = element.material().displacement() {
+			t = element.shape().intersect_displacement(ray, element, scene);
+		}
+		else {
+        	t = element.shape().intersect(ray);
+		}
         if let Some(t) = t {
             for dist in t {
                 if dist > 0.0 {

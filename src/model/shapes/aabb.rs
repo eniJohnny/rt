@@ -1,8 +1,7 @@
 use std::default;
-
 use super::Shape;
 use crate::model::materials::material::Projection;
-use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
+use crate::model::{maths::{hit::Hit, ray::Ray, vec3::Vec3}, Element};
 use crate::model::scene::Scene;
 use crate::{ERROR_MARGIN, WIREFRAME_THICKNESS, AABB_STEPS_NB};
 
@@ -411,6 +410,14 @@ impl Shape for Aabb {
 
         None
     }
+
+	fn outer_intersect(&self, r: &Ray, displaced_factor: f64) -> Option<Vec<f64>> {
+		self.intersect(r)
+	}
+
+    fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
+		self.intersect(ray)
+	}
 
     fn projection(&self, hit: &Hit) -> Projection {
         Projection::default()

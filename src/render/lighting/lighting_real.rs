@@ -105,7 +105,6 @@ pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
             hit.refraction()
         );
     }
-
     if hit.emissive() > f64::EPSILON {
         return hit.emissive() * hit.color();
     }

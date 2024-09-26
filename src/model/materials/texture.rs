@@ -80,10 +80,10 @@ impl Texture {
     }
 
     pub fn get(proj: &Projection, img: &RgbaImage) -> Color {
-        let x = ((proj.u * img.width() as f64) as u32)
+        let x = (((&proj.u - ((proj.u as u32) as f64)) * img.width() as f64) as u32)
             .max(0)
             .min(img.width() - 1);
-        let y = (((1. - &proj.v) * img.height() as f64) as u32)
+        let y = (((1. - (&proj.v - ((proj.v as u32) as f64))) * img.height() as f64) as u32)
             .max(0)
             .min(img.height() - 1);
 
