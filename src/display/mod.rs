@@ -6,3 +6,4 @@ pub mod mainloop;
 pub mod display;
 pub mod events;
 pub mod ui_setup;
+pub mod anaglyph;
