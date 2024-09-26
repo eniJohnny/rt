@@ -11,6 +11,7 @@ pub struct Diffuse {
     norm_variation: Texture,
     emissive: Texture,
     opacity: Texture,
+	displacement: Texture,
 }
 
 impl Diffuse {
@@ -22,6 +23,7 @@ impl Diffuse {
         refraction: Texture,
         norm_variation: Texture,
         opacity: Texture,
+		displacement: Texture,
     ) -> Self {
         Self {
             color,
@@ -31,6 +33,7 @@ impl Diffuse {
             refraction,
             norm_variation,
             opacity,
+			displacement,
         }
     }
 
@@ -43,6 +46,7 @@ impl Diffuse {
             Texture::Value(Vec3::from_value(0.), TextureType::Float),
             Texture::Value(Vec3::from_value(0.), TextureType::Vector),
             Texture::Value(Vec3::from_value(1.), TextureType::Float),
+			Texture::Value(Vec3::from_value(0.), TextureType::Float),
         ))
     }
 }
@@ -98,4 +102,11 @@ impl Material for Diffuse {
     fn set_opacity(&mut self, opacity: Texture) {
         self.opacity = opacity;
     }
+
+	fn displacement(&self) -> &Texture {
+		&self.displacement
+	}
+	fn set_displacement(&mut self, displacement: Texture) {
+		self.displacement = displacement;
+	}
 }
