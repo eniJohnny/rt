@@ -111,7 +111,7 @@ impl Shape for Sphere {
         projection.u = 2. * (f64::atan2(i_component, j_component) + PI) / (2. * PI);
         projection.v = f64::acos(k_component) / PI;
         projection.i = hit.norm().cross(&self.dir).normalize();
-        projection.j = hit.norm().cross(&projection.i).normalize();
+        projection.j = -hit.norm().cross(&projection.i).normalize();
         projection
     }
 
@@ -122,18 +122,10 @@ impl Shape for Sphere {
     fn as_sphere(&self) -> Option<&Sphere> {
         Some(self)
     }
-
-    fn as_plane(&self) -> Option<&super::plane::Plane> {
-        None
+    fn as_sphere_mut(&mut self) -> Option<&mut Sphere> {
+        Some(self)
     }
 
-    fn as_cylinder(&self) -> Option<&super::cylinder::Cylinder> {
-        None
-    }
-
-    fn as_cone(&self) -> Option<&super::cone::Cone> {
-        None
-    }
     fn pos(&self) -> &Vec3 {
         &self.pos
     }
@@ -175,7 +167,7 @@ impl Shape for Sphere {
                         }
                     }
                 }),
-                true));
+                false, None, None));
             category.add_element(get_vector_ui(sphere.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
                 Box::new(move |_, value, scene, ui| {
                     let mut scene = scene.write().unwrap();
@@ -195,16 +187,19 @@ impl Shape for Sphere {
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, scene, ui| {
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(sphere) = elem.shape_mut().as_sphere_mut() {
                         if let Value::Float(value) = value {
                             sphere.dir.set_z(value);
                         }
+                        sphere.set_dir(sphere.dir.normalize());
+                        ui.set_dirty();
                     }
                 }),
-                true));
+                false, Some(-1.), Some(1.)));
+
             category.add_element(UIElement::new(
                 "Radius",
                 "radius", 
@@ -213,13 +208,14 @@ impl Shape for Sphere {
                     Box::new(move |_, value, scene, _: &mut UI| {
                         let mut scene = scene.write().unwrap();
                         let elem = scene.element_mut_by_id(id.clone()).unwrap();
-                        if let Some(sphere) = elem.shape_mut().as_cone_mut() {
+                        if let Some(sphere) = elem.shape_mut().as_sphere_mut() {
                             if let Value::Float(value) = value {
                                 sphere.set_radius(value);
                             }
                         }
+                        scene.set_dirty(true);
                     }),
-                    Box::new(|_| Ok(())),
+                    Box::new(|_, _, _| Ok(())),
                     ui.uisettings())),
                 ui.uisettings()));
         }

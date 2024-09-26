@@ -4,8 +4,8 @@ use crate::{model::{materials::texture::{Texture, TextureType}, maths::vec3::Vec
 
 use super::{file_ui::get_file_box, vector_ui::{get_vector_from_vector_ui, get_vector_ui}};
 
-pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<dyn Fn(Texture, &Arc<RwLock<Scene>>)>, settings: &UISettings) -> UIElement {
-    let mut category = UIElement::new(name, name, ElemType::Category(Category::default()), settings);
+pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<dyn Fn(Texture, &Arc<RwLock<Scene>>)>, settings: &UISettings, min: Option<f64>, max: Option<f64>) -> UIElement {
+    let mut category = UIElement::new(name, name, ElemType::Category(Category::collapsed()), settings);
     
 
     let as_file;
@@ -54,7 +54,7 @@ pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<dyn Fn(Texture,
                         }
                     }
                 })
-                , Box::new(|_| Ok(())), settings)
+                , Box::new(|_, _, _| Ok(())), settings)
         ), settings);
         chk_file.on_click = Some(Box::new(move |elem, _, ui| {
             let elem = elem.unwrap();
@@ -74,13 +74,28 @@ pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<dyn Fn(Texture,
     }
     let mut elem = match texture_type {
         TextureType::Float => {
-            UIElement::new("Value", "as_value", ElemType::Property(Property::new(Value::Float(as_vec.to_value()), Box::new(|_, _, _, _| ()), Box::new(|_| Ok(())), settings)), settings)
+            let float_property = Property::new(Value::Float(as_vec.to_value()), Box::new(|_, _, _, _| ()), Box::new(move |value: &Value, _, _| {
+                if let Value::Float(value) = value {
+                    if let Some(min) = min.clone() {
+                        if *value < min {
+                            return Err(String::from("The value should not be inferior to ") + &min.to_string());
+                        }
+                    }
+                    if let Some(max) = max.clone() {
+                        if *value > max {
+                            return Err(String::from("The value should not be superior to ") + &max.to_string());
+                        }
+                    }
+                }
+                Ok(())
+            }), settings);
+            UIElement::new("Value", "as_value", ElemType::Property(float_property), settings)
         }
         TextureType::Vector => {
-            get_vector_ui(as_vec, "Value", "as_value", settings, Box::new(|_, _, _, _| ()), Box::new(|_, _, _, _| ()), Box::new(|_, _, _, _| ()), false)
+            get_vector_ui(as_vec, "Value", "as_value", settings, Box::new(|_, _, _, _| ()), Box::new(|_, _, _, _| ()), Box::new(|_, _, _, _| ()), false, min, max)
         }
         TextureType::Color => {
-            get_vector_ui(as_vec, "Value", "as_value", settings, Box::new(|_, _, _, _| ()), Box::new(|_, _, _, _| ()), Box::new(|_, _, _, _| ()), true)
+            get_vector_ui(as_vec, "Value", "as_value", settings, Box::new(|_, _, _, _| ()), Box::new(|_, _, _, _| ()), Box::new(|_, _, _, _| ()), true, min, max)
         }
         _ => panic!("There should not be a non float/vector/color texture")
     };
@@ -88,8 +103,19 @@ pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<dyn Fn(Texture,
     category.add_element(elem);
     let as_text = as_text;
     let name = name.to_string();
+    let property_name = name.clone();
     let settings = settings.clone();
-    let mut elem = UIElement::new("File", "as_file", ElemType::Property(Property::new(Value::Text(as_text.clone()), Box::new(|_, _, _, _| ()), Box::new(|_| Ok(())), &settings)), &settings);
+    let mut elem = UIElement::new("File", "as_file", ElemType::Property(Property::new(Value::Text(as_text.clone()), Box::new(|_, _, _, _| ()), Box::new(move |value, elem, ui| {
+        if !elem.style.visible {
+            return Ok(());
+        }
+        if let Value::Text(file) = value {
+            if !file.is_empty() {
+                return Ok(());
+            }
+        }
+        return Err(format!("No file has been selected for property {}", property_name));
+    }), &settings)), &settings);
     elem.on_click = Some(Box::new(move |elem, scene, ui| {
         if let Some(elem) = elem {
             let reference = elem.reference.clone();

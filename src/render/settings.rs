@@ -55,7 +55,7 @@ impl Displayable for Settings {
                         scene.write().unwrap().set_dirty(true);
                     }
                 }),
-                Box::new(|_| Ok(())),
+                Box::new(|_, _, _| Ok(())),
                 settings,
             )),
             settings,
@@ -71,7 +71,7 @@ impl Displayable for Settings {
                         scene.write().unwrap().set_dirty(true);
                     }
                 }),
-                Box::new(|_| Ok(())),
+                Box::new(|_, _, _| Ok(())),
                 settings,
             )),
             settings,
@@ -87,7 +87,7 @@ impl Displayable for Settings {
                         scene.write().unwrap().set_dirty(true);
                     }
                 }),
-                Box::new(|_| Ok(())),
+                Box::new(|_, _, _| Ok(())),
                 settings,
             )),
             settings,

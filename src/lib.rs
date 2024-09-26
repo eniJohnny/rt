@@ -13,7 +13,7 @@ pub mod picker;
 pub mod render;
 pub mod bvh;
 
-const USING_BVH: bool = true;
+const USING_BVH: bool = false;
 const SCENE_FOLDER: &str = "scenes";
 const SCENE: &str = "metalrough";
 
@@ -54,6 +54,7 @@ const UI_REFRESH_TIME: u32 = 1000;
 const UISETTINGS: &str = "uisettings";
 const SETTINGS: &str = "settings";
 const TOOLBAR: &str = "toolbar";
+const ELEMENT: &str = "element";
 
 const PICKER_LINE_HEIGHT: f64 = 30.0;
 const FPS: u64 = 20;

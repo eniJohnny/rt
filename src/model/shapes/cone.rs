@@ -161,6 +161,9 @@ impl Shape for Cone {
     fn as_cone(&self) -> Option<&Cone> {
         Some(self)
     }
+    fn as_cone_mut(&mut self) -> Option<&mut Cone> {
+        Some(self)
+    }
 
     fn pos(&self) -> &Vec3 {
         &self.pos
@@ -203,7 +206,7 @@ impl Shape for Cone {
                         }
                     }
                 }),
-                true));
+                true, None, None));
             category.add_element(get_vector_ui(cone.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
                 Box::new(move |_, value, scene, ui| {
                     let mut scene = scene.write().unwrap();
@@ -232,7 +235,7 @@ impl Shape for Cone {
                         }
                     }
                 }),
-                true));
+                true, Some(-1.), Some(1.)));
             category.add_element(UIElement::new(
                 "Radius",
                 "radius", 
@@ -247,7 +250,7 @@ impl Shape for Cone {
                             }
                         }
                     }),
-                    Box::new(|_| Ok(())),
+                    Box::new(|_, _, _| Ok(())),
                     ui.uisettings())),
                 ui.uisettings()));
 
@@ -265,7 +268,7 @@ impl Shape for Cone {
                             }
                         }
                     }),
-                    Box::new(|_| Ok(())),
+                    Box::new(|_, _, _| Ok(())),
                     ui.uisettings())),
                 ui.uisettings()));
         }

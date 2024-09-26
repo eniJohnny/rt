@@ -78,6 +78,12 @@ pub trait Shape: Debug + Sync + Send {
     fn as_triangle_mut(&mut self) -> Option<&mut Triangle> {
         None
     }
+    fn as_aabb_mut(&mut self) -> Option<&mut Aabb> {
+        None
+    }
+    fn as_wireframe_mut(&mut self) -> Option<&mut Wireframe> {
+        None
+    }
 
     fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement;
 }

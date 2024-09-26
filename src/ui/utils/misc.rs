@@ -6,7 +6,7 @@ use super::style::{Formattable, Style, StyleBuilder};
 
 pub type FnSubmitValue = Box<dyn Fn(Option<&UIElement>, Value, &Arc<RwLock<Scene>>, &mut UI)>;
 pub type FnAny = Box<dyn Fn(Option<&mut UIElement>, &Arc<RwLock<Scene>>, &mut UI)>;
-pub type FnValidate = Box<dyn Fn(&Value) -> Result<(), &'static str>>;
+pub type FnValidate = Box<dyn Fn(&Value, &UIElement, &UI) -> Result<(), String>>;
 
 #[derive(Debug, Clone)]
 pub enum Value {
@@ -86,6 +86,9 @@ impl Property {
         match self.value {
             Value::Bool(_) => return Err("Bool value edited ?".to_string()),
             Value::Float(_) => {
+                if val.is_empty() {
+                    return Ok(Value::Float(0.));
+                }
                 let val = val.parse::<f64>();
                 if val.is_err() {
                     return Err("The value must be a proper float".to_string());

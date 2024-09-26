@@ -13,7 +13,7 @@ use winit::{
 use crate::{
     model::scene::Scene, render::raycasting::{get_closest_hit, get_ray}, ui::{
         ui::{ui_clicked, UI},
-        uisettings::UISettings, utils::ui_utils::Editing,
+        uisettings::UISettings, utils::{misc::Value, ui_utils::Editing},
     }
 };
 
@@ -87,27 +87,37 @@ fn key_pressed_editing(
             ui.set_editing(None);
         }
         Key::Named(NamedKey::Backspace) => {
-            value.truncate(value.len() - 1);
-            ui.set_editing(Some(Editing {
-                reference: edit.reference,
-                value,
-            }));
+            if value.len() > 0 {
+                value.truncate(value.len() - 1);
+                ui.set_editing(Some(Editing {
+                    reference: edit.reference,
+                    value,
+                }));
+            }
         }
         Key::Named(NamedKey::Enter) => {
             let mut err = None;
-            if let Some(property) = ui.get_property_mut(&edit.reference) {
+            let mut value_to_set: Option<Value> = None;
+            if let Some(property) = ui.get_property(&edit.reference) {
                 match property.get_value_from_string(value.clone()) {
                     Err(error) => {
                         err = Some(error);
                     }
                     Ok(value) => {
-                        if let Err(e) = (property.fn_validate)(&value) {
-                            err = Some(e.to_string());
-                        } else {
-                            property.initial_value = property.value.clone();
-                            property.value = value;
+                        if let Some(elem) = ui.get_element(edit.reference.clone()) {
+                            if let Err(e) = (property.fn_validate)(&value, elem, ui) {
+                                err = Some(e.to_string());
+                            } else {
+                                value_to_set = Some(value);
+                            }
                         }
                     }
+                }
+            }
+            if let Some(property) = ui.get_property_mut(&edit.reference) {
+                if let Some(value) = value_to_set {
+                    property.initial_value = property.value.clone();
+                    property.value = value;
                 }
             }
             let tmp_ref = edit.reference.clone();
@@ -127,7 +137,7 @@ fn key_pressed_editing(
         Key::Character(char) => {
             if char.len() == 1 {
                 let c = char.chars().next().unwrap();
-                if c.is_alphanumeric() || c == '.' {
+                if c.is_alphanumeric() || c == '.' || c == '-' {
                     value += &c.to_string();
                     ui.set_editing(Some(Editing {
                         reference: edit.reference,

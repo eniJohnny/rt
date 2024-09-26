@@ -112,10 +112,21 @@ impl<'a> Hit<'a> {
 
     fn map_norm(&mut self, textures: &HashMap<String, RgbaImage>) {
         let vec = self.map_texture(self.element.material().norm(), textures);
+        let norm: Vec3;
+        let mut is_value = false;
+        if let Texture::Value(_, _) = self.element.material().norm() {
+            is_value = true;
+        }
         let projection = self.projection();
-        let norm = (vec.x() - 0.5) * 2. * projection.i.clone()
-            + (-vec.y() + 0.5) * 2. * projection.j.clone()
-            + (vec.z() - 0.5) * 2. * projection.k.clone();
+        if is_value {
+            norm = *vec.x() * projection.i.clone()
+                + *vec.y() * projection.j.clone()
+                + *vec.z() * projection.k.clone();
+        } else {
+            norm = (vec.x() - 0.5) * 2. * projection.i.clone()
+                + (vec.y() - 0.5) * 2. * projection.j.clone()
+                + (vec.z() - 0.5) * 2. * projection.k.clone();
+        }
         self.norm = norm.normalize();
     }
 
@@ -134,8 +145,7 @@ impl<'a> Hit<'a> {
     fn map_emissive(&mut self, textures: &HashMap<String, RgbaImage>) {
         self.emissive = self
             .map_texture(self.element.material().emissive(), textures)
-            .to_value()
-            * MAX_EMISSIVE;
+            .to_value();
     }
 
     fn map_refraction(&mut self, textures: &HashMap<String, RgbaImage>) {

@@ -56,7 +56,7 @@ pub fn get_file_box(path: String, box_name: String, submit: FnSubmitValue, setti
             Property::new(
                 Value::Text(ref_of_initial_value),
                 Box::new(|_, _, _, _| ()),
-                Box::new(|_| Ok(())),
+                Box::new(|_, _, _| Ok(())),
                 settings)
         ), settings);
         value_element.style.visible = false;
@@ -74,7 +74,7 @@ pub fn get_file_box(path: String, box_name: String, submit: FnSubmitValue, setti
                     }
                 }
             }
-            ui.destroy_box("file_box".to_string());
+            ui.destroy_box("file_box");
         })));
         return file_box;
     }

@@ -59,6 +59,7 @@ impl Shape for Triangle {
     }
     fn pos(&self) -> &Vec3 { &self.a }
     fn as_triangle(&self) -> Option<&Triangle> { Some(self) }
+    fn as_triangle_mut(&mut self) -> Option<&mut Triangle> { Some(self) }
 
     fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
         let mut category = UIElement::new("Triangle", "triangle", ElemType::Category(Category::default()), ui.uisettings());
@@ -93,7 +94,7 @@ impl Shape for Triangle {
                     }
                 }
             }),
-            true));
+            true, None, None));
             category.add_element(get_vector_ui(triangle.b.clone(), "Point B", "pB", &ui.uisettings_mut(), 
             Box::new(move |_, value, scene, _| {
                 let mut scene = scene.write().unwrap();
@@ -122,7 +123,7 @@ impl Shape for Triangle {
                     }
                 }
             }),
-            true));
+            true, Some(-1.), Some(1.)));
             category.add_element(get_vector_ui(triangle.c.clone(), "Point C", "pC", &ui.uisettings_mut(), 
             Box::new(move |_, value, scene, _| {
                 let mut scene = scene.write().unwrap();
@@ -151,7 +152,7 @@ impl Shape for Triangle {
                     }
                 }
             }),
-            true));
+            true, Some(-1.), Some(1.)));
         }
         category
     }

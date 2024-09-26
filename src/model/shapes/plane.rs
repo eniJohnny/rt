@@ -91,7 +91,7 @@ impl Shape for Plane {
         let scale = 4.;
 
         let constant_axis: Vec3;
-        if *hit.norm() == Vec3::new(0., 1., 0.) {
+        if *hit.norm() == Vec3::new(0., 1., 0.) || *hit.norm() == Vec3::new(0., -1., 0.)  {
             constant_axis = Vec3::new(0., 0., 1.);
         } else {
             constant_axis = Vec3::new(0., 1., 0.);
@@ -123,13 +123,16 @@ impl Shape for Plane {
     fn as_plane(&self) -> Option<&Plane> {
         Some(self)
     }
+    fn as_plane_mut(&mut self) -> Option<&mut Plane> {
+        Some(self)
+    }
 
     fn pos(&self) -> &Vec3 {
         &self.pos
     }
 
     fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
-        let mut category = UIElement::new("cone", "cone", ElemType::Category(Category::default()), ui.uisettings());
+        let mut category = UIElement::new("Plane", "Plane", ElemType::Category(Category::default()), ui.uisettings());
 
         if let Some(plane) = element.shape().as_plane() {
             let id = element.id().clone();
@@ -161,7 +164,7 @@ impl Shape for Plane {
                         }
                     }
                 }),
-                true));
+                true, None, None));
             category.add_element(get_vector_ui(plane.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
                 Box::new(move |_, value, scene, ui| {
                     let mut scene = scene.write().unwrap();
@@ -190,7 +193,7 @@ impl Shape for Plane {
                         }
                     }
                 }),
-                true));
+                true, Some(-1.), Some(1.)));
         }
         category
     }

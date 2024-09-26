@@ -159,6 +159,9 @@ impl Shape for Cylinder {
     fn as_cylinder(&self) -> Option<&Cylinder> {
         Some(self)
     }
+    fn as_cylinder_mut(&mut self) -> Option<&mut Cylinder> {
+        Some(self)
+    }
 
     fn pos(&self) -> &Vec3 {
         &self.pos
@@ -201,7 +204,7 @@ impl Shape for Cylinder {
                         }
                     }
                 }),
-                true));
+                true, None, None));
             category.add_element(get_vector_ui(cylinder.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
                 Box::new(move |_, value, scene, ui| {
                     let mut scene = scene.write().unwrap();
@@ -230,7 +233,7 @@ impl Shape for Cylinder {
                         }
                     }
                 }),
-                true));
+                true, Some(-1.), Some(1.)));
             category.add_element(UIElement::new(
                 "Radius",
                 "radius", 
@@ -245,7 +248,7 @@ impl Shape for Cylinder {
                             }
                         }
                     }),
-                    Box::new(|_| Ok(())),
+                    Box::new(|_, _, _| Ok(())),
                     ui.uisettings())),
                 ui.uisettings()));
 
@@ -263,7 +266,7 @@ impl Shape for Cylinder {
                             }
                         }
                     }),
-                    Box::new(|_| Ok(())),
+                    Box::new(|_, _, _| Ok(())),
                     ui.uisettings())),
                 ui.uisettings()));
         }

@@ -3,7 +3,7 @@ use std::{path::Path, sync::{Arc, RwLock}, thread::current};
 use image::Rgba;
 use winit::dpi::Position;
 
-use crate::{model::{materials::texture::{Texture, TextureType}, maths::vec3::Vec3, scene::Scene, Element}, picker::get_files_in_folder, render::render_threads::start_render_threads, ui::{prefabs::{material_ui::get_material_ui, texture_ui::get_texture_ui, vector_ui::get_vector_ui}, ui::UI, uibox::{BoxPosition, UIBox}, uielement::{Category, UIElement}, uisettings::UISettings, utils::{misc::{ElemType, FnSubmitValue, Property, Value}, style::{Style, StyleBuilder}, ui_utils::get_parent_ref, Displayable}}, GUI_WIDTH, SCREEN_WIDTH_U32, SETTINGS, TOOLBAR, UISETTINGS};
+use crate::{model::{materials::texture::{Texture, TextureType}, maths::vec3::Vec3, scene::Scene, Element}, picker::get_files_in_folder, render::render_threads::start_render_threads, ui::{prefabs::{material_ui::get_material_ui, texture_ui::get_texture_ui, vector_ui::get_vector_ui}, ui::UI, uibox::{BoxPosition, UIBox}, uielement::{Category, UIElement}, uisettings::UISettings, utils::{misc::{ElemType, FnSubmitValue, Property, Value}, style::{Style, StyleBuilder}, ui_utils::get_parent_ref, Displayable}}, ELEMENT, GUI_WIDTH, SCREEN_WIDTH_U32, SETTINGS, TOOLBAR, UISETTINGS};
 
 pub fn setup_uisettings(ui: &mut UI, scene: &Arc<RwLock<Scene>>) {
     let mut settings_box = UIBox::new(UISETTINGS, BoxPosition::CenterLeft(10), ui.uisettings().gui_width, ui.uisettings());
@@ -33,16 +33,20 @@ pub fn setup_ui(scene: &Arc<RwLock<Scene>>) -> UI {
 }
 
 pub fn setup_element_ui(element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) {
+    ui.destroy_box(ELEMENT);
     let name = "Element".to_string() + &element.id().to_string();
-    let mut elem_box = UIBox::new(&name, BoxPosition::CenterRight(10), ui.uisettings().gui_width, ui.uisettings());
+    let mut elem_box = UIBox::new(ELEMENT, BoxPosition::CenterRight(10), ui.uisettings().gui_width, ui.uisettings());
     let mut category = UIElement::new(&name, &name, ElemType::Category(Category::default()), ui.uisettings());
 
     category.on_click = Some(Box::new(move |element, scene, ui| {
-        ui.destroy_box(name.clone());
+        ui.destroy_box(ELEMENT);
     }));
     category.add_element(element.shape().get_ui(element, ui, scene));
     category.add_element(get_material_ui(element, ui, scene));
     elem_box.add_elements(vec![category]);
+    elem_box.set_edit_bar(ui.uisettings(), Some(Box::new(|_, scene, _| {
+        scene.write().unwrap().set_dirty(true);
+    })));
     ui.add_box(elem_box);
 }
 
@@ -62,7 +66,7 @@ pub fn setup_toolbar(ui: &mut UI, scene: &Arc<RwLock<Scene>>) {
         move |elem, scene, ui| {
             if let Some(elem) = elem {
                 if let Some(_) = ui.get_box(UISETTINGS) {
-                    ui.destroy_box(UISETTINGS.to_string());
+                    ui.destroy_box(UISETTINGS);
                     elem.set_style(StyleBuilder::from_existing(&elem.style, ui.uisettings())
                         .bg_color(Some(Rgba([200, 200, 200, 255])))
                         .build()
@@ -70,7 +74,7 @@ pub fn setup_toolbar(ui: &mut UI, scene: &Arc<RwLock<Scene>>) {
                 } else {
                     for uibox_ref in exclusive_uis.clone() {
                         if let Some(_) = ui.get_box(uibox_ref) {
-                            ui.destroy_box(uibox_ref.to_string());
+                            ui.destroy_box(uibox_ref);
                         }
                     }
                     setup_uisettings(ui, scene);
@@ -94,7 +98,7 @@ pub fn setup_toolbar(ui: &mut UI, scene: &Arc<RwLock<Scene>>) {
         move |elem, scene, ui| {
             if let Some(elem) = elem {
                 if let Some(_) = ui.get_box(SETTINGS) {
-                    ui.destroy_box(SETTINGS.to_string());
+                    ui.destroy_box(SETTINGS);
                     elem.set_style(StyleBuilder::from_existing(&elem.style, ui.uisettings())
                         .bg_color(Some(Rgba([200, 200, 200, 255])))
                         .build()
@@ -102,7 +106,7 @@ pub fn setup_toolbar(ui: &mut UI, scene: &Arc<RwLock<Scene>>) {
                 } else {
                     for uibox_ref in exclusive_uis.clone() {
                         if let Some(_) = ui.get_box(uibox_ref) {
-                            ui.destroy_box(uibox_ref.to_string());
+                            ui.destroy_box(uibox_ref);
                         }
                     }
                     setup_settings(ui, scene);

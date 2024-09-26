@@ -67,6 +67,7 @@ impl Shape for Rectangle {
     }
     fn pos(&self) -> &Vec3 { &self.pos }
     fn as_rectangle(&self) -> Option<&Rectangle> { Some(self) }
+    fn as_rectangle_mut(&mut self) -> Option<&mut Rectangle> { Some(self) }
 
     fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
         let mut category = UIElement::new("Rectangle", "rectangle", ElemType::Category(Category::default()), ui.uisettings());
@@ -101,7 +102,7 @@ impl Shape for Rectangle {
                         }
                     }
                 }),
-                true));
+                true, None, None));
             category.add_element(get_vector_ui(rectangle.dir_l.clone(), "Direction 1", "dir", &ui.uisettings_mut(),
                 Box::new(move |_, value, scene, ui| {
                     let mut scene = scene.write().unwrap();
@@ -130,7 +131,7 @@ impl Shape for Rectangle {
                         }
                     }
                 }),
-                true));
+                true, Some(-1.), Some(1.)));
                 category.add_element(get_vector_ui(rectangle.dir_l.clone(), "Direction 2", "dir2", &ui.uisettings_mut(),
                 Box::new(move |_, value, scene, ui| {
                     let mut scene = scene.write().unwrap();
@@ -159,7 +160,7 @@ impl Shape for Rectangle {
                         }
                     }
                 }),
-                true));
+                true, Some(-1.), Some(1.)));
             category.add_element(UIElement::new(
                 "Width",
                 "width", 
@@ -174,7 +175,7 @@ impl Shape for Rectangle {
                             }
                         }
                     }),
-                    Box::new(|_| Ok(())),
+                    Box::new(|_, _, _| Ok(())),
                     ui.uisettings())),
                 ui.uisettings()));
 
@@ -192,7 +193,7 @@ impl Shape for Rectangle {
                             }
                         }
                     }),
-                    Box::new(|_| Ok(())),
+                    Box::new(|_, _, _| Ok(())),
                     ui.uisettings())),
                 ui.uisettings()));
         }
