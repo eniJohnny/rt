@@ -78,7 +78,7 @@ pub fn run() {
             scene.add_wireframes();
         }
         if OBJ {
-            scene.add_obj(String::from("obj/teapot.obj"));
+            scene.add_obj(String::from("obj/cat.obj"));
             println!("Number of triangles: {}", scene.elements().len());
         }
         scene.update_bvh();
