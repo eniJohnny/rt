@@ -18,6 +18,11 @@ pub struct Obj {
     pub faces: Vec<Vec<Vec3>>,
     pub triangle_count: Vec<usize>,
     pub params_number: usize,
+    pub filepath: String,
+    pub texturepath: String,
+    pub pos: Vec3,
+    pub dir: Vec3,
+    pub scale: f64,
 }
 
 impl Obj {
@@ -29,6 +34,11 @@ impl Obj {
             faces: Vec::new(),
             triangle_count: Vec::new(),
             params_number: 1,
+            filepath: String::new(),
+            texturepath: String::new(),
+            pos: Vec3::new(0.0, 0.0, 0.0),
+            dir: Vec3::new(0.0, 1.0, 0.0),
+            scale: 1.0,
         }
     }
 
@@ -52,12 +62,52 @@ impl Obj {
         self.triangle_count.push(shape);
     }
 
+    pub fn set_filepath(&mut self, filepath: String) {
+        self.filepath = filepath;
+    }
+
+    pub fn set_texturepath(&mut self, texturepath: String) {
+        self.texturepath = texturepath;
+    }
+
+    pub fn set_pos(&mut self, pos: Vec3) {
+        self.pos = pos;
+    }
+
+    pub fn set_dir(&mut self, dir: Vec3) {
+        self.dir = dir;
+    }
+
+    pub fn set_scale(&mut self, scale: f64) {
+        self.scale = scale;
+    }
+
     pub fn triangle_count(&self) -> &Vec<usize> {
         &self.triangle_count
     }
 
     pub fn params_number(&self) -> usize {
         self.params_number
+    }
+
+    pub fn filepath(&self) -> &String {
+        &self.filepath
+    }
+
+    pub fn texturepath(&self) -> &String {
+        &self.texturepath
+    }
+    
+    pub fn pos(&self) -> &Vec3 {
+        &self.pos
+    }
+
+    pub fn dir(&self) -> &Vec3 {
+        &self.dir
+    }
+
+    pub fn scale(&self) -> f64 {
+        self.scale
     }
 
     pub fn parse_file(&mut self, filepath: String) -> Result<(), std::io::Error> {

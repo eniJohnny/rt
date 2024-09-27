@@ -1,7 +1,9 @@
+use obj::Obj;
+
 use crate::model::materials::color::Color;
 use crate::model::materials::diffuse::Diffuse;
 use crate::model::materials::material::Material;
-use crate::model::materials::texture::{Texture, TextureType};
+use crate::model::materials::texture::{self, Texture, TextureType};
 use crate::model::maths::vec3::Vec3;
 use crate::model::objects::camera::Camera;
 use crate::model::objects::light::{AmbientLight, Light, ParallelLight, PointLight};
@@ -179,6 +181,22 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let new_light = Box::new(ParallelLight::new(dir, intensity, color));
                 scene.add_light(new_light);
             }
+            "obj" => {
+                let mut obj = Obj::new();
+                let file = get_string_value(&object, "file");
+                let texturefile = get_string_value(&object, "texture");
+                let pos = get_coordinates_value(&object, "pos");
+                let scale = get_float_value(&object, "scale");
+                let dir = get_coordinates_value(&object, "dir");
+
+                obj.set_pos(pos);
+                obj.set_dir(dir);
+                obj.set_scale(scale);
+                obj.set_filepath(file);
+                obj.set_texturepath(texturefile);
+
+                scene.add_obj(&mut obj);
+            }
             _ => {}
         }
     }
@@ -337,4 +355,8 @@ fn get_float_value(object: &HashMap<String, String>, key: &str) -> f64 {
     object[key]
         .parse::<f64>()
         .expect(&("Error parsing ".to_owned() + key))
+}
+
+fn get_string_value(object: &HashMap<String, String>, key: &str) -> String {
+    object[key].to_string()
 }
