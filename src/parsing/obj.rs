@@ -6,6 +6,7 @@ use crate::model::scene::Scene;
 use crate::model::shapes::triangle::Triangle;
 use crate::model::{shapes, Element};
 use crate::ui::utils::misc::Value;
+use crate::OBJ_DEFAULT_DIR;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Error};
 use std::vec;
@@ -125,10 +126,12 @@ impl Obj {
 
                     match tokens[0] {
                         "v" => {
-                            let x = tokens[1].parse::<f64>().unwrap() * self.scale() + *self.pos().x();
-                            let y = tokens[2].parse::<f64>().unwrap() * self.scale() + *self.pos().y();
-                            let z = tokens[3].parse::<f64>().unwrap() * self.scale() + *self.pos().z();
-                            self.add_vertex(Vec3::new(x, y, z));
+                            let x = tokens[1].parse::<f64>().unwrap() * self.scale();
+                            let y = tokens[2].parse::<f64>().unwrap() * self.scale();
+                            let z = tokens[3].parse::<f64>().unwrap() * self.scale();
+
+                            let rotated_coords = self.rotated_vertex(x, y, z) + self.pos();
+                            self.add_vertex(rotated_coords);
                         }
                         "vn" => {
                             let x = tokens[1].parse::<f64>().unwrap();
@@ -195,6 +198,21 @@ impl Obj {
 
     pub fn set_params_number(&mut self) {
         self.params_number = 1 + (self.textures.len() > 0) as usize + (self.normals.len() > 0) as usize;
+    }
+
+    pub fn rotated_vertex(&mut self, x: f64, y: f64, z: f64) -> Vec3 {
+        let point_pos = Vec3::new(x, y, z);
+        let default_dir = Vec3::new(0.0, 1.0, 0.0);
+
+        let rotation_axis = default_dir.cross(&self.dir());
+        if rotation_axis.length() == 0.0 {
+            return point_pos;
+        }
+
+        let rotation_angle = (default_dir.dot(&self.dir()) / (default_dir.length() * self.dir().length())).acos();
+
+        let rotated_point = point_pos.rotate_from_axis_angle(rotation_angle, &rotation_axis);
+        rotated_point
     }
 }
 
