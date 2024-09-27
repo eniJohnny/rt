@@ -13,7 +13,7 @@ pub mod picker;
 pub mod render;
 pub mod bvh;
 
-const USING_BVH: bool = false;
+const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
 const SCENE: &str = "metalrough";
 

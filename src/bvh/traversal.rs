@@ -1,4 +1,4 @@
-use crate::{model::{maths::{hit::{self, Hit}, ray::Ray}, scene::{self, Scene}, shapes::{aabb::Aabb, Shape}, Element}, render::raycasting::get_closest_hit};
+use crate::{model::{materials::texture::{Texture, TextureType}, maths::{hit::{self, Hit}, ray::Ray}, scene::{self, Scene}, shapes::{aabb::Aabb, Shape}, Element}, render::raycasting::get_closest_hit};
 
 use super::node::Node;
 
@@ -339,8 +339,12 @@ fn get_closest_non_bvh_hit<'a>(scene: &'a Scene, ray: &Ray, elements: &Vec<&'a E
 
     for element in elements {
         let mut t = None;
-
-        t = element.shape().intersect(ray);
+        if let Texture::Texture(file, TextureType::Float) = element.material().displacement() {
+			t = element.shape().intersect_displacement(ray, element, scene);
+		}
+		else {
+        	t = element.shape().intersect(ray);
+		}
         if let Some(t) = t {
             for dist in t {
                 if dist > 0.0 {
