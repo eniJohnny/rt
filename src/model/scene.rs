@@ -144,7 +144,7 @@ impl Scene {
                     }        
 
                     for k in 0..obj.triangle_count()[i] {
-                        let mut material: Box<dyn Material + Sync + Send> = <dyn Material>::default();
+                        let mut material = Diffuse::default();
                         material.set_color(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
                         material.set_opacity(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
                         material.set_color(texture.clone());
