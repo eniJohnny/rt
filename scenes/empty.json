@@ -12,9 +12,11 @@
         "fov": 75
     },
     {
-        "type": "light",
-        "pos": [0, 10, 0],
-        "color": [255, 255, 255],
-        "intensity": 10
+        "type": "obj",
+        "pos": [0, 0, 10],
+        "scale": 0.1,
+        "dir": [0, 0, 1],
+        "file": "obj/cat.obj",
+        "texture": "obj/cat.jpg"
     }
 ]

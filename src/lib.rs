@@ -77,10 +77,10 @@ pub fn run() {
         if DISPLAY_WIREFRAME {
             scene.add_wireframes();
         }
-        if OBJ {
-            scene.add_obj(String::from("obj/cat.obj"));
-            println!("Number of triangles: {}", scene.elements().len());
-        }
+        // if OBJ {
+        //     scene.add_obj(String::from("obj/cat.obj"));
+        //     println!("Number of triangles: {}", scene.elements().len());
+        // }
         scene.update_bvh();
         start_scene(scene);
     }

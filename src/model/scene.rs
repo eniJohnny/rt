@@ -1,9 +1,9 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fs};
 
 use image::{RgbImage, RgbaImage};
 
 use crate::{
-    bvh::{self, traversal}, model::objects::light::{AmbientLight, Light}, parsing::obj::Obj, render::settings::Settings
+    bvh::{self, traversal}, model::objects::light::{AmbientLight, Light}, parsing::obj::{self, Obj}, render::settings::Settings
 };
 
 use super::{
@@ -135,14 +135,23 @@ impl Scene {
         }
     }
 
-    pub fn add_obj(&mut self, path: String) {
-        let mut obj = Obj::new();
+    pub fn add_obj(&mut self, obj: &mut Obj) {
+        // let mut obj = Obj::new();
+        let path = obj.filepath().clone();
+        let texture_path = obj.texturepath().clone();
         let result = obj.parse_file(path.clone());
+        let mut texture = Texture::Value(Vec3::from_value(1.0), TextureType::Float);
+
         match result {
             Ok(_) => {
                 let len = obj.faces.len();
-                let texture = Texture::Texture(path.clone().replace(".obj", ".jpg"), TextureType::Color);
-                self.add_texture(path.clone().replace(".obj", ".jpg"), image::open(path.clone().replace(".obj", ".jpg")).unwrap().to_rgba8());
+
+                if texture_path != "" && fs::File::open(texture_path.clone()).is_ok() {
+                    self.add_texture(texture_path.clone(), image::open(texture_path.clone()).unwrap().to_rgba8());
+                    texture = Texture::Texture(texture_path.clone(), TextureType::Color);
+                } else if texture_path != "" {
+                    println!("Texture file not found: {}", texture_path);
+                }
 
                 for i in 0..len {
                     let face = &obj.faces[i];
