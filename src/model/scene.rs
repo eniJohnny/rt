@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use image::{RgbImage, RgbaImage};
 
 use crate::{
-    bvh, model::objects::light::{AmbientLight, Light}, parsing::obj::Obj, render::settings::Settings
+    bvh::{self, traversal}, model::objects::light::{AmbientLight, Light}, parsing::obj::Obj, render::settings::Settings
 };
 
 use super::{
@@ -12,7 +12,7 @@ use super::{
     texture::{Texture, TextureType}},
     maths::vec3::Vec3,
     objects::{camera::Camera, light::AnyLight},
-    shapes::{self, aabb::Aabb},
+    shapes::{self, aabb::Aabb, triangle::Triangle},
     ComposedElement, Element,
 };
 
@@ -137,33 +137,47 @@ impl Scene {
 
     pub fn add_obj(&mut self, path: String) {
         let mut obj = Obj::new();
-        let result = obj.parse_file(path);
+        let result = obj.parse_file(path.clone());
         match result {
             Ok(_) => {
                 let len = obj.faces.len();
+                let texture = Texture::Texture(path.clone().replace(".obj", ".jpg"), TextureType::Color);
+                self.add_texture(path.clone().replace(".obj", ".jpg"), image::open(path.clone().replace(".obj", ".jpg")).unwrap().to_rgba8());
 
                 for i in 0..len {
                     let face = &obj.faces[i];
                     let mut vertices: Vec<Vec3> = vec![];
                     let mut normals: Vec<Vec3> = vec![];
                     let mut textures: Vec<Vec3> = vec![];
+                    let modulo = obj.params_number();
         
                     for j in 0..face.len() {
-                        if j % 3 == 0 {
-                            vertices.push(face[j]);
-                        } else if j % 3 == 1 {
-                            textures.push(face[j]);
-                        } else {
-                            normals.push(face[j]);
+                        match j % modulo {
+                            0 => vertices.push(face[j]),
+                            1 => textures.push(face[j]),
+                            2 => normals.push(face[j]),
+                            _ => {}
                         }
+                    }        
+
+                    for k in 0..obj.triangle_count()[i] {
+                        let mut material: Box<Diffuse> = Diffuse::default();
+                        material.set_color(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
+                        material.set_opacity(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
+                        material.set_color(texture.clone());
+                        let (a, b, c) = (vertices[0], vertices[k + 1], vertices[k + 2]);
+                        let (a_uv, b_uv, c_uv) = (textures[0].xy(), textures[k + 1].xy(), textures[k + 2].xy());
+
+                        let mut triangle = Triangle::new(a, b, c);
+                        triangle.set_is_obj(true);
+                        triangle.set_a_uv(a_uv);
+                        triangle.set_b_uv(b_uv);
+                        triangle.set_c_uv(c_uv);
+
+                        let elem = Element::new(Box::new(triangle), material);
+                        self.add_element(elem);
                     }
-                    let mut material = <dyn Material>::default();
-                    material.set_color(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
-                    material.set_opacity(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
-        
-                    let triangle = Triangle::new(vertices[0], vertices[1], vertices[2]);
-                    let elem = Element::new(Box::new(triangle), material);
-                    self.add_element(elem);
+
                 }
             }
             Err(e) => {

@@ -13,6 +13,7 @@ pub mod render;
 pub mod bvh;
 
 const OBJ: bool = true;
+const OBJ_SCALE: f64 = 0.1;
 
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
@@ -77,8 +78,8 @@ pub fn run() {
             scene.add_wireframes();
         }
         if OBJ {
-            scene.add_obj(String::from("obj/cat.obj"));
-            println!()
+            scene.add_obj(String::from("obj/teapot.obj"));
+            println!("Number of triangles: {}", scene.elements().len());
         }
         scene.update_bvh();
         start_scene(scene);

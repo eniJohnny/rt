@@ -1,6 +1,7 @@
 use std::sync::{Arc, RwLock};
 
 use crate::model::materials::material::Projection;
+use crate::model::maths::vec2::Vec2;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 use crate::model::scene::Scene;
 use crate::model::shapes::plane::Plane;
@@ -17,9 +18,13 @@ pub struct Triangle {
     a: Vec3,
     b: Vec3,
     c: Vec3,
+    a_uv: Vec2,
+    b_uv: Vec2,
+    c_uv: Vec2,
     dir: Vec3,
     plane: Plane,
     aabb: super::aabb::Aabb,
+    is_obj: bool,
 }
 
 impl Shape for Triangle {
@@ -53,10 +58,41 @@ impl Shape for Triangle {
 	}
 
     fn projection(&self, hit: &Hit) -> Projection {
-        self.plane.projection(hit)
+        if self.is_obj == false {
+            return self.plane.projection(hit);
+        } else {
+            let other_vector;
+            if *hit.norm() == Vec3::new(0., 1., 0.) || *hit.norm() == Vec3::new(0., -1., 0.) {
+                other_vector = Vec3::new(0., 0., 1.);
+            } else {
+                other_vector = Vec3::new(0., 1., 0.);
+            }
+            let uv = self.barycentric_coords(hit.pos());
+            let uv = self.interpolate_uv(uv.1, uv.2, uv.3);
+            let (u, v) = (*uv.x(), *uv.y());
+            let i = self.dir.cross(&other_vector).normalize();
+            let j = i.cross(&other_vector).normalize();
+            let k = hit.norm().clone();
+
+            let mut projection = Projection::default();
+            projection.i = i;
+            projection.j = j;
+            projection.k = k;
+            projection.u = u;
+            projection.v = v;
+
+            if projection.u < 0. {
+                projection.u = 1. + projection.u;
+            }
+            if projection.v < 0. {
+                projection.v = 1. + projection.v;
+            }
+
+            return projection;
+        }
     }
     fn norm(&self, hit: &Vec3, ray_dir: &Vec3) -> Vec3 {
-        return self.plane.norm(hit, ray_dir);
+        self.plane.norm(hit, ray_dir)
     }
     fn pos(&self) -> &Vec3 { &self.a }
     fn as_triangle(&self) -> Option<&Triangle> { Some(self) }
@@ -164,7 +200,11 @@ impl Triangle {
     pub fn get_a(&self) -> &Vec3 { &self.a }
     pub fn get_b(&self) -> &Vec3 { &self.b }
     pub fn get_c(&self) -> &Vec3 { &self.c }
+    pub fn get_a_uv(&self) -> &Vec2 { &self.a_uv }
+    pub fn get_b_uv(&self) -> &Vec2 { &self.b_uv }
+    pub fn get_c_uv(&self) -> &Vec2 { &self.c_uv }
     pub fn aabb(&self) -> &super::aabb::Aabb { &self.aabb }
+    pub fn is_obj(&self) -> bool { self.is_obj }
 
     // Mutators
     pub fn set_a(&mut self, a: Vec3) {
@@ -182,8 +222,24 @@ impl Triangle {
         self.update_aabb();
     }
 
+    pub fn set_a_uv(&mut self, a_uv: Vec2) {
+        self.a_uv = a_uv;
+    }
+
+    pub fn set_b_uv(&mut self, b_uv: Vec2) {
+        self.b_uv = b_uv;
+    }
+
+    pub fn set_c_uv(&mut self, c_uv: Vec2) {
+        self.c_uv = c_uv;
+    }
+
     pub fn set_aabb(&mut self, aabb: super::aabb::Aabb) {
         self.aabb = aabb;
+    }
+
+    pub fn set_is_obj(&mut self, is_obj: bool) {
+        self.is_obj = is_obj;
     }
 
     pub fn inside_triangle(p: &Vec3, a: &Vec3, b: &Vec3, c: &Vec3, dir: &Vec3) -> bool {
@@ -209,6 +265,10 @@ impl Triangle {
             dir,
             plane,
             aabb,
+            is_obj: false,
+            a_uv: Vec2::new(0., 0.),
+            b_uv: Vec2::new(0., 0.),
+            c_uv: Vec2::new(0., 0.),
         }
     }
 
@@ -225,6 +285,29 @@ impl Triangle {
         let z_max = a.z().max(*b.z()).max(*c.z());
 
         super::aabb::Aabb::new(x_min, x_max, y_min, y_max, z_min, z_max)
+    }
+
+    pub fn barycentric_coords(&self, p: &Vec3) -> (f64, f64, f64, f64) {
+        let (area, alpha, beta, gamma);
+        let (a, b, c) = (&self.a, &self.b, &self.c);
+
+        // Compute the area of the triangle
+        area = (b - a).cross(&(c - a)).length() / 2.;
+
+        // Compute the barycentric coordinates
+        alpha = (b - p).cross(&(c - p)).length() / 2. / area;
+        beta = (c - p).cross(&(a - p)).length() / 2. / area;
+        gamma = 1. - alpha - beta;
+
+        (area, alpha, beta, gamma)
+    }
+    
+    pub fn interpolate_uv(&self, alpha: f64, beta: f64, gamma: f64) -> Vec2 {
+        let (a_uv, b_uv, c_uv) = (&self.a_uv, &self.b_uv, &self.c_uv);
+        let u = alpha * a_uv.x() + beta * b_uv.x() + gamma * c_uv.x();
+        let v = alpha * a_uv.y() + beta * b_uv.y() + gamma * c_uv.y();
+    
+        Vec2::new(u, v)
     }
 
 }
