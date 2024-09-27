@@ -13,9 +13,9 @@
     },
     {
         "type": "obj",
-        "pos": [2, 0, 0],
+        "pos": [0, -2, 0],
         "scale": 0.1,
-        "dir": [0, 0, 1],
+        "dir": [0, 0, -1],
         "file": "obj/cat.obj",
         "texture": "obj/cat.jpg"
     }

@@ -1,6 +1,7 @@
 extern crate image;
 use display::mainloop::start_scene;
 use image::flat::View;
+use model::maths::vec3::Vec3;
 use parsing::{get_scene, obj::Obj};
 use render::settings::ViewMode;
 
@@ -13,7 +14,7 @@ pub mod render;
 pub mod bvh;
 
 const OBJ: bool = true;
-const OBJ_SCALE: f64 = 0.1;
+const OBJ_DEFAULT_DIR: (f64, f64, f64) = (0.0, 1.0, 0.0);
 
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
