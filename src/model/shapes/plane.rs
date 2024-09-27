@@ -46,7 +46,7 @@ impl Shape for Plane {
 	}
 
     fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
-		let displaced_factor = 0.5;
+		let displaced_factor = 0.25;
 		let total_displacement = displaced_factor;
 		let step = 0.1;
 		let mut t: Option<Vec<f64>> = self.outer_intersect(ray, displaced_factor);
