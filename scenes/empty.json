@@ -13,7 +13,7 @@
     },
     {
         "type": "obj",
-        "pos": [0, 0, 10],
+        "pos": [2, 0, 0],
         "scale": 0.1,
         "dir": [0, 0, 1],
         "file": "obj/cat.obj",

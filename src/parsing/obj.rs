@@ -6,11 +6,11 @@ use crate::model::scene::Scene;
 use crate::model::shapes::triangle::Triangle;
 use crate::model::{shapes, Element};
 use crate::ui::utils::misc::Value;
-use crate::OBJ_SCALE;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Error};
 use std::vec;
 
+#[derive(Debug)]
 pub struct Obj {
     pub vertices: Vec<Vec3>,
     pub normals: Vec<Vec3>,
@@ -97,7 +97,7 @@ impl Obj {
     pub fn texturepath(&self) -> &String {
         &self.texturepath
     }
-    
+
     pub fn pos(&self) -> &Vec3 {
         &self.pos
     }
@@ -125,9 +125,9 @@ impl Obj {
 
                     match tokens[0] {
                         "v" => {
-                            let x = tokens[1].parse::<f64>().unwrap() * OBJ_SCALE;
-                            let y = tokens[2].parse::<f64>().unwrap() * OBJ_SCALE;
-                            let z = tokens[3].parse::<f64>().unwrap() * OBJ_SCALE;
+                            let x = tokens[1].parse::<f64>().unwrap() * self.scale() + *self.pos().x();
+                            let y = tokens[2].parse::<f64>().unwrap() * self.scale() + *self.pos().y();
+                            let z = tokens[3].parse::<f64>().unwrap() * self.scale() + *self.pos().z();
                             self.add_vertex(Vec3::new(x, y, z));
                         }
                         "vn" => {
