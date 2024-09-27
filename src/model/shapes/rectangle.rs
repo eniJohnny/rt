@@ -42,7 +42,7 @@ impl Shape for Rectangle {
         None
     }
     fn projection(&self, hit: &Hit) -> Projection {
-        Projection::default()
+        self.plane.projection(hit)
     }
     fn norm(&self, hit: &Vec3, ray_dir: &Vec3) -> Vec3 {
         self.plane.norm(hit, ray_dir)
@@ -74,6 +74,17 @@ impl Rectangle {
         let b= pos.clone() - &l_gap + &w_gap;
         let c= pos.clone() + &l_gap - &w_gap;
         let d= pos.clone() - &l_gap - &w_gap;
+        let plane = Plane::new(a.clone(), dir_l.clone().cross(&dir_w).normalize());
+
+        Rectangle { pos, length, width, dir_l, dir_w, a, b, c, d, plane }
+    }
+
+    pub fn from_points(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> Rectangle {
+        let dir_l = (a - b).normalize();
+        let dir_w = (a - c).normalize();
+        let pos = (a + b + c + d) / 4.;
+        let length = (a - b).length();
+        let width = (a - c).length();
         let plane = Plane::new(a.clone(), dir_l.clone().cross(&dir_w).normalize());
 
         Rectangle { pos, length, width, dir_l, dir_w, a, b, c, d, plane }
