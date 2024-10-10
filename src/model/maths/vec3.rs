@@ -54,7 +54,12 @@ impl Vec3 {
         }
     }
 
+    pub fn length_squared(&self) -> f64 {
+        self.x * self.x + self.y * self.y + self.z * self.z
+    }
+
     pub fn length(&self) -> f64 {
+        // Magnitude of the vector (AKA norm)
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
     }
 

@@ -66,7 +66,8 @@ pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
             let tmp = get_lighting_from_hit(scene, &hit, ray);
             tmp
         },
-        None => Color::new(0., 0., 0.),
+        // None => Color::new(0., 0., 0.),
+        None => get_skysphere_color(scene, ray),
     };
 }
 

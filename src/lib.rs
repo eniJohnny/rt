@@ -15,7 +15,7 @@ pub mod bvh;
 
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
-const SCENE: &str = "metalrough";
+const SCENE: &str = "empty";
 
 const AABB_OPACITY: f64 = 0.0;
 const AABB_STEPS_NB: usize = 10;

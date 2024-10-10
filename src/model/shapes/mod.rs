@@ -21,6 +21,7 @@ pub mod rectangle;
 pub mod triangle;
 pub mod aabb;
 pub mod wireframe;
+pub mod mobius;
 
 pub trait Shape: Debug + Sync + Send {
     fn distance(&self, vec: &Vec3) -> f64;
@@ -53,6 +54,9 @@ pub trait Shape: Debug + Sync + Send {
         None
     }
     fn as_wireframe(&self) -> Option<&Wireframe> {
+        None
+    }
+    fn as_mobius(&self) -> Option<&mobius::Mobius> {
         None
     }
     fn aabb(&self) -> Option<&Aabb> {

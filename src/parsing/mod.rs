@@ -1,6 +1,6 @@
 use crate::model::materials::color::Color;
 use crate::model::materials::diffuse::Diffuse;
-use crate::model::materials::material::Material;
+use crate::model::materials::material::{self, Material};
 use crate::model::materials::texture::{Texture, TextureType};
 use crate::model::maths::vec3::Vec3;
 use crate::model::objects::camera::Camera;
@@ -8,7 +8,8 @@ use crate::model::objects::light::{AmbientLight, Light, ParallelLight, PointLigh
 use crate::model::{scene, Element};
 use crate::model::{
     scene::Scene, shapes::cone::Cone, shapes::cylinder::Cylinder, shapes::plane::Plane,
-    shapes::sphere::Sphere, shapes::rectangle::Rectangle
+    shapes::sphere::Sphere, shapes::rectangle::Rectangle, shapes::triangle::Triangle,
+    shapes::mobius::Mobius,
 };
 use crate::{error, MAX_EMISSIVE, AABB_OPACITY};
 // use crate::{error, SCENE};
@@ -16,7 +17,6 @@ use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::io::Write;
 use std::ops::Add;
-use crate::model::shapes::triangle::Triangle;
 
 pub fn print_scene(scene: &Scene) {
     write!(std::io::stdout(), "{:#?}\n", scene).expect("Error printing scene");
@@ -127,6 +127,18 @@ pub fn get_scene(scene_file: &String) -> Scene {
 
                 scene.add_element(element);
                 // scene.add_element(aabb_element);
+            }
+            "mobius" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let dir = get_coordinates_value(&object, "dir");
+                let color = get_color(&object);
+                let a = get_float_value(&object, "a");
+
+                let shape = Box::new(Mobius::new(pos, dir, a));
+                let material = get_material(&object, color);
+
+                let element = Element::new(shape, material);
+                scene.add_element(element)
             }
             "camera" => {
                 let pos = get_coordinates_value(&object, "pos");
