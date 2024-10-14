@@ -11,7 +11,7 @@ use crate::model::shapes::{
     cone::Cone, cylinder::Cylinder, plane::Plane,
     sphere::Sphere, rectangle::Rectangle, triangle::Triangle,
     ComposedShape, helix::Helix, torusphere::Torusphere,
-    brick::Brick, nagone::Nagone
+    brick::Brick, nagone::Nagone, mobius::Mobius
 };
 use crate::{error, MAX_EMISSIVE, AABB_OPACITY};
 // use crate::{error, SCENE};
@@ -238,6 +238,20 @@ pub fn get_scene(scene_file: &String) -> Scene {
 
                 let nagone = Nagone::new(pos, dir, radius, angles, color);
                 let composed_shape = Box::new(nagone) as Box<dyn ComposedShape + Sync + Send>;
+                let composed_element = ComposedElement::new(composed_shape);
+                scene.add_composed_element(composed_element);
+            }
+            "mobius" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let radius = get_float_value(&object, "radius");
+                let half_width = get_float_value(&object, "half_width");
+                let color = match get_color(&object) {
+                    Some(color) => Vec3::new(color.r(), color.g(), color.b()),
+                    None => panic!("Color must be provided for mobius"),
+                };
+
+                let mobius = Mobius::new(pos, radius, half_width, color);
+                let composed_shape = Box::new(mobius) as Box<dyn ComposedShape + Sync + Send>;
                 let composed_element = ComposedElement::new(composed_shape);
                 scene.add_composed_element(composed_element);
             }

@@ -16,11 +16,11 @@ pub mod bvh;
 
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
-const SCENE: &str = "testing";
+const SCENE: &str = "empty";
 
 const AABB_OPACITY: f64 = 0.0;
 const AABB_STEPS_NB: usize = 10;
-const DISPLAY_WIREFRAME: bool = true;
+const DISPLAY_WIREFRAME: bool = false;
 const WIREFRAME_THICKNESS: f64 = 0.05;
 const ERROR_MARGIN: f64 = 0.000000000001;
 const SCREEN_WIDTH: usize = 1600;

@@ -26,6 +26,7 @@ pub mod wireframe;
 pub mod torusphere;
 pub mod helix;
 pub mod nagone;
+pub mod mobius;
 
 pub trait Shape: Debug + Sync + Send {
     fn distance(&self, vec: &Vec3) -> f64;
@@ -74,4 +75,5 @@ pub trait ComposedShape: Debug + Sync + Send {
     fn as_helix(&self) -> Option<&helix::Helix> { None }
     fn as_brick(&self) -> Option<&brick::Brick> { None }
     fn as_nagone(&self) -> Option<&nagone::Nagone> { None }
+    fn as_mobius(&self) -> Option<&mobius::Mobius> { None }
 }
