@@ -59,7 +59,7 @@ impl Texture {
         }
     }
 
-    pub fn from_float_scaled(string: &String, default: f64, scale: f64) -> Self {
+    pub fn from_float_scaled(string: &String, default: f64) -> Self {
         if let Ok(value) = string.parse::<f64>() {
             Texture::Value(Vec3::from_value(value), TextureType::Float)
         } else if string == "" {

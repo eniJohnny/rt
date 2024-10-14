@@ -15,16 +15,23 @@ pub fn get_file_box(path: String, box_name: String, submit: FnSubmitValue, setti
         let mut file_box =  UIBox::new("file_box", BoxPosition::Center, settings.gui_width, settings);
         let mut cat = UIElement::new(&box_name, "cat_file", ElemType::Category(Category::default()), settings);
         let mut i = 0;
+        let mut nb_page = 1;
+        let mut nb_elements_per_page = 0;
+        let mut id_page = String::from("page") + &nb_page.to_string();
+        let mut name_page = String::from("Page ") + &nb_page.to_string();
+        let mut page = UIElement::new(&name_page, &id_page, ElemType::Category(Category::collapsed()), settings);
 
         let mut ref_of_initial_value = "".to_string();
         for file in files {
+            if nb_elements_per_page == 10 {
+            }
             let reference = "cat_file".to_string() + &i.to_string();
             let not_selected = style_not_selected.clone();
             let selected= style_selected.clone();
             let mut element = UIElement::new(&file, &reference, ElemType::Button(Some(Box::new(
                 move |button, _, ui| {
                     if let Some(button) = button {
-                        let parent_ref = get_parent_ref(button.reference.clone());
+                        let parent_ref = get_parent_ref(get_parent_ref(button.reference.clone()));
                         let value_property_ref = parent_ref.clone() + ".value";
                         let value_property = ui.get_property_mut(&value_property_ref);
                         if let Some(value_property) = value_property {
@@ -43,13 +50,28 @@ pub fn get_file_box(path: String, box_name: String, submit: FnSubmitValue, setti
             ))), settings);
             if file == initial_value {
                 element.style = style_selected.clone();  
-                ref_of_initial_value = "file_box.cat_file.".to_string() + &reference;
+                if let ElemType::Category(page_category) = page.get_elem_type_mut() {
+                    page_category.collapsed = false;
+                }
+                ref_of_initial_value = "file_box.cat_file.".to_string() + &id_page + "." + &reference;
             }  else {
                 element.style = style_not_selected.clone();
             }
-            cat.add_element(element);
+            page.add_element(element);
+            nb_elements_per_page = nb_elements_per_page + 1;
+            if nb_elements_per_page == 10 {
+                cat.add_element(page);
+                nb_page = nb_page + 1;
+                nb_elements_per_page = 0;
+                id_page = String::from("page") + &nb_page.to_string();
+                name_page = String::from("Page ") + &nb_page.to_string();
+                page = UIElement::new(&name_page, &id_page, ElemType::Category(Category::collapsed()), settings);
+            }
 
             i += 1;
+        }
+        if nb_elements_per_page > 0 {
+            cat.add_element(page);
         }
 
         let mut value_element = UIElement::new("", "value", ElemType::Property(

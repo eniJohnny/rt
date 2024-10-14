@@ -102,6 +102,14 @@ impl UIElement {
         }
     }
 
+    pub fn get_elem_type(&self) -> &ElemType {
+        &self.elem_type
+    }
+
+    pub fn get_elem_type_mut(&mut self) -> &mut ElemType {
+        &mut self.elem_type
+    }
+
     pub fn get_property(&self, reference: &str) -> Option<&Property> {
         match &self.elem_type {
             ElemType::Property(property) => {
@@ -254,7 +262,10 @@ impl UIElement {
         if max_height == 0 {
             return vec;
         }
-        let indent: u32 = 10;
+        let mut indent: u32 = 10;
+        if let ElemType::Row(vec) = &self.elem_type {
+            indent = 0;
+        }
         if let Some(parent_hitbox) = &self.hitbox {
             match &mut self.elem_type {
                 ElemType::Row(elems) => {

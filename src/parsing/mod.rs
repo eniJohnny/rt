@@ -10,7 +10,7 @@ use crate::model::{
     scene::Scene, shapes::cone::Cone, shapes::cylinder::Cylinder, shapes::plane::Plane,
     shapes::sphere::Sphere, shapes::rectangle::Rectangle
 };
-use crate::{error, MAX_EMISSIVE, AABB_OPACITY};
+use crate::{error, AABB_OPACITY};
 // use crate::{error, SCENE};
 use std::collections::HashMap;
 use std::f64::consts::PI;
@@ -310,7 +310,7 @@ fn get_material(
         color_texture,
         Texture::from_float_litteral(metalness_string, 0.),
         Texture::from_float_litteral(roughness_string, 0.),
-        Texture::from_float_scaled(emissive_string, 0., MAX_EMISSIVE),
+        Texture::from_float_scaled(emissive_string, 0.),
         Texture::from_float_litteral(refraction_string, 0.),
         Texture::from_vector(normal_string, Vec3::new(0., 0., 1.)),
         Texture::from_float_litteral(opacity_string, 1.),

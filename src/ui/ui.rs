@@ -137,7 +137,6 @@ impl UI {
                 return Some(element);
             }
         }
-        println!("Element {} not found", reference);
         None
     }
 
@@ -147,7 +146,6 @@ impl UI {
                 return Some(element);
             }
         }
-        println!("Element {} not found", reference);
         None
     }
 

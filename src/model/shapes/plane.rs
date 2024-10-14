@@ -46,9 +46,9 @@ impl Shape for Plane {
 	}
 
     fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
-		let displaced_factor = 0.25;
+		let displaced_factor = scene.settings().plane_displaced_distance;
 		let total_displacement = displaced_factor;
-		let step = 0.1;
+		let step = scene.settings().plane_displacement_step;
 		let mut t: Option<Vec<f64>> = self.outer_intersect(ray, displaced_factor);
 		if let Some(mut hits) = get_sorted_hit_from_t(scene, ray, &t, element) {
 			if hits.len() == 1 {
@@ -61,7 +61,7 @@ impl Shape for Plane {
 			while hit.dist() < sec_hit.dist() {
 				let hit_ratio: f64 = current_step;
 
-				let displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures()).to_value();
+				let displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures(), Vec3::from_value(0.)).to_value();
 				if (displaced_ratio - hit_ratio).abs() < 0.01 {
 					return Some(vec![*hit.dist()]);
 				}

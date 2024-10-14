@@ -51,8 +51,8 @@ impl Shape for Sphere {
 
     fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
 		// Size of the displacement proportional to the radius
-		let displaced_factor: f64 = 0.05; // Maybe add possibility to change this value ?
-		let step_size: f64 = 0.1; // step number ~ 1 / step_size 
+		let displaced_factor: f64 = scene.settings().sphere_displaced_distance;
+		let step_size: f64 = scene.settings().sphere_displacement_step; // step number ~ 1 / step_size 
 
 		let biggest_sphere_size: f64 = self.radius * displaced_factor;
 		let mut t: Option<Vec<f64>> = self.outer_intersect(ray, displaced_factor);
@@ -70,7 +70,7 @@ impl Shape for Sphere {
 				let hit_distance = sphere_to_hit.length() - self.radius;
 				let hit_ratio: f64 = hit_distance / biggest_sphere_size;
 
-				let displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures()).to_value();
+				let displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures(), Vec3::from_value(0.)).to_value();
 				if (displaced_ratio - hit_ratio).abs() < 0.01 {
 					return Some(vec![*hit.dist()]); // Almost perfect match
 				}

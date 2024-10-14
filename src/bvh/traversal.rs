@@ -297,7 +297,17 @@ pub fn new_traverse_bvh<'a>(ray: &Ray, node: Option<&Node>, scene: &'a Scene) ->
     // Check for closest bvh hit
     for &element_index in node.elements() {
         let element = scene.get_element(element_index);
-        let hit = element.shape().intersect(ray);
+        let hit;
+        if scene.settings().displacement {
+            if let Texture::Texture(file, TextureType::Float) = element.material().displacement() {
+                hit = element.shape().intersect_displacement(ray, element, scene);
+            }
+            else {
+                hit = element.shape().intersect(ray);
+            }
+        } else {
+        	hit = element.shape().intersect(ray);
+        }
         
         if let Some(hit) = hit {
             let tmin = hit[0];
@@ -339,12 +349,16 @@ fn get_closest_non_bvh_hit<'a>(scene: &'a Scene, ray: &Ray, elements: &Vec<&'a E
 
     for element in elements {
         let mut t = None;
-        if let Texture::Texture(file, TextureType::Float) = element.material().displacement() {
-			t = element.shape().intersect_displacement(ray, element, scene);
-		}
-		else {
+        if scene.settings().displacement {
+            if let Texture::Texture(file, TextureType::Float) = element.material().displacement() {
+                t = element.shape().intersect_displacement(ray, element, scene);
+            }
+            else {
+                t = element.shape().intersect(ray);
+            }
+        } else {
         	t = element.shape().intersect(ray);
-		}
+        }
         if let Some(t) = t {
             for dist in t {
                 if dist > 0.0 {
