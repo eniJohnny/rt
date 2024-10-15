@@ -27,6 +27,8 @@ pub mod torusphere;
 pub mod helix;
 pub mod nagone;
 pub mod mobius;
+pub mod cubehole;
+pub mod ellipse;
 
 pub trait Shape: Debug + Sync + Send {
     fn distance(&self, vec: &Vec3) -> f64;
@@ -51,6 +53,8 @@ pub trait Shape: Debug + Sync + Send {
             return "Rectangle".to_string();
         } else if self.as_wireframe().is_some() {
             return "Wireframe".to_string();
+        } else if self.as_ellipse().is_some() {
+            return "Ellipse".to_string();
         } else {
             return "Unknown".to_string();
         }
@@ -64,6 +68,7 @@ pub trait Shape: Debug + Sync + Send {
     fn as_triangle(&self) -> Option<&Triangle> { None }
     fn as_aabb(&self) -> Option<&Aabb> { None }
     fn as_wireframe(&self) -> Option<&Wireframe> { None }
+    fn as_ellipse(&self) -> Option<&ellipse::Ellipse> { None }
     fn aabb(&self) -> Option<&Aabb> { None }
 }
 
@@ -76,4 +81,5 @@ pub trait ComposedShape: Debug + Sync + Send {
     fn as_brick(&self) -> Option<&brick::Brick> { None }
     fn as_nagone(&self) -> Option<&nagone::Nagone> { None }
     fn as_mobius(&self) -> Option<&mobius::Mobius> { None }
+    fn as_cubehole(&self) -> Option<&cubehole::CubeHole> { None }
 }

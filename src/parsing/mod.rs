@@ -11,7 +11,7 @@ use crate::model::shapes::{
     cone::Cone, cylinder::Cylinder, plane::Plane,
     sphere::Sphere, rectangle::Rectangle, triangle::Triangle,
     ComposedShape, helix::Helix, torusphere::Torusphere,
-    brick::Brick, nagone::Nagone, mobius::Mobius
+    brick::Brick, nagone::Nagone, mobius::Mobius, ellipse::Ellipse
 };
 use crate::{error, MAX_EMISSIVE, AABB_OPACITY};
 // use crate::{error, SCENE};
@@ -254,6 +254,27 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let composed_shape = Box::new(mobius) as Box<dyn ComposedShape + Sync + Send>;
                 let composed_element = ComposedElement::new(composed_shape);
                 scene.add_composed_element(composed_element);
+            }
+            "ellipse" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let dir = get_coordinates_value(&object, "dir").normalize();
+                let u = get_float_value(&object, "u");
+                let v = get_float_value(&object, "v");
+                let color = get_color(&object);
+
+                let shape = Box::new(Ellipse::new(pos, dir, u, v));
+                let aabb_shape = Box::new(shape.aabb().clone());
+
+                let material = get_material(&object, color);
+                scene.add_textures(&material);
+                let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
+                aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
+                
+                let element = Element::new(shape, material);
+                let aabb_element = Element::new(aabb_shape, aabb_material);
+
+                scene.add_element(element);
+                scene.add_element(aabb_element);
             }
             _ => {}
         }
