@@ -1,8 +1,16 @@
+use std::sync::{Arc, RwLock};
+
 use crate::model::materials::material::Projection;
-use crate::model::{maths::{hit::Hit, ray::Ray, vec3::Vec3}, Element};
+use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 use crate::model::scene::Scene;
 use crate::model::shapes::plane::Plane;
 use crate::model::shapes::triangle::Triangle;
+use crate::model::Element;
+use crate::ui::prefabs::shape_ui::ShapeUI;
+use crate::ui::prefabs::vector_ui::get_vector_ui;
+use crate::ui::ui::UI;
+use crate::ui::uielement::{Category, UIElement};
+use crate::ui::utils::misc::{ElemType, Property, Value};
 use super::Shape;
 
 #[derive(Debug)]
@@ -59,6 +67,139 @@ impl Shape for Rectangle {
     }
     fn pos(&self) -> &Vec3 { &self.pos }
     fn as_rectangle(&self) -> Option<&Rectangle> { Some(self) }
+    fn as_rectangle_mut(&mut self) -> Option<&mut Rectangle> { Some(self) }
+
+    fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
+        let mut category = UIElement::new("Rectangle", "rectangle", ElemType::Category(Category::default()), ui.uisettings());
+
+        if let Some(rectangle) = element.shape().as_rectangle() {
+            let id = element.id().clone();
+            category.add_element(get_vector_ui(rectangle.pos.clone(), "Position", "pos", &ui.uisettings_mut(), 
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
+                        if let Value::Float(value) = value {
+                            rectangle.pos.set_x(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
+                        if let Value::Float(value) = value {
+                            rectangle.pos.set_y(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
+                        if let Value::Float(value) = value {
+                            rectangle.pos.set_z(value);
+                        }
+                    }
+                }),
+                true, None, None));
+            category.add_element(get_vector_ui(rectangle.dir_l.clone(), "Direction 1", "dir", &ui.uisettings_mut(),
+                Box::new(move |_, value, scene, ui| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
+                        if let Value::Float(value) = value {
+                            rectangle.dir_l.set_x(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
+                        if let Value::Float(value) = value {
+                            rectangle.dir_l.set_y(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
+                        if let Value::Float(value) = value {
+                            rectangle.dir_l.set_z(value);
+                        }
+                    }
+                }),
+                true, Some(-1.), Some(1.)));
+                category.add_element(get_vector_ui(rectangle.dir_l.clone(), "Direction 2", "dir2", &ui.uisettings_mut(),
+                Box::new(move |_, value, scene, ui| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
+                        if let Value::Float(value) = value {
+                            rectangle.dir_w.set_x(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
+                        if let Value::Float(value) = value {
+                            rectangle.dir_w.set_y(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
+                        if let Value::Float(value) = value {
+                            rectangle.dir_w.set_z(value);
+                        }
+                    }
+                }),
+                true, Some(-1.), Some(1.)));
+            category.add_element(UIElement::new(
+                "Width",
+                "width", 
+                ElemType::Property(Property::new(
+                    Value::Float(rectangle.width), 
+                    Box::new(move |_, value, scene, _| {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
+                            if let Value::Float(value) = value {
+                                rectangle.set_width(value);
+                            }
+                        }
+                    }),
+                    Box::new(|_, _, _| Ok(())),
+                    ui.uisettings())),
+                ui.uisettings()));
+
+            category.add_element(UIElement::new(
+                "Length",
+                "length", 
+                ElemType::Property(Property::new(
+                    Value::Float(rectangle.length), 
+                    Box::new(move |_, value, scene, _| {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
+                            if let Value::Float(value) = value {
+                                rectangle.set_length(value);
+                            }
+                        }
+                    }),
+                    Box::new(|_, _, _| Ok(())),
+                    ui.uisettings())),
+                ui.uisettings()));
+        }
+
+        category
+    }
 }
 
 impl Rectangle {

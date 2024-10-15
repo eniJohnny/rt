@@ -96,6 +96,9 @@ pub fn draw_checkbox(
 ) {
     let checkbox_size = (18, 18);
     let height = size.1;
+    if size.1 == 0 {
+        return;
+    }
     let checkbox_pos = (
         pos.0 + size.0 - style.padding_right - checkbox_size.0,
         pos.1 + (height - checkbox_size.1) / 2,
@@ -191,9 +194,11 @@ pub fn is_inside_box(to_check: (u32, u32), box_pos: (u32, u32), box_size: (u32, 
 pub fn get_needed_height(hitbox_vec: &Vec<HitBox>) -> u32 {
     let mut max_needed_height = 0;
     for hitbox in hitbox_vec {
-        let needed_height = hitbox.pos.1 + hitbox.size.1;
-        if needed_height > max_needed_height {
-            max_needed_height = needed_height;
+        if !hitbox.disabled {
+            let needed_height = hitbox.pos.1 + hitbox.size.1;
+            if needed_height > max_needed_height {
+                max_needed_height = needed_height;
+            }
         }
     }
     max_needed_height

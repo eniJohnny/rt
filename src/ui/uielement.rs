@@ -102,6 +102,40 @@ impl UIElement {
         }
     }
 
+    pub fn get_elem_type(&self) -> &ElemType {
+        &self.elem_type
+    }
+
+    pub fn get_elem_type_mut(&mut self) -> &mut ElemType {
+        &mut self.elem_type
+    }
+
+    pub fn get_property(&self, reference: &str) -> Option<&Property> {
+        match &self.elem_type {
+            ElemType::Property(property) => {
+                if &self.reference == reference {
+                    return Some(property);
+                }
+            }
+            ElemType::Category(cat) => {
+                for elem in &cat.elems {
+                    if let Some(property) = elem.get_property(reference) {
+                        return Some(property);
+                    }
+                }
+            }
+            ElemType::Row(elems) => {
+                for elem in elems {
+                    if let Some(property) = elem.get_property(reference) {
+                        return Some(property);
+                    }
+                }
+            }
+            _ => (),
+        }
+        None
+    }
+
     pub fn get_property_mut(&mut self, reference: &str) -> Option<&mut Property> {
         match &mut self.elem_type {
             ElemType::Property(property) => {
@@ -124,6 +158,32 @@ impl UIElement {
                 }
             }
             _ => (),
+        }
+        None
+    }
+
+    pub fn get_element(&self, reference: &str) -> Option<&UIElement> {
+        if &self.reference == reference {
+            return Some(self);
+        }
+        match &self.elem_type {
+            ElemType::Category(cat) => {
+                for elem in &cat.elems {
+                    let result = elem.get_element(reference);
+                    if result.is_some() {
+                        return result;
+                    }
+                }
+            }
+            ElemType::Row(elems) => {
+                for elem in elems {
+                    let result = elem.get_element(reference);
+                    if result.is_some() {
+                        return result;
+                    }
+                }
+            }
+            _ => {}
         }
         None
     }
@@ -168,16 +228,16 @@ impl UIElement {
         }
     }
 
-    pub fn validate_properties(&self) -> Result<(), String> {
+    pub fn validate_properties(&self, ui: &UI) -> Result<(), String> {
         if let ElemType::Category(cat) = &self.elem_type {
             for elem in &cat.elems {
-                elem.validate_properties()?;
+                elem.validate_properties(ui)?;
             }
         } else if let ElemType::Property(prop) = &self.elem_type {
-            (prop.fn_validate)(&prop.value)?;
+            (prop.fn_validate)(&prop.value, self, ui)?;
         } else if let ElemType::Row(elems) = &self.elem_type {
             for elem in elems {
-                elem.validate_properties()?;
+                elem.validate_properties(ui)?;
             }
         }
         Ok(())
@@ -202,13 +262,16 @@ impl UIElement {
         if max_height == 0 {
             return vec;
         }
+        let mut indent: u32 = 10;
+        if let ElemType::Row(vec) = &self.elem_type {
+            indent = 0;
+        }
         if let Some(parent_hitbox) = &self.hitbox {
-            // println!("{} :\t\t\tPosition : {}, {}\t\t\t\tSize : {}, {}", self.reference, parent_hitbox.pos.0, parent_hitbox.pos.1, parent_hitbox.size.0, parent_hitbox.size.1);
             match &mut self.elem_type {
                 ElemType::Row(elems) => {
                     let available_width =
-                        (parent_hitbox.size.0 - ui.uisettings().margin * (elems.len() - 1) as u32) / elems.len() as u32;
-                    let mut offset_x = 0;
+                        (parent_hitbox.size.0 - ui.uisettings().margin * (elems.len() - 1) as u32 - indent) / elems.len() as u32;
+                    let mut offset_x = indent;
                     for elem in elems {
                         if elem.style.visible {
                             let size = get_size(&elem.text, &elem.style, (available_width, max_height));
@@ -242,37 +305,44 @@ impl UIElement {
                         for i in 0..cat.elems.len() {
                             let mut elem = cat.elems.remove(i);
                             if elem.style.visible {
-                                let hitbox = HitBox {
+                                let size = get_size(&elem.text, &elem.style, parent_hitbox.size);
+                                let mut hitbox = HitBox {
                                     pos: get_pos(
-                                        (parent_hitbox.pos.0, parent_hitbox.pos.1 + offset_y),
+                                        (parent_hitbox.pos.0 + indent, parent_hitbox.pos.1 + offset_y),
                                         (0, 0),
                                         0,
                                     ),
-                                    size: get_size(&elem.text, &elem.style, parent_hitbox.size),
+                                    size: (size.0 - indent, size.1),
                                     reference: elem.reference.clone(),
                                     disabled: matches!(elem.elem_type, ElemType::Row(_)),
                                 };
-                                elem.hitbox = Some(hitbox.clone());
-                                let hitbox_list = elem.generate_hitbox(ui, scene, max_height - offset_y);
-                                let mut needed_height =
-                                    hitbox.pos.1 + hitbox.size.1 - parent_hitbox.pos.1;
-                                if !hitbox.disabled {
-                                    needed_height += ui.uisettings().margin;
-                                    if needed_height > offset_y {
-                                        offset_y = needed_height;
+                                if parent_hitbox.disabled || offset_y + size.1 > max_height {
+                                    hitbox.disabled = true;
+                                    offset_y = max_height;
+                                } else {
+                                    elem.hitbox = Some(hitbox.clone());
+                                    let hitbox_list = elem.generate_hitbox(ui, scene, max_height - offset_y);
+                                    let mut needed_height =
+                                        hitbox.pos.1 + hitbox.size.1 - parent_hitbox.pos.1;
+                                    if !hitbox.disabled {
+                                        needed_height += ui.uisettings().margin;
+                                        if needed_height > offset_y {
+                                            offset_y = needed_height;
+                                        }
                                     }
-                                }
-                                vec.push(hitbox);
-                                for hitbox in hitbox_list {
-                                    let needed_height =
-                                        hitbox.pos.1 + hitbox.size.1 + ui.uisettings().margin - parent_hitbox.pos.1;
-                                    if !hitbox.disabled && needed_height > offset_y {
-                                        offset_y = needed_height;
+                                    if (!hitbox.disabled) {
+                                        vec.push(hitbox);
                                     }
-                                    vec.push(hitbox)
-                                }
-                                if offset_y > max_height {
-                                    return vec;
+                                    for hitbox in hitbox_list {
+                                        let needed_height =
+                                            hitbox.pos.1 + hitbox.size.1 + ui.uisettings().margin - parent_hitbox.pos.1;
+                                        if needed_height > offset_y {
+                                            offset_y = needed_height;
+                                        }
+                                        if !hitbox.disabled {
+                                            vec.push(hitbox);
+                                        }
+                                    }
                                 }
                             }
                             cat.elems.insert(i, elem);
@@ -468,6 +538,13 @@ impl Category {
         Self {
             elems: vec![],
             collapsed: false,
+        }
+    }
+
+    pub fn collapsed() -> Self {
+        Self {
+            elems: vec![],
+            collapsed: true,
         }
     }
 }

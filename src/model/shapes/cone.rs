@@ -1,4 +1,5 @@
 use std::vec;
+use std::sync::{Arc, RwLock};
 
 use super::Shape;
 use crate::model::materials::material::Projection;
@@ -6,6 +7,11 @@ use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 use crate::model::scene::Scene;
 use crate::model::shapes::plane::Plane;
 use crate::model::Element;
+use crate::ui::prefabs::shape_ui::ShapeUI;
+use crate::ui::prefabs::vector_ui::get_vector_ui;
+use crate::ui::ui::UI;
+use crate::ui::uielement::{Category, UIElement};
+use crate::ui::utils::misc::{ElemType, Property, Value};
 
 #[derive(Debug)]
 pub struct Cone {
@@ -155,6 +161,9 @@ impl Shape for Cone {
     fn as_cone(&self) -> Option<&Cone> {
         Some(self)
     }
+    fn as_cone_mut(&mut self) -> Option<&mut Cone> {
+        Some(self)
+    }
 
     fn pos(&self) -> &Vec3 {
         &self.pos
@@ -162,6 +171,109 @@ impl Shape for Cone {
 
     fn aabb(&self) -> Option<&super::aabb::Aabb> {
         Some(&self.aabb)
+    }
+    
+    fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
+        let mut category = UIElement::new("Cone", "cone", ElemType::Category(Category::default()), ui.uisettings());
+
+        if let Some(cone) = element.shape().as_cone() {
+            let id = element.id().clone();
+            category.add_element(get_vector_ui(cone.pos.clone(), "Position", "pos", &ui.uisettings_mut(), 
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cone) = elem.shape_mut().as_cone_mut() {
+                        if let Value::Float(value) = value {
+                            cone.pos.set_x(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cone) = elem.shape_mut().as_cone_mut() {
+                        if let Value::Float(value) = value {
+                            cone.pos.set_y(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cone) = elem.shape_mut().as_cone_mut() {
+                        if let Value::Float(value) = value {
+                            cone.pos.set_z(value);
+                        }
+                    }
+                }),
+                true, None, None));
+            category.add_element(get_vector_ui(cone.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
+                Box::new(move |_, value, scene, ui| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cone) = elem.shape_mut().as_cone_mut() {
+                        if let Value::Float(value) = value {
+                            cone.dir.set_x(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cone) = elem.shape_mut().as_cone_mut() {
+                        if let Value::Float(value) = value {
+                            cone.dir.set_y(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cone) = elem.shape_mut().as_cone_mut() {
+                        if let Value::Float(value) = value {
+                            cone.dir.set_z(value);
+                        }
+                    }
+                }),
+                true, Some(-1.), Some(1.)));
+            category.add_element(UIElement::new(
+                "Radius",
+                "radius", 
+                ElemType::Property(Property::new(
+                    Value::Float(cone.radius), 
+                    Box::new(move |_, value, scene, _: &mut UI| {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(cone) = elem.shape_mut().as_cone_mut() {
+                            if let Value::Float(value) = value {
+                                cone.set_radius(value);
+                            }
+                        }
+                    }),
+                    Box::new(|_, _, _| Ok(())),
+                    ui.uisettings())),
+                ui.uisettings()));
+
+            category.add_element(UIElement::new(
+                "Height",
+                "height", 
+                ElemType::Property(Property::new(
+                    Value::Float(cone.height), 
+                    Box::new(move |_, value, scene, _| {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(cone) = elem.shape_mut().as_cone_mut() {
+                            if let Value::Float(value) = value {
+                                cone.set_height(value);
+                            }
+                        }
+                    }),
+                    Box::new(|_, _, _| Ok(())),
+                    ui.uisettings())),
+                ui.uisettings()));
+        }
+
+        category
     }
 }
 

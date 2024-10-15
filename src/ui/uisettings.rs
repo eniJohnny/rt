@@ -47,10 +47,10 @@ impl Displayable for UISettings {
                         ui.uisettings_mut().margin = value
                     }
                 }),
-                Box::new(|value| {
+                Box::new(|value, elem, ui| {
                     if let Value::Unsigned(value) = value {
                         if value > &20 {
-                            return Err("Too much margin is bad for your health");
+                            return Err("Too much margin is bad for your health".to_owned());
                         }
                     }
                     Ok(())
@@ -70,10 +70,10 @@ impl Displayable for UISettings {
                         ui.uisettings_mut().ui_refresh_time = value
                     }
                 }),
-                Box::new(|value| {
+                Box::new(|value, elem, ui| {
                     if let Value::Unsigned(value) = value {
                         if value < &50 {
-                            return Err("Don't be unreasonable");
+                            return Err("Don't be unreasonable".to_owned());
                         }
                     }
                     Ok(())

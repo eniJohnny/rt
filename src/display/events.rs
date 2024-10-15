@@ -11,14 +11,13 @@ use winit::{
 };
 
 use crate::{
-    model::scene::Scene,
-    ui::{
+    model::scene::Scene, render::raycasting::{get_closest_hit, get_ray}, ui::{
         ui::{ui_clicked, UI},
-        uisettings::UISettings, utils::ui_utils::Editing,
-    },
+        uisettings::UISettings, utils::{misc::Value, ui_utils::Editing},
+    }
 };
 
-use super::display::blend_scene_and_ui;
+use super::{display::blend_scene_and_ui, ui_setup::setup_element_ui};
 
 pub fn handle_event(
     event: WindowEvent,
@@ -34,10 +33,18 @@ pub fn handle_event(
             if state == winit::event::ElementState::Released {
                 let pos = ui.mouse_position();
                 if !ui_clicked(pos, scene, ui) {
-                    ui.set_editing(None);
+                    if let None = ui.editing() {
+                        let scene_read = scene.read().unwrap();
+                        let ray = get_ray(&scene_read, pos.0 as usize, pos.1 as usize);
+                        if let Some(hit) = get_closest_hit(&scene_read, &ray) {
+                            setup_element_ui(hit.element(), ui, scene);
+                        }
+                    } else {
+                        ui.set_editing(None);
+                    }
                 }
-                ui.set_dirty()
             }
+            ui.set_dirty();
         }
         WindowEvent::KeyboardInput { event, .. } => {
             if event.state == winit::event::ElementState::Released {
@@ -80,27 +87,37 @@ fn key_pressed_editing(
             ui.set_editing(None);
         }
         Key::Named(NamedKey::Backspace) => {
-            value.truncate(value.len() - 1);
-            ui.set_editing(Some(Editing {
-                reference: edit.reference,
-                value,
-            }));
+            if value.len() > 0 {
+                value.truncate(value.len() - 1);
+                ui.set_editing(Some(Editing {
+                    reference: edit.reference,
+                    value,
+                }));
+            }
         }
         Key::Named(NamedKey::Enter) => {
             let mut err = None;
-            if let Some(property) = ui.get_property_mut(&edit.reference) {
+            let mut value_to_set: Option<Value> = None;
+            if let Some(property) = ui.get_property(&edit.reference) {
                 match property.get_value_from_string(value.clone()) {
                     Err(error) => {
                         err = Some(error);
                     }
                     Ok(value) => {
-                        if let Err(e) = (property.fn_validate)(&value) {
-                            err = Some(e.to_string());
-                        } else {
-                            property.initial_value = property.value.clone();
-                            property.value = value;
+                        if let Some(elem) = ui.get_element(edit.reference.clone()) {
+                            if let Err(e) = (property.fn_validate)(&value, elem, ui) {
+                                err = Some(e.to_string());
+                            } else {
+                                value_to_set = Some(value);
+                            }
                         }
                     }
+                }
+            }
+            if let Some(property) = ui.get_property_mut(&edit.reference) {
+                if let Some(value) = value_to_set {
+                    property.initial_value = property.value.clone();
+                    property.value = value;
                 }
             }
             let tmp_ref = edit.reference.clone();
@@ -120,7 +137,7 @@ fn key_pressed_editing(
         Key::Character(char) => {
             if char.len() == 1 {
                 let c = char.chars().next().unwrap();
-                if c.is_alphanumeric() || c == '.' {
+                if c.is_alphanumeric() || c == '.' || c == '-' {
                     value += &c.to_string();
                     ui.set_editing(Some(Editing {
                         reference: edit.reference,

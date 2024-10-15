@@ -1,4 +1,5 @@
 use std::f64::consts::PI;
+use std::sync::{Arc, RwLock};
 
 use super::Shape;
 use crate::model::materials::material::Projection;
@@ -6,6 +7,11 @@ use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 use crate::model::scene::Scene;
 use crate::model::Element;
 use crate::render::raycasting::get_sorted_hit_from_t;
+use crate::ui::prefabs::shape_ui::ShapeUI;
+use crate::ui::prefabs::vector_ui::get_vector_ui;
+use crate::ui::ui::UI;
+use crate::ui::uielement::{Category, UIElement};
+use crate::ui::utils::misc::{ElemType, Property, Value};
 
 #[derive(Debug)]
 pub struct Sphere {
@@ -45,8 +51,8 @@ impl Shape for Sphere {
 
     fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
 		// Size of the displacement proportional to the radius
-		let displaced_factor: f64 = 0.05; // Maybe add possibility to change this value ?
-		let step_size: f64 = 0.1; // step number ~ 1 / step_size 
+		let displaced_factor: f64 = scene.settings().sphere_displaced_distance;
+		let step_size: f64 = scene.settings().sphere_displacement_step; // step number ~ 1 / step_size 
 
 		let biggest_sphere_size: f64 = self.radius * displaced_factor;
 		let mut t: Option<Vec<f64>> = self.outer_intersect(ray, displaced_factor);
@@ -64,7 +70,7 @@ impl Shape for Sphere {
 				let hit_distance = sphere_to_hit.length() - self.radius;
 				let hit_ratio: f64 = hit_distance / biggest_sphere_size;
 
-				let displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures()).to_value();
+				let displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures(), Vec3::from_value(0.)).to_value();
 				if (displaced_ratio - hit_ratio).abs() < 0.01 {
 					return Some(vec![*hit.dist()]); // Almost perfect match
 				}
@@ -106,7 +112,7 @@ impl Shape for Sphere {
         projection.u = 2. * (f64::atan2(i_component, j_component) + PI) / (2. * PI);
         projection.v = f64::acos(k_component) / PI;
         projection.i = hit.norm().cross(&self.dir).normalize();
-        projection.j = hit.norm().cross(&projection.i).normalize();
+        projection.j = -hit.norm().cross(&projection.i).normalize();
         projection
     }
 
@@ -117,24 +123,104 @@ impl Shape for Sphere {
     fn as_sphere(&self) -> Option<&Sphere> {
         Some(self)
     }
-
-    fn as_plane(&self) -> Option<&super::plane::Plane> {
-        None
+    fn as_sphere_mut(&mut self) -> Option<&mut Sphere> {
+        Some(self)
     }
 
-    fn as_cylinder(&self) -> Option<&super::cylinder::Cylinder> {
-        None
-    }
-
-    fn as_cone(&self) -> Option<&super::cone::Cone> {
-        None
-    }
     fn pos(&self) -> &Vec3 {
         &self.pos
     }
 
     fn aabb(&self) -> Option<&super::aabb::Aabb> {
         Some(&self.aabb)
+    }
+
+    fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
+        let mut category = UIElement::new("Sphere", "sphere", ElemType::Category(Category::default()), ui.uisettings());
+
+        if let Some(sphere) = element.shape().as_sphere() {
+            let id = element.id().clone();
+            category.add_element(get_vector_ui(sphere.pos.clone(), "Position", "pos", &ui.uisettings_mut(), 
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(sphere) = elem.shape_mut().as_sphere_mut() {
+                        if let Value::Float(value) = value {
+                            sphere.pos.set_x(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(sphere) = elem.shape_mut().as_sphere_mut() {
+                        if let Value::Float(value) = value {
+                            sphere.pos.set_y(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(sphere) = elem.shape_mut().as_sphere_mut() {
+                        if let Value::Float(value) = value {
+                            sphere.pos.set_z(value);
+                        }
+                    }
+                }),
+                false, None, None));
+            category.add_element(get_vector_ui(sphere.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
+                Box::new(move |_, value, scene, ui| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(sphere) = elem.shape_mut().as_sphere_mut() {
+                        if let Value::Float(value) = value {
+                            sphere.dir.set_x(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(sphere) = elem.shape_mut().as_sphere_mut() {
+                        if let Value::Float(value) = value {
+                            sphere.dir.set_y(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, ui| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(sphere) = elem.shape_mut().as_sphere_mut() {
+                        if let Value::Float(value) = value {
+                            sphere.dir.set_z(value);
+                        }
+                        sphere.set_dir(sphere.dir.normalize());
+                        ui.set_dirty();
+                    }
+                }),
+                false, Some(-1.), Some(1.)));
+
+            category.add_element(UIElement::new(
+                "Radius",
+                "radius", 
+                ElemType::Property(Property::new(
+                    Value::Float(sphere.radius), 
+                    Box::new(move |_, value, scene, _: &mut UI| {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(sphere) = elem.shape_mut().as_sphere_mut() {
+                            if let Value::Float(value) = value {
+                                sphere.set_radius(value);
+                            }
+                        }
+                        scene.set_dirty(true);
+                    }),
+                    Box::new(|_, _, _| Ok(())),
+                    ui.uisettings())),
+                ui.uisettings()));
+        }
+        category
     }
 }
 

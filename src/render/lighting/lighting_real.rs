@@ -116,7 +116,7 @@ pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
     let rand = rand::thread_rng().gen_range(0.0..1.0);
     if rand > reflected + hit.metalness() {
         // Indirect Light
-        if scene.settings().indirect && ray.get_depth() < MAX_DEPTH as u8 {
+        if scene.settings().indirect && ray.get_depth() < scene.settings().depth as u8 {
             let mut indirect_dir = hit.norm() + random_unit_vector();
             if indirect_dir.length() < 0.01 {
                 indirect_dir = hit.norm().clone();
