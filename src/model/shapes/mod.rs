@@ -31,6 +31,27 @@ pub trait Shape: Debug + Sync + Send {
     fn projection(&self, hit: &Hit) -> Projection;
     fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3;
     fn pos(&self) -> &Vec3;
+    fn shape_name(&self) -> String {
+        if self.as_aabb().is_some() {
+            return "AABB".to_string();
+        } else if self.as_sphere().is_some() {
+            return "Sphere".to_string();
+        } else if self.as_triangle().is_some() {
+            return "Triangle".to_string();
+        } else if self.as_cone().is_some() {
+            return "Cone".to_string();
+        } else if self.as_cylinder().is_some() {
+            return "Cylinder".to_string();
+        } else if self.as_plane().is_some() {
+            return "Plane".to_string();
+        } else if self.as_rectangle().is_some() {
+            return "Rectangle".to_string();
+        } else if self.as_wireframe().is_some() {
+            return "Wireframe".to_string();
+        } else {
+            return "Unknown".to_string();
+        }
+    }
 
     fn as_sphere(&self) -> Option<&Sphere> {
         None

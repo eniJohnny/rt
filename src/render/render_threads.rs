@@ -221,6 +221,7 @@ fn main_render_loop(
                             }
                             img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
                             println!("{} iterations done - {:?}", iterations_done, perf.elapsed());
+                            perf = Instant::now();
                         }
                         _ => {}
                     }

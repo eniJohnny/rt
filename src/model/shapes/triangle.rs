@@ -19,6 +19,7 @@ pub struct Triangle {
     c: Vec3,
     dir: Vec3,
     plane: Plane,
+    aabb: super::aabb::Aabb,
 }
 
 impl Shape for Triangle {
@@ -52,7 +53,7 @@ impl Shape for Triangle {
 	}
 
     fn projection(&self, hit: &Hit) -> Projection {
-        Projection::default()
+        self.plane.projection(hit)
     }
     fn norm(&self, hit: &Vec3, ray_dir: &Vec3) -> Vec3 {
         return self.plane.norm(hit, ray_dir);
@@ -163,11 +164,27 @@ impl Triangle {
     pub fn get_a(&self) -> &Vec3 { &self.a }
     pub fn get_b(&self) -> &Vec3 { &self.b }
     pub fn get_c(&self) -> &Vec3 { &self.c }
+    pub fn aabb(&self) -> &super::aabb::Aabb { &self.aabb }
 
     // Mutators
-    pub fn set_a(&mut self, a: Vec3) { self.a = a }
-    pub fn set_b(&mut self, b: Vec3) { self.b = b }
-    pub fn set_c(&mut self, c: Vec3) { self.c = c }
+    pub fn set_a(&mut self, a: Vec3) {
+        self.a = a;
+        self.update_aabb();
+    }
+
+    pub fn set_b(&mut self, b: Vec3) {
+        self.b = b;
+        self.update_aabb();
+    }
+
+    pub fn set_c(&mut self, c: Vec3) {
+        self.c = c;
+        self.update_aabb();
+    }
+
+    pub fn set_aabb(&mut self, aabb: super::aabb::Aabb) {
+        self.aabb = aabb;
+    }
 
     pub fn inside_triangle(p: &Vec3, a: &Vec3, b: &Vec3, c: &Vec3, dir: &Vec3) -> bool {
         let pa = (b - a).cross(&(p - a)).dot(&dir);
@@ -184,13 +201,30 @@ impl Triangle {
 
         let dir =(b.clone() - &a).cross(&(c.clone() - &a)).normalize();
         let plane = Plane::new(a.clone(), dir.clone());
+        let aabb = self::Triangle::compute_aabb(&a, &b, &c);
         Triangle {
             a,
             b,
             c,
             dir,
-            plane
+            plane,
+            aabb,
         }
+    }
+
+    pub fn update_aabb(&mut self) {
+        self.set_aabb(self::Triangle::compute_aabb(&self.a, &self.b, &self.c));
+    }
+
+    pub fn compute_aabb(a: &Vec3, b: &Vec3, c: &Vec3) -> super::aabb::Aabb {
+        let x_min = a.x().min(*b.x()).min(*c.x());
+        let x_max = a.x().max(*b.x()).max(*c.x());
+        let y_min = a.y().min(*b.y()).min(*c.y());
+        let y_max = a.y().max(*b.y()).max(*c.y());
+        let z_min = a.z().min(*b.z()).min(*c.z());
+        let z_max = a.z().max(*b.z()).max(*c.z());
+
+        super::aabb::Aabb::new(x_min, x_max, y_min, y_max, z_min, z_max)
     }
 
 }

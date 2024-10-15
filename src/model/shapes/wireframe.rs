@@ -126,6 +126,29 @@ impl Wireframe {
 
         return near_edge_count >= 2;
     }
+
+    pub fn get_cube_side(&self, point: &Vec3) -> &str {
+        let x = (*point.x()).abs();
+        let y = (*point.y()).abs();
+        let z = (*point.z()).abs();
+        let res = x.max(y).max(z);
+
+        if res == x {
+            return "right";
+        } else if res == -x {
+            return "left";
+        } else if res == y {
+            return "top";
+        } else if res == -y {
+            return "bottom";
+        } else if res == z {
+            return "front";
+        } else if res == -z {
+            return "back";
+        } else {
+            panic!("Error: side not found.");
+        }
+    }
 }
 
 impl Shape for Wireframe {
@@ -173,7 +196,60 @@ impl Shape for Wireframe {
 	}
 
     fn projection(&self, hit: &Hit) -> Projection {
-        Projection::default()
+        let side = self.get_cube_side(&hit.pos());
+        let mut proj = Projection::default();
+        let constant_axis: Vec3;
+
+        if *hit.norm() == Vec3::new(0., 1., 0.) {
+            constant_axis = Vec3::new(0., 0., 1.);
+        } else {
+            constant_axis = Vec3::new(0., 1., 0.);
+        }
+
+        match side {
+            "front" => {
+                proj.i = constant_axis.cross(&Vec3::new(0., 1., 0.)).normalize();
+                proj.j = constant_axis.cross(&proj.i).normalize();
+                proj.u = hit.pos().x() - self.x_min() / (self.x_max() - self.x_min());
+                proj.v = hit.pos().y() - self.y_min() / (self.y_max() - self.y_min());
+            },
+            "back" => {
+                proj.i = constant_axis.cross(&Vec3::new(0., 1., 0.)).normalize();
+                proj.j = constant_axis.cross(&proj.i).normalize();
+                proj.u = hit.pos().x() - self.x_min() / (self.x_max() - self.x_min());
+                proj.v = hit.pos().y() - self.y_min() / (self.y_max() - self.y_min());
+            },
+            "top" => {
+                proj.i = constant_axis.cross(&Vec3::new(1., 0., 0.)).normalize();
+                proj.j = constant_axis.cross(&proj.i).normalize();
+                proj.u = hit.pos().x() - self.x_min() / (self.x_max() - self.x_min());
+                proj.v = hit.pos().z() - self.z_min() / (self.z_max() - self.z_min());
+            },
+            "bottom" => {
+                proj.i = constant_axis.cross(&Vec3::new(1., 0., 0.)).normalize();
+                proj.j = constant_axis.cross(&proj.i).normalize();
+                proj.u = hit.pos().x() - self.x_min() / (self.x_max() - self.x_min());
+                proj.v = hit.pos().z() - self.z_min() / (self.z_max() - self.z_min());
+            },
+            "right" => {
+                proj.i = constant_axis.cross(&Vec3::new(0., 0., 1.)).normalize();
+                proj.j = constant_axis.cross(&proj.i).normalize();
+                proj.u = hit.pos().y() - self.y_min() / (self.y_max() - self.y_min());
+                proj.v = hit.pos().z() - self.z_min() / (self.z_max() - self.z_min());
+            },
+            "left" => {
+                proj.i = constant_axis.cross(&Vec3::new(0., 0., 1.)).normalize();
+                proj.j = constant_axis.cross(&proj.i).normalize();
+                proj.u = hit.pos().y() - self.y_min() / (self.y_max() - self.y_min());
+                proj.v = hit.pos().z() - self.z_min() / (self.z_max() - self.z_min());
+            },
+            _ => {
+                panic!("Error: side not found.");
+            }
+        }
+        proj.k = hit.norm().clone();
+
+        proj
     }
 
     fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {

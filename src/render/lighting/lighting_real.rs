@@ -9,47 +9,18 @@ use crate::{
         materials::color::Color,
         maths::{hit::Hit, ray::Ray, vec3::Vec3},
         objects::light,
-        scene::Scene,
+        scene::Scene, shapes::Shape,
     },
     render::{raycasting::get_closest_hit, skysphere::get_skysphere_color},
     MAX_DEPTH, USING_BVH,
 };
 
-use super::{
-    lighting_sampling::{
-        get_indirect_light_bucket, get_indirect_light_sample, get_reflected_light_sample,
+use super::lighting_sampling::{
         random_unit_vector, reflect_dir,
-    }
-};
-
-
-/* old bvh traversal
-    let non_bvh_hit = get_closest_hit(scene, ray);
-    let bvh_hit = traverse_bvh(ray, Some(node), scene);
-    
-    match (non_bvh_hit, bvh_hit) {
-        (Some(non_bvh), Some(bvh)) => {
-            if non_bvh.dist() < bvh.dist() {
-                hit = Some(non_bvh);
-            } else {
-                hit = Some(bvh);
-            }
-        },
-        (Some(non_bvh), None) => {
-            hit = Some(non_bvh);
-        },
-        (None, Some(bvh)) => {
-            hit = Some(bvh);
-        },
-        (None, None) => {
-            return Color::new(0., 0., 0.);
-        },
     };
-*/
 
 pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
     let hit;
-    let perf = Instant::now();
     
     match USING_BVH {
         true => {
@@ -63,10 +34,15 @@ pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
 
     return match hit {
         Some(hit) => {
+            if hit.element().shape().as_wireframe().is_some() {
+                return Color::new(1., 1., 1.);
+            }
             let tmp = get_lighting_from_hit(scene, &hit, ray);
             tmp
         },
-        None => Color::new(0., 0., 0.),
+        None => {
+            get_skysphere_color(scene, ray)
+        },
     };
 }
 
