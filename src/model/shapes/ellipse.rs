@@ -34,7 +34,6 @@ impl Shape for Ellipse {
 
         for t in t.unwrap() {
             if t > 0. && self.is_inside(r.get_pos() + r.get_dir() * t) {
-                println!("t: {:?}", t);
                 t_array.push(t);
             }
         }
