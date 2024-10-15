@@ -11,7 +11,7 @@ use crate::{
 use super::{
     materials::{diffuse::{self, Diffuse},
     material::{self, Material},
-    texture::{Texture, TextureType}}, maths::vec3::Vec3, objects::camera::Camera, shapes::{self, aabb::Aabb}, Element
+    texture::{Texture, TextureType}}, maths::vec3::Vec3, objects::{camera::Camera, light::AnyLight}, shapes::{self, aabb::Aabb}, Element
 };
 
 #[derive(Debug)]
