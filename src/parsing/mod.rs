@@ -4,13 +4,13 @@ use crate::model::materials::material::Material;
 use crate::model::materials::texture::{Texture, TextureType};
 use crate::model::maths::vec3::Vec3;
 use crate::model::objects::camera::Camera;
-use crate::model::objects::light::{AmbientLight, Light, ParallelLight, PointLight};
+use crate::model::objects::light::{AmbientLight, AnyLight, Light, ParallelLight, PointLight};
 use crate::model::{scene, Element};
 use crate::model::{
     scene::Scene, shapes::cone::Cone, shapes::cylinder::Cylinder, shapes::plane::Plane,
     shapes::sphere::Sphere, shapes::rectangle::Rectangle
 };
-use crate::{error, MAX_EMISSIVE, AABB_OPACITY};
+use crate::{error, AABB_OPACITY};
 // use crate::{error, SCENE};
 use std::collections::HashMap;
 use std::f64::consts::PI;
@@ -143,8 +143,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                     Some(color) => color,
                     None => panic!("Color must be provided for lights"),
                 };
-                let new_light = Box::new(PointLight::new(pos, intensity, color))
-                    as Box<dyn Light + Sync + Send>;
+                let new_light = AnyLight::new(Box::new(PointLight::new(pos, intensity, color)));
                 scene.add_light(new_light);
             }
             "ambient" => {
@@ -165,7 +164,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                     None => panic!("Color must be provided for lights"),
                 };
 
-                let new_light = Box::new(ParallelLight::new(dir, intensity, color));
+                let new_light = AnyLight::new(Box::new(ParallelLight::new(dir, intensity, color)));
                 scene.add_light(new_light);
             }
             _ => {}
@@ -311,9 +310,9 @@ fn get_material(
         color_texture,
         Texture::from_float_litteral(metalness_string, 0.),
         Texture::from_float_litteral(roughness_string, 0.),
-        Texture::from_float_scaled(emissive_string, 0., MAX_EMISSIVE),
+        Texture::from_float_scaled(emissive_string, 0.),
         Texture::from_float_litteral(refraction_string, 0.),
-        Texture::from_vector(normal_string, Vec3::new(0.5, 0.5, 1.)),
+        Texture::from_vector(normal_string, Vec3::new(0., 0., 1.)),
         Texture::from_float_litteral(opacity_string, 1.),
 		Texture::from_float_litteral(displacement_string, 0.),
     ))

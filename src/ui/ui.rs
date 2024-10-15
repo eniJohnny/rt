@@ -11,7 +11,7 @@ use winit::keyboard::Key;
 
 use crate::{model::scene::Scene, ui::uisettings::UISettings, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32};
 
-use super::{uibox::UIBox, uieditbar::UIEditBar, uielement::UIElement, utils::{draw_utils::is_inside_box, misc::Property, ui_utils::{get_parent_ref, give_back_element, take_element, Editing, UIContext}, HitBox}};
+use super::{uibox::{self, UIBox}, uieditbar::UIEditBar, uielement::UIElement, utils::{draw_utils::is_inside_box, misc::Property, ui_utils::{get_parent_ref, give_back_element, take_element, Editing, UIContext}, HitBox}};
 
 pub struct UI {
     boxes: HashMap<String, UIBox>,
@@ -122,13 +122,22 @@ impl UI {
         self.boxes.insert(uibox.reference.clone(), uibox);
     }
 
-    pub fn destroy_box(&mut self, reference: String) {
-        self.boxes.remove(&reference);
+    pub fn destroy_box(&mut self, reference: &str) {
+        self.boxes.remove(reference);
         if let Some(last_reference) = self.active_box_queue.last() {
             if reference == *last_reference {
                 self.active_box_queue.pop();
             }
         }
+    }
+
+    pub fn get_element(&self, reference: String) -> Option<&UIElement> {
+        for uibox in self.boxes.values() {
+            if let Some(element) =  uibox.get_element(&reference) {
+                return Some(element);
+            }
+        }
+        None
     }
 
     pub fn get_element_mut(&mut self, reference: String) -> Option<&mut UIElement> {
@@ -137,7 +146,16 @@ impl UI {
                 return Some(element);
             }
         }
-        println!("Element {} not found", reference);
+        None
+    }
+
+    pub fn get_property(&self, reference: &String) -> Option<&Property> {
+        for uibox in self.boxes.values() {
+            if let Some(property) = uibox.get_property(reference) {
+                return Some(property);
+            }
+        }
+        println!("Property {} not found", reference);
         None
     }
 
@@ -221,25 +239,29 @@ impl UI {
         &self.inputs
     }
 
-    pub fn validate_properties(&mut self, reference: String) {
-        let uibox = self.get_box_mut(&reference);
+    pub fn validate_properties(&mut self, reference: String) -> bool {
+        let uibox = self.get_box(&reference);
+        let mut error = None;
         if let Some(uibox) = uibox {
-            let mut error = None;
-            for elem in &mut uibox.elems {
-                if let Err(e) = elem.validate_properties() {
+            for elem in &uibox.elems {
+                if let Err(e) = elem.validate_properties(&self) {
                     error = Some(e);
                     break;
                 }
             }
+        }
+        let uibox = self.get_box_mut(&reference);
+        if let Some(uibox) = uibox {
             if let Some(edit_bar) = &mut uibox.edit_bar {
                 if let Some(error) = error {
                     edit_bar.text.0 = Some(error);
-                    return;
+                    return false;
                 } else {
-                    edit_bar.text.0 = None
+                    edit_bar.text.0 = None;
                 }
             }
         }
+        return true;
     }
 
     pub fn generate_hitboxes(&mut self, scene: &Arc<RwLock<Scene>>) {
@@ -319,6 +341,11 @@ pub fn ui_clicked(click: (u32, u32), scene: &Arc<RwLock<Scene>>, ui: &mut UI) ->
                     println!("ERROR: UIElement {} not found", &hitbox.reference)
                 }
             }
+        }
+    }
+    for (_, uibox) in &ui.boxes {
+        if uibox.style().visible && is_inside_box(click, uibox.absolute_pos, uibox.size) {
+            return true;
         }
     }
     false

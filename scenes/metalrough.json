@@ -46,17 +46,19 @@
         "type": "plane",
         "pos": [-5, 0, 0],
         "dir": [1, 0.0, 0],
-        "color": "wood_color.jpg",
-        "roughness": "wood_roughness.jpg",
-        "normal": "wood_normal.jpg"
+        "color": "Bricks_gray_Color.jpg",
+        "roughness": "Bricks_gray_Roughness.jpg",
+        "normal": "Bricks_gray_Normal.jpg",
+        "displacement": "Bricks_gray_Displacement.jpg"
     },
     {
         "type": "plane",
         "pos": [5, 0, 0],
         "dir": [-1, 0.0, 0],
-        "color": "wood_color.jpg",
-        "roughness": "wood_roughness.jpg",
-        "normal": "wood_normal.jpg"
+        "color": "Bricks_gray_Color.jpg",
+        "roughness": "Bricks_gray_Roughness.jpg",
+        "normal": "Bricks_gray_Normal.jpg",
+        "displacement": "Bricks_gray_Displacement.jpg"
     },
     {
         "type": "plane",
@@ -71,8 +73,9 @@
         "pos": [0, 5, 0],
         "dir": [0, -1, 0],
         "color": [255, 255, 255],
-        "emissive": 2.0
+        "emissive": 2
     },
+
     {
         "type": "plane",
         "pos": [0, 0, 5],
@@ -93,10 +96,19 @@
         "type": "plane",
         "pos": [0, 0, -2],
         "dir": [0, 0, -1],
-        "color": "barreaux_color.jpg",
-        "normal": "barreaux_normal.jpg",
-        "roughness": "barreaux-roughness.jpg",
-        "metalness": "barreaux_metal.jpg",
-        "opacity": "barreaux_opacity.jpg"
+        "color": "MetalWalkway007_1K-JPG_Color.jpg",
+        "normal": "MetalWalkway007_1K-JPG_Normal.jpg",
+        "roughness": "MetalWalkway007_1K-JPG_Roughness.jpg",
+        "metalness": "MetalWalkway007_1K-JPG_Metalness.jpg",
+        "opacity": "MetalWalkway007_1K-JPG_Opacity.jpg",
+        "displacement": "MetalWalkway007_1K-JPG_Displacement.jpg"
+    },
+    {
+        "type": "plane",
+        "pos": [0, 0, -15],
+        "dir": [0, 0, 1],
+        "color": [255, 255, 255],
+        "roughness": 0.0,
+        "metalness": 0.0
     }
 ]

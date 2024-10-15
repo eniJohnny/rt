@@ -1,5 +1,6 @@
 use core::panic;
 use std::f64::consts::PI;
+use std::sync::{Arc, RwLock};
 use std::vec;
 
 use super::Shape;
@@ -8,6 +9,11 @@ use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 use crate::model::scene::Scene;
 use crate::model::shapes::plane::Plane;
 use crate::model::Element;
+use crate::ui::prefabs::shape_ui::ShapeUI;
+use crate::ui::prefabs::vector_ui::get_vector_ui;
+use crate::ui::ui::UI;
+use crate::ui::uielement::{Category, UIElement};
+use crate::ui::utils::misc::{ElemType, Property, Value};
 
 #[derive(Debug)]
 pub struct Cylinder {
@@ -153,6 +159,9 @@ impl Shape for Cylinder {
     fn as_cylinder(&self) -> Option<&Cylinder> {
         Some(self)
     }
+    fn as_cylinder_mut(&mut self) -> Option<&mut Cylinder> {
+        Some(self)
+    }
 
     fn pos(&self) -> &Vec3 {
         &self.pos
@@ -160,6 +169,109 @@ impl Shape for Cylinder {
 
     fn aabb(&self) -> Option<&super::aabb::Aabb> {
         Some(&self.aabb)
+    }
+
+    fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
+        let mut category = UIElement::new("Cylinder", "cylinder", ElemType::Category(Category::default()), ui.uisettings());
+
+        if let Some(cylinder) = element.shape().as_cylinder() {
+            let id = element.id().clone();
+            category.add_element(get_vector_ui(cylinder.pos.clone(), "Position", "pos", &ui.uisettings_mut(), 
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cylinder) = elem.shape_mut().as_cylinder_mut() {
+                        if let Value::Float(value) = value {
+                            cylinder.pos.set_x(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cylinder) = elem.shape_mut().as_cylinder_mut() {
+                        if let Value::Float(value) = value {
+                            cylinder.pos.set_y(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cylinder) = elem.shape_mut().as_cylinder_mut() {
+                        if let Value::Float(value) = value {
+                            cylinder.pos.set_z(value);
+                        }
+                    }
+                }),
+                true, None, None));
+            category.add_element(get_vector_ui(cylinder.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
+                Box::new(move |_, value, scene, ui| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cylinder) = elem.shape_mut().as_cylinder_mut() {
+                        if let Value::Float(value) = value {
+                            cylinder.dir.set_x(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cylinder) = elem.shape_mut().as_cylinder_mut() {
+                        if let Value::Float(value) = value {
+                            cylinder.dir.set_y(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cylinder) = elem.shape_mut().as_cylinder_mut() {
+                        if let Value::Float(value) = value {
+                            cylinder.dir.set_z(value);
+                        }
+                    }
+                }),
+                true, Some(-1.), Some(1.)));
+            category.add_element(UIElement::new(
+                "Radius",
+                "radius", 
+                ElemType::Property(Property::new(
+                    Value::Float(cylinder.radius), 
+                    Box::new(move |_, value, scene, _| {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(cylinder) = elem.shape_mut().as_cylinder_mut() {
+                            if let Value::Float(value) = value {
+                                cylinder.set_radius(value);
+                            }
+                        }
+                    }),
+                    Box::new(|_, _, _| Ok(())),
+                    ui.uisettings())),
+                ui.uisettings()));
+
+            category.add_element(UIElement::new(
+                "Height",
+                "height", 
+                ElemType::Property(Property::new(
+                    Value::Float(cylinder.height), 
+                    Box::new(move |_, value, scene, _| {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(cylinder) = elem.shape_mut().as_cylinder_mut() {
+                            if let Value::Float(value) = value {
+                                cylinder.set_height(value);
+                            }
+                        }
+                    }),
+                    Box::new(|_, _, _| Ok(())),
+                    ui.uisettings())),
+                ui.uisettings()));
+        }
+
+        category
     }
 }
 

@@ -110,12 +110,16 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
 
     for element in elements {
         let mut t = None;
-		if let Texture::Texture(file, TextureType::Float) = element.material().displacement() {
-			t = element.shape().intersect_displacement(ray, element, scene);
-		}
-		else {
+		if scene.settings().displacement {
+            if let Texture::Texture(file, TextureType::Float) = element.material().displacement() {
+                t = element.shape().intersect_displacement(ray, element, scene);
+            }
+            else {
+                t = element.shape().intersect(ray);
+            }
+        } else {
         	t = element.shape().intersect(ray);
-		}
+        }
         if let Some(t) = t {
             for dist in t {
                 if dist > 0.0 {

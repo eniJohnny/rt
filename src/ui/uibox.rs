@@ -1,17 +1,16 @@
-use std::{
-    cell::{Ref, RefCell},
-    sync::{Arc, RwLock},
-};
+use std::
+    sync::{Arc, RwLock}
+;
 
 use image::RgbaImage;
 
 use crate::{
-    model::{materials::color::Color, scene::Scene},
-    ui::{uisettings::UISettings},
-    SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32,
+    model::scene::Scene,
+    ui::uisettings::UISettings,
+    SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32,
 };
 
-use super::{ui::UI, uieditbar::UIEditBar, uielement::UIElement, utils::{draw_utils::{draw_background, draw_box, get_needed_height, get_size}, misc::{ElemType, FnAny, Property}, style::{Style, StyleBuilder}, ui_utils::translate_hitboxes, HitBox}};
+use super::{ui::UI, uieditbar::UIEditBar, uielement::UIElement, utils::{draw_utils::{draw_background, get_needed_height, get_size}, misc::{ElemType, FnAny, Property}, style::Style, ui_utils::translate_hitboxes, HitBox}};
 
 pub struct UIBox {
     pub relative_pos: BoxPosition,
@@ -52,11 +51,10 @@ impl UIBox {
 
     pub fn validate_properties(
         &self,
-        scene: &Arc<RwLock<Scene>>,
         ui: &mut UI,
     ) -> Result<(), String> {
         for elem in &self.elems {
-            elem.validate_properties()?;
+            elem.validate_properties(ui)?;
         }
         Ok(())
     }
@@ -74,10 +72,28 @@ impl UIBox {
         self.style.visible = true;
     }
 
+    pub fn get_property(&self, reference: &str) -> Option<&Property> {
+        for elem in &self.elems {
+            if let Some(property) = elem.get_property(reference) {
+                return Some(property);
+            }
+        }
+        None
+    }
+
     pub fn get_property_mut(&mut self, reference: &str) -> Option<&mut Property> {
         for elem in &mut self.elems {
             if let Some(property) = elem.get_property_mut(reference) {
                 return Some(property);
+            }
+        }
+        None
+    }
+
+    pub fn get_element(&self, reference: &str) -> Option<&UIElement>{
+        for elem in &self.elems {
+            if let Some(elem) = elem.get_element(reference) {
+                return Some(elem);
             }
         }
         None
@@ -163,6 +179,7 @@ impl UIBox {
                     hitbox_list.push(hitbox)
                 }
             }
+            // We insert the element back into the ui
             self.elems.insert(i, elem);
         }
         //We now have the true size of the box

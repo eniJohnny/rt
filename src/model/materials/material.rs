@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::model::maths::{hit::Hit, vec3::Vec3};
+use crate::{model::maths::{hit::Hit, vec3::Vec3}, ui::{uielement::UIElement, utils::Displayable}};
 
 use super::{
     color::Color,
