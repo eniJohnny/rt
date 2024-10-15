@@ -11,7 +11,8 @@ use crate::model::shapes::{
     cone::Cone, cylinder::Cylinder, plane::Plane,
     sphere::Sphere, rectangle::Rectangle, triangle::Triangle,
     ComposedShape, helix::Helix, torusphere::Torusphere,
-    brick::Brick, nagone::Nagone, mobius::Mobius, ellipse::Ellipse
+    brick::Brick, nagone::Nagone, mobius::Mobius, ellipse::Ellipse,
+    cube::Cube
 };
 use crate::{error, MAX_EMISSIVE, AABB_OPACITY};
 // use crate::{error, SCENE};
@@ -275,6 +276,21 @@ pub fn get_scene(scene_file: &String) -> Scene {
 
                 scene.add_element(element);
                 scene.add_element(aabb_element);
+            }
+            "cube" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let dir = get_coordinates_value(&object, "dir");
+                let width = get_float_value(&object, "width");
+                let color = get_color(&object);
+
+                let shape = Box::new(Cube::new(pos, dir, width));
+
+                let material = get_material(&object, color);
+                scene.add_textures(&material);
+                
+                let element = Element::new(shape, material);
+
+                scene.add_element(element);
             }
             _ => {}
         }

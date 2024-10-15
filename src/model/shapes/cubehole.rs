@@ -138,6 +138,19 @@ impl CubeHole {
             elements.push(Element::new(Box::new(rectangle), material.copy()));
         }
 
+        let cap1 = Ellipse::new(
+            rectangle_positions[2].clone(),
+            dir_l.clone(),
+            rectangle_dims[2].0 / 4.,
+            rectangle_dims[2].1 / 4.,
+        );
+        let cap2 = Ellipse::new(
+            rectangle_positions[3].clone(),
+            dir_l.clone(),
+            rectangle_dims[3].0 / 4.,
+            rectangle_dims[3].1 / 4.,
+        );
+
         // Create and return the cubehole
         CubeHole {
             pos,
@@ -146,7 +159,7 @@ impl CubeHole {
             color,
             material,
             elements,
-            caps: Vec::new(),
+            caps: vec![cap1, cap2],
         }
     }
 }

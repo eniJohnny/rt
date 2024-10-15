@@ -249,7 +249,7 @@ impl Ellipse {
     }
 
     pub fn is_inside(&self, point: Vec3) -> bool {
-        let rotation_matrix = rotation_z(self.alpha) * rotation_y(self.beta) * rotation_x(self.gamma);
+        let rotation_matrix = rotation_z(self.gamma) * rotation_y(self.beta) * rotation_x(self.alpha);
         let inverse_rotation = rotation_matrix.try_inverse().unwrap();
         let projected_point = matrix3_vec3_mult(inverse_rotation, point - self.pos);
         let x = projected_point.x();

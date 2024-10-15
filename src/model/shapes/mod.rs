@@ -29,6 +29,7 @@ pub mod nagone;
 pub mod mobius;
 pub mod cubehole;
 pub mod ellipse;
+pub mod cube;
 
 pub trait Shape: Debug + Sync + Send {
     fn distance(&self, vec: &Vec3) -> f64;
@@ -55,6 +56,8 @@ pub trait Shape: Debug + Sync + Send {
             return "Wireframe".to_string();
         } else if self.as_ellipse().is_some() {
             return "Ellipse".to_string();
+        } else if self.as_cube().is_some() {
+            return "Cube".to_string();
         } else {
             return "Unknown".to_string();
         }
@@ -69,6 +72,7 @@ pub trait Shape: Debug + Sync + Send {
     fn as_aabb(&self) -> Option<&Aabb> { None }
     fn as_wireframe(&self) -> Option<&Wireframe> { None }
     fn as_ellipse(&self) -> Option<&ellipse::Ellipse> { None }
+    fn as_cube(&self) -> Option<&cube::Cube> { None }
     fn aabb(&self) -> Option<&Aabb> { None }
 }
 
