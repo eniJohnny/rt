@@ -3,9 +3,9 @@ use crate::{
         materials::color::Color,
         maths::{hit::Hit, ray::Ray, vec3::Vec3},
         objects::light::{Light, ParallelLight},
-        scene::Scene,
+        scene::Scene, shapes::Shape,
     },
-    render::raycasting::get_closest_hit,
+    render::{raycasting::get_closest_hit, skysphere::get_skysphere_color},
 };
 
 pub fn simple_lighting_from_ray(
@@ -15,12 +15,20 @@ pub fn simple_lighting_from_ray(
     light: &ParallelLight,
 ) -> Color {
     match get_closest_hit(scene, ray) {
-        Some(hit) => simple_lighting_from_hit(&hit, ambient, light),
+        Some(hit) => {
+            if hit.element().shape().as_wireframe().is_some() {
+                return Color::new(1., 1., 1.);
+            }
+            simple_lighting_from_hit(&hit, ambient, light)
+        }
         //TODO : Handle BG on None
-        None => Color::new(0., 0., 0.),
+        None => {
+            get_skysphere_color(scene, ray)
+        }
     }
 }
 
 pub fn simple_lighting_from_hit(hit: &Hit, ambient: &Color, light: &ParallelLight) -> Color {
+
     return hit.color() * ambient + light.get_diffuse(hit) * hit.color();
 }
