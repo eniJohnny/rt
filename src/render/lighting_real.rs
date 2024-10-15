@@ -5,9 +5,9 @@ use rand::Rng;
 use crate::{
     model::{
         materials::color::Color,
-        maths::{hit::Hit, ray::Ray, vec3::Vec3},
+        maths::{hit::{self, Hit}, ray::Ray, vec3::Vec3},
         objects::light,
-        scene::Scene,
+        scene::Scene, shapes::Shape,
     },
     MAX_DEPTH,
 };
@@ -54,7 +54,7 @@ pub fn fresnel_reflect_ratio(n1: f64, n2: f64, norm: &Vec3, ray: &Vec3, f0: f64,
 }
 
 pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
-    let absorbed = 1.0 - hit.metalness() - hit.refraction();
+    let absorbed = 1.0 - hit.metalness();
 
     if ray.debug {
         println!(
@@ -98,38 +98,38 @@ pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
         } else {
             light_color += reflect_color * hit.color();
         }
-	} else if rand < refracted + reflected && scene.imperfect_reflections() && ray.get_depth() < MAX_DEPTH {
-		// Refracted Light
-		// let refraction_ratio = 1.52;
-		// let refract_color;
-		// if let Some(refracted_dir) = refract(ray.get_dir(), hit.norm(), refraction_ratio) {
-		// 	let refract_ray = Ray::new(hit.pos().clone(), refracted_dir, ray.get_depth() + 1);
-		// 	refract_color = get_lighting_from_ray(scene, &refract_ray);
-		// 	// refract_color = Color::new(0., 1., 0.);
-		// } else {
-		// 	refract_color = Color::new(0., 0., 0.);
-		// }
-		// light_color += refract_color * (1.0 - hit.metalness());
-
-		// Try to refract the ray
-		let refract_color;
-		let refraction_result = refract(ray.get_dir().clone(), hit.norm().clone(), 1., 1.52);
-		if let Some(refracted_ray) = refraction_result {
-			let refract_ray = Ray::new(hit.pos().clone() - hit.norm() * 0.01, refracted_ray, ray.get_depth() + 1);
-			refract_color = get_lighting_from_ray(scene, &refract_ray);
-		} else {
-			// Handle total internal reflection, fallback to reflection
-			refract_color = Color::new(0., 0., 0.);
-		}
-		light_color += refract_color * (1.0 - hit.metalness());
-
 	} else {
-        // Indirect Light
-        if scene.indirect_lightning() && ray.get_depth() < MAX_DEPTH {
-            // if ray.get_depth() == 0 {
-            //     let sample = get_indirect_light_sample(hit.clone(), scene, &ray);
-            //     light_color += sample.color * sample.weight * hit.color();
-            // } else {
+
+
+		let rand = rand::thread_rng().gen_range(0.0..1.0);
+
+
+
+		if rand < refracted && ray.get_depth() < MAX_DEPTH {
+			// Refracted ray
+			let mut refract_color = Color::new(0., 0., 0.);
+			let refraction_result = refract(ray.get_dir().clone(), hit.norm().clone(), 1., 1.52);
+			if let Some(refracted_ray) = refraction_result {
+
+				let refract_ray = Ray::new(hit.pos().clone() - hit.norm() * 0.01, refracted_ray.clone(), ray.get_depth());
+				let refract_hit = get_closest_hit(scene, &refract_ray);
+				if let Some(refract_hit) = refract_hit {
+					// refract again to go out of the object
+					let refracted_out = refract(refracted_ray, refract_hit.norm().clone(), 1.52, 1.);
+					if let Some(refracted_out) = refracted_out {
+						let refract_out_ray = Ray::new(refract_hit.pos().clone() + refract_hit.norm().clone() * 0.01, refracted_out.clone(), ray.get_depth());
+						refract_color = get_lighting_from_ray(scene, &refract_out_ray);
+					}
+				}
+			}
+			light_color += refract_color;
+	
+		} else 
+		if scene.indirect_lightning() && ray.get_depth() < MAX_DEPTH { // Indirect Light
+            if ray.get_depth() == 0 {
+                let sample = get_indirect_light_sample(hit.clone(), scene, &ray);
+                light_color += sample.color * sample.weight * hit.color();
+            } else {
             let mut indirect_dir = hit.norm() + random_unit_vector();
             if indirect_dir.length() < 0.01 {
                 indirect_dir = hit.norm().clone();
@@ -137,22 +137,11 @@ pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
             indirect_dir = indirect_dir.normalize();
             let indirect_ray = Ray::new(hit.pos().clone(), indirect_dir, ray.get_depth() + 1);
             light_color = get_lighting_from_ray(scene, &indirect_ray) * hit.color();
-            // }
+            }
         }
     }
 	light_color
 }
-
-// fn refract(v: &Vec3, n: &Vec3, eta: f64) -> Option<Vec3> {
-// 	let uv = v.clone().normalize();
-// 	let dt = uv.dot(n);
-// 	let discriminant = 1.0 - eta * eta * (1.0 - dt * dt);
-// 	// if discriminant > 0.0 {
-// 		Some(eta * (uv - n * dt) - n * discriminant.sqrt())
-// 	// } else {
-// 	// 	None // Total internal reflection
-// 	// }
-// }
 
 fn refract(incoming: Vec3, normal: Vec3, n1: f64, n2: f64) -> Option<Vec3> {
     let n = n1 / n2;

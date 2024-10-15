@@ -1,10 +1,20 @@
 [
     {
+        "type": "cylinder",
+        "pos": [0, -2, 6],
+        "dir": [0, 1, 0],
+        "color": [255, 0, 0],
+        "radius": 1.0,
+        "height": 4.0,
+        "roughness": 0.0
+    },
+    {
         "type": "sphere",
-        "pos": [-2.5, 2.5, 2],
+        "pos": [0, 0, 2],
         "dir": [0, 1, 0],
         "color": [255, 255, 255],
-        "radius": 2.0
+        "radius": 2.0,
+        "roughness": 0.0
     },
     {
         "type": "camera",

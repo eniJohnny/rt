@@ -27,7 +27,7 @@ impl Shape for Sphere {
         }
         let intersection1 = &dot_product - &discriminant.sqrt();
         let intersection2 = &dot_product + &discriminant.sqrt();
-        if intersection1 > 0.0 {
+        if intersection1 > 0.0 || intersection2 > 0.0 {
             return Some(Vec::from([intersection1, intersection2]));
         }
         None

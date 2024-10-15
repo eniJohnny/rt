@@ -82,7 +82,10 @@ impl<'a> Hit<'a> {
         self.metalness
     }
     pub fn refraction(&self) -> f64 {
-        0.5
+		if self.element.shape().as_sphere().is_some() {
+			return 1.
+		}
+		0.
     }
     pub fn roughness(&self) -> f64 {
         self.roughness
