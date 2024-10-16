@@ -53,21 +53,20 @@ impl Shape for Cube {
 
         let mut u: f64;
         let mut v: f64;
-        if *pos.x() - axis_aligned_cube.x_min() < 1e6 || *pos.x() - axis_aligned_cube.x_max() < 1e6 {
-            // Left or Right
-            println!("Left or Right");
-            println!("pos: {}, hit_pos: {}", pos, hit.pos());
-            u = (pos.z() - axis_aligned_cube.z_min()) / (axis_aligned_cube.z_max() - axis_aligned_cube.z_min());
+        if (*pos.z() - axis_aligned_cube.z_min() < 1e-6 && *pos.z() - axis_aligned_cube.z_min() > -1e-6)
+        || (*pos.z() - axis_aligned_cube.z_max() < 1e-6 && *pos.z() - axis_aligned_cube.z_max() > -1e-6) {
+            // Back or Front
+            u = (pos.x() - axis_aligned_cube.x_min()) / (axis_aligned_cube.x_max() - axis_aligned_cube.x_min());
             v = (pos.y() - axis_aligned_cube.y_min()) / (axis_aligned_cube.y_max() - axis_aligned_cube.y_min());
-        } else if *pos.y() - axis_aligned_cube.y_min() < 1e6 || *pos.y() - axis_aligned_cube.y_max() < 1e6 {
+        } else if (*pos.y() - axis_aligned_cube.y_min() < 1e-6 && *pos.y() - axis_aligned_cube.y_min() > -1e-6)
+        || (*pos.y() - axis_aligned_cube.y_max() < 1e-6 && *pos.y() - axis_aligned_cube.y_max() > -1e-6) {
             // Top or Bottom
-            println!("Top or Bottom");
             u = (pos.x() - axis_aligned_cube.x_min()) / (axis_aligned_cube.x_max() - axis_aligned_cube.x_min());
             v = (pos.z() - axis_aligned_cube.z_min()) / (axis_aligned_cube.z_max() - axis_aligned_cube.z_min());
-        } else if *pos.z() - axis_aligned_cube.z_min() < 1e6 || *pos.z() - axis_aligned_cube.z_max() < 1e6 {
-            // Back or Front
-            println!("Back or Front");
-            u = (pos.x() - axis_aligned_cube.x_min()) / (axis_aligned_cube.x_max() - axis_aligned_cube.x_min());
+        } else if (*pos.x() - axis_aligned_cube.x_min() < 1e-6 && *pos.x() - axis_aligned_cube.x_min() > -1e-6)
+        || (*pos.x() - axis_aligned_cube.x_max() < 1e-6 && *pos.x() - axis_aligned_cube.x_max() > -1e-6) {
+            // Left or Right
+            u = (pos.z() - axis_aligned_cube.z_min()) / (axis_aligned_cube.z_max() - axis_aligned_cube.z_min());
             v = (pos.y() - axis_aligned_cube.y_min()) / (axis_aligned_cube.y_max() - axis_aligned_cube.y_min());
         } else {
             error("Cube projection error");
@@ -81,7 +80,7 @@ impl Shape for Cube {
         if v < 0. {
             v += 1.;
         }
-        println!("u: {}, v: {}", u, v);
+        // println!("u: {}, v: {}", u, v);
         let constant_axis = get_constant_axis(&self.dir, &hit.norm().normalize());
         let i = hit.norm().normalize().cross(&constant_axis).normalize();
         let j = hit.norm().normalize().cross(&i).normalize();
@@ -124,8 +123,14 @@ impl Cube {
     pub fn set_pos(&mut self, pos: Vec3) { self.pos = pos; }
     pub fn set_dir(&mut self, dir: Vec3) {
         self.dir = dir;
+        let (mut alpha, mut beta, mut gamma) = (0., 0., 0.);
 
-        let (alpha, beta, gamma) = (*get_angles(&dir).x(), *get_angles(&dir).y(), *get_angles(&dir).z());
+        if dir != Vec3::new(0.0, 1.0, 0.0) && dir != Vec3::new(0.0, -1.0, 0.0)
+        && dir != Vec3::new(0.0, 0.0, 1.0) && dir != Vec3::new(0.0, 0.0, -1.0) 
+        && dir != Vec3::new(1.0, 0.0, 0.0) && dir != Vec3::new(-1.0, 0.0, 0.0) {
+            (alpha, beta, gamma) = (*get_angles(&dir).x(), *get_angles(&dir).y(), *get_angles(&dir).z());
+        }
+
         self.set_alpha(alpha);
         self.set_beta(beta);
         self.set_gamma(gamma);
@@ -141,7 +146,14 @@ impl Cube {
 
     // Constructor
     pub fn new(pos: Vec3, dir: Vec3, width: f64) -> Cube {
-        let (alpha, beta, gamma) = (*get_angles(&dir).x(), *get_angles(&dir).y(), *get_angles(&dir).z());
+        let (mut alpha, mut beta, mut gamma) = (0., 0., 0.);
+
+        if dir != Vec3::new(0.0, 1.0, 0.0) && dir != Vec3::new(0.0, -1.0, 0.0)
+        && dir != Vec3::new(0.0, 0.0, 1.0) && dir != Vec3::new(0.0, 0.0, -1.0) 
+        && dir != Vec3::new(1.0, 0.0, 0.0) && dir != Vec3::new(-1.0, 0.0, 0.0) {
+            (alpha, beta, gamma) = (*get_angles(&dir).x(), *get_angles(&dir).y(), *get_angles(&dir).z());
+        }
+
         let rotation = rotation_z(gamma) * rotation_y(beta) * rotation_x(alpha);
         let axis_aligned_cube = to_aabb(pos, width);
         self::Cube { pos, dir, width, alpha, beta, gamma, rotation, axis_aligned_cube }
@@ -227,9 +239,11 @@ fn to_aabb(pos: Vec3, width: f64) -> Aabb {
 }
 
 fn get_constant_axis(dir: &Vec3, norm: &Vec3) -> Vec3 {
-    let any_x = *dir == Vec3::new(1.0, 0.0, 0.0) || *dir == Vec3::new(-1.0, 0.0, 0.0) || *norm == Vec3::new(1.0, 0.0, 0.0) || *norm == Vec3::new(-1.0, 0.0, 0.0);
-    let any_y = *dir == Vec3::new(0.0, 1.0, 0.0) || *dir == Vec3::new(0.0, -1.0, 0.0) || *norm == Vec3::new(0.0, 1.0, 0.0) || *norm == Vec3::new(0.0, -1.0, 0.0);
-    let any_z = *dir == Vec3::new(0.0, 0.0, 1.0) || *dir == Vec3::new(0.0, 0.0, -1.0) || *norm == Vec3::new(0.0, 0.0, 1.0) || *norm == Vec3::new(0.0, 0.0, -1.0);
+    let (dirx, diry, dirz) = (*dir.x(), *dir.y(), *dir.z());
+    let (normx, normy, normz) = (*norm.x(), *norm.y(), *norm.z());
+    let any_x = (dirx.abs() == 1.0 && diry.abs() == 0.0 && dirz.abs() == 0.0) || (normx.abs() == 1.0 && normy.abs() == 0.0 && normz.abs() == 0.0);
+    let any_y = (dirx.abs() == 0.0 && diry.abs() == 1.0 && dirz.abs() == 0.0) || (normx.abs() == 0.0 && normy.abs() == 1.0 && normz.abs() == 0.0);
+    let any_z = (dirx.abs() == 0.0 && diry.abs() == 0.0 && dirz.abs() == 1.0) || (normx.abs() == 0.0 && normy.abs() == 0.0 && normz.abs() == 1.0);
 
     if any_x && !any_y {
         Vec3::new(0.0, 1.0, 0.0)
@@ -244,6 +258,6 @@ fn get_constant_axis(dir: &Vec3, norm: &Vec3) -> Vec3 {
     } else if any_z && !any_y {
         Vec3::new(0.0, 1.0, 0.0)
     } else {
-        Vec3::new(0.0, 1.0, 1.0)
+        Vec3::new(0.0, 1.0, 0.0)
     }
 }
