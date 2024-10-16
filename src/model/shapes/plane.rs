@@ -4,7 +4,7 @@ use crate::model::{
     maths::{hit::Hit, ray::Ray, vec3::Vec3},
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Plane {
     pos: Vec3,
     dir: Vec3,

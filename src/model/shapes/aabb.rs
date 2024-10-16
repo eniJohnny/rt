@@ -4,7 +4,7 @@ use super::Shape;
 use crate::model::materials::material::Projection;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 use crate::model::scene::Scene;
-use crate::{ERROR_MARGIN, WIREFRAME_THICKNESS, AABB_STEPS_NB};
+use crate::{error, AABB_STEPS_NB, ERROR_MARGIN, WIREFRAME_THICKNESS};
 
 
 #[derive(Debug, Clone)]
@@ -450,7 +450,8 @@ impl Shape for Aabb {
             // println!("zmax_diff: {} - {}", zmax_diff, zmax_diff < ERROR_MARGIN);
             // println!("----------------------------------------------------");
 
-            panic!("Error: hit_position is not on the AABB.\nThe problem certainly comes from the error margin.\nYou can use the debug print right above this message (src/model/shapes/aabb.rs:151 atm) to see why it didn't trigger.\nAdjust ERROR_MARGIN (src/lib.rs) if needed.");
+            // error("Error: hit_position is not on the AABB.\nThe problem certainly comes from the error margin.\nYou can use the debug print right above this message (src/model/shapes/aabb.rs:151 atm) to see why it didn't trigger.\nAdjust ERROR_MARGIN (src/lib.rs) if needed.");
+            return Vec3::new(0.0, 0.0, 0.0);
         }
     }
 

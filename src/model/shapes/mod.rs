@@ -30,6 +30,7 @@ pub mod mobius;
 pub mod cubehole;
 pub mod ellipse;
 pub mod cube;
+pub mod any;
 
 pub trait Shape: Debug + Sync + Send {
     fn distance(&self, vec: &Vec3) -> f64;
@@ -58,6 +59,10 @@ pub trait Shape: Debug + Sync + Send {
             return "Ellipse".to_string();
         } else if self.as_cube().is_some() {
             return "Cube".to_string();
+        } else if self.as_cubehole().is_some() {
+            return "Cubehole".to_string();
+        } else if self.as_any().is_some() {
+            return "Any".to_string();
         } else {
             return "Unknown".to_string();
         }
@@ -73,6 +78,8 @@ pub trait Shape: Debug + Sync + Send {
     fn as_wireframe(&self) -> Option<&Wireframe> { None }
     fn as_ellipse(&self) -> Option<&ellipse::Ellipse> { None }
     fn as_cube(&self) -> Option<&cube::Cube> { None }
+    fn as_cubehole(&self) -> Option<&cubehole::Cubehole> { None }
+    fn as_any(&self) -> Option<&any::Any> { None }
     fn aabb(&self) -> Option<&Aabb> { None }
 }
 
@@ -85,5 +92,5 @@ pub trait ComposedShape: Debug + Sync + Send {
     fn as_brick(&self) -> Option<&brick::Brick> { None }
     fn as_nagone(&self) -> Option<&nagone::Nagone> { None }
     fn as_mobius(&self) -> Option<&mobius::Mobius> { None }
-    fn as_cubehole(&self) -> Option<&cubehole::CubeHole> { None }
+    fn as_cubehole(&self) -> Option<&cubehole::Cubehole> { None }
 }

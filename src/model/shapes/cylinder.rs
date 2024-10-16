@@ -7,7 +7,7 @@ use crate::model::materials::material::Projection;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 use crate::model::shapes::plane::Plane;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Cylinder {
     pos: Vec3,
     dir: Vec3,

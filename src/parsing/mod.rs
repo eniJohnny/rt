@@ -1,6 +1,6 @@
 use crate::model::materials::color::{self, Color};
 use crate::model::materials::diffuse::Diffuse;
-use crate::model::materials::material::Material;
+use crate::model::materials::material::{self, Material};
 use crate::model::materials::texture::{Texture, TextureType};
 use crate::model::maths::vec3::Vec3;
 use crate::model::objects::camera::Camera;
@@ -12,7 +12,7 @@ use crate::model::shapes::{
     sphere::Sphere, rectangle::Rectangle, triangle::Triangle,
     ComposedShape, helix::Helix, torusphere::Torusphere,
     brick::Brick, nagone::Nagone, mobius::Mobius, ellipse::Ellipse,
-    cube::Cube
+    cube::Cube, cubehole::Cubehole, any::Any
 };
 use crate::{error, MAX_EMISSIVE, AABB_OPACITY};
 // use crate::{error, SCENE};
@@ -292,6 +292,34 @@ pub fn get_scene(scene_file: &String) -> Scene {
 
                 scene.add_element(element);
             }
+            "cubehole" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let dir = get_coordinates_value(&object, "dir");
+                let width = get_float_value(&object, "width");
+                let color = get_color(&object);
+
+                let shape = Box::new(Cubehole::new(pos, dir, width));
+
+                let material = get_material(&object, color);
+                scene.add_textures(&material);
+                
+                let element = Element::new(shape, material);
+
+                scene.add_element(element);
+            }
+            "any" => {
+                let equation = get_string_value(&object, "equation");
+                let color = get_color(&object);
+
+                let shape = Box::new(Any::new(equation));
+
+                let material = get_material(&object, color);
+                scene.add_textures(&material);
+
+                let element = Element::new(shape, material);
+
+                scene.add_element(element);
+            }
             _ => {}
         }
     }
@@ -449,5 +477,15 @@ fn get_float_value(object: &HashMap<String, String>, key: &str) -> f64 {
 
     object[key]
         .parse::<f64>()
+        .expect(&("Error parsing ".to_owned() + key))
+}
+
+fn get_string_value(object: &HashMap<String, String>, key: &str) -> String {
+    if object[key].parse::<String>().is_err() {
+        error(&(key.to_owned() + " must be a string."));
+    }
+
+    object[key]
+        .parse::<String>()
         .expect(&("Error parsing ".to_owned() + key))
 }
