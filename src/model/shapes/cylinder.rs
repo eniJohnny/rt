@@ -15,7 +15,7 @@ use crate::ui::ui::UI;
 use crate::ui::uielement::{Category, UIElement};
 use crate::ui::utils::misc::{ElemType, Property, Value};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Cylinder {
     pos: Vec3,
     dir: Vec3,

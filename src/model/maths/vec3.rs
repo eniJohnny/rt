@@ -93,6 +93,18 @@ impl Vec3 {
     pub fn from_color(color: Color) -> Self {
         Vec3::new(color.r(), color.g(), color.b())
     }
+
+    pub fn abs(&self) -> Self {
+        Vec3::new(self.x.abs(), self.y.abs(), self.z.abs())
+    }
+
+    pub fn max(&self) -> f64 {
+        self.x.max(self.y).max(self.z)
+    }
+
+    pub fn min(&self) -> f64 {
+        self.x.min(self.y).min(self.z)
+    }
 }
 
 impl Add for Vec3 {
@@ -345,6 +357,20 @@ impl Div<&f64> for &Vec3 {
             x: self.x / rhs,
             y: self.y / rhs,
             z: self.z / rhs,
+        }
+    }
+}
+
+impl Div<&Vec3> for f64 {
+    type Output = Vec3;
+    fn div(self, rhs: &Vec3) -> Self::Output {
+        if rhs.x == 0. || rhs.y == 0. || rhs.z == 0. {
+            panic!("Division by zero");
+        }
+        Vec3 {
+            x: self / rhs.x,
+            y: self / rhs.y,
+            z: self / rhs.z,
         }
     }
 }

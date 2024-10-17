@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, iter};
 
 use image::{ImageBuffer, Rgba};
 use rand::Rng;
@@ -97,7 +97,8 @@ pub fn get_sorted_hit_from_t<'a>(scene: &'a Scene, ray: &Ray, t: &Option<Vec<f64
 
 pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     let mut closest: Option<Hit> = None;
-    let elements = scene.elements();
+    let elements: &Vec<Element> = scene.elements();
+    let composed_elements = scene.composed_elements();
 
     // TESTING PURPOSES
     // let elements;
@@ -152,6 +153,47 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
             }
         }
     }
+
+    for composed in composed_elements {
+        let mut t = None;
+        let elems = composed.composed_shape().elements();
+        for elem in elems {
+            let shape = elem.shape();
+            t = shape.intersect(ray);
+            if let Some(t) = t {
+                for dist in t {
+                    if dist > 0.0 {
+                        if let Some(hit) = &closest {
+                            if &dist < hit.dist() {
+                                let new_hit = Hit::new(
+                                    elem,
+                                    dist,
+                                    ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
+                                    ray.get_dir(),
+                                    scene.textures(),
+                                );
+                                if new_hit.opacity() > 0.5 {
+                                    closest = Some(new_hit);
+                                }
+                            }
+                        } else {
+                            let new_hit = Hit::new(
+                                elem,
+                                dist,
+                                ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
+                                ray.get_dir(),
+                                scene.textures(),
+                            );
+                            if new_hit.opacity() > 0.5 {
+                                closest = Some(new_hit);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     match closest {
         None => None,
         Some(mut hit) => {
