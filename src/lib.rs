@@ -14,8 +14,9 @@ pub mod bvh;
 
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
-const SCENE: &str = "empty";
-/* DISPLACEMENT */
+const SCENE: &str = "testing";
+
+/************* Displacement **************/
 const DISPLACEMENT: bool = false;
 const PLANE_DISPLACED_DISTANCE: f64 = 0.25;
 const PLANE_DISPLACEMENT_STEP: f64 = 0.1;
@@ -24,7 +25,7 @@ const SPHERE_DISPLACEMENT_STEP: f64 = 0.1;
 
 const AABB_OPACITY: f64 = 0.0;
 const AABB_STEPS_NB: usize = 10;
-const DISPLAY_WIREFRAME: bool = true;
+const DISPLAY_WIREFRAME: bool = false;
 const WIREFRAME_THICKNESS: f64 = 0.05;
 const ERROR_MARGIN: f64 = 0.000000000001;
 const SCREEN_WIDTH: usize = 1600;
@@ -42,7 +43,7 @@ const ANAGLYPH: bool = false;
 const ANAGLYPH_OFFSET_X: isize = 80;
 const ANAGLYPH_OFFSET_Y: isize = 16;
 // Available filters: none, grayscale, sepia
-const FILTER: &str = "grayscale";
+const FILTER: &str = "cartoon";
 
 /********* Default UISettings *********/
 const MARGIN: usize = 3;
