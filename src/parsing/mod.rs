@@ -1,14 +1,18 @@
-use crate::model::materials::color::Color;
+use crate::model::materials::color::{self, Color};
 use crate::model::materials::diffuse::Diffuse;
-use crate::model::materials::material::Material;
+use crate::model::materials::material::{self, Material};
 use crate::model::materials::texture::{Texture, TextureType};
 use crate::model::maths::vec3::Vec3;
 use crate::model::objects::camera::Camera;
 use crate::model::objects::light::{AmbientLight, AnyLight, ParallelLight, PointLight};
-use crate::model::Element;
-use crate::model::{
-    scene::Scene, shapes::cone::Cone, shapes::cylinder::Cylinder, shapes::plane::Plane,
-    shapes::sphere::Sphere, shapes::rectangle::Rectangle
+use crate::model::{ComposedElement, Element};
+use crate::model::scene::Scene;
+use crate::model::shapes::{ 
+    cone::Cone, cylinder::Cylinder, plane::Plane,
+    sphere::Sphere, rectangle::Rectangle, triangle::Triangle,
+    ComposedShape, helix::Helix, torusphere::Torusphere,
+    brick::Brick, nagone::Nagone, mobius::Mobius, ellipse::Ellipse,
+    cube::Cube, cubehole::Cubehole, hyperboloid::Hyperboloid, any::Any
 };
 use crate::{error, AABB_OPACITY};
 // use crate::{error, SCENE};
@@ -16,7 +20,6 @@ use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::io::Write;
 use std::ops::Add;
-use crate::model::shapes::triangle::Triangle;
 
 pub fn print_scene(scene: &Scene) {
     write!(std::io::stdout(), "{:#?}\n", scene).expect("Error printing scene");
@@ -184,6 +187,152 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let new_light = AnyLight::new(Box::new(ParallelLight::new(dir, intensity, color)));
                 scene.add_light(new_light);
             }
+            "torusphere" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let dir = get_coordinates_value(&object, "dir");
+                let radius = get_float_value(&object, "radius");
+                let steps = get_float_value(&object, "steps") as usize;
+                let color = match get_color(&object) {
+                    Some(color) => Vec3::new(color.r(), color.g(), color.b()),
+                    None => panic!("Color must be provided for toruspheres"),
+                };
+
+                let torusphere = Torusphere::new(pos, dir, radius, steps, color);
+                let composed_shape = Box::new(torusphere) as Box<dyn ComposedShape + Sync + Send>;
+                let composed_element = ComposedElement::new(composed_shape);
+                scene.add_composed_element(composed_element);
+            }
+            "helix" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let dir = get_coordinates_value(&object, "dir");
+                let height = get_float_value(&object, "height");
+
+                let helix = Helix::new(pos, dir, height);
+                let composed_shape = Box::new(helix) as Box<dyn ComposedShape + Sync + Send>;
+                let composed_element = ComposedElement::new(composed_shape);
+                scene.add_composed_element(composed_element);
+            }
+            "brick" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let dir = get_coordinates_value(&object, "dir");
+                let dimensions = get_coordinates_value(&object, "dimensions");
+                let color = match get_color(&object) {
+                    Some(color) => Vec3::new(color.r(), color.g(), color.b()),
+                    None => panic!("Color must be provided for bricks"),
+                };
+
+                let brick = Brick::new(pos, dir, dimensions, color);
+                let composed_shape = Box::new(brick) as Box<dyn ComposedShape + Sync + Send>;
+                let composed_element = ComposedElement::new(composed_shape);
+                scene.add_composed_element(composed_element);
+            }
+            "nagone" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let dir = get_coordinates_value(&object, "dir");
+                let radius = get_float_value(&object, "radius");
+                let angles = get_float_value(&object, "angles") as usize;
+                let color = match get_color(&object) {
+                    Some(color) => Vec3::new(color.r(), color.g(), color.b()),
+                    None => panic!("Color must be provided for nagones"),
+                };
+
+                let nagone = Nagone::new(pos, dir, radius, angles, color);
+                let composed_shape = Box::new(nagone) as Box<dyn ComposedShape + Sync + Send>;
+                let composed_element = ComposedElement::new(composed_shape);
+                scene.add_composed_element(composed_element);
+            }
+            "mobius" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let radius = get_float_value(&object, "radius");
+                let half_width = get_float_value(&object, "half_width");
+                let color = match get_color(&object) {
+                    Some(color) => Vec3::new(color.r(), color.g(), color.b()),
+                    None => panic!("Color must be provided for mobius"),
+                };
+
+                let mobius = Mobius::new(pos, radius, half_width, color);
+                let composed_shape = Box::new(mobius) as Box<dyn ComposedShape + Sync + Send>;
+                let composed_element = ComposedElement::new(composed_shape);
+                scene.add_composed_element(composed_element);
+            }
+            "ellipse" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let dir = get_coordinates_value(&object, "dir").normalize();
+                let u = get_float_value(&object, "u");
+                let v = get_float_value(&object, "v");
+                let color = get_color(&object);
+
+                let shape = Box::new(Ellipse::new(pos, dir, u, v));
+                let aabb_shape = Box::new(shape.aabb().clone());
+
+                let material = get_material(&object, color);
+                scene.add_textures(&material);
+                let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
+                aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
+                
+                let element = Element::new(shape, material);
+                let aabb_element = Element::new(aabb_shape, aabb_material);
+
+                scene.add_element(element);
+                scene.add_element(aabb_element);
+            }
+            "cube" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let dir = get_coordinates_value(&object, "dir");
+                let width = get_float_value(&object, "width");
+                let color = get_color(&object);
+
+                let shape = Box::new(Cube::new(pos, dir, width));
+
+                let material = get_material(&object, color);
+                scene.add_textures(&material);
+                
+                let element = Element::new(shape, material);
+
+                scene.add_element(element);
+            }
+            "cubehole" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let dir = get_coordinates_value(&object, "dir");
+                let width = get_float_value(&object, "width");
+                let color = get_color(&object);
+
+                let shape = Box::new(Cubehole::new(pos, dir, width));
+
+                let material = get_material(&object, color);
+                scene.add_textures(&material);
+                
+                let element = Element::new(shape, material);
+
+                scene.add_element(element);
+            }
+            "hyperboloid" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let z_shift = get_float_value(&object, "z_shift");
+                let color = get_color(&object);
+
+                let shape = Box::new(Hyperboloid::new(pos, z_shift));
+
+                let material = get_material(&object, color);
+                scene.add_textures(&material);
+
+                let element = Element::new(shape, material);
+
+                scene.add_element(element);
+            }
+            "any" => {
+                let equation = get_string_value(&object, "equation");
+                let color = get_color(&object);
+
+                let shape = Box::new(Any::new(equation));
+
+                let material = get_material(&object, color);
+                scene.add_textures(&material);
+
+                let element = Element::new(shape, material);
+
+                scene.add_element(element);
+            }
             _ => {}
         }
     }
@@ -343,5 +492,15 @@ fn get_float_value(object: &HashMap<String, String>, key: &str) -> f64 {
 
     object[key]
         .parse::<f64>()
+        .expect(&("Error parsing ".to_owned() + key))
+}
+
+fn get_string_value(object: &HashMap<String, String>, key: &str) -> String {
+    if object[key].parse::<String>().is_err() {
+        error(&(key.to_owned() + " must be a string."));
+    }
+
+    object[key]
+        .parse::<String>()
         .expect(&("Error parsing ".to_owned() + key))
 }

@@ -1,4 +1,5 @@
 use materials::material::Material;
+use shapes::ComposedShape;
 
 use self::{shapes::Shape};
 
@@ -53,5 +54,30 @@ impl Element {
 
     pub fn set_id(&mut self, id: u32) {
         self.id = id;
+    }
+}
+
+#[derive(Debug)]
+pub struct ComposedElement {
+    composed_shape: Box<dyn Sync + ComposedShape>,
+}
+
+impl ComposedElement {
+    pub fn new(composed_shape: Box<dyn Sync + ComposedShape>) -> Self {
+        Self {
+            composed_shape,
+        }
+    }
+
+    pub fn composed_shape(&self) -> &Box<dyn Sync + ComposedShape> {
+        &self.composed_shape
+    }
+
+    pub fn composed_shape_mut(&mut self) -> &mut Box<dyn Sync + ComposedShape> {
+        &mut self.composed_shape
+    }
+
+    pub fn material(&self) -> &dyn Material {
+        self.composed_shape().material()
     }
 }

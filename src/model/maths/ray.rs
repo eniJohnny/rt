@@ -37,8 +37,14 @@ impl Ray {
     pub fn is_sampling(&self) -> bool {
         self.sampling
     }
+    pub fn set_pos(&mut self, pos: Vec3) {
+        self.pos = pos;
+    }
     pub fn set_dir(&mut self, dir: Vec3) {
         self.dir = dir;
+    }
+    pub fn set_depth(&mut self, depth: u8) {
+        self.depth = depth;
     }
 }
 

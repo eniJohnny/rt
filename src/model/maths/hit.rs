@@ -70,6 +70,10 @@ impl<'a> Hit<'a> {
         &self.pos
     }
 
+    pub fn set_pos(&mut self, pos: Vec3) {
+        self.pos = pos;
+    }
+
     pub fn norm(&self) -> &Vec3 {
         &self.norm
     }

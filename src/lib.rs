@@ -1,6 +1,7 @@
 extern crate image;
 use display::mainloop::start_scene;
 use image::flat::View;
+use model::maths::vec3::Vec3;
 use parsing::get_scene;
 use render::settings::ViewMode;
 use winit::keyboard::KeyCode;
@@ -16,7 +17,7 @@ pub mod bvh;
 
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
-const SCENE: &str = "metalrough";
+const SCENE: &str = "empty";
 /* DISPLACEMENT */
 const DISPLACEMENT: bool = false;
 const PLANE_DISPLACED_DISTANCE: f64 = 0.25;
@@ -88,6 +89,7 @@ pub fn run() {
         if DISPLAY_WIREFRAME {
             scene.add_wireframes();
         }
+
         scene.update_bvh();
         start_scene(scene);
     }
