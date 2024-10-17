@@ -31,6 +31,7 @@ pub mod cubehole;
 pub mod ellipse;
 pub mod cube;
 pub mod any;
+pub mod hyperboloid;
 
 pub trait Shape: Debug + Sync + Send {
     fn distance(&self, vec: &Vec3) -> f64;
@@ -61,6 +62,8 @@ pub trait Shape: Debug + Sync + Send {
             return "Cube".to_string();
         } else if self.as_cubehole().is_some() {
             return "Cubehole".to_string();
+        } else if self.as_hyperboloid().is_some() {
+            return "Hyperboloid".to_string();
         } else if self.as_any().is_some() {
             return "Any".to_string();
         } else {
@@ -79,6 +82,7 @@ pub trait Shape: Debug + Sync + Send {
     fn as_ellipse(&self) -> Option<&ellipse::Ellipse> { None }
     fn as_cube(&self) -> Option<&cube::Cube> { None }
     fn as_cubehole(&self) -> Option<&cubehole::Cubehole> { None }
+    fn as_hyperboloid(&self) -> Option<&hyperboloid::Hyperboloid> { None }
     fn as_any(&self) -> Option<&any::Any> { None }
     fn aabb(&self) -> Option<&Aabb> { None }
 }

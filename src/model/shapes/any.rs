@@ -22,8 +22,8 @@ impl Shape for Any {
             let p = r.get_pos() + r.get_dir() * t;
             let mut ctx = meval::Context::new();
             ctx.var("x", *p.x())
-                .var("y", *p.y())
-                .var("z", *p.z());
+                .var("z", *p.y())
+                .var("y", *p.z());
 
             eval_str_with_context(&self.equation, ctx).unwrap_or(-1.0)
         };
@@ -54,24 +54,35 @@ impl Shape for Any {
 
         let constant_axis: Vec3;
         if *hit.norm() == Vec3::new(0., 1., 0.) {
-            constant_axis = Vec3::new(0., 0., 1.);
+            constant_axis = Vec3::new(1., 0., 0.);
         } else {
             constant_axis = Vec3::new(0., 1., 0.);
         }
         projection.i = hit.norm().cross(&constant_axis).normalize();
         projection.j = hit.norm().cross(&projection.i).normalize();
         projection.k = hit.norm().clone();
-        let dist = hit.pos() - self.pos();
-        let i_component = dist.dot(&projection.i) / &scale;
-        let j_component = dist.dot(&projection.j) / &scale;
-        projection.u = &i_component - (i_component as i32) as f64;
+        
+        let normalized_pos = hit.pos().normalize();
+        let (x, y, z) = (*normalized_pos.x(), *normalized_pos.y(), *normalized_pos.z());
+
+        if x.abs() > y.abs() && x.abs() > z.abs() {
+            projection.u = z;
+            projection.v = y;
+        } else if y.abs() > x.abs() && y.abs() > z.abs() {
+            projection.u = x;
+            projection.v = z;
+        } else {
+            projection.u = x;
+            projection.v = y;
+        }
+
         if projection.u < 0. {
             projection.u += 1.;
         }
-        projection.v = &j_component - (j_component as i32) as f64;
         if projection.v < 0. {
             projection.v += 1.;
         }
+
         projection
     }
 
@@ -79,8 +90,8 @@ impl Shape for Any {
         let f = |x: f64, y: f64, z: f64| -> f64 {
             let mut ctx = meval::Context::new();
             ctx.var("x", x)
-                .var("y", y)
-                .var("z", z);
+                .var("z", y)
+                .var("y", z);
 
             eval_str_with_context(&self.equation, ctx).unwrap_or(-1.0)
         };

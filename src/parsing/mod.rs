@@ -12,7 +12,7 @@ use crate::model::shapes::{
     sphere::Sphere, rectangle::Rectangle, triangle::Triangle,
     ComposedShape, helix::Helix, torusphere::Torusphere,
     brick::Brick, nagone::Nagone, mobius::Mobius, ellipse::Ellipse,
-    cube::Cube, cubehole::Cubehole, any::Any
+    cube::Cube, cubehole::Cubehole, hyperboloid::Hyperboloid, any::Any
 };
 use crate::{error, MAX_EMISSIVE, AABB_OPACITY};
 // use crate::{error, SCENE};
@@ -303,6 +303,20 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let material = get_material(&object, color);
                 scene.add_textures(&material);
                 
+                let element = Element::new(shape, material);
+
+                scene.add_element(element);
+            }
+            "hyperboloid" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let z_shift = get_float_value(&object, "z_shift");
+                let color = get_color(&object);
+
+                let shape = Box::new(Hyperboloid::new(pos, z_shift));
+
+                let material = get_material(&object, color);
+                scene.add_textures(&material);
+
                 let element = Element::new(shape, material);
 
                 scene.add_element(element);
