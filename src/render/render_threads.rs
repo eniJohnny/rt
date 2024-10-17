@@ -31,10 +31,7 @@ struct Tile {
     pub y: usize,
     pub width: usize,
     pub height: usize,
-    pub factor: usize,
-    pub sampling: bool,
-    pub iteration: u32,
-    pub previousIteration: Vec<Vec<PathBucket>>,
+    pub factor: usize
 }
 
 fn generate_tiles_for(
@@ -63,10 +60,7 @@ fn generate_tiles_for(
                     y,
                     width,
                     height,
-                    factor,
-                    iteration: 0,
-                    sampling,
-                    previousIteration: Vec::new(),
+                    factor
                 });
                 y += simplification_factor;
             }
@@ -129,10 +123,10 @@ pub fn start_render_threads(
                             colors.push(get_lighting_from_ray(&scene, &ray))
                         }
                     });
-                    cur_tx.send((tile, colors)).unwrap();
+                    cur_tx.send((tile, colors)).ok();
                 }
+                thread::sleep(Duration::from_millis(10));
                 // Lorsqu'il n'y a plus de travail de disponible pour le moment, on ne surcharge pas la queue avec des reads constants.
-                thread::sleep(Duration::from_millis(5));
             });
         }
         main_render_loop(rc, rb, ta, work_queue, scene);
@@ -153,6 +147,40 @@ fn vec_to_image(vec: &Vec<Vec<Color>>) -> RgbaImage {
     image
 }
 
+fn fill_work_queue(low_res_to_do: &mut u32, max_res_to_do: &mut u32, nb_tiles_to_do: &mut usize, queue: &Arc<Mutex<VecDeque<Tile>>>,simplification_factor: usize, rc: &Receiver<(Tile, Vec<Color>)>) {
+
+    let nb_tiles_left;
+    {
+        let mut queue = queue.lock().unwrap();
+        nb_tiles_left = queue.len();
+        queue.clear();
+    }
+    // On vide egalement le channel.
+    let mut nb_tiles_being_rendered = *nb_tiles_to_do - nb_tiles_left;
+    while nb_tiles_being_rendered > 0 {
+        if let Ok(_) = rc.try_recv() {
+            nb_tiles_being_rendered -= 1;
+        }
+    }
+    // thread::sleep(Duration::from_millis(20));
+
+    *low_res_to_do = generate_tiles_for(
+        &queue,
+        false,
+        simplification_factor,
+    );
+    *max_res_to_do = *low_res_to_do;
+    let mut factor = simplification_factor;
+    *nb_tiles_to_do = 0;
+    loop {
+        *nb_tiles_to_do += *low_res_to_do as usize;
+        if factor == 1 {
+            break;
+        }
+        factor /= 2;
+    }
+}
+
 /**
  * Boucle principale du render thread, qui doit aggreger les tiles rendered par les worker_threads sur une image rgba
  * qu'il se tient pret a tout moment a envoyer au main_thread pour l'affichage. Lorsque la resolution finale (factor = 1)
@@ -171,9 +199,11 @@ fn main_render_loop(
     // La fonction renvoie le nombre de tile d'une resolution donnee.
     // Cela nous permet de traquer quand est-ce que l'image de la plus basse resolution possible est completee, car c'est le
     // point ou on peux l'envoyer au main_thread.
-    let mut samplingMode = true;
-    let mut low_res_to_do = generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
-    let mut max_res_to_do = low_res_to_do;
+    let mut low_res_to_do = 0;
+    let mut max_res_to_do = 0;
+    let mut nb_tiles_to_do = 0;
+    fill_work_queue(&mut low_res_to_do, &mut max_res_to_do, &mut nb_tiles_to_do, &work_queue, BASE_SIMPLIFICATION, &rc);
+
     let mut iterations_done = 0;
     let mut img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
     let mut final_img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
@@ -197,6 +227,7 @@ fn main_render_loop(
                         }
                     }
                 });
+                nb_tiles_to_do -= 1;
                 // On retient les tile de la plus basse resolution qui passent par la
                 if tile.factor == BASE_SIMPLIFICATION && low_res_to_do > 0 {
                     low_res_to_do -= 1;
@@ -212,12 +243,7 @@ fn main_render_loop(
                             final_img = add_iteration_to_final_img(img, final_img, iterations_done);
                             if iterations_done < scene.read().unwrap().settings().iterations as i32
                             {
-                                low_res_to_do = generate_tiles_for(
-                                    &work_queue,
-                                    samplingMode,
-                                    BASE_SIMPLIFICATION,
-                                );
-                                max_res_to_do = low_res_to_do;
+                                fill_work_queue(&mut low_res_to_do, &mut max_res_to_do, &mut nb_tiles_to_do, &work_queue, BASE_SIMPLIFICATION, &rc);
                             }
                             img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
                             println!("{} iterations done - {:?}", iterations_done, perf.elapsed());
@@ -232,9 +258,7 @@ fn main_render_loop(
                 if max_res_to_do == 0
                     && iterations_done < scene.read().unwrap().settings().iterations as i32
                 {
-                    low_res_to_do =
-                        generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
-                    max_res_to_do = low_res_to_do;
+                    fill_work_queue(&mut low_res_to_do, &mut max_res_to_do, &mut nb_tiles_to_do, &work_queue, BASE_SIMPLIFICATION, &rc);
                 }
             }
             if low_res_to_do == 0 {
@@ -252,13 +276,13 @@ fn main_render_loop(
                             vec_to_image(&final_img),
                             iterations_done == scene.read().unwrap().settings().iterations as i32,
                         ))
-                        .unwrap();
+                        .ok();
                     } else {
-                        ta.send((vec_to_image(&img), false)).unwrap();
+                        ta.send((vec_to_image(&img), false)).ok();
                     }
                 }
                 _ => {
-                    ta.send((vec_to_image(&img), max_res_to_do == 0)).unwrap();
+                    ta.send((vec_to_image(&img), false)).ok();
                 }
             }
             to_send = false;
@@ -270,13 +294,7 @@ fn main_render_loop(
                 img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
                 final_img = vec![vec![Color::new(0., 0., 0.); SCREEN_HEIGHT]; SCREEN_WIDTH];
                 iterations_done = 0;
-                work_queue.lock().unwrap().clear();
-                // On vide egalement le channel.
-                while let Ok(_) = rc.try_recv() {}
-                low_res_to_do = generate_tiles_for(&work_queue, samplingMode, BASE_SIMPLIFICATION);
-                max_res_to_do = low_res_to_do;
-                //TODO: Actuellement les worker_threads en cours de render vont probablement envoyer la tile qu'ils sont en train de render
-                //      au moment du reset. Il faut trouver un moyen de les empecher.
+                fill_work_queue(&mut low_res_to_do, &mut max_res_to_do, &mut nb_tiles_to_do, &work_queue, BASE_SIMPLIFICATION, &rc);
             } else {
                 to_send = true;
             }

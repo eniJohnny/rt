@@ -1,10 +1,7 @@
 extern crate image;
 use display::mainloop::start_scene;
-use image::flat::View;
-use model::maths::vec3::Vec3;
 use parsing::get_scene;
 use render::settings::ViewMode;
-use winit::keyboard::KeyCode;
 
 pub mod display;
 pub mod ui;
@@ -54,7 +51,6 @@ const FIELD_PADDING_X: u32 = 10;
 const FIELD_PADDING_Y: u32 = 3;
 const INDENT_PADDING: u32 = 10;
 const BASE_FONT_SIZE: u32 = 16;
-const BUTTON_FONT_SIZE: u32 = 36;
 const UI_REFRESH_TIME: u32 = 1000;
 
 /*********** UI default references *********/
@@ -64,22 +60,6 @@ const TOOLBAR: &str = "toolbar";
 const ELEMENT: &str = "element";
 
 const PICKER_LINE_HEIGHT: f64 = 30.0;
-const FPS: u64 = 20;
-
-const RGB_KEYS: [&str; 3] = ["colr", "colg", "colb"];
-const CAM_MOVE_KEYS: [KeyCode; 10] = [
-    KeyCode::KeyW,
-    KeyCode::KeyA,
-    KeyCode::KeyS,
-    KeyCode::KeyD,
-    KeyCode::ArrowUp,
-    KeyCode::ArrowLeft,
-    KeyCode::ArrowDown,
-    KeyCode::ArrowRight,
-    KeyCode::Space,
-    KeyCode::ShiftLeft,
-];
-
 pub fn run() {
     let path = String::from(format!("{}/{}.json", SCENE_FOLDER, SCENE));
     if path != "" {

@@ -2,6 +2,7 @@ use std::f64::consts::PI;
 
 use super::triangle::Triangle;
 use super::ComposedShape;
+use crate::model::materials::diffuse::Diffuse;
 use crate::model::materials::material::Material;
 use crate::model::materials::texture::{Texture, TextureType};
 use crate::model::maths::vec3::Vec3;
@@ -13,7 +14,7 @@ pub struct Mobius {
     pub radius: f64,
     pub half_width: f64,
     pub color: Vec3,
-    pub material: Box<dyn Material>,
+    pub material: Box<dyn Material + Sync>,
     pub elements: Vec<Element>,
 }
 
@@ -76,7 +77,7 @@ impl Mobius {
     // Constructor
     pub fn new(pos: Vec3, radius: f64, half_width: f64, color: Vec3) -> Mobius {
         let mut elements: Vec<Element> = Vec::new();
-        let mut material: Box<dyn Material> = <dyn Material>::default();
+        let mut material: Box<Diffuse> = Diffuse::default();
         material.set_color(Texture::Value(color, TextureType::Color));
         material.set_opacity(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
 

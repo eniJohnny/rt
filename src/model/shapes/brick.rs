@@ -3,6 +3,7 @@ use std::ops::Div;
 
 use super::rectangle::{self, Rectangle};
 use super::ComposedShape;
+use crate::model::materials::diffuse::Diffuse;
 use crate::model::materials::material::{Material, Projection};
 use crate::model::materials::texture::{Texture, TextureType};
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
@@ -71,7 +72,7 @@ impl Brick {
     // Constructor
     pub fn new(pos: Vec3, dir: Vec3, dimensions: Vec3, color: Vec3) -> Brick {
         let mut elements: Vec<Element> = Vec::new();
-        let mut material: Box<dyn Material> = <dyn Material>::default();
+        let mut material: Box<Diffuse> = Diffuse::default();
         material.set_color(Texture::Value(color, TextureType::Color));
         material.set_opacity(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
 
