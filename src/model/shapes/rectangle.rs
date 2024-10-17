@@ -26,7 +26,7 @@ pub struct Rectangle {
     c: Vec3,
     d: Vec3,
     plane: Plane,
-    aabb: super::aabb::Aabb,
+    aabb: Aabb,
 }
 
 impl Shape for Rectangle {
@@ -278,7 +278,7 @@ impl Rectangle {
         let width = (a - c).length();
         let plane = Plane::new(a.clone(), dir_l.clone().cross(&dir_w).normalize());
 
-        Rectangle { pos, length, width, dir_l, dir_w, a, b, c, d, plane }
+        Rectangle { pos, length, width, dir_l, dir_w, a, b, c, d, plane, aabb: Rectangle::compute_aabb(&a, &d) }
     }
 
 }
