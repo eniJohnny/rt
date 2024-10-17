@@ -1,6 +1,6 @@
 use std::f64::consts::PI;
 
-use crate::model::{materials::{color, material::Material, texture::{Texture, TextureType}}, maths::vec3::Vec3, Element};
+use crate::model::{materials::{color, diffuse::Diffuse, material::Material, texture::{Texture, TextureType}}, maths::vec3::Vec3, Element};
 use super::{sphere::Sphere, cylinder::Cylinder, ComposedShape};
 
 #[derive(Debug)]
@@ -31,8 +31,8 @@ impl ComposedShape for Helix {
 impl Helix {
     pub fn new(pos: Vec3, dir: Vec3, height: f64) -> Helix {
         let mut elements: Vec<Element> = Vec::new();
-        let mut material: Box<dyn Material> = <dyn Material>::default();
-        let mut sphere_material: Box<dyn Material> = <dyn Material>::default();
+        let mut material: Box<Diffuse> = Diffuse::default();
+        let mut sphere_material: Box<Diffuse> = Diffuse::default();
         let link_color = Texture::Value(Vec3::from_value(1.0), TextureType::Color);
         let sphere_color = Texture::Value(Vec3::new(1.0, 0.0,0.0), TextureType::Color);
 

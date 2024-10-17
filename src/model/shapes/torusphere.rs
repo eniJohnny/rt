@@ -1,6 +1,6 @@
 use std::f64::consts::PI;
 
-use crate::model::{materials::{color, material::Material, texture::{Texture, TextureType}}, maths::vec3::Vec3, Element};
+use crate::model::{materials::{color, diffuse::Diffuse, material::Material, texture::{Texture, TextureType}}, maths::vec3::Vec3, Element};
 use super::{sphere::Sphere, ComposedShape};
 
 #[derive(Debug)]
@@ -34,7 +34,7 @@ impl Torusphere {
     pub fn new(pos: Vec3, dir: Vec3, radius: f64, steps: usize, color: Vec3) -> Torusphere {
         let mut sph_vec: Vec<Vec3> = Vec::new();
         let mut elements: Vec<Element> = Vec::new();
-        let mut material: Box<dyn Material> = <dyn Material>::default();
+        let mut material: Box<Diffuse> = Diffuse::default();
         material.set_color(Texture::Value(color, TextureType::Color));
         material.set_opacity(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
 
