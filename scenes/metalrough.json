@@ -31,10 +31,10 @@
         "type": "sphere",
         "pos": [2, -2, 0],
         "dir": [0, 1, 0],
-        "color": "tiles_color.jpg",
         "radius": 1.5,
-        "normal": "tiles_normal.jpg",
-        "roughness": "tiles_roughness.jpg"
+        "color": "Bricks_gray_Color.jpg",
+        "roughness": "Bricks_gray_Roughness.jpg",
+        "normal": "Bricks_gray_Normal.jpg"
     },
     {
         "type": "camera",
