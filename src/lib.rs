@@ -41,6 +41,8 @@ const MAX_ITERATIONS: usize = 1500;
 const ANAGLYPH: bool = false;
 const ANAGLYPH_OFFSET_X: isize = 80;
 const ANAGLYPH_OFFSET_Y: isize = 16;
+// Available filters: none, grayscale, sepia
+const FILTER: &str = "grayscale";
 
 /********* Default UISettings *********/
 const MARGIN: usize = 3;
