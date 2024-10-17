@@ -1,31 +1,15 @@
+use std::sync::{Arc, RwLock};
+
 use super::Shape;
-use crate::model::{
-    materials::material::Projection,
-    maths::{hit::Hit, ray::Ray, vec3::Vec3},
-};
+use crate::{model::{
+    materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene, Element
+}, render::raycasting::get_sorted_hit_from_t, ui::{prefabs::{shape_ui::ShapeUI, vector_ui::get_vector_ui}, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Value}}};
 
 #[derive(Debug, Clone)]
 pub struct Plane {
     pos: Vec3,
     dir: Vec3,
 }
-/*
-||||||||||||||||||||NEW RAY||||||||||||||||||
-Vec received from (-5, 0, 0)
-8.708350840339012
-Hit
-First hit
-|||||NEW_HIT : (-5, 0, 0), dist 8.708350840339012|||||||
-Vec received from (0, 5, 0)
-15.489034008383047
-Hit
-Vec received from (0, 0, 5)
-26.44806411152962
-Hit
-Vec received from (0, 0, -2)
-17.14472497682071
-Hit
- */
 
 impl Shape for Plane {
     fn distance(&self, vec: &Vec3) -> f64 {
@@ -40,18 +24,74 @@ impl Shape for Plane {
             dot_product = -dot_product;
         }
         let t = dist.dot(&dir) / dot_product;
-        // if t > 0.0 {
         return Some(Vec::from([t]));
-        // }
-        // None
     }
+
+	fn outer_intersect(&self, r: &Ray, displaced_factor: f64) -> Option<Vec<f64>> {
+		let mut upper_plane = self.clone();
+		upper_plane.set_pos(upper_plane.pos() + upper_plane.dir() * displaced_factor);
+		let mut t_list: Vec<f64> = Vec::new();
+		let t_up = upper_plane.intersect(r);
+		if !t_up.is_none() {
+			t_list.push(t_up.unwrap()[0]);
+		}
+		let t_down = self.intersect(r);
+		if !t_down.is_none() {
+			t_list.push(t_down.unwrap()[0]);
+		}
+		if t_list.len() == 0 {
+			return None;
+		}
+		Some(t_list)
+	}
+
+    fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
+		let displaced_factor = scene.settings().plane_displaced_distance;
+		let total_displacement = displaced_factor;
+		let step = scene.settings().plane_displacement_step;
+		let mut t: Option<Vec<f64>> = self.outer_intersect(ray, displaced_factor);
+		if let Some(mut hits) = get_sorted_hit_from_t(scene, ray, &t, element) {
+			if hits.len() == 1 {
+				return None;
+			}
+			let mut hit = hits.remove(0);
+			let sec_hit = hits.remove(0);
+			let mut old_t = *hit.dist();
+			let mut current_step = 1.;
+			while hit.dist() < sec_hit.dist() {
+				let hit_ratio: f64 = current_step;
+
+				let displaced_ratio = hit.map_texture(element.material().displacement(), scene.textures(), Vec3::from_value(0.)).to_value();
+				if (displaced_ratio - hit_ratio).abs() < 0.01 {
+					return Some(vec![*hit.dist()]);
+				}
+				if displaced_ratio >= hit_ratio {
+					return Some(vec![(*hit.dist() + old_t) / 2.]);
+				}
+				old_t = *hit.dist();
+				let mut displaced_dist = (hit_ratio - displaced_ratio) * total_displacement;
+				if displaced_dist > step * total_displacement {
+					displaced_dist = step * total_displacement ;
+				}
+				hit = Hit::new(
+					element,
+					hit.dist() + displaced_dist,
+					hit.pos() + ray.get_dir() * displaced_dist,
+					ray.get_dir(),
+					scene.textures()
+				);
+				current_step += (displaced_dist * ray.get_dir()).dot(&self.dir) / total_displacement;
+			}
+		}
+		None
+	}
 
     fn projection(&self, hit: &Hit) -> Projection {
         let mut projection: Projection = Projection::default();
         let scale = 4.;
 
         let constant_axis: Vec3;
-        if *hit.norm() == Vec3::new(0., 1., 0.) {
+        if *hit.norm() == Vec3::new(0., 1., 0.) || *hit.norm() == Vec3::new(0., -1., 0.)  {
             constant_axis = Vec3::new(0., 0., 1.);
         } else {
             constant_axis = Vec3::new(0., 1., 0.);
@@ -84,9 +124,79 @@ impl Shape for Plane {
     fn as_plane(&self) -> Option<&Plane> {
         Some(self)
     }
+    fn as_plane_mut(&mut self) -> Option<&mut Plane> {
+        Some(self)
+    }
 
     fn pos(&self) -> &Vec3 {
         &self.pos
+    }
+
+    fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
+        let mut category = UIElement::new("Plane", "Plane", ElemType::Category(Category::default()), ui.uisettings());
+
+        if let Some(plane) = element.shape().as_plane() {
+            let id = element.id().clone();
+            category.add_element(get_vector_ui(plane.pos.clone(), "Position", "pos", &ui.uisettings_mut(), 
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(plane) = elem.shape_mut().as_plane_mut() {
+                        if let Value::Float(value) = value {
+                            plane.pos.set_x(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(plane) = elem.shape_mut().as_plane_mut() {
+                        if let Value::Float(value) = value {
+                            plane.pos.set_y(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(plane) = elem.shape_mut().as_plane_mut() {
+                        if let Value::Float(value) = value {
+                            plane.pos.set_z(value);
+                        }
+                    }
+                }),
+                true, None, None));
+            category.add_element(get_vector_ui(plane.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
+                Box::new(move |_, value, scene, ui| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(plane) = elem.shape_mut().as_plane_mut() {
+                        if let Value::Float(value) = value {
+                            plane.dir.set_x(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(plane) = elem.shape_mut().as_plane_mut() {
+                        if let Value::Float(value) = value {
+                            plane.dir.set_y(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(plane) = elem.shape_mut().as_plane_mut() {
+                        if let Value::Float(value) = value {
+                            plane.dir.set_z(value);
+                        }
+                    }
+                }),
+                true, Some(-1.), Some(1.)));
+        }
+        category
     }
 }
 

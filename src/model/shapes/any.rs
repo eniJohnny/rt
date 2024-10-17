@@ -107,6 +107,18 @@ impl Shape for Any {
     fn pos(&self) -> &Vec3 {
         &self.pos
     }
+
+    fn outer_intersect(&self, ray: &Ray, displaced_factor: f64) -> Option<Vec<f64>> {
+        self.intersect(ray)
+    }
+
+    fn intersect_displacement(&self, ray: &Ray, element: &crate::model::Element, scene: &crate::model::scene::Scene) -> Option<Vec<f64>> {
+        self.intersect(ray)
+    }
+
+    fn get_ui(&self, element: &crate::model::Element, ui: &mut crate::ui::ui::UI, scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
+        todo!()
+    }
 }
 
 impl Any {

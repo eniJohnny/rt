@@ -11,7 +11,11 @@ use crate::{
 use super::{
     materials::{diffuse::{self, Diffuse},
     material::{self, Material},
-    texture::{Texture, TextureType}}, maths::vec3::Vec3, objects::camera::Camera, shapes::{self, aabb::Aabb}, ComposedElement, Element
+    texture::{Texture, TextureType}},
+    maths::vec3::Vec3,
+    objects::{camera::Camera, light::AnyLight},
+    shapes::{self, aabb::Aabb},
+    ComposedElement, Element,
 };
 
 #[derive(Debug)]
@@ -19,12 +23,13 @@ pub struct Scene {
     elements: Vec<Element>,
     composed_elements: Vec<ComposedElement>,
     camera: Camera,
-    lights: Vec<Box<dyn Light + Sync + Send>>,
+    lights: Vec<AnyLight>,
     ambient_light: AmbientLight,
     settings: Settings,
     textures: HashMap<String, image::RgbaImage>,
     dirty: bool,
     bvh: Option<bvh::node::Node>,
+    next_element_id: u32
 }
 
 impl Scene {
@@ -39,12 +44,15 @@ impl Scene {
             textures: HashMap::new(),
             dirty: true,
             bvh: None,
+            next_element_id: 0
         }
     }
 
     // Adders
-    pub fn add_element(&mut self, element: Element) {
+    pub fn add_element(&mut self, mut element: Element) {
+        element.set_id(self.next_element_id);
         self.elements.push(element);
+        self.next_element_id += 1;
     }
 
     pub fn add_composed_element(&mut self, composed_element: ComposedElement) {
@@ -55,8 +63,10 @@ impl Scene {
         self.camera = camera;
     }
 
-    pub fn add_light(&mut self, light: Box<dyn Light + Sync + Send>) {
+    pub fn add_light(&mut self, mut light: AnyLight) {
+        light.set_id(self.next_element_id);
         self.lights.push(light);
+        self.next_element_id += 1;
     }
 
     pub fn add_ambient_light(&mut self, ambient_light: AmbientLight) {
@@ -84,6 +94,7 @@ impl Scene {
             material.emissive(),
             material.refraction(),
             material.opacity(),
+			material.displacement(),
         ];
         for texture in textures.iter() {
             match texture {
@@ -167,6 +178,23 @@ impl Scene {
         &mut self.composed_elements
     }
 
+    pub fn element_by_id(&self, id: u32) -> Option<&Element> {
+        for element in &self.elements {
+            if element.id == id {
+                return Some(element);
+            }
+        }
+        None
+    }
+    pub fn element_mut_by_id(&mut self, id: u32) -> Option<&mut Element> {
+        for element in &mut self.elements {
+            if element.id == id {
+                return Some(element);
+            }
+        }
+        None
+    }
+    
     pub fn camera(&self) -> &Camera {
         &self.camera
     }
@@ -174,7 +202,7 @@ impl Scene {
         &mut self.camera
     }
 
-    pub fn lights(&self) -> &Vec<Box<dyn Light + Sync + Send>> {
+    pub fn lights(&self) -> &Vec<AnyLight> {
         &self.lights
     }
 
@@ -253,7 +281,7 @@ impl Scene {
         self.camera = camera;
     }
 
-    pub fn set_lights(&mut self, lights: Vec<Box<dyn Light + Sync + Send>>) {
+    pub fn set_lights(&mut self, lights: Vec<AnyLight>) {
         self.lights = lights;
     }
 

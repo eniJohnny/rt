@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::model::maths::{hit::Hit, vec3::Vec3};
+use crate::{model::maths::{hit::Hit, vec3::Vec3}, ui::{uielement::UIElement, utils::Displayable}};
 
 use super::{
     color::Color,
@@ -25,6 +25,7 @@ pub trait Material: Debug + Sync + Send {
     fn roughness(&self) -> &Texture;
     fn emissive(&self) -> &Texture;
     fn opacity(&self) -> &Texture;
+	fn displacement(&self) -> &Texture;
 
     fn set_color(&mut self, color: Texture);
     fn set_norm(&mut self, norm: Texture);
@@ -33,6 +34,7 @@ pub trait Material: Debug + Sync + Send {
     fn set_roughness(&mut self, roughness: Texture);
     fn set_emissive(&mut self, emissive: Texture);
     fn set_opacity(&mut self, opacity: Texture);
+	fn set_displacement(&mut self, displacement: Texture);
 }
 
 impl dyn Material {
@@ -45,18 +47,20 @@ impl dyn Material {
             Texture::Value(Vec3::from_value(0.), TextureType::Float),
             Texture::Value(Vec3::from_value(0.), TextureType::Vector),
             Texture::Value(Vec3::from_value(0.), TextureType::Float),
+			Texture::Value(Vec3::from_value(0.), TextureType::Float)
         ))
     }
 
     pub fn copy(&self) -> Box<dyn Material> {
         Box::new(Diffuse::new(
             self.color().clone(),
-            self.norm().clone(),
             self.metalness().clone(),
-            self.refraction().clone(),
             self.roughness().clone(),
             self.emissive().clone(),
+            self.refraction().clone(),
+            self.norm().clone(),
             self.opacity().clone(),
+            self.displacement().clone()
         ))
     }
 }

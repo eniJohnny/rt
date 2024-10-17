@@ -5,7 +5,7 @@ use crate::{
         materials::color::Color,
         maths::vec3::Vec3,
         objects::light::{AmbientLight, ParallelLight},
-    }, ui::{uielement::{Category, UIElement}, uisettings::UISettings, utils::{misc::{ElemType, Property, Value}, Displayable}}, ANTIALIASING, BASE_FONT_SIZE, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH, INDENT_PADDING, MARGIN, MAX_DEPTH, MAX_ITERATIONS, VIEW_MODE
+    }, ui::{uielement::{Category, UIElement}, uisettings::UISettings, utils::{misc::{ElemType, Property, Value}, Displayable}}, ANTIALIASING, BASE_FONT_SIZE, DISPLACEMENT, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH, INDENT_PADDING, MARGIN, MAX_DEPTH, MAX_ITERATIONS, PLANE_DISPLACED_DISTANCE, PLANE_DISPLACEMENT_STEP, SPHERE_DISPLACED_DISTANCE, SPHERE_DISPLACEMENT_STEP, VIEW_MODE
 };
 #[derive(Debug, Clone)]
 pub enum ViewMode {
@@ -22,6 +22,11 @@ pub struct Settings {
     pub iterations: usize,
     pub depth: usize,
     pub anti_alisaing: f64,
+    pub displacement: bool,
+    pub plane_displaced_distance: f64,
+    pub plane_displacement_step: f64,
+    pub sphere_displaced_distance: f64,
+    pub sphere_displacement_step: f64,
     pub view_mode: ViewMode,
 }
 
@@ -35,6 +40,11 @@ impl Settings {
             reflections: true,
             indirect: true,
             iterations: MAX_ITERATIONS,
+            displacement: DISPLACEMENT,
+            plane_displaced_distance: PLANE_DISPLACED_DISTANCE,
+            plane_displacement_step: PLANE_DISPLACEMENT_STEP,
+            sphere_displaced_distance: SPHERE_DISPLACED_DISTANCE,
+            sphere_displacement_step: SPHERE_DISPLACEMENT_STEP,
             depth: MAX_DEPTH,
             anti_alisaing: ANTIALIASING,
         }
@@ -55,11 +65,138 @@ impl Displayable for Settings {
                         scene.write().unwrap().set_dirty(true);
                     }
                 }),
-                Box::new(|_| Ok(())),
+                Box::new(|_, _, _| Ok(())),
                 settings,
             )),
             settings,
         ));
+        category.elems.push(UIElement::new(
+            "Ray depth",
+            "depth",
+            ElemType::Property(Property::new(
+                Value::Unsigned(self.depth as u32),
+                Box::new(|_, value: Value, scene, ui| {
+                    if let Value::Unsigned(value) = value {
+                        scene.write().unwrap().settings_mut().depth = value as usize;
+                        scene.write().unwrap().set_dirty(true);
+                    }
+                }),
+                Box::new(|_, _, _| Ok(())),
+                settings,
+            )),
+            settings,
+        ));
+        category.elems.push(UIElement::new(
+            "Displacement",
+            "displacement",
+            ElemType::Property(Property::new(
+                Value::Bool(self.displacement),
+                Box::new(|_, value: Value, scene, ui| {
+                    if let Value::Bool(value) = value {
+                        scene.write().unwrap().settings_mut().displacement = value;
+                        scene.write().unwrap().set_dirty(true);
+                    }
+                }),
+                Box::new(|_, _, _| Ok(())),
+                settings,
+            )),
+            settings,
+        ));
+        
+        let plane_displacement_vec = vec![UIElement::new(
+            "Plane displaced distance",
+            "plane_displaced_factor",
+            ElemType::Property(Property::new(
+                Value::Float(self.plane_displaced_distance),
+                Box::new(|_, value: Value, scene, ui| {
+                    if let Value::Float(value) = value {
+                        scene.write().unwrap().settings_mut().plane_displaced_distance = value;
+                        scene.write().unwrap().set_dirty(true);
+                    }
+                }),
+                Box::new(|value, _, _| {
+                    if let Value::Float(value) = value {
+                        if *value < 0. {
+                            return Err(String::from("This value must be positive"))
+                        }
+                    }
+                    Ok(())
+                }),
+                settings,
+            )),
+            settings,
+        ),
+        UIElement::new(
+            "Plane displacement step",
+            "plane_displacement_step",
+            ElemType::Property(Property::new(
+                Value::Float(self.plane_displacement_step),
+                Box::new(|_, value: Value, scene, ui| {
+                    if let Value::Float(value) = value {
+                        scene.write().unwrap().settings_mut().plane_displacement_step = value;
+                        scene.write().unwrap().set_dirty(true);
+                    }
+                }),
+                Box::new(|value, _, _| {
+                    if let Value::Float(value) = value {
+                        if *value < 0. {
+                            return Err(String::from("This value must be positive"))
+                        }
+                    }
+                    Ok(())
+                }),
+                settings,
+            )),
+            settings,
+        )];
+        category.elems.push(UIElement::new("", "row_plane_displacement", ElemType::Row(plane_displacement_vec), settings));
+        let sphere_displacement_vec = vec![UIElement::new(
+            "Sphere displaced distance",
+            "sphere_displaced_factor",
+            ElemType::Property(Property::new(
+                Value::Float(self.sphere_displaced_distance),
+                Box::new(|_, value: Value, scene, ui| {
+                    if let Value::Float(value) = value {
+                        scene.write().unwrap().settings_mut().sphere_displaced_distance = value;
+                        scene.write().unwrap().set_dirty(true);
+                    }
+                }),
+                Box::new(|value, _, _| {
+                    if let Value::Float(value) = value {
+                        if *value < 0. {
+                            return Err(String::from("This value must be positive"))
+                        }
+                    }
+                    Ok(())
+                }),
+                settings,
+            )),
+            settings,
+        ),
+        UIElement::new(
+            "Sphere displacement step",
+            "sphere_displacement_step",
+            ElemType::Property(Property::new(
+                Value::Float(self.sphere_displacement_step),
+                Box::new(|_, value: Value, scene, ui| {
+                    if let Value::Float(value) = value {
+                        scene.write().unwrap().settings_mut().sphere_displacement_step = value;
+                        scene.write().unwrap().set_dirty(true);
+                    }
+                }),
+                Box::new(|value, _, _| {
+                    if let Value::Float(value) = value {
+                        if *value < 0. {
+                            return Err(String::from("This value must be positive"))
+                        }
+                    }
+                    Ok(())
+                }),
+                settings,
+            )),
+            settings,
+        )];
+        category.elems.push(UIElement::new("", "row_sphere_displacement", ElemType::Row(sphere_displacement_vec), settings));
         let chkReflect = UIElement::new(
             "Reflections",
             "chk_reflect",
@@ -71,7 +208,7 @@ impl Displayable for Settings {
                         scene.write().unwrap().set_dirty(true);
                     }
                 }),
-                Box::new(|_| Ok(())),
+                Box::new(|_, _, _| Ok(())),
                 settings,
             )),
             settings,
@@ -87,7 +224,7 @@ impl Displayable for Settings {
                         scene.write().unwrap().set_dirty(true);
                     }
                 }),
-                Box::new(|_| Ok(())),
+                Box::new(|_, _, _| Ok(())),
                 settings,
             )),
             settings,

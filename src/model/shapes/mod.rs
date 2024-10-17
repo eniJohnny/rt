@@ -4,14 +4,16 @@ use self::cone::Cone;
 use self::cylinder::Cylinder;
 use self::plane::Plane;
 use self::sphere::Sphere;
-use crate::model::shapes::rectangle::Rectangle;
+use crate::{model::shapes::rectangle::Rectangle, ui::{ui::UI, uielement::UIElement}};
 
-use std::fmt::Debug;
+use std::{fmt::Debug, sync::{Arc, RwLock}};
 use crate::model::shapes::triangle::Triangle;
 
 use super::{
     materials::material::{Material, Projection},
-    maths::{hit::Hit, ray::Ray, vec3::Vec3}, Element,
+    scene::Scene,
+    maths::{hit::Hit, ray::Ray, vec3::Vec3},
+    Element,
 };
 
 pub mod cone;
@@ -36,6 +38,8 @@ pub mod hyperboloid;
 pub trait Shape: Debug + Sync + Send {
     fn distance(&self, vec: &Vec3) -> f64;
     fn intersect(&self, ray: &Ray) -> Option<Vec<f64>>;
+    fn outer_intersect(&self, ray: &Ray, displaced_factor: f64) -> Option<Vec<f64>>;
+    fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>>;
     fn projection(&self, hit: &Hit) -> Projection;
     fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3;
     fn pos(&self) -> &Vec3;
@@ -85,16 +89,38 @@ pub trait Shape: Debug + Sync + Send {
     fn as_hyperboloid(&self) -> Option<&hyperboloid::Hyperboloid> { None }
     fn as_any(&self) -> Option<&any::Any> { None }
     fn aabb(&self) -> Option<&Aabb> { None }
+
+    fn as_sphere_mut(&mut self) -> Option<&mut Sphere> { None }
+    fn as_plane_mut(&mut self) -> Option<&mut Plane> { None }
+    fn as_cylinder_mut(&mut self) -> Option<&mut Cylinder> { None }
+    fn as_cone_mut(&mut self) -> Option<&mut Cone> { None }
+    fn as_rectangle_mut(&mut self) -> Option<&mut Rectangle> { None }
+    fn as_triangle_mut(&mut self) -> Option<&mut Triangle> { None }
+    fn as_aabb_mut(&mut self) -> Option<&mut Aabb> { None }
+    fn as_wireframe_mut(&mut self) -> Option<&mut Wireframe> { None }
+    fn as_ellipse_mut(&mut self) -> Option<&mut ellipse::Ellipse> { None }
+    fn as_cube_mut(&mut self) -> Option<&mut cube::Cube> { None }
+    fn as_cubehole_mut(&mut self) -> Option<&mut cubehole::Cubehole> { None }
+    fn as_hyperboloid_mut(&mut self) -> Option<&mut hyperboloid::Hyperboloid> { None }
+    fn as_any_mut(&mut self) -> Option<&mut any::Any> { None }
+
+    fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement;
 }
 
 pub trait ComposedShape: Debug + Sync + Send {
     fn material(&self) -> &dyn Material;
     fn elements(&self) -> &Vec<Element>;
     fn elements_as_mut(&mut self) -> &mut Vec<Element>;
+
     fn as_torusphere(&self) -> Option<&torusphere::Torusphere> { None }
     fn as_helix(&self) -> Option<&helix::Helix> { None }
     fn as_brick(&self) -> Option<&brick::Brick> { None }
     fn as_nagone(&self) -> Option<&nagone::Nagone> { None }
     fn as_mobius(&self) -> Option<&mobius::Mobius> { None }
-    fn as_cubehole(&self) -> Option<&cubehole::Cubehole> { None }
+
+    fn as_torusphere_mut(&mut self) -> Option<&mut torusphere::Torusphere> { None }
+    fn as_helix_mut(&mut self) -> Option<&mut helix::Helix> { None }
+    fn as_brick_mut(&mut self) -> Option<&mut brick::Brick> { None }
+    fn as_nagone_mut(&mut self) -> Option<&mut nagone::Nagone> { None }
+    fn as_mobius_mut(&mut self) -> Option<&mut mobius::Mobius> { None }
 }

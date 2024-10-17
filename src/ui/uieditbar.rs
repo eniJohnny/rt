@@ -21,7 +21,7 @@ pub struct UIEditBar {
 impl UIEditBar {
     pub fn cancel(scene: &Arc<RwLock<Scene>>, ui: &mut UI, reference: String) {
         if reference == *ui.active_box_reference() {
-            ui.destroy_box(reference);
+            ui.destroy_box(&reference);
         } else {
             let uibox = ui.get_box_mut(&reference);
             if let Some(uibox) = uibox {
@@ -33,31 +33,33 @@ impl UIEditBar {
     }
     pub fn apply(scene: &Arc<RwLock<Scene>>, ui: &mut UI, reference: String) {
         let mut properties_vec = vec![];
-        let uibox = ui.get_box(&reference);
-        if let Some(uibox) = uibox {
-            for elem in &uibox.elems {
-                elem.get_properties_reference(&mut properties_vec);
-            }
-            for reference in properties_vec {
-                if let Some((mut elem, parent_ref, index)) =
-                    take_element(ui, reference.clone())
-                {
-                    elem.submit_properties(scene, ui);
-                    give_back_element(ui, elem, parent_ref, index);
-                } else {
-                    println!("ERROR: UIElement {} not found", reference)
+        if ui.validate_properties(reference.clone()) {
+            let uibox = ui.get_box(&reference);
+            if let Some(uibox) = uibox {
+                for elem in &uibox.elems {
+                    elem.get_properties_reference(&mut properties_vec);
+                }
+                for reference in properties_vec {
+                    if let Some((mut elem, parent_ref, index)) =
+                        take_element(ui, reference.clone())
+                    {
+                        elem.submit_properties(scene, ui);
+                        give_back_element(ui, elem, parent_ref, index);
+                    } else {
+                        println!("ERROR: UIElement {} not found", reference)
+                    }
                 }
             }
-        }
-        let uibox = ui.get_box_mut(&reference);
-        if let Some(uibox) = uibox {
-            if let Some(edit_bar) = uibox.edit_bar.take() {
-                if let Some(on_apply) = &edit_bar.on_apply {
-                    on_apply(None, scene, ui);
-                }
-                let uibox = ui.get_box_mut(&reference);
-                if let Some(uibox) = uibox {
-                    uibox.edit_bar = Some(edit_bar);
+            let uibox = ui.get_box_mut(&reference);
+            if let Some(uibox) = uibox {
+                if let Some(edit_bar) = uibox.edit_bar.take() {
+                    if let Some(on_apply) = &edit_bar.on_apply {
+                        on_apply(None, scene, ui);
+                    }
+                    let uibox = ui.get_box_mut(&reference);
+                    if let Some(uibox) = uibox {
+                        uibox.edit_bar = Some(edit_bar);
+                    }
                 }
             }
         }

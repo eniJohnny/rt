@@ -4,7 +4,7 @@ use crate::model::materials::material::{self, Material};
 use crate::model::materials::texture::{Texture, TextureType};
 use crate::model::maths::vec3::Vec3;
 use crate::model::objects::camera::Camera;
-use crate::model::objects::light::{AmbientLight, Light, ParallelLight, PointLight};
+use crate::model::objects::light::{AmbientLight, AnyLight, ParallelLight, PointLight};
 use crate::model::{ComposedElement, Element};
 use crate::model::scene::Scene;
 use crate::model::shapes::{ 
@@ -14,7 +14,7 @@ use crate::model::shapes::{
     brick::Brick, nagone::Nagone, mobius::Mobius, ellipse::Ellipse,
     cube::Cube, cubehole::Cubehole, hyperboloid::Hyperboloid, any::Any
 };
-use crate::{error, MAX_EMISSIVE, AABB_OPACITY};
+use crate::{error, AABB_OPACITY};
 // use crate::{error, SCENE};
 use std::collections::HashMap;
 use std::f64::consts::PI;
@@ -163,8 +163,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                     Some(color) => color,
                     None => panic!("Color must be provided for lights"),
                 };
-                let new_light = Box::new(PointLight::new(pos, intensity, color))
-                    as Box<dyn Light + Sync + Send>;
+                let new_light = AnyLight::new(Box::new(PointLight::new(pos, intensity, color)));
                 scene.add_light(new_light);
             }
             "ambient" => {
@@ -185,7 +184,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                     None => panic!("Color must be provided for lights"),
                 };
 
-                let new_light = Box::new(ParallelLight::new(dir, intensity, color));
+                let new_light = AnyLight::new(Box::new(ParallelLight::new(dir, intensity, color)));
                 scene.add_light(new_light);
             }
             "torusphere" => {
@@ -462,6 +461,7 @@ fn get_material(
     let emissive_string = object.get("emissive").unwrap_or(&default);
     let normal_string = object.get("normal").unwrap_or(&default);
     let opacity_string = object.get("opacity").unwrap_or(&default);
+	let displacement_string = object.get("displacement").unwrap_or(&default);
     let color_texture = match object.get("color") {
         Some(path) => Texture::Texture(path.clone(), TextureType::Color),
         None => match color_opt {
@@ -476,10 +476,11 @@ fn get_material(
         color_texture,
         Texture::from_float_litteral(metalness_string, 0.),
         Texture::from_float_litteral(roughness_string, 0.),
-        Texture::from_float_scaled(emissive_string, 0., MAX_EMISSIVE),
+        Texture::from_float_scaled(emissive_string, 0.),
         Texture::from_float_litteral(refraction_string, 0.),
-        Texture::from_vector(normal_string, Vec3::new(0.5, 0.5, 1.)),
+        Texture::from_vector(normal_string, Vec3::new(0., 0., 1.)),
         Texture::from_float_litteral(opacity_string, 1.),
+		Texture::from_float_litteral(displacement_string, 0.),
     ))
 }
 

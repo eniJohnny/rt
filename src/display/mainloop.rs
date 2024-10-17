@@ -34,6 +34,7 @@ pub fn start_scene(scene: Scene) {
     let window = WindowBuilder::new()
         .with_inner_size(LogicalSize::new(SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32))
         .with_title("Image Viewer")
+        .with_resizable(false)
         .build(&event_loop)
         .unwrap();
 
@@ -49,7 +50,7 @@ pub fn start_scene(scene: Scene) {
 }
 
 pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixels: Pixels) {
-    let mut ui = setup_ui(&scene);
+    let mut ui: crate::ui::ui::UI = setup_ui(&scene);
     let mut last_draw = Instant::now();
     let mut last_input = Instant::now();
     let mut last_scene_change = Instant::now();

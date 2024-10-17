@@ -35,11 +35,11 @@ impl Texture {
         }
     }
 
-    pub fn from_vector(file: &String, default_vec: Vec3) -> Self {
+    pub fn from_vector(file: &str, default_vec: Vec3) -> Self {
         if file == "" {
             Texture::Value(default_vec, TextureType::Vector)
         } else {
-            Texture::Texture(file.clone(), TextureType::Vector)
+            Texture::Texture(file.to_string(), TextureType::Vector)
         }
     }
 
@@ -59,11 +59,11 @@ impl Texture {
         }
     }
 
-    pub fn from_float_scaled(string: &String, default: f64, scale: f64) -> Self {
+    pub fn from_float_scaled(string: &String, default: f64) -> Self {
         if let Ok(value) = string.parse::<f64>() {
-            Texture::Value(Vec3::from_value(value) / scale, TextureType::Float)
+            Texture::Value(Vec3::from_value(value), TextureType::Float)
         } else if string == "" {
-            Texture::Value(Vec3::from_value(default) / scale, TextureType::Float)
+            Texture::Value(Vec3::from_value(default), TextureType::Float)
         } else {
             Texture::Texture(string.clone(), TextureType::Float)
         }
@@ -80,10 +80,10 @@ impl Texture {
     }
 
     pub fn get(proj: &Projection, img: &RgbaImage) -> Color {
-        let x = ((proj.u * img.width() as f64) as u32)
+        let x = (((&proj.u - ((proj.u as u32) as f64)) * img.width() as f64) as u32)
             .max(0)
             .min(img.width() - 1);
-        let y = (((1. - &proj.v) * img.height() as f64) as u32)
+        let y = (((1. - (&proj.v - ((proj.v as u32) as f64))) * img.height() as f64) as u32)
             .max(0)
             .min(img.height() - 1);
 

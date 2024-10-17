@@ -14,13 +14,20 @@ pub mod picker;
 pub mod render;
 pub mod bvh;
 
+
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
 const SCENE: &str = "empty";
+/* DISPLACEMENT */
+const DISPLACEMENT: bool = false;
+const PLANE_DISPLACED_DISTANCE: f64 = 0.25;
+const PLANE_DISPLACEMENT_STEP: f64 = 0.1;
+const SPHERE_DISPLACED_DISTANCE: f64 = 0.05;
+const SPHERE_DISPLACEMENT_STEP: f64 = 0.1;
 
 const AABB_OPACITY: f64 = 0.0;
 const AABB_STEPS_NB: usize = 10;
-const DISPLAY_WIREFRAME: bool = false;
+const DISPLAY_WIREFRAME: bool = true;
 const WIREFRAME_THICKNESS: f64 = 0.05;
 const ERROR_MARGIN: f64 = 0.000000000001;
 const SCREEN_WIDTH: usize = 1600;
@@ -31,8 +38,12 @@ const MAX_THREADS: usize = 6;
 const BASE_SIMPLIFICATION: usize = 32;
 const MAX_DEPTH: usize = 10;
 const ANTIALIASING: f64 = 0.001;
-const MAX_ITERATIONS: usize = 500;
-const MAX_EMISSIVE: f64 = 100.;
+const MAX_ITERATIONS: usize = 1500;
+
+/************* Modifiers **************/
+const ANAGLYPH: bool = false;
+const ANAGLYPH_OFFSET_X: isize = 80;
+const ANAGLYPH_OFFSET_Y: isize = 16;
 
 /********* Default UISettings *********/
 const MARGIN: usize = 3;
@@ -50,6 +61,7 @@ const UI_REFRESH_TIME: u32 = 1000;
 const UISETTINGS: &str = "uisettings";
 const SETTINGS: &str = "settings";
 const TOOLBAR: &str = "toolbar";
+const ELEMENT: &str = "element";
 
 const PICKER_LINE_HEIGHT: f64 = 30.0;
 const FPS: u64 = 20;

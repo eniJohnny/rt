@@ -1,8 +1,14 @@
 use std::default;
+use std::sync::{Arc, RwLock};
 
 use super::Shape;
 use crate::model::materials::material::Projection;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
+use crate::model::scene::Scene;
+use crate::model::Element;
+use crate::ui::ui::UI;
+use crate::ui::uielement::UIElement;
+use crate::ui::utils::misc::ElemType;
 use crate::{ERROR_MARGIN, WIREFRAME_THICKNESS};
 
 
@@ -181,6 +187,14 @@ impl Shape for Wireframe {
         None
     }
 
+	fn outer_intersect(&self, r: &Ray, displaced_factor: f64) -> Option<Vec<f64>> {
+		self.intersect(r)
+	}
+
+    fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
+		self.intersect(ray)
+	}
+
     fn projection(&self, hit: &Hit) -> Projection {
         let side = self.get_cube_side(&hit.pos());
         let mut proj = Projection::default();
@@ -281,6 +295,12 @@ impl Shape for Wireframe {
     }
     fn as_wireframe(&self) -> Option<&Wireframe> {
         Some(self)
+    }
+    fn as_wireframe_mut(&mut self) -> Option<&mut Wireframe> {
+        Some(self)
+    }
+    fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
+        UIElement::new("UI not defined for AABBs", "notdefined", ElemType::Text, ui.uisettings())
     }
 }
 
