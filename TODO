@@ -1,2 +1,0 @@
-Add non_bvh primitives to Node struct to avoid non_bhv closest hit ?
-avoid recursive to stop early if hit is found ?
