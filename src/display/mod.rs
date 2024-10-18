@@ -7,3 +7,4 @@ pub mod display;
 pub mod events;
 pub mod ui_setup;
 pub mod anaglyph;
+pub mod filters;

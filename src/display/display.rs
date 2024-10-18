@@ -5,13 +5,14 @@ use std::{
 
 use image::RgbaImage;
 use pixels::Pixels;
-
 use crate::{
+    display::filters::apply_filter,
     model::scene::Scene,
     ui::{
         ui::UI,
         uibox::UIBox, utils::{draw_utils::is_inside_box, ui_utils::UIContext},
-    }, ANAGLYPH, ANAGLYPH_OFFSET_X, ANAGLYPH_OFFSET_Y,
+    },
+    ANAGLYPH, ANAGLYPH_OFFSET_X, ANAGLYPH_OFFSET_Y, FILTER, FILTERS,
 };
 
 use super::anaglyph::{self, Coloring};
@@ -62,6 +63,9 @@ pub fn redraw_if_necessary(ui: &mut UI, scene: &Arc<RwLock<Scene>>, mut pixels: 
     }
     if redraw {
         let time = Instant::now();
+        if FILTERS.contains(&FILTER) {
+            apply_filter(&mut context.scene_img);
+        }
         let mut img = blend_scene_and_ui(&context, ui.active_box());
         display(&mut pixels, &mut img);
         let nb_samples = context.draw_time_samples as f64;

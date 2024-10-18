@@ -16,7 +16,7 @@ z_max = 100
 radius_max = 3
 height_max = 10
 emissive_max = 2
-emissive_ratio = 1.0 # 0..1 (ex: 0.3 -> 30% of elements will be emissive)
+emissive_ratio = 0.2 # 0..1 (ex: 0.3 -> 30% of elements will be emissive)
 
 def randomColor():
     random_r = random.randint(0, 255)
@@ -143,8 +143,10 @@ if __name__ == "__main__":
         cone_nb = int(argv[2])
     if len(argv) > 3:
         plane_nb = int(argv[3])
+    if len(argv) > 3:
+        emissive_ratio = float(argv[3])
 
     if len(argv) == 1:
-        print("Tips: You can also provide args!\npython3 generate_scene.py [scene_name] [nb_objects] [nb_planes]\ndefaults are \"scene.json\", 10, 0")
+        print("Tips: You can also provide args!\npython3 generate_scene.py [scene_name] [nb_objects] [nb_planes] [emissive_ratio(0.0-1.0)\ndefaults are \"scene.json\", 10, 0, 0.2")
 
     generateScene()

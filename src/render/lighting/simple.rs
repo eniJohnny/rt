@@ -5,7 +5,7 @@ use crate::{
         objects::light::{Light, ParallelLight},
         scene::Scene, shapes::Shape,
     },
-    render::{raycasting::get_closest_hit, skysphere::get_skysphere_color},
+    render::{raycasting::get_closest_hit, skysphere::get_skysphere_color}, FILTER,
 };
 
 pub fn simple_lighting_from_ray(
@@ -23,6 +23,9 @@ pub fn simple_lighting_from_ray(
         }
         //TODO : Handle BG on None
         None => {
+            if FILTER == "cartoon" {
+                return Color::new(1., 1., 1.);
+            }
             get_skysphere_color(scene, ray)
         }
     }
