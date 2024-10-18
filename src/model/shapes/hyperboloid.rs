@@ -1,6 +1,8 @@
 use super::Shape;
 use crate::model::materials::material::Projection;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
+use crate::ui::uielement::{Category, UIElement};
+use crate::ui::utils::misc::ElemType;
 
 #[derive(Debug)]
 pub struct Hyperboloid {
@@ -103,7 +105,7 @@ impl Shape for Hyperboloid {
     }
 
     fn get_ui(&self, element: &crate::model::Element, ui: &mut crate::ui::ui::UI, scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
-        todo!()
+        UIElement::new("Hyperboloid", "hyperboloid", ElemType::Category(Category::default()), ui.uisettings())
     }
 
 }

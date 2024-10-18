@@ -18,7 +18,7 @@ const OBJ_DEFAULT_DIR: (f64, f64, f64) = (0.0, 1.0, 0.0);
 
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
-const SCENE: &str = "random100_0";
+const SCENE: &str = "empty";
 
 /************* Displacement **************/
 const DISPLACEMENT: bool = false;
@@ -36,7 +36,7 @@ const SCREEN_WIDTH: usize = 1600;
 const SCREEN_HEIGHT: usize = 900;
 const SCREEN_WIDTH_U32: u32 = SCREEN_WIDTH as u32;
 const SCREEN_HEIGHT_U32: u32 = SCREEN_HEIGHT as u32;
-const MAX_THREADS: usize = 6;
+const MAX_THREADS: usize = 4;
 const BASE_SIMPLIFICATION: usize = 32;
 const MAX_DEPTH: usize = 10;
 const ANTIALIASING: f64 = 0.001;

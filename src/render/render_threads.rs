@@ -21,8 +21,8 @@ use crate::{
 
 use super::{
     lighting::{lighting_real::get_lighting_from_ray, simple::simple_lighting_from_ray},
-    raycasting::{get_closest_hit, get_ray, sampling_ray},
-    restir::PathBucket, settings::ViewMode,
+    raycasting::{get_closest_hit, get_ray},
+    settings::ViewMode,
 };
 
 #[derive(Clone)]

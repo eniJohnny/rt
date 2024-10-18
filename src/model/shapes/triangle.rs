@@ -11,6 +11,7 @@ use crate::ui::prefabs::vector_ui::get_vector_ui;
 use crate::ui::ui::UI;
 use crate::ui::uielement::{Category, UIElement};
 use crate::ui::utils::misc::{ElemType, Value};
+use super::aabb::Aabb;
 use super::Shape;
 
 #[derive(Debug)]
@@ -23,7 +24,7 @@ pub struct Triangle {
     c_uv: Vec2,
     dir: Vec3,
     plane: Plane,
-    aabb: super::aabb::Aabb,
+    aabb: Aabb,
     is_obj: bool,
 }
 
@@ -97,6 +98,9 @@ impl Shape for Triangle {
     fn pos(&self) -> &Vec3 { &self.a }
     fn as_triangle(&self) -> Option<&Triangle> { Some(self) }
     fn as_triangle_mut(&mut self) -> Option<&mut Triangle> { Some(self) }
+    fn aabb(&self) -> Option<&Aabb> {
+        Some(&self.aabb)
+    }
 
     fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
         let mut category = UIElement::new("Triangle", "triangle", ElemType::Category(Category::default()), ui.uisettings());
@@ -203,7 +207,7 @@ impl Triangle {
     pub fn get_a_uv(&self) -> &Vec2 { &self.a_uv }
     pub fn get_b_uv(&self) -> &Vec2 { &self.b_uv }
     pub fn get_c_uv(&self) -> &Vec2 { &self.c_uv }
-    pub fn aabb(&self) -> &super::aabb::Aabb { &self.aabb }
+    pub fn aabb(&self) -> &Aabb { &self.aabb }
     pub fn is_obj(&self) -> bool { self.is_obj }
 
     // Mutators
@@ -276,7 +280,7 @@ impl Triangle {
         self.set_aabb(self::Triangle::compute_aabb(&self.a, &self.b, &self.c));
     }
 
-    pub fn compute_aabb(a: &Vec3, b: &Vec3, c: &Vec3) -> super::aabb::Aabb {
+    pub fn compute_aabb(a: &Vec3, b: &Vec3, c: &Vec3) -> Aabb {
         let x_min = a.x().min(*b.x()).min(*c.x());
         let x_max = a.x().max(*b.x()).max(*c.x());
         let y_min = a.y().min(*b.y()).min(*c.y());

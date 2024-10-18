@@ -1,6 +1,7 @@
 use std::{collections::HashMap, fs};
 
 use image::{RgbImage, RgbaImage};
+use nalgebra::SimdBool;
 
 use crate::{
     bvh::{self, traversal}, model::objects::light::{AmbientLight, Light}, parsing::obj::{self, Obj}, render::settings::Settings
@@ -19,6 +20,9 @@ use super::{
 #[derive(Debug)]
 pub struct Scene {
     elements: Vec<Element>,
+    bvh_elements_index: Vec<usize>,
+    non_bvh_elements_index: Vec<usize>,
+    non_bvh_composed_elements_index: Vec<usize>,
     composed_elements: Vec<ComposedElement>,
     camera: Camera,
     lights: Vec<AnyLight>,
@@ -34,6 +38,9 @@ impl Scene {
     pub fn new() -> Self {
         Self {
             elements: Vec::new(),
+            bvh_elements_index: Vec::new(),
+            non_bvh_elements_index: Vec::new(),
+            non_bvh_composed_elements_index: Vec::new(),
             composed_elements: Vec::new(),
             camera: Camera::default(),
             lights: Vec::new(),
@@ -212,9 +219,29 @@ impl Scene {
 
     pub fn update_bvh(&mut self) {
         let aabbs = self.all_aabb();
+        println!("Nb aabbs {}", aabbs.len());
         let biggest_aabb = Aabb::from_aabbs(&aabbs);
         let mut node = bvh::node::Node::new(&biggest_aabb);
         node.build_tree(self);
+        self.bvh_elements_index.clear();
+        self.non_bvh_elements_index.clear();
+        self.non_bvh_composed_elements_index.clear();
+        let mut nb_elements = 0;
+        for element in &self.elements {
+            if element.shape().aabb().is_some() {
+                self.bvh_elements_index.push(nb_elements);
+            } else {
+                self.non_bvh_elements_index.push(nb_elements);
+            }
+            nb_elements += 1;
+        }
+        let mut nb_elements = 0;
+        for composed_element in &self.composed_elements {
+            if composed_element.composed_shape().elements().iter().all(|element| element.shape().aabb().is_none()) {
+                self.non_bvh_composed_elements_index.push(nb_elements);
+            }
+            nb_elements += 1;
+        }
 
         self.bvh = Some(node);
     }
@@ -291,7 +318,7 @@ impl Scene {
     pub fn all_aabb(&self) -> Vec<&crate::model::shapes::aabb::Aabb> {
         self.elements
             .iter()
-            .filter_map(|element| element.shape().as_aabb())
+            .filter_map(|element| element.shape().as_aabb().or_else(|| element.shape.aabb()) )
             .collect()
     }
 
@@ -299,28 +326,16 @@ impl Scene {
         &self.bvh
     }
 
-    pub fn non_bvh_elements(&self) -> Vec<&crate::model::Element> {
-        self.elements
-            .iter()
-            .filter(|element| element.shape().aabb().is_none() && element.shape().as_aabb().is_none())
-            .collect()
+    pub fn non_bvh_elements(&self) -> &Vec<usize> {
+        &self.non_bvh_elements_index
     }
 
-    pub fn non_bvh_composed_elements(&self) -> Vec<&crate::model::Element> {
-        self.composed_elements
-        .iter()
-        .filter(|composed_element| composed_element.composed_shape().elements().iter().all(|element| element.shape().aabb().is_none() && element.shape().as_aabb().is_none()))
-        .flat_map(|composed_element| composed_element.composed_shape().elements().iter())
-        .collect()
+    pub fn non_bvh_composed_elements(&self) -> &Vec<usize> {
+        &self.non_bvh_composed_elements_index
     }
 
-    pub fn non_bvh_element_ids(&self) -> Vec<usize> {
-        self.elements
-            .iter()
-            .enumerate()
-            .filter(|(_, element)| element.shape().aabb().is_none() && element.shape().as_aabb().is_none())
-            .map(|(i, _)| i)
-            .collect()
+    pub fn non_bvh_element_ids(&self) -> &Vec<usize> {
+        &self.non_bvh_elements_index
     }
 
     pub fn test_all_elements(&self) -> Vec<&crate::model::Element> {

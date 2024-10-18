@@ -7,15 +7,11 @@ use rand::Rng;
 use crate::{
     bvh::{self, traversal::{get_closest_aabb_hit, new_traverse_bvh, traverse_bvh}}, model::{
         materials::color::Color,
-        maths::{hit::Hit, ray::Ray, vec3::Vec3},
+        maths::{hit::Hit, ray::Ray, vec3::Vec3, vec_utils::{random_unit_vector, reflect_dir}},
         objects::light,
         scene::Scene, shapes::Shape,
     }, render::{raycasting::get_closest_hit, skysphere::get_skysphere_color}, FILTER, MAX_DEPTH, USING_BVH
 };
-
-use super::lighting_sampling::{
-        random_unit_vector, reflect_dir,
-    };
 
 pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
     let hit;
