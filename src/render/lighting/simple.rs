@@ -1,11 +1,10 @@
 use crate::{
-    model::{
+    bvh::traversal::new_traverse_bvh, model::{
         materials::color::Color,
         maths::{hit::Hit, ray::Ray, vec3::Vec3},
         objects::light::{Light, ParallelLight},
         scene::Scene, shapes::Shape,
-    },
-    render::{raycasting::get_closest_hit, skysphere::get_skysphere_color}, FILTER,
+    }, render::{raycasting::get_closest_hit, skysphere::get_skysphere_color}, FILTER, USING_BVH
 };
 
 pub fn simple_lighting_from_ray(
@@ -14,7 +13,19 @@ pub fn simple_lighting_from_ray(
     ambient: &Color,
     light: &ParallelLight,
 ) -> Color {
-    match get_closest_hit(scene, ray) {
+    let hit;
+
+    match USING_BVH {
+        true => {
+            let node = scene.bvh().as_ref().unwrap();
+            hit = new_traverse_bvh(ray, Some(node), scene);
+        },
+        false => {
+            hit = get_closest_hit(scene, ray);
+        },
+    };
+
+    match hit {
         Some(hit) => {
             if hit.element().shape().as_wireframe().is_some() {
                 return Color::new(1., 1., 1.);

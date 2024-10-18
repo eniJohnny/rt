@@ -7,8 +7,16 @@
     },
     {
         "type": "camera",
-        "pos": [0.0, 0.0, -15.0],
-        "dir": [0, 0, 1],
+        "pos": [10, 0, 10],
+        "dir": [-1, 0, -1],
         "fov": 75
+    },
+    {
+        "type": "obj",
+        "pos": [0, -2, 0],
+        "scale": 0.1,
+        "dir": [0, 0, -1],
+        "file": "obj/cat.obj",
+        "texture": "obj/cat.jpg"
     }
 ]

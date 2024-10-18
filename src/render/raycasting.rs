@@ -12,10 +12,7 @@ use crate::{
     }, ANTIALIASING, MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH, USING_BVH
 };
 
-use super::{
-    lighting::lighting_sampling::get_reflected_light_bucket,
-    restir::{Path, PathBucket, Sample}, skysphere::get_skysphere_color,
-};
+use super::{skysphere::get_skysphere_color,};
 
 pub fn get_ray_debug(scene: &Scene, x: usize, y: usize, debug: bool) -> Ray {
     let width = (scene.camera().fov() / 2.).tan() * 2.;
@@ -42,34 +39,6 @@ pub fn get_ray_debug(scene: &Scene, x: usize, y: usize, debug: bool) -> Ray {
 
 pub fn get_ray(scene: &Scene, x: usize, y: usize) -> Ray {
     get_ray_debug(scene, x, y, false)
-}
-
-pub fn sampling_ray(scene: &Scene, ray: &Ray) -> PathBucket {
-    match get_closest_hit(scene, ray) {
-        Some(hit) => {
-            let mut bucket = get_reflected_light_bucket(hit.clone(), scene, ray);
-            let mut path = Path {
-                hit,
-                reflect: None,
-                indirect: None,
-            };
-            let mut weight = 0.;
-            if let Some(sample) = bucket.sample.clone() {
-                weight = sample.weight;
-                path.indirect = Some(Box::new(sample));
-            }
-            bucket.sample = Some(Sample {
-                color: Color::new(0., 0., 0.),
-                weight,
-            });
-            bucket
-        }
-        None => PathBucket {
-            sample: None,
-            weight: 0.,
-            nbSamples: 0,
-        }, //TODO Handle background on None
-    }
 }
 
 pub fn get_sorted_hit_from_t<'a>(scene: &'a Scene, ray: &Ray, t: &Option<Vec<f64>>, element: &'a Element) -> Option<Vec<Hit<'a>>> {

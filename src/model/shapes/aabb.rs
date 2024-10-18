@@ -480,6 +480,10 @@ impl Shape for Aabb {
     fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
         UIElement::new("UI not defined for AABBs", "notdefined", ElemType::Text, ui.uisettings())
     }
+
+    fn aabb(&self) -> Option<&Aabb> {
+        Some(self)
+    }
 }
 
 fn get_tmin(tmin_x: f64, tmax_x: f64, tmin_y: f64, tmax_y: f64, tmin_z: f64, tmax_z: f64) -> f64 {

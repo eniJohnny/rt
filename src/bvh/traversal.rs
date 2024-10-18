@@ -1,4 +1,4 @@
-use crate::{model::{materials::texture::{Texture, TextureType}, maths::{hit::{self, Hit}, ray::Ray}, scene::{self, Scene}, shapes::{aabb::Aabb, Shape}, Element}, render::raycasting::get_closest_hit};
+use crate::{model::{materials::texture::{Texture, TextureType}, maths::{hit::{self, Hit}, ray::Ray}, scene::{self, Scene}, shapes::{aabb::Aabb, Shape}, Element}, render::raycasting::get_closest_hit, USING_BVH};
 
 use super::node::Node;
 
@@ -210,6 +210,7 @@ pub fn new_traverse_bvh<'a>(ray: &Ray, node: Option<&Node>, scene: &'a Scene) ->
         Some(node) => node,
         None => return None,
     };
+    
 
     let closest_non_bvh_hit = get_closest_non_bvh_hit(scene, ray, &scene.non_bvh_elements(), &scene.non_bvh_composed_elements());
     let tn = if let Some(ref hit) = closest_non_bvh_hit {
@@ -217,8 +218,14 @@ pub fn new_traverse_bvh<'a>(ray: &Ray, node: Option<&Node>, scene: &'a Scene) ->
     } else {
         None
     };
+    if ray.debug {
+        println!("xmax: {}, xmin: {}, ymax: {}, ymin: {}, is_leaf: {}", node.aabb().x_max(), node.aabb().x_min(), node.aabb().y_max(), node.aabb().y_min(), node.is_leaf());
+    }
 
     while node.is_leaf() == false {
+        if ray.debug {
+            println!("Not a leaf");
+        }
         // println!("is leaf: {}\nlen: {}\nelements: {:?}\na: {}\nb: {}\n", node.is_leaf(), node.len(), node.elements(), node.a().as_ref().unwrap(), node.b().as_ref().unwrap());
 
         let (mut ta, mut tb): (Option<Vec<f64>>, Option<Vec<f64>>) = (None, None);
@@ -344,10 +351,11 @@ pub fn new_traverse_bvh<'a>(ray: &Ray, node: Option<&Node>, scene: &'a Scene) ->
     None
 }
 
-fn get_closest_non_bvh_hit<'a>(scene: &'a Scene, ray: &Ray, elements: &Vec<&'a Element>, composed_elements: &Vec<&'a Element>) -> Option<Hit<'a>> {
+fn get_closest_non_bvh_hit<'a>(scene: &'a Scene, ray: &Ray, elements_index: &Vec<usize>, composed_elements_index: &Vec<usize>) -> Option<Hit<'a>> {
     let mut closest: Option<Hit> = None;
 
-    for element in elements {
+    for element_index in elements_index {
+        let element = scene.get_element(*element_index);
         let mut t = None;
         if scene.settings().displacement {
             if let Texture::Texture(file, TextureType::Float) = element.material().displacement() {
@@ -391,7 +399,8 @@ fn get_closest_non_bvh_hit<'a>(scene: &'a Scene, ray: &Ray, elements: &Vec<&'a E
             }
         }
     }
-    for element in composed_elements {
+    for element_index in composed_elements_index {
+        let element = scene.get_element(*element_index);
         let mut t = None;
 
         t = element.shape().intersect(ray);
