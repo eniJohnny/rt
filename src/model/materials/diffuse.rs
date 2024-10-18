@@ -41,10 +41,10 @@ impl Diffuse {
         Box::new(Diffuse::new(
             Texture::Value(Vec3::from_value(1.), TextureType::Color),
             Texture::Value(Vec3::from_value(0.), TextureType::Float),
-            Texture::Value(Vec3::from_value(1.), TextureType::Float),
-            Texture::Value(Vec3::from_value(0.1), TextureType::Float),
+            Texture::Value(Vec3::from_value(0.5), TextureType::Float),
             Texture::Value(Vec3::from_value(0.), TextureType::Float),
-            Texture::Value(Vec3::from_value(0.), TextureType::Vector),
+            Texture::Value(Vec3::from_value(0.), TextureType::Float),
+            Texture::Value(Vec3::new(0.5, 0.5, 1.0), TextureType::Vector),
             Texture::Value(Vec3::from_value(1.), TextureType::Float),
 			Texture::Value(Vec3::from_value(0.), TextureType::Float),
         ))
