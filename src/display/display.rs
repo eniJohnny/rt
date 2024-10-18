@@ -63,6 +63,9 @@ pub fn redraw_if_necessary(ui: &mut UI, scene: &Arc<RwLock<Scene>>, mut pixels: 
     }
     if redraw {
         let time = Instant::now();
+        if FILTERS.contains(&FILTER) {
+            apply_filter(&mut context.scene_img);
+        }
         let mut img = blend_scene_and_ui(&context, ui.active_box());
         display(&mut pixels, &mut img);
         let nb_samples = context.draw_time_samples as f64;
@@ -80,11 +83,6 @@ pub fn display(pixels: &mut Pixels, img: &mut RgbaImage) {
         pixels.frame_mut().copy_from_slice(&img2);
         pixels.render().unwrap();
     } else {
-        if FILTERS.contains(&FILTER) {
-            // Apply filter
-            apply_filter(img);
-        }
-        
         // No modifiers
         pixels.frame_mut().copy_from_slice(&img);
         pixels.render().unwrap();
