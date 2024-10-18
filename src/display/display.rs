@@ -5,13 +5,14 @@ use std::{
 
 use image::RgbaImage;
 use pixels::Pixels;
-
 use crate::{
+    display::filters::apply_filter,
     model::scene::Scene,
     ui::{
         ui::UI,
         uibox::UIBox, utils::{draw_utils::is_inside_box, ui_utils::UIContext},
-    }, ANAGLYPH, ANAGLYPH_OFFSET_X, ANAGLYPH_OFFSET_Y, FILTER,
+    },
+    ANAGLYPH, ANAGLYPH_OFFSET_X, ANAGLYPH_OFFSET_Y, FILTER, FILTERS,
 };
 
 use super::anaglyph::{self, Coloring};
@@ -78,12 +79,12 @@ pub fn display(pixels: &mut Pixels, img: &mut RgbaImage) {
         let img2 = anaglyph::create(img, ANAGLYPH_OFFSET_X, ANAGLYPH_OFFSET_Y, Coloring::RedCyan);
         pixels.frame_mut().copy_from_slice(&img2);
         pixels.render().unwrap();
-    } else if FILTER != "none" {
-        // Filter modifier
-        crate::display::filters::apply_filter(img);
-        pixels.frame_mut().copy_from_slice(&img);
-        pixels.render().unwrap();
     } else {
+        if FILTERS.contains(&FILTER) {
+            // Apply filter
+            apply_filter(img);
+        }
+        
         // No modifiers
         pixels.frame_mut().copy_from_slice(&img);
         pixels.render().unwrap();

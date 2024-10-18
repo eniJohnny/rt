@@ -42,7 +42,8 @@ const MAX_ITERATIONS: usize = 1500;
 const ANAGLYPH: bool = false;
 const ANAGLYPH_OFFSET_X: isize = 80;
 const ANAGLYPH_OFFSET_Y: isize = 16;
-// Available filters: none, grayscale, sepia
+// Available filters: cartoon, grayscale, sepia, none
+const FILTERS: [&str; 3] = ["cartoon", "grayscale", "sepia"];
 const FILTER: &str = "none";
 const EDGE_THRESHOLD: u32 = 100;
 

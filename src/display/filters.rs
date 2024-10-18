@@ -3,7 +3,6 @@ use image::ImageBuffer;
 
 pub fn apply_filter(image: &mut ImageBuffer<image::Rgba<u8>, Vec<u8>>) {
     match FILTER {
-        "none" => {}
         "grayscale" => { grayscale(image); }
         "sepia" => { sepia(image); }
         "cartoon" => { cartoon(image); }
