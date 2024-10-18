@@ -10,9 +10,7 @@ use crate::{
         maths::{hit::Hit, ray::Ray, vec3::Vec3},
         objects::light,
         scene::Scene, shapes::Shape,
-    },
-    render::{raycasting::get_closest_hit, skysphere::get_skysphere_color},
-    MAX_DEPTH, USING_BVH,
+    }, render::{raycasting::get_closest_hit, skysphere::get_skysphere_color}, FILTER, MAX_DEPTH, USING_BVH
 };
 
 use super::lighting_sampling::{
@@ -41,6 +39,9 @@ pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
             tmp
         },
         None => {
+            if FILTER == "cartoon" {
+                return Color::new(1., 1., 1.);
+            }
             get_skysphere_color(scene, ray)
         },
     };

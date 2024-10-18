@@ -14,7 +14,7 @@ pub mod bvh;
 
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
-const SCENE: &str = "testing";
+const SCENE: &str = "random100_0";
 
 /************* Displacement **************/
 const DISPLACEMENT: bool = false;
@@ -43,7 +43,8 @@ const ANAGLYPH: bool = false;
 const ANAGLYPH_OFFSET_X: isize = 80;
 const ANAGLYPH_OFFSET_Y: isize = 16;
 // Available filters: none, grayscale, sepia
-const FILTER: &str = "cartoon";
+const FILTER: &str = "none";
+const EDGE_THRESHOLD: u32 = 100;
 
 /********* Default UISettings *********/
 const MARGIN: usize = 3;
