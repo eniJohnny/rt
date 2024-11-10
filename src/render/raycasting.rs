@@ -1,4 +1,5 @@
 use rand::Rng;
+use rusttype::Vector;
 
 use crate::{
     model::{
@@ -46,6 +47,7 @@ pub fn get_ray(scene: &Scene, x: usize, y: usize) -> Ray {
 pub fn sampling_ray(scene: &Scene, ray: &Ray) -> PathBucket {
     match get_closest_hit(scene, ray) {
         Some(hit) => {
+			let hit = hit.0;
             let mut bucket = get_reflected_light_bucket(hit.clone(), scene, ray);
             let mut path = Path {
                 hit,
@@ -83,19 +85,21 @@ fn intersect2(plane: &Plane, r: Ray) -> Option<Vec<f64>> {
     None
 }
 
-pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
+pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<(Hit<'a>, Vec<(Vec<f64>, &'a Element)>)> {
     let mut closest: Option<Hit> = None;
+    let mut all_intersections: Vec<(Vec<f64>, &Element)> = Vec::new();
     for element in scene.elements().iter() {
         let mut t = None;
         t = element.shape().intersect(ray);
         if let Some(t) = t {
-            for dist in t {
-                if dist > 0.0 {
+            for dist in &t {
+                if dist > &0.0 {
                     if let Some(hit) = &closest {
-                        if &dist < hit.dist() {
+                        if dist < hit.dist() {
                             let new_hit = Hit::new(
                                 element,
-                                dist,
+								t.clone(),
+                                dist.clone(),
                                 ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
                                 ray.get_dir(),
                                 scene.textures(),
@@ -107,7 +111,8 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
                     } else {
                         let new_hit = Hit::new(
                             element,
-                            dist,
+							t.clone(),
+                            dist.clone(),
                             ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
                             ray.get_dir(),
                             scene.textures(),
@@ -118,13 +123,14 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
                     }
                 }
             }
+			all_intersections.push((t, element));
         }
     }
     match closest {
         None => None,
         Some(mut hit) => {
             hit.map_textures(scene.textures());
-            Some(hit)
+            Some((hit, all_intersections))
         }
     }
 }

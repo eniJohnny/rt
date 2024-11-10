@@ -1,5 +1,7 @@
 use std::fmt::{Display, Formatter, Result};
 
+use crate::model::Element;
+
 use super::vec3::Vec3;
 
 #[derive(Clone, Debug)]
@@ -8,7 +10,7 @@ pub struct Ray {
     dir: Vec3,
     depth: u8,
     sampling: bool,
-    pub debug: bool,
+    pub debug: bool
 }
 
 impl Ray {
@@ -19,6 +21,7 @@ impl Ray {
             depth,
             sampling: false,
             debug: false,
+
         }
     }
 

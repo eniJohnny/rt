@@ -124,8 +124,8 @@ pub fn event_manager(
                         let hit = get_closest_hit(&scene, &ray);
                         if let Some(hit) = &hit {
                             //For debug purposes
-                            get_lighting_from_hit(&scene, hit, &ray);
-                            let proj = hit.element().shape().projection(hit);
+                            get_lighting_from_hit(&scene, &hit.0, &ray, &hit.1);
+                            let proj = hit.0.element().shape().projection(&hit.0);
                             dbg!(proj);
                         }
 
@@ -251,7 +251,7 @@ pub fn event_manager(
                                 display(&mut pixels, &mut img);
                             }
                         } else if hit.is_some() {
-                            let hit = hit.unwrap();
+                            let hit = hit.unwrap().0;
                             let element = hit.element();
 
                             let element_index: usize = scene

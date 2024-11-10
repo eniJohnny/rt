@@ -1,13 +1,16 @@
 use std::fmt::Debug;
 
-use rand::Rng;
+use chrono::format::Numeric;
+use image::error;
+use rand::{distributions, Rng};
+use rusttype::Vector;
 
 use crate::{
     model::{
         materials::color::Color,
         maths::{hit::{self, Hit}, ray::Ray, vec3::Vec3},
         objects::light,
-        scene::Scene, shapes::Shape,
+        scene::Scene, shapes::Shape, Element,
     },
     MAX_DEPTH,
 };
@@ -23,7 +26,7 @@ use super::{
 
 pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
     match get_closest_hit(scene, ray) {
-        Some(hit) => get_lighting_from_hit(scene, &hit, ray),
+        Some(hit) => get_lighting_from_hit(scene, &hit.0, ray, &hit.1),
         //TODO : Handle BG on None
         // None => Color::new(0., 0., 0.),
         None => {
@@ -53,7 +56,35 @@ pub fn fresnel_reflect_ratio(n1: f64, n2: f64, norm: &Vec3, ray: &Vec3, f0: f64,
     f0 * (1.0 - ret) + f90 * ret
 }
 
-pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
+pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray, t: &Vec<(Vec<f64>, &Element)>) -> Color {
+	let is_inside;
+	
+	if hit.all_dist().len() % 2 == 0 {
+		let mut nb_dist_positif = 0;
+		for dist in hit.all_dist() {
+			if dist > &0. {
+				nb_dist_positif += 1;
+			}
+		}
+		is_inside = nb_dist_positif % 2 != 0;
+	} else {
+		is_inside = true;
+	} 
+	
+	let current_refraction_index;
+	let next_refraction_index;
+	let normal: Vec3;
+	if is_inside {
+		current_refraction_index = hit.refraction();
+		next_refraction_index = 1.0;
+		normal = -hit.norm().clone();
+	} else {
+		current_refraction_index = 1.0;
+		next_refraction_index = hit.refraction();
+		normal = hit.norm().clone();
+	}
+
+
     let absorbed = 1.0 - hit.metalness();
 
     if ray.debug {
@@ -65,7 +96,7 @@ pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
             hit.norm(),
             hit.emissive(),
             hit.opacity(),
-            hit.refraction()
+            hit.transparency()
         );
     }
 
@@ -73,77 +104,32 @@ pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
         return hit.emissive() * hit.color();
     }
     let mut light_color = Color::new(0., 0., 0.);
-    let fresnel_factor =
-        fresnel_reflect_ratio(1., 1.52, hit.norm(), ray.get_dir(), 0., 1.0 - hit.roughness());
+    let fresnel_factor = fresnel_reflect_ratio(current_refraction_index, next_refraction_index, &normal, ray.get_dir(), 0., 1.0 - hit.roughness());
     let reflected = fresnel_factor * absorbed;
-    let refracted = hit.refraction();
     let rand = rand::thread_rng().gen_range(0.0..1.0);
     if rand < reflected && scene.imperfect_reflections() && ray.get_depth() < MAX_DEPTH {
-        let reflect_color;
-        // if ray.get_depth() == 0 {
-        //     let sample = get_reflected_light_sample(hit.clone(), scene, &ray, hit.roughness());
-        //     reflect_color = &sample.color * sample.weight;
-        // } else {
-        let dir = (reflect_dir(ray.get_dir(), hit.norm()) + random_unit_vector() * hit.roughness())
-            .normalize();
-        if dir.dot(hit.norm()) > f64::EPSILON {
-            let reflect_ray = Ray::new(hit.pos().clone(), dir, ray.get_depth() + 1);
-            reflect_color = get_lighting_from_ray(scene, &reflect_ray);
-        } else {
-            reflect_color = Color::new(0., 0., 0.);
-        }
-        // }
+		// Reflected Light
         if rand > hit.metalness() {
-            light_color += reflect_color
+            light_color += get_reflected_light_color(scene, hit, ray);
         } else {
-            light_color += reflect_color * hit.color();
+            light_color += get_reflected_light_color(scene, hit, ray) * hit.color();
         }
 	} else {
-
-
+		let refracted = hit.transparency();
 		let rand = rand::thread_rng().gen_range(0.0..1.0);
-
-
-
 		if rand < refracted && ray.get_depth() < MAX_DEPTH {
-			// Refracted ray
-			let mut refract_color = Color::new(0., 0., 0.);
-			let refraction_result = refract(ray.get_dir().clone(), hit.norm().clone(), 1., 1.52);
-			if let Some(refracted_ray) = refraction_result {
-
-				let refract_ray = Ray::new(hit.pos().clone() - hit.norm() * 0.01, refracted_ray.clone(), ray.get_depth());
-				let refract_hit = get_closest_hit(scene, &refract_ray);
-				if let Some(refract_hit) = refract_hit {
-					// refract again to go out of the object
-					let refracted_out = refract(refracted_ray, refract_hit.norm().clone(), 1.52, 1.);
-					if let Some(refracted_out) = refracted_out {
-						let refract_out_ray = Ray::new(refract_hit.pos().clone() + refract_hit.norm().clone() * 0.01, refracted_out.clone(), ray.get_depth());
-						refract_color = get_lighting_from_ray(scene, &refract_out_ray);
-					}
-				}
-			}
-			light_color += refract_color;
-	
-		} else 
-		if scene.indirect_lightning() && ray.get_depth() < MAX_DEPTH { // Indirect Light
-            if ray.get_depth() == 0 {
-                let sample = get_indirect_light_sample(hit.clone(), scene, &ray);
-                light_color += sample.color * sample.weight * hit.color();
-            } else {
-            let mut indirect_dir = hit.norm() + random_unit_vector();
-            if indirect_dir.length() < 0.01 {
-                indirect_dir = hit.norm().clone();
-            }
-            indirect_dir = indirect_dir.normalize();
-            let indirect_ray = Ray::new(hit.pos().clone(), indirect_dir, ray.get_depth() + 1);
-            light_color = get_lighting_from_ray(scene, &indirect_ray) * hit.color();
-            }
+			// Refracted Light
+			light_color += get_refracted_light_color(scene, hit, ray, current_refraction_index, next_refraction_index, &normal);
+		} else if scene.indirect_lightning() && ray.get_depth() < MAX_DEPTH {
+			// Indirect Light
+			light_color += get_indirect_light_color(scene, hit, ray);
         }
     }
 	light_color
 }
 
-fn refract(incoming: Vec3, normal: Vec3, n1: f64, n2: f64) -> Option<Vec3> {
+fn refract_dir(incoming: &Vec3, normal: &Vec3, n1: f64, n2: f64) -> Option<Vec3>
+{
     let n = n1 / n2;
     let cos_i = -incoming.dot(&normal);
     let sin_t2 = n * n * (1.0 - cos_i * cos_i);
@@ -152,8 +138,56 @@ fn refract(incoming: Vec3, normal: Vec3, n1: f64, n2: f64) -> Option<Vec3> {
     if sin_t2 > 1.0 {
         return None;
     }
-
     let cos_t = (1.0 - sin_t2).sqrt();
     let refracted = n * incoming + (n * cos_i - cos_t) * normal;
     Some(refracted)
+}
+
+fn get_reflected_light_color(scene: &Scene, hit: &Hit, ray: &Ray) -> Color
+{
+	let mut light_color = Color::new(0., 0., 0.);
+	let reflect_color;
+	// if ray.get_depth() == 0 {
+	//     let sample = get_reflected_light_sample(hit.clone(), scene, &ray, hit.roughness());
+	//     reflect_color = &sample.color * sample.weight;
+	// } else {
+	let dir = (reflect_dir(ray.get_dir(), hit.norm()) + random_unit_vector() * hit.roughness())
+		.normalize();
+	if dir.dot(hit.norm()) > f64::EPSILON {
+		let reflect_ray = Ray::new(hit.pos().clone(), dir, ray.get_depth() + 1);
+		reflect_color = get_lighting_from_ray(scene, &reflect_ray);
+	} else {
+		reflect_color = Color::new(0., 0., 0.);
+	}
+	// }
+	reflect_color
+}
+
+fn get_refracted_light_color(scene: &Scene, hit: &Hit, ray: &Ray, n1: f64, n2: f64, normal: &Vec3) -> Color
+{
+	let mut refract_color = Color::new(0., 0., 0.);
+	let refraction_result = refract_dir(&ray.get_dir(), normal, n1, n2);
+	if let Some(refracted_ray) = refraction_result {
+		let refract_ray = Ray::new(hit.pos().clone() - normal * 0.2, refracted_ray.clone(), ray.get_depth());
+		refract_color = get_lighting_from_ray(scene, &refract_ray);
+	}
+	refract_color
+}
+
+fn get_indirect_light_color(scene: &Scene, hit: &Hit, ray: &Ray) -> Color
+{
+	let mut light_color = Color::new(0., 0., 0.);
+	if ray.get_depth() == 0 {
+		let sample = get_indirect_light_sample(hit.clone(), scene, &ray);
+		light_color += sample.color * sample.weight * hit.color();
+	} else {
+		let mut indirect_dir = hit.norm() + random_unit_vector();
+		if indirect_dir.length() < 0.01 {
+			indirect_dir = hit.norm().clone();
+		}
+		indirect_dir = indirect_dir.normalize();
+		let indirect_ray = Ray::new(hit.pos().clone(), indirect_dir, ray.get_depth() + 1);
+		light_color = get_lighting_from_ray(scene, &indirect_ray) * hit.color();
+	}
+	light_color
 }

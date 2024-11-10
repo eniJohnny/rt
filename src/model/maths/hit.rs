@@ -21,6 +21,7 @@ pub enum HitType {
 #[derive(Debug, Clone)]
 pub struct Hit<'a> {
     element: &'a Element,
+	all_dist: Vec<f64>,
     dist: f64,
     pos: Vec3,
     norm: Vec3,
@@ -28,7 +29,8 @@ pub struct Hit<'a> {
     color: Color,
     metalness: f64,
     roughness: f64,
-    refraction: f64,
+    transparency: f64,
+	refraction: f64,
     emissive: f64,
     opacity: f64,
 }
@@ -36,6 +38,7 @@ pub struct Hit<'a> {
 impl<'a> Hit<'a> {
     pub fn new(
         element: &'a Element,
+		all_dist: Vec<f64>,
         dist: f64,
         pos: Vec3,
         ray_dir: &Vec3,
@@ -43,6 +46,7 @@ impl<'a> Hit<'a> {
     ) -> Self {
         let mut hit = Hit {
             element,
+			all_dist,
             dist,
             norm: element.shape().norm(&pos, &ray_dir),
             pos,
@@ -50,7 +54,8 @@ impl<'a> Hit<'a> {
             color: Color::new(0., 0., 0.),
             metalness: 0.,
             roughness: 0.,
-            refraction: 0.,
+            transparency: 0.,
+            refraction: 1.,
             emissive: 0.,
             opacity: 1.,
         };
@@ -62,6 +67,10 @@ impl<'a> Hit<'a> {
     pub fn element(&self) -> &'a Element {
         self.element
     }
+
+	pub fn all_dist(&self) -> &Vec<f64> {
+		&self.all_dist
+	}
 
     pub fn dist(&self) -> &f64 {
         &self.dist
@@ -81,11 +90,14 @@ impl<'a> Hit<'a> {
     pub fn metalness(&self) -> f64 {
         self.metalness
     }
-    pub fn refraction(&self) -> f64 {
+    pub fn transparency(&self) -> f64 {
 		if self.element.shape().as_sphere().is_some() {
-			return 1.
+			return 0.5
 		}
 		0.
+    }
+	pub fn refraction(&self) -> f64 {
+		1.52
     }
     pub fn roughness(&self) -> f64 {
         self.roughness
@@ -142,7 +154,7 @@ impl<'a> Hit<'a> {
     }
 
     fn map_refraction(&mut self, textures: &HashMap<String, RgbaImage>) {
-        self.refraction = self
+        self.transparency = self
             .map_texture(self.element.material().refraction(), textures)
             .to_value();
     }
