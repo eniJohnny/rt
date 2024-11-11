@@ -486,6 +486,7 @@ fn get_material(
     let metalness_string = object.get("metalness").unwrap_or(&default);
     let roughness_string = object.get("roughness").unwrap_or(&default);
     let refraction_string = object.get("refraction").unwrap_or(&default);
+    let transparency_string = object.get("transparency").unwrap_or(&default);
     let emissive_string = object.get("emissive").unwrap_or(&default);
     let normal_string = object.get("normal").unwrap_or(&default);
     let opacity_string = object.get("opacity").unwrap_or(&default);
@@ -505,7 +506,8 @@ fn get_material(
         Texture::from_float_litteral(metalness_string, 0.),
         Texture::from_float_litteral(roughness_string, 0.),
         Texture::from_float_scaled(emissive_string, 0.),
-        Texture::from_float_litteral(refraction_string, 0.),
+        Texture::from_float_litteral(refraction_string, 1.),
+        Texture::from_float_litteral(transparency_string, 1.),
         Texture::from_vector(normal_string, Vec3::new(0., 0., 1.)),
         Texture::from_float_litteral(opacity_string, 1.),
 		Texture::from_float_litteral(displacement_string, 0.),

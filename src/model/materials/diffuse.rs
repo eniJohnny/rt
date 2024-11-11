@@ -10,6 +10,7 @@ pub struct Diffuse {
     metalness: Texture,
     roughness: Texture,
     refraction: Texture,
+    transparency: Texture,
     norm_variation: Texture,
     emissive: Texture,
     opacity: Texture,
@@ -23,6 +24,7 @@ impl Diffuse {
         roughness: Texture,
         emissive: Texture,
         refraction: Texture,
+        transparency: Texture,
         norm_variation: Texture,
         opacity: Texture,
 		displacement: Texture,
@@ -33,6 +35,7 @@ impl Diffuse {
             roughness,
             emissive,
             refraction,
+            transparency,
             norm_variation,
             opacity,
 			displacement,
@@ -45,7 +48,8 @@ impl Diffuse {
             Texture::Value(Vec3::from_value(0.), TextureType::Float),
             Texture::Value(Vec3::from_value(0.5), TextureType::Float),
             Texture::Value(Vec3::from_value(0.), TextureType::Float),
-            Texture::Value(Vec3::from_value(0.), TextureType::Float),
+            Texture::Value(Vec3::from_value(1.), TextureType::Float),
+            Texture::Value(Vec3::from_value(1.), TextureType::Float),
             Texture::Value(Vec3::new(0.5, 0.5, 1.0), TextureType::Vector),
             Texture::Value(Vec3::from_value(1.), TextureType::Float),
 			Texture::Value(Vec3::from_value(0.), TextureType::Float),
@@ -59,6 +63,7 @@ impl Diffuse {
             self.roughness().clone(),
             self.emissive().clone(),
             self.refraction().clone(),
+            self.transparency().clone(),
             self.norm().clone(),
             self.opacity().clone(),
             self.displacement().clone()
@@ -95,6 +100,13 @@ impl Material for Diffuse {
     }
     fn set_refraction(&mut self, refraction: Texture) {
         self.refraction = refraction;
+    }
+
+    fn transparency(&self) -> &Texture {
+        &self.transparency
+    }
+    fn set_transparency(&mut self, transparency: Texture) {
+        self.transparency = transparency;
     }
 
     fn roughness(&self) -> &Texture {
