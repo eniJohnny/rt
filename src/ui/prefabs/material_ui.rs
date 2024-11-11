@@ -19,21 +19,21 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
         if let Some(element) = scene.write().unwrap().element_mut_by_id(id_element) {
             element.material_mut().set_color(texture);
         }
-    }), ui.uisettings(), false, Some(0.), Some(1.)));
+    }), ui.uisettings(), true, false, Some(0.), Some(1.)));
 
     //Displacement
     material_category.add_element(get_texture_ui("Displacement", element.material().displacement(), Box::new(move |texture, scene| {
         if let Some(element) = scene.write().unwrap().element_mut_by_id(id_element) {
             element.material_mut().set_displacement(texture);
         }
-    }), ui.uisettings(), true, None, None));
+    }), ui.uisettings(), true, true, None, None));
 
     //Norm variation
     let norm_variation = get_texture_ui("Norm", element.material().norm(), Box::new(move |texture, scene| {
         if let Some(element) = scene.write().unwrap().element_mut_by_id(id_element) {
             element.material_mut().set_norm(texture);
         }
-    }), ui.uisettings(), true, None, None);
+    }), ui.uisettings(), true, true, None, None);
     material_category.add_element(norm_variation);
 
     //Metalness
@@ -41,7 +41,7 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
         if let Some(element) = scene.write().unwrap().element_mut_by_id(id_element) {
             element.material_mut().set_metalness(texture);
         }
-    }), ui.uisettings(), false, Some(0.), Some(1.));
+    }), ui.uisettings(), true, false, Some(0.), Some(1.));
     material_category.add_element(metalness);
 
     //Refraction
@@ -49,15 +49,23 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
         if let Some(element) = scene.write().unwrap().element_mut_by_id(id_element) {
             element.material_mut().set_refraction(texture);
         }
-    }), ui.uisettings(), false, Some(1.), Some(50.));
+    }), ui.uisettings(), false, false, Some(1.), Some(50.));
     material_category.add_element(refraction);
+
+	//Transparency
+    let mut transparency = get_texture_ui("Transparency", element.material().transparency(), Box::new(move |texture, scene| {
+        if let Some(element) = scene.write().unwrap().element_mut_by_id(id_element) {
+            element.material_mut().set_transparency(texture);
+        }
+    }), ui.uisettings(), true, false, Some(0.), Some(1.));
+    material_category.add_element(transparency);
 
     //Roughness
     let roughness = get_texture_ui("Roughness", element.material().roughness(), Box::new(move |texture, scene| {
         if let Some(element) = scene.write().unwrap().element_mut_by_id(id_element) {
             element.material_mut().set_roughness(texture);
         }
-    }), ui.uisettings(), false, Some(0.), Some(1.));
+    }), ui.uisettings(), true, false, Some(0.), Some(1.));
     material_category.add_element(roughness);
 
     //Emissive
@@ -65,14 +73,14 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
         if let Some(element) = scene.write().unwrap().element_mut_by_id(id_element) {
             element.material_mut().set_emissive(texture);
         }
-    }), ui.uisettings(), false, Some(0.), None));
+    }), ui.uisettings(), true, false, Some(0.), None));
 
     //Opacity
     material_category.add_element(get_texture_ui("Opacity", element.material().opacity(), Box::new(move |texture, scene| {
         if let Some(element) = scene.write().unwrap().element_mut_by_id(id_element) {
             element.material_mut().set_opacity(texture);
         }
-    }), ui.uisettings(), false, Some(0.), Some(1.)));
+    }), ui.uisettings(), true, false, Some(0.), Some(1.)));
 
     material_category
 }
