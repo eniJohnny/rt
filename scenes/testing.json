@@ -1,40 +1,10 @@
 [
     {
-        "type": "torusphere",
-        "pos": [-5, 0, 0],
+        "type": "sphere",
+        "pos": [0, 0, 0],
         "dir": [0, 1, 0],
         "radius": 5.0,
-        "steps": 24,
-        "color": [255, 0, 255]
-    },
-    {
-        "type": "helix",
-        "pos": [5, 0, 0],
-        "dir": [0, 1, 0],
-        "height": 10.0
-    },
-    {
-        "type": "brick",
-        "pos": [-5, 0, 0],
-        "dir": [1, 1, 1],
-        "dimensions": [5, 2, 2],
-        "color": [255, 255, 0]
-    },
-    {
-        "type": "nagone",
-        "pos": [0, 0, -5],
-        "dir": [0, 1, 0],
-        "radius": 3.0,
-        "angles": 12,
-        "color": [0, 255, 255]
-    },
-    {
-        "type": "mobius",
-        "pos": [0, 0, 5],
-        "dir": [0, 1, 0],
-        "radius": 3.0,
-        "half_width": 0.5,
-        "color": [0, 255, 255]
+        "color": [0, 0, 0]
     },
     {
         "type": "camera",

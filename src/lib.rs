@@ -12,7 +12,7 @@ pub mod bvh;
 
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
-const SCENE: &str = "metalrough";
+const SCENE: &str = "testing";
 
 /************* Camera **************/
 const STEP: f64 = 0.2;
@@ -72,7 +72,7 @@ pub fn run() {
     let path = String::from(format!("{}/{}.json", SCENE_FOLDER, SCENE));
     if path != "" {
         let mut scene = get_scene(&path);
-        scene.add_skysphere_texture("skysphere.jpg");
+        scene.add_skysphere_texture("skybox_night.jpg");
         
         if DISPLAY_WIREFRAME {
             scene.add_wireframes();
