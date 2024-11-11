@@ -58,6 +58,7 @@ pub fn get_sorted_hit_from_t<'a>(scene: &'a Scene, ray: &Ray, t: &Option<Vec<f64
 					ray.get_pos() + ray.get_dir() * (*dist - f64::EPSILON),
 					ray.get_dir(),
 					scene.textures(),
+					t.clone(),
 				);
 				hits.push(new_hit);
 			}
@@ -78,7 +79,8 @@ pub fn get_closest_hit_from_elements<'a>(scene: &'a Scene, ray: &Ray, closest: O
 pub fn get_closest_hit_from_elements_with_index<'a>(scene: &'a Scene, ray: &Ray, mut closest: Option<Hit<'a>>, elements: &'a Vec<Element>, elements_index: &Vec<usize>) -> Option<Hit<'a>> {
     for index in elements_index {
         let element = &elements[*index];
-        let t;
+
+        let mut t = None;
 		if scene.settings().displacement {
             if let Texture::Texture(_file, TextureType::Float) = element.material().displacement() {
                 t = element.shape().intersect_displacement(ray, &element, scene);
@@ -89,16 +91,17 @@ pub fn get_closest_hit_from_elements_with_index<'a>(scene: &'a Scene, ray: &Ray,
         } else {
         	t = element.shape().intersect(ray);
         }
-        if let Some(t) = t {
+        if let Some(t) = &t {
             for dist in t {
-                if dist > 0.0 {
-                    if closest.is_none() || &dist < closest.clone().unwrap().dist() {
+                if dist > &0.0 {
+                    if closest.is_none() || dist < closest.clone().unwrap().dist() {
                         let new_hit = Hit::new(
                             element,
-                            dist,
+                            *dist,
                             ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
                             ray.get_dir(),
                             scene.textures(),
+							t.clone(),
                         );
                         if new_hit.opacity() > 0.5 {
                             closest = Some(new_hit);
@@ -108,7 +111,6 @@ pub fn get_closest_hit_from_elements_with_index<'a>(scene: &'a Scene, ray: &Ray,
             }
         }
     }
-
     closest
 }
 
@@ -160,4 +162,56 @@ pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
             get_skysphere_color(scene, ray)
         },
     };
+}
+
+
+
+pub fn get_parent<'a>(mut t_s: Vec<(&Element, Vec<f64>)>, closest_dist: f64) -> Option<&Element> {
+	for (_, t) in t_s.iter_mut() {
+		for dist in t.iter_mut() {
+			*dist -= closest_dist;
+		}
+	}
+    let mut closest: Option<(&Element, f64)> = None;
+	for (elem, t) in t_s {
+		if t.len() > 0
+		{
+			if t.len() % 2 == 0
+			{
+				let mut nb_t_positives = 0;
+				for dist in &t
+				{
+					if dist > &0.
+					{
+						nb_t_positives += 1;
+					}
+				}
+				if nb_t_positives % 2 == 0
+				{
+					for dist in t
+					{
+						if &dist > &0.
+						{
+							if let Some((_, closest_dist)) = closest
+							{
+								if &dist < &closest_dist
+								{
+									closest = Some((elem, dist));
+								}
+							}
+							else
+							{
+								closest = Some((elem, dist));
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	match closest
+	{
+		Some((elem, _)) => Some(elem),
+		None => None,
+	}
 }

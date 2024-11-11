@@ -23,8 +23,11 @@ pub struct Hit<'a> {
     metalness: f64,
     roughness: f64,
     refraction: f64,
+	transparency: f64,
     emissive: f64,
     opacity: f64,
+    all_dist: Vec<f64>,
+	parent_element: Option<&'a Element>,
 }
 
 impl<'a> Hit<'a> {
@@ -34,6 +37,7 @@ impl<'a> Hit<'a> {
         pos: Vec3,
         ray_dir: &Vec3,
         textures: &HashMap<String, RgbaImage>,
+        all_dist: Vec<f64>
     ) -> Self {
         let mut hit = Hit {
             element,
@@ -44,9 +48,12 @@ impl<'a> Hit<'a> {
             color: Color::new(0., 0., 0.),
             metalness: 0.,
             roughness: 0.,
-            refraction: 0.,
+            transparency: 1.,
+			refraction: 1.52,
             emissive: 0.,
             opacity: 1.,
+            all_dist,
+			parent_element: None,
         };
         hit.map_norm(textures);
         hit.map_opacity(textures);
@@ -55,6 +62,14 @@ impl<'a> Hit<'a> {
 
     pub fn element(&self) -> &'a Element {
         self.element
+    }
+
+    pub fn parent_element(&self) -> Option<&'a Element> {
+        self.parent_element
+    }
+
+    pub fn set_parent_element(&mut self, element: Option<&'a Element>) {
+        self.parent_element = element;
     }
 
     pub fn dist(&self) -> &f64 {
@@ -80,7 +95,14 @@ impl<'a> Hit<'a> {
         self.metalness
     }
     pub fn refraction(&self) -> f64 {
-        self.refraction
+		if self.element().shape().as_sphere().is_some() {
+			1.52
+		} else {
+			1.
+		}
+    }
+    pub fn transparency(&self) -> f64 {
+        self.transparency
     }
     pub fn roughness(&self) -> f64 {
         self.roughness
@@ -176,5 +198,9 @@ impl<'a> Hit<'a> {
         self.map_metalness(textures);
         self.map_refraction(textures);
         self.map_emissive(textures);
+    }
+
+    pub fn all_dist(&self) -> &Vec<f64> {
+        &self.all_dist
     }
 }

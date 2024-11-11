@@ -89,7 +89,8 @@ impl Shape for Plane {
 					hit.dist() + displaced_dist,
 					hit.pos() + ray.get_dir() * displaced_dist,
 					ray.get_dir(),
-					scene.textures()
+					scene.textures(),
+					vec![hit.dist() + displaced_dist]
 				);
 				current_step += (displaced_dist * ray.get_dir()).dot(&self.dir) / total_displacement;
 			}

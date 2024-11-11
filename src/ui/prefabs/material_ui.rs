@@ -49,7 +49,7 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
         if let Some(element) = scene.write().unwrap().element_mut_by_id(id_element) {
             element.material_mut().set_refraction(texture);
         }
-    }), ui.uisettings(), false, Some(0.), Some(1.));
+    }), ui.uisettings(), false, Some(1.), Some(50.));
     material_category.add_element(refraction);
 
     //Roughness
