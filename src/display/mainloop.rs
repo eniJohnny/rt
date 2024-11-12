@@ -7,7 +7,7 @@ use std::{
     sync::{Arc, RwLock}, time::{Duration, Instant}
 };
 use winit::{
-    dpi::LogicalSize,
+    dpi::PhysicalSize,
     event::Event,
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,

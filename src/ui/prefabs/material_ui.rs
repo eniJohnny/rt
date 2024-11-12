@@ -53,7 +53,7 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
     material_category.add_element(refraction);
 
 	//Transparency
-    let mut transparency = get_texture_ui("Transparency", element.material().transparency(), Box::new(move |texture, scene| {
+    let transparency = get_texture_ui("Transparency", element.material().transparency(), Box::new(move |texture, scene| {
         if let Some(element) = scene.write().unwrap().element_mut_by_id(id_element) {
             element.material_mut().set_transparency(texture);
         }

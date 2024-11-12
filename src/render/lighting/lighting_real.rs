@@ -70,7 +70,7 @@ pub fn global_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
 	let current_refraction_index;
 	let next_refraction_index;
 	let normal: Vec3;
-	let parent_element_index = if let Some(parent) = hit.parent_element() {
+	let parent_element_index = if let Some(_) = hit.parent_element() {
 		dbg!("Parent");
 		1.52
 	} else {
