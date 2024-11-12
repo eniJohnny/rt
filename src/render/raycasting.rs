@@ -80,7 +80,7 @@ pub fn get_closest_hit_from_elements_with_index<'a>(scene: &'a Scene, ray: &Ray,
     for index in elements_index {
         let element = &elements[*index];
 
-        let mut t = None;
+        let t;
 		if scene.settings().displacement {
             if let Texture::Texture(_file, TextureType::Float) = element.material().displacement() {
                 t = element.shape().intersect_displacement(ray, &element, scene);
