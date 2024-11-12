@@ -172,7 +172,13 @@ impl<'a> Hit<'a> {
 
     fn map_refraction(&mut self, textures: &HashMap<String, RgbaImage>) {
         self.refraction = self
-            .map_texture(self.element.material().refraction(), textures, Vec3::from_value(0.))
+            .map_texture(self.element.material().refraction(), textures, Vec3::from_value(1.))
+            .to_value();
+    }
+
+    fn map_transparency(&mut self, textures: &HashMap<String, RgbaImage>) {
+        self.transparency = self
+            .map_texture(self.element.material().transparency(), textures, Vec3::from_value(0.))
             .to_value();
     }
 
@@ -197,6 +203,7 @@ impl<'a> Hit<'a> {
         self.map_roughness(textures);
         self.map_metalness(textures);
         self.map_refraction(textures);
+		self.map_transparency(textures);
         self.map_emissive(textures);
     }
 
