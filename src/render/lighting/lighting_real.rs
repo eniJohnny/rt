@@ -5,7 +5,7 @@ use chrono::Duration;
 use rand::Rng;
 
 use crate::{
-    bvh::{self, traversal::{get_closest_aabb_hit, new_traverse_bvh, traverse_bvh}}, model::{
+    bvh::{self, traversal::{traverse_bvh}}, model::{
         materials::color::Color,
         maths::{hit::Hit, ray::Ray, vec3::Vec3, vec_utils::{random_unit_vector, reflect_dir}},
         objects::light,
@@ -19,7 +19,7 @@ pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
     match USING_BVH {
         true => {
             let node = scene.bvh().as_ref().unwrap();
-            hit = new_traverse_bvh(ray, Some(node), scene);
+            hit = traverse_bvh(ray, Some(node), scene);
         },
         false => {
             hit = get_closest_hit(scene, ray);

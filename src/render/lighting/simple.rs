@@ -1,5 +1,5 @@
 use crate::{
-    bvh::traversal::new_traverse_bvh, model::{
+    bvh::traversal::traverse_bvh, model::{
         materials::color::Color,
         maths::{hit::Hit, ray::Ray, vec3::Vec3},
         objects::light::{Light, ParallelLight},
@@ -18,7 +18,7 @@ pub fn simple_lighting_from_ray(
     match USING_BVH {
         true => {
             let node = scene.bvh().as_ref().unwrap();
-            hit = new_traverse_bvh(ray, Some(node), scene);
+            hit = traverse_bvh(ray, Some(node), scene);
         },
         false => {
             hit = get_closest_hit(scene, ray);

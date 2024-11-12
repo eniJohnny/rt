@@ -4,7 +4,7 @@ use image::{ImageBuffer, Rgba};
 use rand::Rng;
 
 use crate::{
-    bvh::traversal::traverse_bvh, model::{
+    model::{
         materials::{color::Color, texture::{Texture, TextureType}},
         maths::{hit::Hit, quaternion::Quaternion, ray::Ray, vec3::Vec3},
         scene::Scene,
