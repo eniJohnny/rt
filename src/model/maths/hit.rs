@@ -27,7 +27,7 @@ pub struct Hit<'a> {
     emissive: f64,
     opacity: f64,
     all_dist: Vec<f64>,
-	parent_element: Option<&'a Element>,
+    t_list: Vec<(&'a Element, Vec<f64>)>
 }
 
 impl<'a> Hit<'a> {
@@ -53,23 +53,22 @@ impl<'a> Hit<'a> {
             emissive: 0.,
             opacity: 1.,
             all_dist,
-			parent_element: None,
+            t_list: vec![]
         };
         hit.map_norm(textures);
         hit.map_opacity(textures);
         hit
     }
 
+    pub fn set_t_list(&mut self, t_list: Vec<(&'a Element, Vec<f64>)>) {
+        self.t_list = t_list;
+    }
+    pub fn t_list(&self) -> &Vec<(&'a Element, Vec<f64>)> {
+        &self.t_list
+    }
+
     pub fn element(&self) -> &'a Element {
         self.element
-    }
-
-    pub fn parent_element(&self) -> Option<&'a Element> {
-        self.parent_element
-    }
-
-    pub fn set_parent_element(&mut self, element: Option<&'a Element>) {
-        self.parent_element = element;
     }
 
     pub fn dist(&self) -> &f64 {
