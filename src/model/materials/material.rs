@@ -1,10 +1,6 @@
-use std::fmt::Debug;
-
+use super::texture::Texture;
 use crate::model::maths::vec3::Vec3;
-
-use super::
-    texture::Texture
-;
+use std::fmt::Debug;
 
 #[derive(Debug, Clone, Default)]
 pub struct Projection {

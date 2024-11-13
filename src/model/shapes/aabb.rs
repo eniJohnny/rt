@@ -1,14 +1,19 @@
-use std::sync::{Arc, RwLock};
-
 use super::Shape;
-use crate::model::materials::material::Projection;
-use crate::model::{maths::{hit::Hit, ray::Ray, vec3::Vec3}, Element};
-use crate::model::scene::Scene;
-use crate::{AABB_STEPS_NB, ERROR_MARGIN, WIREFRAME_THICKNESS};
-use crate::ui::ui::UI;
-use crate::ui::uielement::UIElement;
-use crate::ui::utils::misc::ElemType;
-
+use std::sync::{Arc, RwLock};
+use crate::{
+    model::{
+        materials::material::Projection,
+        maths::{hit::Hit, ray::Ray, vec3::Vec3},
+        scene::Scene,
+        Element
+    },
+    ui::{
+        ui::UI,
+        uielement::UIElement,
+        utils::misc::ElemType
+    },
+    AABB_STEPS_NB, ERROR_MARGIN, WIREFRAME_THICKNESS
+};
 
 #[derive(Debug, Clone)]
 pub struct Aabb {

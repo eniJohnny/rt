@@ -1,15 +1,10 @@
-use std::collections::HashMap;
-
-use image::RgbaImage;
-
-use crate::{
-    model::{
-        materials::{color::Color, material::Projection, texture::Texture},
-        Element,
-    },
-};
-
 use super::vec3::Vec3;
+use std::collections::HashMap;
+use image::RgbaImage;
+use crate::model::{
+    materials::{color::Color, material::Projection, texture::Texture},
+    Element,
+};
 
 #[derive(Debug, Clone)]
 pub enum HitType {

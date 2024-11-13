@@ -1,7 +1,7 @@
+use super::vec3::Vec3;
 use std::ops::{Add, Mul, Sub, Div, AddAssign, SubAssign, MulAssign, DivAssign, Neg};
 use std::cmp::PartialEq;
 use std::fmt::{Display, Formatter, Result};
-use super::vec3::Vec3;
 
 #[derive(PartialEq, Debug)]
 pub struct Quaternion {

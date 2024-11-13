@@ -1,8 +1,9 @@
-use nalgebra::Matrix3;
-
 use super::Shape;
-use crate::model::materials::material::Projection;
-use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
+use nalgebra::Matrix3;
+use crate::model::{
+    materials::material::Projection,
+    maths::{hit::Hit, ray::Ray, vec3::Vec3}
+};
 
 #[derive(Debug)]
 pub struct Ellipse {

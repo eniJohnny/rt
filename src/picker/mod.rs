@@ -1,3 +1,6 @@
+use image::{Rgba, RgbaImage};
+use pixels::{Pixels, SurfaceTexture};
+use rusttype::{Font, Scale};
 use std::{
     fmt::format,
     fs, io,
@@ -5,10 +8,6 @@ use std::{
     thread,
     time::Duration,
 };
-
-use image::{Rgba, RgbaImage};
-use pixels::{Pixels, SurfaceTexture};
-use rusttype::{Font, Scale};
 use winit::{
     dpi::LogicalSize,
     event::{Event, MouseScrollDelta, WindowEvent},
@@ -16,12 +15,19 @@ use winit::{
     keyboard::{Key, NamedKey},
     window::WindowBuilder,
 };
-
 use crate::{
-    display::display::display, model::{
+    parsing::get_scene,
+    render::render_threads::start_render_threads,
+    display::display::display,
+    model::{
         maths::{vec2::Vec2, vec3::Vec3},
         scene::Scene,
-    }, parsing::get_scene, render::render_threads::start_render_threads, ui::{uisettings::UISettings, utils::{draw_utils::blend, style::Style}}, PICKER_LINE_HEIGHT, SCENE_FOLDER, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32
+    },
+    ui::{
+        uisettings::UISettings,
+        utils::{draw_utils::blend, style::Style}
+    },
+    PICKER_LINE_HEIGHT, SCENE_FOLDER, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32
 };
 
 pub fn get_files_in_folder(path: &str) -> io::Result<Vec<String>> {

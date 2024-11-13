@@ -1,8 +1,13 @@
-use std::sync::{Arc, RwLock};
-
-use crate::{model::{scene::Scene, Element}, ui::{ui::UI, uielement::{Category, UIElement}, utils::misc::ElemType}};
-
 use super::texture_ui::get_texture_ui;
+use std::sync::{Arc, RwLock};
+use crate::{
+    model::{scene::Scene, Element},
+    ui::{
+        ui::UI,
+        uielement::{Category, UIElement},
+        utils::misc::ElemType
+    }
+};
 
 pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
     let mut material_category = UIElement::new("Material", "material", ElemType::Category(Category::default()), ui.uisettings());

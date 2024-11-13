@@ -7,13 +7,15 @@ use crate::{
     render::settings::Settings
 };
 use super::{
-    materials::{diffuse::Diffuse,
-    material::Material,
-    texture::{Texture, TextureType}},
+    materials::{
+        diffuse::Diffuse,
+        material::Material,
+        texture::{Texture, TextureType}
+    },
     maths::vec3::Vec3,
     objects::{camera::Camera, light::AnyLight},
     shapes::{self, aabb::Aabb, triangle::Triangle},
-    ComposedElement, Element,
+    ComposedElement, Element
 };
 
 #[derive(Debug)]
@@ -108,7 +110,7 @@ impl Scene {
                     if !self.textures.contains_key(path) {
                         let path_str = String::from("./textures/") + path;
                         self.add_texture(
-                            path.clone(),
+                            path.to_string(),
                             match image::open(&path_str) {
                                 Ok(img) => img.to_rgba8(),
                                 Err(_) => panic!("Error opening texture file {}", path),

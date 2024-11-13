@@ -1,10 +1,17 @@
-use std::sync::{Arc, RwLock};
-
-use image::RgbaImage;
-
 use crate::model::scene::Scene;
-
-use super::{ui::UI, uisettings::UISettings, utils::{draw_utils::{draw_element_text, get_size, split_in_lines}, misc::FnAny, style::Style, ui_utils::{give_back_element, take_element}, HitBox}};
+use std::sync::{Arc, RwLock};
+use image::RgbaImage;
+use super::{
+    ui::UI,
+    uisettings::UISettings,
+    utils::{
+        draw_utils::{draw_element_text, get_size, split_in_lines},
+        ui_utils::{give_back_element, take_element},
+        misc::FnAny,
+        style::Style,
+        HitBox
+    }
+};
 
 pub const TXT_MESSAGE: &str = "txtMessage";
 pub const BTN_APPLY: &str = "btnApply";

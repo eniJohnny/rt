@@ -1,17 +1,22 @@
+use super::Shape;
 use core::panic;
 use std::f64::consts::PI;
 use std::sync::{Arc, RwLock};
-
-use super::Shape;
-use crate::model::materials::material::Projection;
-use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
-use crate::model::scene::Scene;
-use crate::model::shapes::plane::Plane;
-use crate::model::Element;
-use crate::ui::prefabs::vector_ui::get_vector_ui;
-use crate::ui::ui::UI;
-use crate::ui::uielement::{Category, UIElement};
-use crate::ui::utils::misc::{ElemType, Property, Value};
+use crate::{
+    model::{
+        materials::material::Projection,
+        maths::{hit::Hit, ray::Ray, vec3::Vec3},
+        scene::Scene,
+        shapes::plane::Plane,
+        Element
+    },
+    ui::{
+        prefabs::vector_ui::get_vector_ui,
+        ui::UI,
+        uielement::{Category, UIElement},
+        utils::misc::{ElemType, Property, Value}
+    }
+};
 
 #[derive(Debug, Clone)]
 pub struct Cylinder {

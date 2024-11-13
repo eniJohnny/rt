@@ -1,23 +1,20 @@
+use super::{
+    display::redraw_if_necessary,
+    events::{handle_event, key_held}, ui_setup::setup_ui,
+};
+use pixels::Pixels;
 use std::{
     sync::{Arc, RwLock}, time::{Duration, Instant}
 };
-
-use pixels::Pixels;
 use winit::{
     dpi::LogicalSize,
     event::Event,
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
-
 use crate::{
     model::scene::Scene,
     SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32,
-};
-
-use super::{
-    display::redraw_if_necessary,
-    events::{handle_event, key_held}, ui_setup::setup_ui,
 };
 
 pub fn start_scene(scene: Scene) {

@@ -1,6 +1,12 @@
 use image::Rgba;
-
-use crate::{model::maths::vec3::Vec3, ui::{uielement::{Category, UIElement}, uisettings::UISettings, utils::misc::{ElemType, FnSubmitValue, Property, Value}}};
+use crate::{
+    model::maths::vec3::Vec3,
+    ui::{
+        uielement::{Category, UIElement},
+        uisettings::UISettings,
+        utils::misc::{ElemType, FnSubmitValue, Property, Value}
+    }
+};
 
 pub fn get_vector_ui(initial_value: Vec3, name: &str, reference: &str, settings: &UISettings, submit_x: FnSubmitValue, submit_y: FnSubmitValue, submit_z: FnSubmitValue, color: bool, min: Option<f64>, max: Option<f64>) -> UIElement{
     let mut category = UIElement::new(name, reference, ElemType::Category(Category::default()), settings);

@@ -1,8 +1,17 @@
 use std::sync::{Arc, RwLock};
-
 use image::Rgba;
-
-use crate::{model::{scene::Scene, Element}, render::render_threads::start_render_threads, ui::{prefabs::material_ui::get_material_ui, ui::UI, uibox::{BoxPosition, UIBox}, uielement::{Category, UIElement}, utils::{misc::ElemType, style::StyleBuilder, Displayable}}, ELEMENT, SCREEN_WIDTH_U32, SETTINGS, TOOLBAR, UISETTINGS};
+use crate::{
+    model::{scene::Scene, Element},
+    render::render_threads::start_render_threads,
+    ui::{
+        prefabs::material_ui::get_material_ui,
+        ui::UI,
+        uibox::{BoxPosition, UIBox},
+        uielement::{Category, UIElement},
+        utils::{misc::ElemType, style::StyleBuilder, Displayable}
+    },
+    ELEMENT, SCREEN_WIDTH_U32, SETTINGS, TOOLBAR, UISETTINGS
+    };
 
 pub fn setup_uisettings(ui: &mut UI, _scene: &Arc<RwLock<Scene>>) {
     let mut settings_box = UIBox::new(UISETTINGS, BoxPosition::CenterLeft(10), ui.uisettings().gui_width, ui.uisettings());

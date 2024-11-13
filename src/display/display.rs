@@ -1,21 +1,21 @@
+use super::anaglyph::{self, Coloring};
+use image::RgbaImage;
+use pixels::Pixels;
 use std::{
     sync::{Arc, RwLock},
     time::Instant,
 };
-
-use image::RgbaImage;
-use pixels::Pixels;
 use crate::{
     display::filters::apply_filter,
     model::scene::Scene,
     ui::{
         ui::UI,
-        uibox::UIBox, utils::{draw_utils::is_inside_box, ui_utils::UIContext},
+        uibox::UIBox,
+        utils::{draw_utils::is_inside_box, ui_utils::UIContext},
     },
     ANAGLYPH, ANAGLYPH_OFFSET_X, ANAGLYPH_OFFSET_Y, FILTER, FILTERS,
 };
 
-use super::anaglyph::{self, Coloring};
 
 pub fn blend_scene_and_ui(context: &UIContext, active_box: Option<&UIBox>) -> RgbaImage {
     let mut active_hitbox: Option<((u32, u32), (u32, u32))> = None;

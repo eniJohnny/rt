@@ -1,9 +1,10 @@
+use super::Shape;
 use eqsolver::single_variable::FDNewton;
 use meval::{self, eval_str_with_context};
-
-use super::Shape;
-use crate::model::materials::material::Projection;
-use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
+use crate::model::{
+    materials::material::Projection,
+    maths::{hit::Hit, ray::Ray, vec3::Vec3}
+};
 
 #[derive(Debug)]
 pub struct Any {

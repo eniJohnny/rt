@@ -1,8 +1,11 @@
-use crate::{
-    ui::{uielement::Category, utils::misc::{ElemType, Property, Value}}, BASE_FONT_SIZE, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH, MARGIN, UI_REFRESH_TIME
-};
-
 use super::{uielement::UIElement, utils::Displayable};
+use crate::{
+    ui::{
+        uielement::Category,
+        utils::misc::{ElemType, Property, Value}
+    },
+    BASE_FONT_SIZE, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH, MARGIN, UI_REFRESH_TIME
+};
 
 #[derive(Clone)]
 pub struct UISettings {

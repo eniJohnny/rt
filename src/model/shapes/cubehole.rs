@@ -1,10 +1,9 @@
+use super::{aabb::Aabb, ellipse::Ellipse, cylinder::Cylinder, Shape};
 use nalgebra::Matrix3;
-
-use super::aabb::Aabb;
-use super::ellipse::Ellipse;
-use super::{cylinder::Cylinder, Shape};
-use crate::model::materials::material::Projection;
-use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
+use crate::model::{
+    materials::material::Projection,
+    maths::{hit::Hit, ray::Ray, vec3::Vec3}
+};
 
 #[derive(Debug)]
 pub struct Cubehole {

@@ -1,16 +1,21 @@
+use super::Shape;
 use std::f64::consts::PI;
 use std::sync::{Arc, RwLock};
-
-use super::Shape;
-use crate::model::materials::material::Projection;
-use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
-use crate::model::scene::Scene;
-use crate::model::Element;
-use crate::render::raycasting::get_sorted_hit_from_t;
-use crate::ui::prefabs::vector_ui::get_vector_ui;
-use crate::ui::ui::UI;
-use crate::ui::uielement::{Category, UIElement};
-use crate::ui::utils::misc::{ElemType, Property, Value};
+use crate::{
+    model::{
+        materials::material::Projection,
+        maths::{hit::Hit, ray::Ray, vec3::Vec3},
+        scene::Scene,
+        Element
+    },
+    ui::{
+        prefabs::vector_ui::get_vector_ui,
+        ui::UI,
+        uielement::{Category, UIElement},
+        utils::misc::{ElemType, Property, Value}
+    },
+    render::raycasting::get_sorted_hit_from_t
+};
 
 #[derive(Debug)]
 pub struct Sphere {

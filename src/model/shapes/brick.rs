@@ -1,11 +1,13 @@
-
-use super::rectangle::Rectangle;
-use super::ComposedShape;
-use crate::model::materials::diffuse::Diffuse;
-use crate::model::materials::material::Material;
-use crate::model::materials::texture::{Texture, TextureType};
-use crate::model::maths::vec3::Vec3;
-use crate::model::Element;
+use super::{rectangle::Rectangle, ComposedShape};
+use crate::model::{
+    materials::{
+        diffuse::Diffuse,
+        material::Material,
+        texture::{Texture, TextureType}
+    },
+    maths::vec3::Vec3,
+    Element
+};
 
 #[derive(Debug)]
 pub struct Brick {

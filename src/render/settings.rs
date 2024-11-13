@@ -1,11 +1,21 @@
-
 use crate::{
     model::{
         materials::color::Color,
         maths::vec3::Vec3,
         objects::light::ParallelLight,
-    }, ui::{uielement::{Category, UIElement}, uisettings::UISettings, utils::{misc::{ElemType, Property, Value}, Displayable}}, ANTIALIASING, DISPLACEMENT, MAX_DEPTH, MAX_ITERATIONS, PLANE_DISPLACED_DISTANCE, PLANE_DISPLACEMENT_STEP, SPHERE_DISPLACED_DISTANCE, SPHERE_DISPLACEMENT_STEP
+    }, ui::{
+        uielement::{Category, UIElement},
+        uisettings::UISettings,
+        utils::{
+            misc::{ElemType, Property, Value},
+            Displayable
+        }
+    },
+    ANTIALIASING, DISPLACEMENT, MAX_DEPTH, MAX_ITERATIONS,
+    PLANE_DISPLACED_DISTANCE, PLANE_DISPLACEMENT_STEP,
+    SPHERE_DISPLACED_DISTANCE, SPHERE_DISPLACEMENT_STEP, VIEW_MODE
 };
+
 #[derive(Debug, Clone)]
 pub enum ViewMode {
     Simple(Color, ParallelLight),
@@ -31,11 +41,18 @@ pub struct Settings {
 
 impl Settings {
     pub fn default() -> Self {
-        Self {
-            view_mode: ViewMode::Simple(
+        let view_mode = match VIEW_MODE {
+            "Norm" => ViewMode::Norm,
+            "HighDef" => ViewMode::HighDef,
+            "BVH" => ViewMode::BVH,
+            "Simple" | _ => ViewMode::Simple(
                 Color::new(0.2, 0.2, 0.2),
                 ParallelLight::new(Vec3::new(0.5, -0.5, 0.5), 1., Color::new(1., 1., 1.)),
-            ),
+            )
+        };
+
+        Self {
+            view_mode: view_mode,
             reflections: true,
             indirect: true,
             iterations: MAX_ITERATIONS,

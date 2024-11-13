@@ -1,8 +1,23 @@
 use std::sync::{Arc, RwLock};
+use super::{
+    file_ui::get_file_box,
+    vector_ui::{get_vector_from_vector_ui, get_vector_ui}
+};
+use crate::{
+    model::{
+        materials::texture::{Texture, TextureType},
+        maths::vec3::Vec3, scene::Scene
+    },
+    ui::{
+        uielement::{Category, UIElement},
+        uisettings::UISettings,
+        utils::{
+            misc::{ElemType, Property, Value},
+            ui_utils::get_parent_ref
+        }
+    }
+};
 
-use crate::{model::{materials::texture::{Texture, TextureType}, maths::vec3::Vec3, scene::Scene}, ui::{uielement::{Category, UIElement}, uisettings::UISettings, utils::{misc::{ElemType, Property, Value}, ui_utils::get_parent_ref}}};
-
-use super::{file_ui::get_file_box, vector_ui::{get_vector_from_vector_ui, get_vector_ui}};
 
 pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<dyn Fn(Texture, &Arc<RwLock<Scene>>)>, settings: &UISettings, only_file: bool, min: Option<f64>, max: Option<f64>) -> UIElement {
     let mut category = UIElement::new(name, name, ElemType::Category(Category::collapsed()), settings);

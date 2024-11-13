@@ -1,7 +1,5 @@
-
-use image::{DynamicImage, ImageBuffer, Rgba};
-
 extern crate image;
+use image::{DynamicImage, ImageBuffer, Rgba};
 
 /// The possible Anaglyph colors listed [here](https://en.wikipedia.org/wiki/Anaglyph_3D#Anaglyphic_color_channels).
 pub enum Coloring {

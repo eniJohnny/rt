@@ -1,18 +1,10 @@
-use self::wireframe::Wireframe;
-use self::aabb::Aabb;
-use self::cone::Cone;
-use self::cylinder::Cylinder;
-use self::plane::Plane;
-use self::sphere::Sphere;
-use crate::{model::shapes::rectangle::Rectangle, ui::{ui::UI, uielement::UIElement}};
-
+use crate::ui::{ui::UI, uielement::UIElement};
+use self::{wireframe::Wireframe, aabb::Aabb, cone::Cone, cylinder::Cylinder, plane::Plane, sphere::Sphere, rectangle::Rectangle, triangle::Triangle};
 use std::{fmt::Debug, sync::{Arc, RwLock}};
-use crate::model::shapes::triangle::Triangle;
-
 use super::{
     materials::material::{Material, Projection},
-    scene::Scene,
     maths::{hit::Hit, ray::Ray, vec3::Vec3},
+    scene::Scene,
     Element,
 };
 

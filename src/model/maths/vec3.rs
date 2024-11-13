@@ -1,10 +1,10 @@
+use super::{quaternion::Quaternion, vec2::Vec2};
 use crate::model::materials::color::Color;
-
-use super::quaternion::Quaternion;
-use super::vec2::Vec2;
-use std::cmp::PartialEq;
-use std::fmt::{Display, Formatter, Result};
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use std::{
+    cmp::PartialEq,
+    fmt::{Display, Formatter, Result},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign}
+};
 
 #[derive(Default, PartialEq, Debug, Clone, Copy)]
 pub struct Vec3 {

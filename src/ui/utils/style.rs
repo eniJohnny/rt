@@ -1,6 +1,5 @@
-use image::Rgba;
-
 use crate::ui::uisettings::UISettings;
+use image::Rgba;
 
 #[derive(Clone, Copy)]
 pub struct Style {

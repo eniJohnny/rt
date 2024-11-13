@@ -1,7 +1,17 @@
+use crate::model::scene::Scene;
 use std::sync::{Arc, RwLock};
 use image::RgbaImage;
-use crate::model::scene::Scene;
-use super::{ui::UI, uisettings::UISettings, utils::{draw_utils::{draw_checkbox, draw_element_text, get_size, split_in_lines}, misc::{ElemType, FnAny, Property, Value}, style::{Formattable, Style}, ui_utils::{get_pos, Editing}, HitBox}};
+use super::{
+    ui::UI,
+    uisettings::UISettings,
+    utils::{
+        draw_utils::{draw_checkbox, draw_element_text, get_size, split_in_lines},
+        ui_utils::{get_pos, Editing},
+        misc::{ElemType, FnAny, Property, Value},
+        style::{Formattable, Style},
+        HitBox
+    }
+};
 
 pub struct UIElement {
     pub elem_type: ElemType,

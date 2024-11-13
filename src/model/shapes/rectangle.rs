@@ -1,17 +1,17 @@
+use super::{Shape, aabb::Aabb, plane::Plane, triangle::Triangle};
 use std::sync::{Arc, RwLock};
-
-use crate::model::materials::material::Projection;
-use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
-use crate::model::scene::Scene;
-use crate::model::shapes::plane::Plane;
-use crate::model::shapes::triangle::Triangle;
-use crate::model::Element;
-use crate::ui::prefabs::vector_ui::get_vector_ui;
-use crate::ui::ui::UI;
-use crate::ui::uielement::{Category, UIElement};
-use crate::ui::utils::misc::{ElemType, Property, Value};
-use super::aabb::Aabb;
-use super::Shape;
+use crate::model::{
+    materials::material::Projection,
+    maths::{hit::Hit, ray::Ray, vec3::Vec3},
+    scene::Scene,
+    Element
+};
+use crate::ui::{
+    prefabs::vector_ui::get_vector_ui,
+    ui::UI,
+    uielement::{Category, UIElement},
+    utils::misc::{ElemType, Property, Value},
+};
 
 #[derive(Debug)]
 pub struct Rectangle {

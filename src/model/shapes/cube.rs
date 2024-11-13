@@ -1,10 +1,12 @@
+use super::{aabb::Aabb,Shape};
 use nalgebra::Matrix3;
-
-use super::aabb::Aabb;
-use super::Shape;
-use crate::error;
-use crate::model::materials::material::Projection;
-use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
+use crate::{
+    model::{
+        materials::material::Projection,
+        maths::{hit::Hit, ray::Ray, vec3::Vec3}
+    },
+    error
+};
 
 #[derive(Debug)]
 pub struct Cube {
