@@ -1,7 +1,9 @@
-use crate::model::materials::color::{self, Color};
+use obj::Obj;
+
+use crate::model::materials::color::Color;
 use crate::model::materials::diffuse::Diffuse;
-use crate::model::materials::material::{self, Material};
-use crate::model::materials::texture::{Texture, TextureType};
+use crate::model::materials::material::Material;
+use crate::model::materials::texture::{self, Texture, TextureType};
 use crate::model::maths::vec3::Vec3;
 use crate::model::objects::camera::Camera;
 use crate::model::objects::light::{AmbientLight, AnyLight, ParallelLight, PointLight};
@@ -20,6 +22,8 @@ use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::io::Write;
 use std::ops::Add;
+
+pub mod obj;
 
 pub fn print_scene(scene: &Scene) {
     write!(std::io::stdout(), "{:#?}\n", scene).expect("Error printing scene");
@@ -332,6 +336,22 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let element = Element::new(shape, material);
 
                 scene.add_element(element);
+            }
+            "obj" => {
+                let mut obj = Obj::new();
+                let file = get_string_value(&object, "file");
+                let texturefile = get_string_value(&object, "texture");
+                let pos = get_coordinates_value(&object, "pos");
+                let scale = get_float_value(&object, "scale");
+                let dir = get_coordinates_value(&object, "dir");
+
+                obj.set_pos(pos);
+                obj.set_dir(dir);
+                obj.set_scale(scale);
+                obj.set_filepath(file);
+                obj.set_texturepath(texturefile);
+
+                scene.add_obj(&mut obj);
             }
             _ => {}
         }

@@ -1,6 +1,7 @@
 use crate::model::materials::color::Color;
 
 use super::quaternion::Quaternion;
+use super::vec2::Vec2;
 use std::cmp::PartialEq;
 use std::fmt::{Display, Formatter, Result};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
@@ -26,6 +27,10 @@ impl Vec3 {
 
     pub fn z(&self) -> &f64 {
         &self.z
+    }
+
+    pub fn xy(&self) -> Vec2 {
+        Vec2::new(self.x, self.y)
     }
 
     pub fn set_x(&mut self, x: f64) {

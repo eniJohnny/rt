@@ -26,7 +26,7 @@ pub struct Rectangle {
     c: Vec3,
     d: Vec3,
     plane: Plane,
-    aabb: super::aabb::Aabb,
+    aabb: Aabb,
 }
 
 impl Shape for Rectangle {
@@ -268,6 +268,17 @@ impl Rectangle {
         let z_min = a.z().min(*d.z());
         let z_max = a.z().max(*d.z());
         Aabb::new(x_min, x_max, y_min, y_max, z_min, z_max)
+    }
+
+    pub fn from_points(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> Rectangle {
+        let dir_l = (a - b).normalize();
+        let dir_w = (a - c).normalize();
+        let pos = (a + b + c + d) / 4.;
+        let length = (a - b).length();
+        let width = (a - c).length();
+        let plane = Plane::new(a.clone(), dir_l.clone().cross(&dir_w).normalize());
+
+        Rectangle { pos, length, width, dir_l, dir_w, a, b, c, d, plane, aabb: Rectangle::compute_aabb(&a, &d) }
     }
 
 }
