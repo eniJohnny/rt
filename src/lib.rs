@@ -18,7 +18,7 @@ const OBJ_DEFAULT_DIR: (f64, f64, f64) = (0.0, 1.0, 0.0);
 
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
-const SCENE: &str = "empty";
+const SCENE: &str = "metalrough";
 
 /************* Displacement **************/
 const DISPLACEMENT: bool = false;

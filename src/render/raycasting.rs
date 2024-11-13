@@ -1,18 +1,18 @@
-use std::{collections::HashMap, iter};
+use std::{collections::HashMap, iter, ops::Range};
 
 use image::{ImageBuffer, Rgba};
 use rand::Rng;
 
 use crate::{
-    model::{
+    bvh::traversal::recursive_traversal, model::{
         materials::{color::Color, texture::{Texture, TextureType}},
         maths::{hit::Hit, quaternion::Quaternion, ray::Ray, vec3::Vec3},
         scene::Scene,
         Element,
-    }, ANTIALIASING, MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH, USING_BVH
+    }, ANTIALIASING, FILTER, MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH, USING_BVH
 };
 
-use super::{skysphere::get_skysphere_color,};
+use super::{lighting::{lighting_real::global_lighting_from_hit, simple::simple_lighting_from_hit}, settings::ViewMode, skysphere::get_skysphere_color};
 
 pub fn get_ray_debug(scene: &Scene, x: usize, y: usize, debug: bool) -> Ray {
     let width = (scene.camera().fov() / 2.).tan() * 2.;
@@ -64,25 +64,18 @@ pub fn get_sorted_hit_from_t<'a>(scene: &'a Scene, ray: &Ray, t: &Option<Vec<f64
 	Some(hits)
 }
 
-pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
-    let mut closest: Option<Hit> = None;
-    let elements: &Vec<Element> = scene.elements();
-    let composed_elements = scene.composed_elements();
+pub fn get_closest_hit_from_elements<'a>(scene: &'a Scene, ray: &Ray, closest: Option<Hit<'a>>, elements: &'a Vec<Element>) -> Option<Hit<'a>> {
+    let elements_index = (0..elements.len()).collect();
+    return get_closest_hit_from_elements_with_index(scene, ray, closest, elements, &elements_index);
+}
 
-    // TESTING PURPOSES
-    // let elements;
-    // if USING_BVH {
-    //     elements = scene.non_bvh_elements();
-    // } else {
-    //     elements = scene.test_all_elements();
-    // }
-    // END TESTING PURPOSES
-
-    for element in elements {
+pub fn get_closest_hit_from_elements_with_index<'a>(scene: &'a Scene, ray: &Ray, mut closest: Option<Hit<'a>>, elements: &'a Vec<Element>, elements_index: &Vec<usize>) -> Option<Hit<'a>> {
+    for index in elements_index {
+        let element = &elements[*index];
         let mut t = None;
 		if scene.settings().displacement {
             if let Texture::Texture(file, TextureType::Float) = element.material().displacement() {
-                t = element.shape().intersect_displacement(ray, element, scene);
+                t = element.shape().intersect_displacement(ray, &element, scene);
             }
             else {
                 t = element.shape().intersect(ray);
@@ -93,20 +86,7 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
         if let Some(t) = t {
             for dist in t {
                 if dist > 0.0 {
-                    if let Some(hit) = &closest {
-                        if &dist < hit.dist() {
-                            let new_hit = Hit::new(
-                                element,
-                                dist,
-                                ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
-                                ray.get_dir(),
-                                scene.textures(),
-                            );
-                            if new_hit.opacity() > 0.5 {
-                                closest = Some(new_hit);
-                            }
-                        }
-                    } else {
+                    if closest.is_none() || &dist < closest.clone().unwrap().dist() {
                         let new_hit = Hit::new(
                             element,
                             dist,
@@ -123,46 +103,28 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
         }
     }
 
-    for composed in composed_elements {
-        let mut t = None;
-        let elems = composed.composed_shape().elements();
-        for elem in elems {
-            let shape = elem.shape();
-            t = shape.intersect(ray);
-            if let Some(t) = t {
-                for dist in t {
-                    if dist > 0.0 {
-                        if let Some(hit) = &closest {
-                            if &dist < hit.dist() {
-                                let new_hit = Hit::new(
-                                    elem,
-                                    dist,
-                                    ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
-                                    ray.get_dir(),
-                                    scene.textures(),
-                                );
-                                if new_hit.opacity() > 0.5 {
-                                    closest = Some(new_hit);
-                                }
-                            }
-                        } else {
-                            let new_hit = Hit::new(
-                                elem,
-                                dist,
-                                ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
-                                ray.get_dir(),
-                                scene.textures(),
-                            );
-                            if new_hit.opacity() > 0.5 {
-                                closest = Some(new_hit);
-                            }
-                        }
-                    }
-                }
-            }
+    closest
+}
+
+pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
+    let mut closest: Option<Hit> = None;
+    
+    if USING_BVH {
+        closest = get_closest_hit_from_elements_with_index(scene, ray, closest, scene.elements(), scene.non_bvh_elements());
+        for composed_index in scene.non_bvh_composed_elements() {
+            let composed = &scene.composed_elements()[*composed_index];
+            closest = get_closest_hit_from_elements(scene, ray, closest, composed.composed_shape().elements());
+        }
+        if let Some(root_node) = scene.bvh() {
+            closest = recursive_traversal(ray, root_node, scene, closest);
+        }
+    } else {
+        closest = get_closest_hit_from_elements(scene, ray, closest, scene.elements());
+        for composed in scene.composed_elements() {
+            closest = get_closest_hit_from_elements(scene, ray, closest, composed.composed_shape().elements());
         }
     }
-
+    
     match closest {
         None => None,
         Some(mut hit) => {
@@ -170,4 +132,27 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
             Some(hit)
         }
     }
+}
+
+pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
+    let hit = get_closest_hit(scene, ray);
+
+    return match hit {
+        Some(hit) => {
+            if hit.element().shape().as_wireframe().is_some() {
+                return Color::new(1., 1., 1.);
+            }
+            if let ViewMode::Simple(ambient, light) = &scene.settings().view_mode {
+                simple_lighting_from_hit(&hit, ambient, light)
+            } else {
+                global_lighting_from_hit(scene, &hit, ray)
+            }
+        },
+        None => {
+            if FILTER == "cartoon" {
+                return Color::new(1., 1., 1.);
+            }
+            get_skysphere_color(scene, ray)
+        },
+    };
 }

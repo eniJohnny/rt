@@ -20,7 +20,6 @@ use super::{
 #[derive(Debug)]
 pub struct Scene {
     elements: Vec<Element>,
-    bvh_elements_index: Vec<usize>,
     non_bvh_elements_index: Vec<usize>,
     non_bvh_composed_elements_index: Vec<usize>,
     composed_elements: Vec<ComposedElement>,
@@ -38,7 +37,6 @@ impl Scene {
     pub fn new() -> Self {
         Self {
             elements: Vec::new(),
-            bvh_elements_index: Vec::new(),
             non_bvh_elements_index: Vec::new(),
             non_bvh_composed_elements_index: Vec::new(),
             composed_elements: Vec::new(),
@@ -222,19 +220,15 @@ impl Scene {
         let biggest_aabb = Aabb::from_aabbs(&aabbs);
         let mut node = bvh::node::Node::new(&biggest_aabb);
         node.build_tree(self);
-        self.bvh_elements_index.clear();
         self.non_bvh_elements_index.clear();
         self.non_bvh_composed_elements_index.clear();
         let mut nb_elements = 0;
         for element in &self.elements {
-            if element.shape().aabb().is_some() {
-                self.bvh_elements_index.push(nb_elements);
-            } else {
+            if element.shape().aabb().is_none() {
                 self.non_bvh_elements_index.push(nb_elements);
             }
             nb_elements += 1;
         }
-        println!("BVH elements: {}, Non BVH elements : {}", self.bvh_elements_index.len(), self.non_bvh_elements_index.len());
         let mut nb_elements = 0;
         for composed_element in &self.composed_elements {
             if composed_element.composed_shape().elements().iter().all(|element| element.shape().aabb().is_none()) {

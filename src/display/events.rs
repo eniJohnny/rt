@@ -11,7 +11,7 @@ use winit::{
 };
 
 use crate::{
-    model::scene::Scene, render::{lighting::lighting_real::get_lighting_from_ray, raycasting::{get_closest_hit, get_ray, get_ray_debug}}, ui::{
+    model::scene::Scene, render::raycasting::{get_closest_hit, get_lighting_from_ray, get_ray, get_ray_debug}, ui::{
         ui::{ui_clicked, UI},
         uisettings::UISettings, utils::{misc::Value, ui_utils::Editing},
     }

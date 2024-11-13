@@ -5,43 +5,13 @@ use chrono::Duration;
 use rand::Rng;
 
 use crate::{
-    bvh::{self, traversal::{traverse_bvh}}, model::{
+    bvh::{self}, model::{
         materials::color::Color,
         maths::{hit::Hit, ray::Ray, vec3::Vec3, vec_utils::{random_unit_vector, reflect_dir}},
         objects::light,
         scene::Scene, shapes::Shape,
-    }, render::{raycasting::get_closest_hit, skysphere::get_skysphere_color}, FILTER, MAX_DEPTH, USING_BVH
+    }, render::{raycasting::{get_closest_hit, get_lighting_from_ray}, settings::ViewMode, skysphere::get_skysphere_color}, FILTER, MAX_DEPTH, USING_BVH
 };
-
-pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
-    let hit;
-    
-    match USING_BVH {
-        true => {
-            let node = scene.bvh().as_ref().unwrap();
-            hit = traverse_bvh(ray, Some(node), scene);
-        },
-        false => {
-            hit = get_closest_hit(scene, ray);
-        },
-    };
-
-    return match hit {
-        Some(hit) => {
-            if hit.element().shape().as_wireframe().is_some() {
-                return Color::new(1., 1., 1.);
-            }
-            let tmp = get_lighting_from_hit(scene, &hit, ray);
-            tmp
-        },
-        None => {
-            if FILTER == "cartoon" {
-                return Color::new(1., 1., 1.);
-            }
-            get_skysphere_color(scene, ray)
-        },
-    };
-}
 
 pub fn fresnel_reflect_ratio(n1: f64, n2: f64, norm: &Vec3, ray: &Vec3, f0: f64, f90: f64) -> f64 {
     // Schlick aproximation
@@ -64,7 +34,7 @@ pub fn fresnel_reflect_ratio(n1: f64, n2: f64, norm: &Vec3, ray: &Vec3, f0: f64,
     f0 * (1.0 - ret) + f90 * ret
 }
 
-pub fn get_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
+pub fn global_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
     let absorbed = 1.0 - hit.metalness() - hit.refraction();
     if ray.debug {
         println!(

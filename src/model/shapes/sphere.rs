@@ -37,10 +37,7 @@ impl Shape for Sphere {
         }
         let intersection1 = &dot_product - &discriminant.sqrt();
         let intersection2 = &dot_product + &discriminant.sqrt();
-        if intersection1 > 0.0 {
-            return Some(Vec::from([intersection1, intersection2]));
-        }
-        None
+        return Some(Vec::from([intersection1, intersection2]));
     }
 
 	fn outer_intersect(&self, r: &Ray, displaced_factor: f64) -> Option<Vec<f64>> {

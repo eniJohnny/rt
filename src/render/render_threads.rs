@@ -20,8 +20,7 @@ use crate::{
 };
 
 use super::{
-    lighting::{lighting_real::get_lighting_from_ray, simple::simple_lighting_from_ray},
-    raycasting::{get_closest_hit, get_ray},
+    raycasting::{get_closest_hit, get_lighting_from_ray, get_ray},
     settings::ViewMode,
 };
 
@@ -117,11 +116,7 @@ pub fn start_render_threads(
                     for_each_uncalculated_pixel(&tile, |x, y| {
                         // On calcule le ray et on le cast
                         let ray = get_ray(&scene, x, y);
-                        if let ViewMode::Simple(ambient, light) = &scene.settings().view_mode {
-                            colors.push(simple_lighting_from_ray(&scene, &ray, ambient, light))
-                        } else {
-                            colors.push(get_lighting_from_ray(&scene, &ray))
-                        }
+                        colors.push(get_lighting_from_ray(&scene, &ray))
                     });
                     cur_tx.send((tile, colors)).ok();
                 }
