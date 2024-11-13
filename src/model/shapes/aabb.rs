@@ -409,7 +409,7 @@ impl Shape for Aabb {
         let tmin = get_tmin(tmin_x, tmax_x, tmin_y, tmax_y, tmin_z, tmax_z);
         let tmax = get_tmax(tmin_x, tmax_x, tmin_y, tmax_y, tmin_z, tmax_z);
 
-        if tmin > 0.0 && tmax > 0.0 && tmin < tmax {
+        if tmin < tmax {
             return Some(Vec::from([tmin, tmax]));
         }
 
@@ -479,6 +479,10 @@ impl Shape for Aabb {
 
     fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
         UIElement::new("UI not defined for AABBs", "notdefined", ElemType::Text, ui.uisettings())
+    }
+
+    fn aabb(&self) -> Option<&Aabb> {
+        Some(self)
     }
 }
 

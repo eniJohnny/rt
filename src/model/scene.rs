@@ -1,11 +1,10 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fs};
 
 use image::{RgbImage, RgbaImage};
+use nalgebra::SimdBool;
 
 use crate::{
-    model::objects::light::{AmbientLight, Light},
-    render::settings::Settings,
-    bvh
+    bvh::{self, traversal}, model::objects::light::{AmbientLight, Light}, parsing::obj::{self, Obj}, render::settings::Settings
 };
 
 use super::{
@@ -14,13 +13,15 @@ use super::{
     texture::{Texture, TextureType}},
     maths::vec3::Vec3,
     objects::{camera::Camera, light::AnyLight},
-    shapes::{self, aabb::Aabb},
+    shapes::{self, aabb::Aabb, triangle::Triangle},
     ComposedElement, Element,
 };
 
 #[derive(Debug)]
 pub struct Scene {
     elements: Vec<Element>,
+    non_bvh_elements_index: Vec<usize>,
+    non_bvh_composed_elements_index: Vec<usize>,
     composed_elements: Vec<ComposedElement>,
     camera: Camera,
     lights: Vec<AnyLight>,
@@ -36,6 +37,8 @@ impl Scene {
     pub fn new() -> Self {
         Self {
             elements: Vec::new(),
+            non_bvh_elements_index: Vec::new(),
+            non_bvh_composed_elements_index: Vec::new(),
             composed_elements: Vec::new(),
             camera: Camera::default(),
             lights: Vec::new(),
@@ -136,6 +139,66 @@ impl Scene {
             );
         }
     }
+
+    pub fn add_obj(&mut self, obj: &mut Obj) {
+        // let mut obj = Obj::new();
+        let path = obj.filepath().clone();
+        let texture_path = obj.texturepath().clone();
+        let result = obj.parse_file(path.clone());
+        let mut texture = Texture::Value(Vec3::from_value(1.0), TextureType::Float);
+
+        match result {
+            Ok(_) => {
+                let len = obj.faces.len();
+
+                if texture_path != "" && fs::File::open(texture_path.clone()).is_ok() {
+                    self.add_texture(texture_path.clone(), image::open(texture_path.clone()).unwrap().to_rgba8());
+                    texture = Texture::Texture(texture_path.clone(), TextureType::Color);
+                } else if texture_path != "" {
+                    println!("Texture file not found: {}", texture_path);
+                }
+
+                for i in 0..len {
+                    let face = &obj.faces[i];
+                    let mut vertices: Vec<Vec3> = vec![];
+                    let mut normals: Vec<Vec3> = vec![];
+                    let mut textures: Vec<Vec3> = vec![];
+                    let modulo = obj.params_number();
+        
+                    for j in 0..face.len() {
+                        match j % modulo {
+                            0 => vertices.push(face[j]),
+                            1 => textures.push(face[j]),
+                            2 => normals.push(face[j]),
+                            _ => {}
+                        }
+                    }        
+
+                    for k in 0..obj.triangle_count()[i] {
+                        let mut material = Diffuse::default();
+                        material.set_color(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
+                        material.set_opacity(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
+                        material.set_color(texture.clone());
+                        let (a, b, c) = (vertices[0], vertices[k + 1], vertices[k + 2]);
+                        let (a_uv, b_uv, c_uv) = (textures[0].xy(), textures[k + 1].xy(), textures[k + 2].xy());
+
+                        let mut triangle = Triangle::new(a, b, c);
+                        triangle.set_is_obj(true);
+                        triangle.set_a_uv(a_uv);
+                        triangle.set_b_uv(b_uv);
+                        triangle.set_c_uv(c_uv);
+
+                        let elem = Element::new(Box::new(triangle), material);
+                        self.add_element(elem);
+                    }
+
+                }
+            }
+            Err(e) => {
+                println!("Error: {:?}", e);
+            }
+        }
+    }
     
     pub fn add_wireframes(&mut self) {
         let aabbs = self.all_aabb();
@@ -157,6 +220,22 @@ impl Scene {
         let biggest_aabb = Aabb::from_aabbs(&aabbs);
         let mut node = bvh::node::Node::new(&biggest_aabb);
         node.build_tree(self);
+        self.non_bvh_elements_index.clear();
+        self.non_bvh_composed_elements_index.clear();
+        let mut nb_elements = 0;
+        for element in &self.elements {
+            if element.shape().aabb().is_none() {
+                self.non_bvh_elements_index.push(nb_elements);
+            }
+            nb_elements += 1;
+        }
+        let mut nb_elements = 0;
+        for composed_element in &self.composed_elements {
+            if composed_element.composed_shape().elements().iter().all(|element| element.shape().aabb().is_none()) {
+                self.non_bvh_composed_elements_index.push(nb_elements);
+            }
+            nb_elements += 1;
+        }
 
         self.bvh = Some(node);
     }
@@ -233,7 +312,7 @@ impl Scene {
     pub fn all_aabb(&self) -> Vec<&crate::model::shapes::aabb::Aabb> {
         self.elements
             .iter()
-            .filter_map(|element| element.shape().as_aabb())
+            .filter_map(|element| element.shape().as_aabb().or_else(|| element.shape.aabb()) )
             .collect()
     }
 
@@ -241,28 +320,16 @@ impl Scene {
         &self.bvh
     }
 
-    pub fn non_bvh_elements(&self) -> Vec<&crate::model::Element> {
-        self.elements
-            .iter()
-            .filter(|element| element.shape().aabb().is_none() && element.shape().as_aabb().is_none())
-            .collect()
+    pub fn non_bvh_elements(&self) -> &Vec<usize> {
+        &self.non_bvh_elements_index
     }
 
-    pub fn non_bvh_composed_elements(&self) -> Vec<&crate::model::Element> {
-        self.composed_elements
-        .iter()
-        .filter(|composed_element| composed_element.composed_shape().elements().iter().all(|element| element.shape().aabb().is_none() && element.shape().as_aabb().is_none()))
-        .flat_map(|composed_element| composed_element.composed_shape().elements().iter())
-        .collect()
+    pub fn non_bvh_composed_elements(&self) -> &Vec<usize> {
+        &self.non_bvh_composed_elements_index
     }
 
-    pub fn non_bvh_element_ids(&self) -> Vec<usize> {
-        self.elements
-            .iter()
-            .enumerate()
-            .filter(|(_, element)| element.shape().aabb().is_none() && element.shape().as_aabb().is_none())
-            .map(|(i, _)| i)
-            .collect()
+    pub fn non_bvh_element_ids(&self) -> &Vec<usize> {
+        &self.non_bvh_elements_index
     }
 
     pub fn test_all_elements(&self) -> Vec<&crate::model::Element> {

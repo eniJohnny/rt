@@ -1,6 +1,8 @@
 extern crate image;
 use display::mainloop::start_scene;
-use parsing::get_scene;
+use image::flat::View;
+use model::maths::vec3::Vec3;
+use parsing::{get_scene, obj::Obj};
 use render::settings::ViewMode;
 
 pub mod display;
@@ -11,10 +13,12 @@ pub mod picker;
 pub mod render;
 pub mod bvh;
 
+const OBJ: bool = true;
+const OBJ_DEFAULT_DIR: (f64, f64, f64) = (0.0, 1.0, 0.0);
 
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
-const SCENE: &str = "random100_0";
+const SCENE: &str = "metalrough";
 
 /************* Displacement **************/
 const DISPLACEMENT: bool = false;
@@ -32,7 +36,7 @@ const SCREEN_WIDTH: usize = 1600;
 const SCREEN_HEIGHT: usize = 900;
 const SCREEN_WIDTH_U32: u32 = SCREEN_WIDTH as u32;
 const SCREEN_HEIGHT_U32: u32 = SCREEN_HEIGHT as u32;
-const MAX_THREADS: usize = 6;
+const MAX_THREADS: usize = 4;
 const BASE_SIMPLIFICATION: usize = 32;
 const MAX_DEPTH: usize = 10;
 const ANTIALIASING: f64 = 0.001;
@@ -74,7 +78,10 @@ pub fn run() {
         if DISPLAY_WIREFRAME {
             scene.add_wireframes();
         }
-
+        // if OBJ {
+        //     scene.add_obj(String::from("obj/cat.obj"));
+        //     println!("Number of triangles: {}", scene.elements().len());
+        // }
         scene.update_bvh();
         start_scene(scene);
     }
