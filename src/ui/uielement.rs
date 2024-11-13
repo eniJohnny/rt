@@ -1,21 +1,6 @@
-use std::{
-    cell::RefCell,
-    sync::{Arc, RwLock},
-    thread::current,
-};
-
-use chrono::offset;
-use image::{Rgba, RgbaImage};
-
-use crate::{
-    model::{
-        materials::{color::Color, texture::Texture},
-        scene::Scene,
-    }, ui::{
-        
-    }, SCREEN_WIDTH_U32
-};
-
+use std::sync::{Arc, RwLock};
+use image::RgbaImage;
+use crate::model::scene::Scene;
 use super::{ui::UI, uisettings::UISettings, utils::{draw_utils::{draw_checkbox, draw_element_text, get_size, split_in_lines}, misc::{ElemType, FnAny, Property, Value}, style::{Formattable, Style}, ui_utils::{get_pos, Editing}, HitBox}};
 
 pub struct UIElement {
@@ -263,7 +248,7 @@ impl UIElement {
             return vec;
         }
         let mut indent: u32 = 10;
-        if let ElemType::Row(vec) = &self.elem_type {
+        if let ElemType::Row(_vec) = &self.elem_type {
             indent = 0;
         }
         if let Some(parent_hitbox) = &self.hitbox {
@@ -330,7 +315,7 @@ impl UIElement {
                                             offset_y = needed_height;
                                         }
                                     }
-                                    if (!hitbox.disabled) {
+                                    if !hitbox.disabled {
                                         vec.push(hitbox);
                                     }
                                     for hitbox in hitbox_list {

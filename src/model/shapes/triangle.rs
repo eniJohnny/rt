@@ -6,7 +6,6 @@ use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 use crate::model::scene::Scene;
 use crate::model::shapes::plane::Plane;
 use crate::model::Element;
-use crate::ui::prefabs::shape_ui::ShapeUI;
 use crate::ui::prefabs::vector_ui::get_vector_ui;
 use crate::ui::ui::UI;
 use crate::ui::uielement::{Category, UIElement};
@@ -29,11 +28,11 @@ pub struct Triangle {
 }
 
 impl Shape for Triangle {
-    fn distance(&self, vec: &Vec3) -> f64 {
+    fn distance(&self, _vec: &Vec3) -> f64 {
         unimplemented!()
     }
     fn intersect(&self, r: &Ray) -> Option<Vec<f64>> {
-        let mut intersection: f64;
+        let intersection: f64;
         match self.plane.intersect(r) {
             Some(intersections) => {
                 intersection = intersections[0];
@@ -50,11 +49,11 @@ impl Shape for Triangle {
         None
     }
 
-	fn outer_intersect(&self, r: &Ray, displaced_factor: f64) -> Option<Vec<f64>> {
+	fn outer_intersect(&self, r: &Ray, _displaced_factor: f64) -> Option<Vec<f64>> {
 		self.intersect(r)
 	}
 
-    fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
+    fn intersect_displacement(&self, ray: &Ray, _element: &Element, _scene: &Scene) -> Option<Vec<f64>> {
 		self.intersect(ray)
 	}
 
@@ -102,7 +101,7 @@ impl Shape for Triangle {
         Some(&self.aabb)
     }
 
-    fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
+    fn get_ui(&self, element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
         let mut category = UIElement::new("Triangle", "triangle", ElemType::Category(Category::default()), ui.uisettings());
 
         if let Some(triangle) = element.shape().as_triangle() {

@@ -20,7 +20,7 @@ pub struct Ellipse {
 }
 
 impl Shape for Ellipse {
-    fn distance(&self, vec: &Vec3) -> f64 {
+    fn distance(&self, _vec: &Vec3) -> f64 {
         unimplemented!()
     }
 
@@ -67,15 +67,15 @@ impl Shape for Ellipse {
         Some(&self.aabb)
     }
 
-    fn outer_intersect(&self, ray: &Ray, displaced_factor: f64) -> Option<Vec<f64>> {
+    fn outer_intersect(&self, ray: &Ray, _displaced_factor: f64) -> Option<Vec<f64>> {
         self.intersect(ray)
     }
 
-    fn intersect_displacement(&self, ray: &Ray, element: &crate::model::Element, scene: &crate::model::scene::Scene) -> Option<Vec<f64>> {
+    fn intersect_displacement(&self, ray: &Ray, _element: &crate::model::Element, _scene: &crate::model::scene::Scene) -> Option<Vec<f64>> {
         self.intersect(ray)
     }
 
-    fn get_ui(&self, element: &crate::model::Element, ui: &mut crate::ui::ui::UI, scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
+    fn get_ui(&self, _element: &crate::model::Element, _ui: &mut crate::ui::ui::UI, _scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
         todo!()
     }
 }

@@ -6,7 +6,6 @@ use crate::model::scene::Scene;
 use crate::model::shapes::plane::Plane;
 use crate::model::shapes::triangle::Triangle;
 use crate::model::Element;
-use crate::ui::prefabs::shape_ui::ShapeUI;
 use crate::ui::prefabs::vector_ui::get_vector_ui;
 use crate::ui::ui::UI;
 use crate::ui::uielement::{Category, UIElement};
@@ -30,7 +29,7 @@ pub struct Rectangle {
 }
 
 impl Shape for Rectangle {
-    fn distance(&self, vec: &Vec3) -> f64 {
+    fn distance(&self, _vec: &Vec3) -> f64 {
         unimplemented!()
     }
     fn intersect(&self, r: &Ray) -> Option<Vec<f64>> {
@@ -52,11 +51,11 @@ impl Shape for Rectangle {
         None
     }
 
-	fn outer_intersect(&self, r: &Ray, displaced_factor: f64) -> Option<Vec<f64>> {
+	fn outer_intersect(&self, r: &Ray, _displaced_factor: f64) -> Option<Vec<f64>> {
 		self.intersect(r)
 	}
 
-    fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
+    fn intersect_displacement(&self, ray: &Ray, _element: &Element, _scene: &Scene) -> Option<Vec<f64>> {
 		self.intersect(ray)
 	}
 
@@ -70,7 +69,7 @@ impl Shape for Rectangle {
     fn as_rectangle(&self) -> Option<&Rectangle> { Some(self) }
     fn as_rectangle_mut(&mut self) -> Option<&mut Rectangle> { Some(self) }
 
-    fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
+    fn get_ui(&self, element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
         let mut category = UIElement::new("Rectangle", "rectangle", ElemType::Category(Category::default()), ui.uisettings());
 
         if let Some(rectangle) = element.shape().as_rectangle() {
@@ -105,7 +104,7 @@ impl Shape for Rectangle {
                 }),
                 true, None, None));
             category.add_element(get_vector_ui(rectangle.dir_l.clone(), "Direction 1", "dir", &ui.uisettings_mut(),
-                Box::new(move |_, value, scene, ui| {
+                Box::new(move |_, value, scene, _ui| {
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
@@ -134,7 +133,7 @@ impl Shape for Rectangle {
                 }),
                 true, Some(-1.), Some(1.)));
                 category.add_element(get_vector_ui(rectangle.dir_l.clone(), "Direction 2", "dir2", &ui.uisettings_mut(),
-                Box::new(move |_, value, scene, ui| {
+                Box::new(move |_, value, scene, _ui| {
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {

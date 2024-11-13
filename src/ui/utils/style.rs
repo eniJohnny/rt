@@ -1,6 +1,6 @@
 use image::Rgba;
 
-use crate::{model::maths::vec2::Vec2, ui::uisettings::UISettings};
+use crate::ui::uisettings::UISettings;
 
 #[derive(Clone, Copy)]
 pub struct Style {
@@ -137,6 +137,10 @@ impl StyleBuilder {
     }
     pub fn build(self) -> Style {
         self.style
+    }
+
+    pub fn settings(&self) -> &UISettings {
+        &self.settings
     }
 }
 

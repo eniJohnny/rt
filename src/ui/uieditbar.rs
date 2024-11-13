@@ -40,7 +40,7 @@ impl UIEditBar {
                     elem.get_properties_reference(&mut properties_vec);
                 }
                 for reference in properties_vec {
-                    if let Some((mut elem, parent_ref, index)) =
+                    if let Some((elem, parent_ref, index)) =
                         take_element(ui, reference.clone())
                     {
                         elem.submit_properties(scene, ui);

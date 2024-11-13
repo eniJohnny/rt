@@ -1,11 +1,10 @@
-use std::default;
 use std::sync::{Arc, RwLock};
 
 use super::Shape;
 use crate::model::materials::material::Projection;
 use crate::model::{maths::{hit::Hit, ray::Ray, vec3::Vec3}, Element};
 use crate::model::scene::Scene;
-use crate::{error, AABB_STEPS_NB, ERROR_MARGIN, WIREFRAME_THICKNESS};
+use crate::{AABB_STEPS_NB, ERROR_MARGIN, WIREFRAME_THICKNESS};
 use crate::ui::ui::UI;
 use crate::ui::uielement::UIElement;
 use crate::ui::utils::misc::ElemType;
@@ -185,14 +184,14 @@ impl Aabb {
         let aabb1_surface_area = aabb1.surface_area();
         let aabb2_surface_area = aabb2.surface_area();
 
-        let P1 = aabb1_surface_area / total_surface_area;
-        let P2 = aabb2_surface_area / total_surface_area;
+        let p1 = aabb1_surface_area / total_surface_area;
+        let p2 = aabb2_surface_area / total_surface_area;
 
-        let C1 = aabb1_surface_area * aabb1.get_children_elements(scene).len() as f64; // Can be optimized
-        let C2 = aabb2_surface_area * aabb2.get_children_elements(scene).len() as f64; // Can be optimized
-        let Ct = 1.0; // Predefined constant in SAH, typically 1
+        let c1 = aabb1_surface_area * aabb1.get_children_elements(scene).len() as f64; // Can be optimized
+        let c2 = aabb2_surface_area * aabb2.get_children_elements(scene).len() as f64; // Can be optimized
+        let ct = 1.0; // Predefined constant in SAH, typically 1
 
-        Ct + P1 * C1 + P2 * C2
+        ct + p1 * c1 + p2 * c2
     }
 
     pub fn better_split(&mut self, scene: &Scene) -> (Aabb, Aabb) {
@@ -416,19 +415,19 @@ impl Shape for Aabb {
         None
     }
 
-	fn outer_intersect(&self, r: &Ray, displaced_factor: f64) -> Option<Vec<f64>> {
+	fn outer_intersect(&self, r: &Ray, _displaced_factor: f64) -> Option<Vec<f64>> {
 		self.intersect(r)
 	}
 
-    fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
+    fn intersect_displacement(&self, ray: &Ray, _element: &Element, _scene: &Scene) -> Option<Vec<f64>> {
 		self.intersect(ray)
 	}
 
-    fn projection(&self, hit: &Hit) -> Projection {
+    fn projection(&self, _hit: &Hit) -> Projection {
         Projection::default()
     }
 
-    fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {
+    fn norm(&self, hit_position: &Vec3, _ray_dir: &Vec3) -> Vec3 {
         let x = *hit_position.x();
         let y = *hit_position.y();
         let z = *hit_position.z();
@@ -477,7 +476,7 @@ impl Shape for Aabb {
         Some(self)
     }
 
-    fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
+    fn get_ui(&self, _element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
         UIElement::new("UI not defined for AABBs", "notdefined", ElemType::Text, ui.uisettings())
     }
 

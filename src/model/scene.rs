@@ -1,15 +1,14 @@
 use std::{collections::HashMap, fs};
-
-use image::{RgbImage, RgbaImage};
-use nalgebra::SimdBool;
-
+use image::RgbaImage;
 use crate::{
-    bvh::{self, traversal}, model::objects::light::{AmbientLight, Light}, parsing::obj::{self, Obj}, render::settings::Settings
+    bvh::{self},
+    model::objects::light::AmbientLight,
+    parsing::obj::Obj,
+    render::settings::Settings
 };
-
 use super::{
-    materials::{diffuse::{self, Diffuse},
-    material::{self, Material},
+    materials::{diffuse::Diffuse,
+    material::Material,
     texture::{Texture, TextureType}},
     maths::vec3::Vec3,
     objects::{camera::Camera, light::AnyLight},

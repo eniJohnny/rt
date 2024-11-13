@@ -1,11 +1,10 @@
-use std::{path::Path, sync::{Arc, RwLock}, thread::current};
+use std::sync::{Arc, RwLock};
 
 use image::Rgba;
-use winit::dpi::Position;
 
-use crate::{model::{materials::texture::{Texture, TextureType}, maths::vec3::Vec3, scene::Scene, Element}, picker::get_files_in_folder, render::render_threads::start_render_threads, ui::{prefabs::{material_ui::get_material_ui, texture_ui::get_texture_ui, vector_ui::get_vector_ui}, ui::UI, uibox::{BoxPosition, UIBox}, uielement::{Category, UIElement}, uisettings::UISettings, utils::{misc::{ElemType, FnSubmitValue, Property, Value}, style::{Style, StyleBuilder}, ui_utils::get_parent_ref, Displayable}}, ELEMENT, GUI_WIDTH, SCREEN_WIDTH_U32, SETTINGS, TOOLBAR, UISETTINGS};
+use crate::{model::{scene::Scene, Element}, render::render_threads::start_render_threads, ui::{prefabs::material_ui::get_material_ui, ui::UI, uibox::{BoxPosition, UIBox}, uielement::{Category, UIElement}, utils::{misc::ElemType, style::StyleBuilder, Displayable}}, ELEMENT, SCREEN_WIDTH_U32, SETTINGS, TOOLBAR, UISETTINGS};
 
-pub fn setup_uisettings(ui: &mut UI, scene: &Arc<RwLock<Scene>>) {
+pub fn setup_uisettings(ui: &mut UI, _scene: &Arc<RwLock<Scene>>) {
     let mut settings_box = UIBox::new(UISETTINGS, BoxPosition::CenterLeft(10), ui.uisettings().gui_width, ui.uisettings());
     settings_box.add_elements(ui.uisettings().get_fields("UI settings", ui.uisettings()));
     // settings_box.add_elements(get_texture_ui("Color", scene.read().unwrap().elements()[0].material().color(), Box::new(
@@ -38,7 +37,7 @@ pub fn setup_element_ui(element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene
     let mut elem_box = UIBox::new(ELEMENT, BoxPosition::CenterRight(10), ui.uisettings().gui_width, ui.uisettings());
     let mut category = UIElement::new(&name, &name, ElemType::Category(Category::default()), ui.uisettings());
 
-    category.on_click = Some(Box::new(move |element, scene, ui| {
+    category.on_click = Some(Box::new(move |_element,_scenee, ui| {
         ui.destroy_box(ELEMENT);
     }));
     category.add_element(element.shape().get_ui(element, ui, scene));
@@ -50,7 +49,7 @@ pub fn setup_element_ui(element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene
     ui.add_box(elem_box);
 }
 
-pub fn setup_toolbar(ui: &mut UI, scene: &Arc<RwLock<Scene>>) {
+pub fn setup_toolbar(ui: &mut UI, _scene: &Arc<RwLock<Scene>>) {
     let exclusive_uis = [SETTINGS, UISETTINGS];
 
     let mut toolbar_box = UIBox::new(TOOLBAR, BoxPosition::TopLeft(0, 0), SCREEN_WIDTH_U32, ui.uisettings());

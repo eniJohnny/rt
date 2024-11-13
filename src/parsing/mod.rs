@@ -1,27 +1,35 @@
 use obj::Obj;
-
-use crate::model::materials::color::Color;
-use crate::model::materials::diffuse::Diffuse;
-use crate::model::materials::material::Material;
-use crate::model::materials::texture::{self, Texture, TextureType};
-use crate::model::maths::vec3::Vec3;
-use crate::model::objects::camera::Camera;
-use crate::model::objects::light::{AmbientLight, AnyLight, ParallelLight, PointLight};
-use crate::model::{ComposedElement, Element};
-use crate::model::scene::Scene;
-use crate::model::shapes::{ 
-    cone::Cone, cylinder::Cylinder, plane::Plane,
-    sphere::Sphere, rectangle::Rectangle, triangle::Triangle,
-    ComposedShape, helix::Helix, torusphere::Torusphere,
-    brick::Brick, nagone::Nagone, mobius::Mobius, ellipse::Ellipse,
-    cube::Cube, cubehole::Cubehole, hyperboloid::Hyperboloid, any::Any
+use std::{
+    collections::HashMap,
+    f64::consts::PI,
+    io::Write,
+    ops::Add
 };
-use crate::{error, AABB_OPACITY};
-// use crate::{error, SCENE};
-use std::collections::HashMap;
-use std::f64::consts::PI;
-use std::io::Write;
-use std::ops::Add;
+use crate::{
+    model::{
+        materials::{
+            color::Color,
+		    diffuse::Diffuse,
+		    material::Material,
+		    texture::{Texture, TextureType}
+        },
+		objects::{
+            light::{AmbientLight, AnyLight, ParallelLight, PointLight},
+            camera::Camera
+        },
+		shapes::{ 
+            cone::Cone, cylinder::Cylinder, plane::Plane,
+            sphere::Sphere, rectangle::Rectangle, triangle::Triangle,
+            ComposedShape, helix::Helix, torusphere::Torusphere,
+            brick::Brick, nagone::Nagone, mobius::Mobius, ellipse::Ellipse,
+            cube::Cube, cubehole::Cubehole, hyperboloid::Hyperboloid, any::Any
+        },
+		maths::vec3::Vec3,
+		scene::Scene,
+        ComposedElement, Element
+    },
+    error, AABB_OPACITY
+};
 
 pub mod obj;
 

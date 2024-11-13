@@ -1,5 +1,5 @@
 use crate::{
-    ui::{uielement::Category, utils::misc::{ElemType, Property, Value}}, BASE_FONT_SIZE, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH, INDENT_PADDING, MARGIN, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32, UI_REFRESH_TIME
+    ui::{uielement::Category, utils::misc::{ElemType, Property, Value}}, BASE_FONT_SIZE, FIELD_PADDING_X, FIELD_PADDING_Y, GUI_HEIGHT, GUI_WIDTH, MARGIN, UI_REFRESH_TIME
 };
 
 use super::{uielement::UIElement, utils::Displayable};
@@ -47,7 +47,7 @@ impl Displayable for UISettings {
                         ui.uisettings_mut().margin = value
                     }
                 }),
-                Box::new(|value, elem, ui| {
+                Box::new(|value, _elem, _ui| {
                     if let Value::Unsigned(value) = value {
                         if value > &20 {
                             return Err("Too much margin is bad for your health".to_owned());
@@ -70,7 +70,7 @@ impl Displayable for UISettings {
                         ui.uisettings_mut().ui_refresh_time = value
                     }
                 }),
-                Box::new(|value, elem, ui| {
+                Box::new(|value, _elem, _ui| {
                     if let Value::Unsigned(value) = value {
                         if value < &50 {
                             return Err("Don't be unreasonable".to_owned());

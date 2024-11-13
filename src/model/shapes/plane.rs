@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 use super::Shape;
 use crate::{model::{
     materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene, Element
-}, render::raycasting::get_sorted_hit_from_t, ui::{prefabs::{shape_ui::ShapeUI, vector_ui::get_vector_ui}, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Value}}};
+}, render::raycasting::get_sorted_hit_from_t, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Value}}};
 
 #[derive(Debug, Clone)]
 pub struct Plane {
@@ -12,7 +12,7 @@ pub struct Plane {
 }
 
 impl Shape for Plane {
-    fn distance(&self, vec: &Vec3) -> f64 {
+    fn distance(&self, _vec: &Vec3) -> f64 {
         unimplemented!()
     }
     fn intersect(&self, r: &Ray) -> Option<Vec<f64>> {
@@ -49,7 +49,7 @@ impl Shape for Plane {
 		let displaced_factor = scene.settings().plane_displaced_distance;
 		let total_displacement = displaced_factor;
 		let step = scene.settings().plane_displacement_step;
-		let mut t: Option<Vec<f64>> = self.outer_intersect(ray, displaced_factor);
+		let t: Option<Vec<f64>> = self.outer_intersect(ray, displaced_factor);
 		if let Some(mut hits) = get_sorted_hit_from_t(scene, ray, &t, element) {
 			if hits.len() == 1 {
 				return None;
@@ -113,7 +113,7 @@ impl Shape for Plane {
         projection
     }
 
-    fn norm(&self, hit_pos: &Vec3, ray_dir: &Vec3) -> Vec3 {
+    fn norm(&self, _hit_pos: &Vec3, ray_dir: &Vec3) -> Vec3 {
         // On doit aussi prendre on compte quand on tape de l'autre cote du plane
         // TODO: C'est sûr ça ??
         if ray_dir.dot(&self.dir) > 0. {
@@ -132,7 +132,7 @@ impl Shape for Plane {
         &self.pos
     }
 
-    fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
+    fn get_ui(&self, element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
         let mut category = UIElement::new("Plane", "Plane", ElemType::Category(Category::default()), ui.uisettings());
 
         if let Some(plane) = element.shape().as_plane() {
@@ -167,7 +167,7 @@ impl Shape for Plane {
                 }),
                 true, None, None));
             category.add_element(get_vector_ui(plane.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
-                Box::new(move |_, value, scene, ui| {
+                Box::new(move |_, value, scene, _ui| {
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(plane) = elem.shape_mut().as_plane_mut() {

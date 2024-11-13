@@ -1,6 +1,5 @@
-use std::slice::from_raw_parts;
 
-use image::{DynamicImage, GenericImageView, ImageBuffer, Rgb, Rgba};
+use image::{DynamicImage, ImageBuffer, Rgba};
 
 extern crate image;
 

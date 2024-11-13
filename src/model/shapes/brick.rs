@@ -1,12 +1,10 @@
-use std::f64::consts::PI;
-use std::ops::Div;
 
-use super::rectangle::{self, Rectangle};
+use super::rectangle::Rectangle;
 use super::ComposedShape;
 use crate::model::materials::diffuse::Diffuse;
-use crate::model::materials::material::{Material, Projection};
+use crate::model::materials::material::Material;
 use crate::model::materials::texture::{Texture, TextureType};
-use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
+use crate::model::maths::vec3::Vec3;
 use crate::model::Element;
 
 #[derive(Debug)]

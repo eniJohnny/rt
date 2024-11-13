@@ -1,5 +1,3 @@
-use std::{fmt::Display, u8};
-
 use image::RgbaImage;
 
 use crate::{model::maths::vec3::Vec3, ui::utils::misc::Value};
