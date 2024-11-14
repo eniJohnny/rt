@@ -501,16 +501,20 @@ fn get_material(
             None => panic!("Color must be provided for non-textured materials"),
         },
     };
+    let refraction = match refraction_string.parse::<f64>() {
+        Ok(value) => value,
+        _ => 1.
+    };
     Box::new(Diffuse::new(
         color_texture,
         Texture::from_float_litteral(metalness_string, 0.),
         Texture::from_float_litteral(roughness_string, 0.),
         Texture::from_float_scaled(emissive_string, 0.),
-        Texture::from_float_litteral(refraction_string, 1.),
-        Texture::from_float_litteral(transparency_string, 1.),
+        Texture::from_float_litteral(transparency_string, 0.),
         Texture::from_vector(normal_string, Vec3::new(0., 0., 1.)),
         Texture::from_float_litteral(opacity_string, 1.),
 		Texture::from_float_litteral(displacement_string, 0.),
+        refraction,
     ))
 }
 

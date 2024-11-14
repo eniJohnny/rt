@@ -9,12 +9,12 @@ pub struct Diffuse {
     color: Texture,
     metalness: Texture,
     roughness: Texture,
-    refraction: Texture,
     transparency: Texture,
     norm_variation: Texture,
     emissive: Texture,
     opacity: Texture,
 	displacement: Texture,
+    refraction: f64,
 }
 
 impl Diffuse {
@@ -23,22 +23,22 @@ impl Diffuse {
         metalness: Texture,
         roughness: Texture,
         emissive: Texture,
-        refraction: Texture,
         transparency: Texture,
         norm_variation: Texture,
         opacity: Texture,
 		displacement: Texture,
+        refraction: f64,
     ) -> Self {
         Self {
             color,
             metalness,
             roughness,
             emissive,
-            refraction,
             transparency,
             norm_variation,
             opacity,
 			displacement,
+            refraction,
         }
     }
 
@@ -52,7 +52,7 @@ impl Diffuse {
             Texture::Value(Vec3::from_value(1.), TextureType::Float),
             Texture::Value(Vec3::new(0.5, 0.5, 1.0), TextureType::Vector),
             Texture::Value(Vec3::from_value(1.), TextureType::Float),
-			Texture::Value(Vec3::from_value(0.), TextureType::Float),
+			0.,
         ))
     }
 
@@ -62,11 +62,11 @@ impl Diffuse {
             self.metalness().clone(),
             self.roughness().clone(),
             self.emissive().clone(),
-            self.refraction().clone(),
             self.transparency().clone(),
             self.norm().clone(),
             self.opacity().clone(),
-            self.displacement().clone()
+            self.displacement().clone(),
+            self.refraction().clone()
         ))
     }
 }
@@ -95,10 +95,10 @@ impl Material for Diffuse {
         self.metalness = metalness;
     }
 
-    fn refraction(&self) -> &Texture {
-        &self.refraction
+    fn refraction(&self) -> f64 {
+        self.refraction
     }
-    fn set_refraction(&mut self, refraction: Texture) {
+    fn set_refraction(&mut self, refraction: f64) {
         self.refraction = refraction;
     }
 
