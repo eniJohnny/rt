@@ -1,9 +1,7 @@
+use crate::model::maths::vec3::Vec3;
 use image::Rgba;
-
 use std::fmt::{Debug, Display};
 use std::ops::{Add, AddAssign, Div, Mul};
-
-use crate::model::maths::vec3::Vec3;
 
 #[derive(Clone, Debug)]
 pub struct Color {

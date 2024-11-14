@@ -1,10 +1,7 @@
 use crate::{
     model::maths::{quaternion::Quaternion, vec3::Vec3},
-    SCREEN_HEIGHT, SCREEN_WIDTH,
+    SCREEN_HEIGHT, SCREEN_WIDTH, STEP, LOOK_STEP
 };
-
-const STEP: f64 = 0.2;
-const LOOK_STEP: f64 = 0.05;
 
 #[derive(Debug)]
 pub struct Camera {

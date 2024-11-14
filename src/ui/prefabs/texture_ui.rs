@@ -1,8 +1,23 @@
 use std::sync::{Arc, RwLock};
+use super::{
+    file_ui::get_file_box,
+    vector_ui::{get_vector_from_vector_ui, get_vector_ui}
+};
+use crate::{
+    model::{
+        materials::texture::{Texture, TextureType},
+        maths::vec3::Vec3, scene::Scene
+    },
+    ui::{
+        uielement::{Category, UIElement},
+        uisettings::UISettings,
+        utils::{
+            misc::{ElemType, Property, Value},
+            ui_utils::get_parent_ref
+        }
+    }
+};
 
-use crate::{model::{materials::texture::{Texture, TextureType}, maths::vec3::Vec3, scene::Scene}, ui::{uielement::{Category, UIElement}, uisettings::UISettings, utils::{misc::{ElemType, Property, Value}, ui_utils::get_parent_ref}}};
-
-use super::{file_ui::get_file_box, vector_ui::{get_vector_from_vector_ui, get_vector_ui}};
 
 pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<dyn Fn(Texture, &Arc<RwLock<Scene>>)>, settings: &UISettings, only_file: bool, min: Option<f64>, max: Option<f64>) -> UIElement {
     let mut category = UIElement::new(name, name, ElemType::Category(Category::collapsed()), settings);
@@ -120,7 +135,7 @@ pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<dyn Fn(Texture,
     let name = name.to_string();
     let property_name = name.clone();
     let settings = settings.clone();
-    let mut elem = UIElement::new("File", "as_file", ElemType::Property(Property::new(Value::Text(as_text.clone()), Box::new(|_, _, _, _| ()), Box::new(move |value, elem, ui| {
+    let mut elem = UIElement::new("File", "as_file", ElemType::Property(Property::new(Value::Text(as_text.clone()), Box::new(|_, _, _, _| ()), Box::new(move |value, elem, _ui| {
         if !elem.style.visible {
             return Ok(());
         }
@@ -131,14 +146,14 @@ pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<dyn Fn(Texture,
         }
         return Err(format!("No file has been selected for property {}", property_name));
     }), &settings)), &settings);
-    elem.on_click = Some(Box::new(move |elem, scene, ui| {
+    elem.on_click = Some(Box::new(move |elem, _scene, ui| {
         if let Some(elem) = elem {
             let reference = elem.reference.clone();
             let mut initial_value = as_text.clone();
             if let ElemType::Property(property) = elem.get_elem_type() {
                 initial_value = property.value.to_string();
             }
-            let file_box = get_file_box("./textures/".to_string(), name.clone(), Box::new(move |_, value, scene, ui| {
+            let file_box = get_file_box("./textures/".to_string(), name.clone(), Box::new(move |_, value, _scene, ui| {
                 let elem = ui.get_property_mut(&reference.clone()).unwrap();
                 elem.value = value;
             }), &settings.clone(), initial_value);

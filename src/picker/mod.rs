@@ -1,3 +1,6 @@
+use image::{Rgba, RgbaImage};
+use pixels::{Pixels, SurfaceTexture};
+use rusttype::{Font, Scale};
 use std::{
     fmt::format,
     fs, io,
@@ -5,24 +8,26 @@ use std::{
     thread,
     time::Duration,
 };
-
-use image::{Rgba, RgbaImage};
-use pixels::{Pixels, SurfaceTexture};
-use rusttype::{Font, Scale};
 use winit::{
     dpi::LogicalSize,
     event::{Event, MouseScrollDelta, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     keyboard::{Key, NamedKey},
-    window::{Window, WindowBuilder},
+    window::WindowBuilder,
 };
-
 use crate::{
-    display::display::{self, display}, model::{
+    parsing::get_scene,
+    render::render_threads::start_render_threads,
+    display::display::display,
+    model::{
         maths::{vec2::Vec2, vec3::Vec3},
-        objects::camera,
-        scene::{self, Scene},
-    }, parsing::get_scene, render::render_threads::start_render_threads, ui::{uisettings::UISettings, utils::{draw_utils::blend, style::Style}}, PICKER_LINE_HEIGHT, SCENE_FOLDER, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32
+        scene::Scene,
+    },
+    ui::{
+        uisettings::UISettings,
+        utils::{draw_utils::blend, style::Style}
+    },
+    PICKER_LINE_HEIGHT, SCENE_FOLDER, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32
 };
 
 pub fn get_files_in_folder(path: &str) -> io::Result<Vec<String>> {
@@ -156,7 +161,7 @@ fn draw_files_and_update_hitboxes(
 }
 
 fn display_files(files: Vec<String>) -> String {
-    let mut event_loop = EventLoop::new().unwrap();
+    let event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new()
         .with_inner_size(LogicalSize::new(SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32))
         .with_title("Scene Picker")

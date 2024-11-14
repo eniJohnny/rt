@@ -1,14 +1,13 @@
+use super::{misc::ElemType, HitBox};
+use image::{ImageBuffer, Rgba, RgbaImage};
 use std::{
-    borrow::Borrow,
-    sync::{mpsc::{Receiver, Sender}, Arc, RwLock},
+    sync::mpsc::{Receiver, Sender},
     time::Instant,
 };
-
-use image::{ImageBuffer, Rgba, RgbaImage};
-
-use crate::{ui::{ui::UI, uielement::UIElement}, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32};
-
-use super::{misc::ElemType, HitBox};
+use crate::{
+    ui::{ui::UI, uielement::UIElement},
+    SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32
+};
 
 #[derive(Clone)]
 pub struct Editing {

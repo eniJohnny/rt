@@ -1,26 +1,20 @@
-use std::{
-    os::unix::thread, path::Path, sync::{Arc, RwLock}, thread::{sleep}, time::{Duration, Instant}
+use super::{
+    display::redraw_if_necessary,
+    events::{handle_event, key_held}, ui_setup::setup_ui,
 };
-
-use chrono::{DateTime, Utc};
 use pixels::Pixels;
+use std::{
+    sync::{Arc, RwLock}, time::{Duration, Instant}
+};
 use winit::{
     dpi::LogicalSize,
-    event::{Event, WindowEvent},
-    event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
-    keyboard::{Key, NamedKey},
+    event::Event,
+    event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
-
 use crate::{
     model::scene::Scene,
-    render::render_threads::start_render_threads,
     SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32,
-};
-
-use super::{
-    display::{self, blend_scene_and_ui, redraw_if_necessary},
-    events::{handle_event, key_held}, ui_setup::setup_ui,
 };
 
 pub fn start_scene(scene: Scene) {

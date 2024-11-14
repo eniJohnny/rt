@@ -1,11 +1,7 @@
+use super::{style::Style, HitBox};
+use crate::{SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32};
 use image::{Rgba, RgbaImage};
 use rusttype::{Font, Scale};
-
-use crate::{SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32};
-
-use super::{style::Style, HitBox};
-
-
 
 pub fn draw_element_text(
     img: &mut RgbaImage,

@@ -1,8 +1,5 @@
-use std::slice::from_raw_parts;
-
-use image::{DynamicImage, GenericImageView, ImageBuffer, Rgb, Rgba};
-
 extern crate image;
+use image::{DynamicImage, ImageBuffer, Rgba};
 
 /// The possible Anaglyph colors listed [here](https://en.wikipedia.org/wiki/Anaglyph_3D#Anaglyphic_color_channels).
 pub enum Coloring {

@@ -1,9 +1,10 @@
-use eqsolver::single_variable::FDNewton;
-use meval::{self, ContextProvider, eval_str_with_context};
-
 use super::Shape;
-use crate::model::materials::material::Projection;
-use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
+use eqsolver::single_variable::FDNewton;
+use meval::{self, eval_str_with_context};
+use crate::model::{
+    materials::material::Projection,
+    maths::{hit::Hit, ray::Ray, vec3::Vec3}
+};
 
 #[derive(Debug)]
 pub struct Any {
@@ -12,7 +13,7 @@ pub struct Any {
 }
 
 impl Shape for Any {
-    fn distance(&self, vec: &Vec3) -> f64 {
+    fn distance(&self, _vec: &Vec3) -> f64 {
         unimplemented!()
     }
 
@@ -50,7 +51,6 @@ impl Shape for Any {
 
     fn projection(&self, hit: &Hit) -> Projection {
         let mut projection: Projection = Projection::default();
-        let scale = 4.;
 
         let constant_axis: Vec3;
         if *hit.norm() == Vec3::new(0., 1., 0.) {
@@ -86,7 +86,7 @@ impl Shape for Any {
         projection
     }
 
-    fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {
+    fn norm(&self, hit_position: &Vec3, _ray_dir: &Vec3) -> Vec3 {
         let f = |x: f64, y: f64, z: f64| -> f64 {
             let mut ctx = meval::Context::new();
             ctx.var("x", x)
@@ -108,15 +108,15 @@ impl Shape for Any {
         &self.pos
     }
 
-    fn outer_intersect(&self, ray: &Ray, displaced_factor: f64) -> Option<Vec<f64>> {
+    fn outer_intersect(&self, ray: &Ray, _displaced_factor: f64) -> Option<Vec<f64>> {
         self.intersect(ray)
     }
 
-    fn intersect_displacement(&self, ray: &Ray, element: &crate::model::Element, scene: &crate::model::scene::Scene) -> Option<Vec<f64>> {
+    fn intersect_displacement(&self, ray: &Ray, _element: &crate::model::Element,_scene: &crate::model::scene::Scene) -> Option<Vec<f64>> {
         self.intersect(ray)
     }
 
-    fn get_ui(&self, element: &crate::model::Element, ui: &mut crate::ui::ui::UI, scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
+    fn get_ui(&self, _element: &crate::model::Element, _ui: &mut crate::ui::ui::UI, _scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
         todo!()
     }
 }

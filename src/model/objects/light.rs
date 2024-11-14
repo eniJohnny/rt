@@ -1,7 +1,8 @@
-use std::{any::Any, fmt::Debug};
-
+use std::fmt::Debug;
 use crate::model::{
-    materials::color::Color, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene
+    materials::color::Color,
+    maths::{hit::Hit, ray::Ray, vec3::Vec3},
+    scene::Scene
 };
 
 #[derive(Debug)]

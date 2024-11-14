@@ -1,33 +1,33 @@
-use core::time;
-use std::time::Instant;
-
-use chrono::Duration;
 use rand::Rng;
-
 use crate::{
-    bvh::{self}, model::{
+    model::{
+        maths::{
+            hit::Hit,
+            ray::Ray,
+            vec3::Vec3,
+            vec_utils::{random_unit_vector, reflect_dir}
+        },
         materials::color::Color,
-        maths::{hit::Hit, ray::Ray, vec3::Vec3, vec_utils::{random_unit_vector, reflect_dir}},
-        objects::light,
-        scene::Scene, shapes::Shape,
-    }, render::{raycasting::{get_closest_hit, get_lighting_from_ray}, settings::ViewMode, skysphere::get_skysphere_color}, FILTER, MAX_DEPTH, USING_BVH
+        scene::Scene,
+    },
+    render::raycasting::get_lighting_from_ray
 };
 
 pub fn fresnel_reflect_ratio(n1: f64, n2: f64, norm: &Vec3, ray: &Vec3, f0: f64, f90: f64) -> f64 {
     // Schlick aproximation
     let mut r0 = (n1 - n2) / (n1 + n2);
     r0 = r0 * r0;
-    let mut cosX = -(norm.dot(&ray));
+    let mut cos_x = -(norm.dot(&ray));
     if n1 > n2 {
         let n = n1 / n2;
-        let sinT2 = n * n * (1.0 - cosX * cosX);
+        let sin_t2 = n * n * (1.0 - cos_x * cos_x);
         // Total internal reflection
-        if sinT2 > 1.0 {
+        if sin_t2 > 1.0 {
             return f90;
         }
-        cosX = (1.0 - sinT2).sqrt();
+        cos_x = (1.0 - sin_t2).sqrt();
     }
-    let x = 1.0 - cosX;
+    let x = 1.0 - cos_x;
     let ret = r0 + (1.0 - r0) * x.powf(5.);
 
     // adjust reflect multiplier for object reflectivity

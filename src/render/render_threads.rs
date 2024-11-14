@@ -1,26 +1,23 @@
+use image::RgbaImage;
 use std::{
-    cmp::min,
-    collections::VecDeque,
     sync::{
         mpsc::{self, Receiver, Sender},
         Arc, Mutex, RwLock,
     },
-    thread,
     time::{Duration, Instant},
+    collections::VecDeque,
+    cmp::min,
+    thread,
 };
-
-use image::{GenericImageView, Rgba, RgbaImage};
-
 use crate::{
     model::{
-        materials::color::{self, Color},
+        materials::color::Color,
         scene::Scene,
     },
-    BASE_SIMPLIFICATION, MAX_ITERATIONS, MAX_THREADS, SCREEN_HEIGHT, SCREEN_WIDTH,
+    BASE_SIMPLIFICATION, MAX_THREADS, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
-
 use super::{
-    raycasting::{get_closest_hit, get_lighting_from_ray, get_ray},
+    raycasting::{get_lighting_from_ray, get_ray},
     settings::ViewMode,
 };
 
@@ -35,7 +32,7 @@ struct Tile {
 
 fn generate_tiles_for(
     queue: &Arc<Mutex<VecDeque<Tile>>>,
-    sampling: bool,
+    _sampling: bool,
     simplification_factor: usize,
 ) -> u32 {
     let mut cpt = 0;
@@ -212,7 +209,7 @@ fn main_render_loop(
                 let mut index = 0;
                 // Meme chose que dans render_tilesets, on ne remplit que les zones necessaires par tile et par resolution.
                 for_each_uncalculated_pixel(&tile, |x, y| {
-                    let mut color = (&colors[index]).clone();
+                    let color = (&colors[index]).clone();
                     // color.apply_gamma();
                     index += 1;
                     for x in x..min(x + &tile.factor, SCREEN_WIDTH) {
@@ -306,7 +303,7 @@ fn add_iteration_to_final_img(
         for x in 0..SCREEN_WIDTH {
             for y in 0..SCREEN_HEIGHT {
                 let mut base_color = final_img.get(x).unwrap().get(y).unwrap().clone();
-                let mut new_iter_color = iteration.get(x).unwrap().get(y).unwrap();
+                let new_iter_color = iteration.get(x).unwrap().get(y).unwrap();
                 let iterations_done = iterations_done as f64;
                 base_color = (base_color * (iterations_done - 1.) / iterations_done)
                     + (new_iter_color * (1. / iterations_done as f64));

@@ -1,14 +1,6 @@
-use crate::model::materials::color::Color;
-use crate::model::materials::material::{self, Material};
-use crate::model::materials::texture::{Texture, TextureType};
 use crate::model::maths::vec3::Vec3;
-use crate::model::scene::Scene;
-use crate::model::shapes::triangle::Triangle;
-use crate::model::{shapes, Element};
-use crate::ui::utils::misc::Value;
-use crate::OBJ_DEFAULT_DIR;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Error};
+use std::io::{BufRead, BufReader};
 use std::vec;
 
 #[derive(Debug)]

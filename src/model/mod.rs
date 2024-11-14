@@ -1,7 +1,5 @@
 use materials::material::Material;
-use shapes::ComposedShape;
-
-use self::{shapes::Shape};
+use shapes::{Shape, ComposedShape};
 
 pub mod materials;
 pub mod shapes;

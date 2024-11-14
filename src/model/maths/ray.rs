@@ -1,6 +1,5 @@
-use std::fmt::{Display, Formatter, Result};
-
 use super::vec3::Vec3;
+use std::fmt::{Display, Formatter, Result};
 
 #[derive(Clone, Debug)]
 pub struct Ray {

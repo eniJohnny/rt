@@ -1,10 +1,15 @@
-use std::sync::{Arc, RwLock};
-
-use crate::{model::{materials::texture::Texture, maths::vec3::Vec3, scene::Scene, Element}, ui::{ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Value}}};
-
 use super::texture_ui::get_texture_ui;
+use std::sync::{Arc, RwLock};
+use crate::{
+    model::{scene::Scene, Element},
+    ui::{
+        ui::UI,
+        uielement::{Category, UIElement},
+        utils::misc::ElemType
+    }
+};
 
-pub fn get_material_ui(element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
+pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
     let mut material_category = UIElement::new("Material", "material", ElemType::Category(Category::default()), ui.uisettings());
 
     let id_element = element.id();
@@ -24,15 +29,15 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>
     }), ui.uisettings(), true, None, None));
 
     //Norm variation
-    let mut normVariation = get_texture_ui("Norm", element.material().norm(), Box::new(move |texture, scene| {
+    let norm_variation = get_texture_ui("Norm", element.material().norm(), Box::new(move |texture, scene| {
         if let Some(element) = scene.write().unwrap().element_mut_by_id(id_element) {
             element.material_mut().set_norm(texture);
         }
     }), ui.uisettings(), true, None, None);
-    material_category.add_element(normVariation);
+    material_category.add_element(norm_variation);
 
     //Metalness
-    let mut metalness = get_texture_ui("Metalness", element.material().metalness(), Box::new(move |texture, scene| {
+    let metalness = get_texture_ui("Metalness", element.material().metalness(), Box::new(move |texture, scene| {
         if let Some(element) = scene.write().unwrap().element_mut_by_id(id_element) {
             element.material_mut().set_metalness(texture);
         }
@@ -40,7 +45,7 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>
     material_category.add_element(metalness);
 
     //Refraction
-    let mut refraction = get_texture_ui("Refraction", element.material().refraction(), Box::new(move |texture, scene| {
+    let refraction = get_texture_ui("Refraction", element.material().refraction(), Box::new(move |texture, scene| {
         if let Some(element) = scene.write().unwrap().element_mut_by_id(id_element) {
             element.material_mut().set_refraction(texture);
         }
@@ -48,7 +53,7 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>
     material_category.add_element(refraction);
 
     //Roughness
-    let mut roughness = get_texture_ui("Roughness", element.material().roughness(), Box::new(move |texture, scene| {
+    let roughness = get_texture_ui("Roughness", element.material().roughness(), Box::new(move |texture, scene| {
         if let Some(element) = scene.write().unwrap().element_mut_by_id(id_element) {
             element.material_mut().set_roughness(texture);
         }

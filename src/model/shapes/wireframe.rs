@@ -1,16 +1,19 @@
-use std::default;
-use std::sync::{Arc, RwLock};
-
 use super::Shape;
-use crate::model::materials::material::Projection;
-use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
-use crate::model::scene::Scene;
-use crate::model::Element;
-use crate::ui::ui::UI;
-use crate::ui::uielement::UIElement;
-use crate::ui::utils::misc::ElemType;
-use crate::{ERROR_MARGIN, WIREFRAME_THICKNESS};
-
+use std::sync::{Arc, RwLock};
+use crate::{
+    model::{
+        materials::material::Projection,
+        maths::{hit::Hit, ray::Ray, vec3::Vec3},
+        scene::Scene,
+        Element
+    },
+    ui::{
+        ui::UI,
+        uielement::UIElement,
+        utils::misc::ElemType,
+    },
+    ERROR_MARGIN, WIREFRAME_THICKNESS
+};
 
 #[derive(Debug, Clone)]
 pub struct Wireframe {
@@ -187,11 +190,11 @@ impl Shape for Wireframe {
         None
     }
 
-	fn outer_intersect(&self, r: &Ray, displaced_factor: f64) -> Option<Vec<f64>> {
+	fn outer_intersect(&self, r: &Ray, _displaced_factor: f64) -> Option<Vec<f64>> {
 		self.intersect(r)
 	}
 
-    fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
+    fn intersect_displacement(&self, ray: &Ray, _element: &Element, _scene: &Scene) -> Option<Vec<f64>> {
 		self.intersect(ray)
 	}
 
@@ -252,7 +255,7 @@ impl Shape for Wireframe {
         proj
     }
 
-    fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {
+    fn norm(&self, hit_position: &Vec3, _ray_dir: &Vec3) -> Vec3 {
         let x = *hit_position.x();
         let y = *hit_position.y();
         let z = *hit_position.z();
@@ -299,7 +302,7 @@ impl Shape for Wireframe {
     fn as_wireframe_mut(&mut self) -> Option<&mut Wireframe> {
         Some(self)
     }
-    fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
+    fn get_ui(&self, _element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
         UIElement::new("UI not defined for AABBs", "notdefined", ElemType::Text, ui.uisettings())
     }
 }

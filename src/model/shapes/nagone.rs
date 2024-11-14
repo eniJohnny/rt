@@ -1,7 +1,14 @@
+use super::{cylinder::Cylinder, sphere::Sphere, ComposedShape};
 use std::f64::consts::PI;
-
-use crate::model::{materials::{color, diffuse::Diffuse, material::Material, texture::{Texture, TextureType}}, maths::vec3::Vec3, Element};
-use super::{cylinder::{self, Cylinder}, sphere::Sphere, ComposedShape};
+use crate::model::{
+    materials::{
+        diffuse::Diffuse,
+        material::Material,
+        texture::{Texture, TextureType}
+    },
+    maths::vec3::Vec3,
+    Element
+};
 
 #[derive(Debug)]
 pub struct Nagone {
