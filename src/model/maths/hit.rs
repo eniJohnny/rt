@@ -22,7 +22,6 @@ pub struct Hit<'a> {
     color: Color,
     metalness: f64,
     roughness: f64,
-    refraction: f64,
 	transparency: f64,
     emissive: f64,
     opacity: f64,
@@ -48,8 +47,7 @@ impl<'a> Hit<'a> {
             color: Color::new(0., 0., 0.),
             metalness: 0.,
             roughness: 0.,
-            transparency: 1.,
-			refraction: 1.52,
+            transparency: 0.,
             emissive: 0.,
             opacity: 1.,
             all_dist,
@@ -63,6 +61,10 @@ impl<'a> Hit<'a> {
     pub fn set_t_list(&mut self, t_list: Vec<(&'a Element, Vec<f64>)>) {
         self.t_list = t_list;
     }
+    pub fn set_norm(&mut self, norm: Vec3) {
+        self.norm = norm;
+    }
+
     pub fn t_list(&self) -> &Vec<(&'a Element, Vec<f64>)> {
         &self.t_list
     }
@@ -92,13 +94,6 @@ impl<'a> Hit<'a> {
     }
     pub fn metalness(&self) -> f64 {
         self.metalness
-    }
-    pub fn refraction(&self) -> f64 {
-		if self.element().shape().as_sphere().is_some() {
-			1.52
-		} else {
-			1.
-		}
     }
     pub fn transparency(&self) -> f64 {
         self.transparency
@@ -169,12 +164,6 @@ impl<'a> Hit<'a> {
             .to_value();
     }
 
-    fn map_refraction(&mut self, textures: &HashMap<String, RgbaImage>) {
-        self.refraction = self
-            .map_texture(self.element.material().refraction(), textures, Vec3::from_value(1.))
-            .to_value();
-    }
-
     fn map_transparency(&mut self, textures: &HashMap<String, RgbaImage>) {
         self.transparency = self
             .map_texture(self.element.material().transparency(), textures, Vec3::from_value(0.))
@@ -201,7 +190,6 @@ impl<'a> Hit<'a> {
         self.map_color(textures);
         self.map_roughness(textures);
         self.map_metalness(textures);
-        self.map_refraction(textures);
 		self.map_transparency(textures);
         self.map_emissive(textures);
     }

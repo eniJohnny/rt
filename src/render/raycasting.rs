@@ -96,7 +96,9 @@ pub fn get_closest_hit_from_elements_with_index<'a>(scene: &'a Scene, ray: &Ray,
         	t = element.shape().intersect(ray);
         }
         if let Some(t) = &t {
-            t_list.push((element, t.clone()));
+            if t.len() % 2 == 0 {
+                t_list.push((element, t.clone()));
+            }
             for dist in t {
                 if dist > &0.0 {
                     if closest.is_none() || dist < closest.clone().unwrap().dist() {
@@ -154,14 +156,14 @@ pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
     let hit = get_closest_hit(scene, ray);
 
     return match hit {
-        Some(hit) => {
+        Some(mut hit) => {
             if hit.element().shape().as_wireframe().is_some() {
                 return Color::new(1., 1., 1.);
             }
             if let ViewMode::Simple(ambient, light) = &scene.settings().view_mode {
                 simple_lighting_from_hit(&hit, ambient, light)
             } else {
-                global_lighting_from_hit(scene, &hit, ray)
+                global_lighting_from_hit(scene, &mut hit, ray)
             }
         },
         None => {

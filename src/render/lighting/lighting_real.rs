@@ -1,3 +1,5 @@
+use std::f64::EPSILON;
+
 use rand::Rng;
 use crate::{
     model::{
@@ -10,98 +12,118 @@ use crate::{
     },
     render::raycasting::get_lighting_from_ray
 };
-
-pub fn fresnel_reflect_ratio(n1: f64, n2: f64, norm: &Vec3, ray: &Vec3, f0: f64, f90: f64) -> f64 {
+pub fn fresnel_reflect_ratio(n1: f64, n2: f64, norm: &Vec3, ray: &Vec3, reflectivity: f64, debug: bool) -> f64 {
     // Schlick aproximation
     let mut r0 = (n1 - n2) / (n1 + n2);
     r0 = r0 * r0;
-    let mut cos_x = -(norm.dot(&ray));
+    let mut cos_x = (norm.dot(&ray)).abs();
+	if debug {
+		println!("cos_x {}, norm {} {} {}, ray {} {} {}", cos_x, norm.x(), norm.y(), norm.z(), ray.x(), ray.y(), ray.z());
+	}
     if n1 > n2 {
         let n = n1 / n2;
         let sin_t2 = n * n * (1.0 - cos_x * cos_x);
         // Total internal reflection
         if sin_t2 > 1.0 {
-            return f90;
+            return reflectivity;
         }
         cos_x = (1.0 - sin_t2).sqrt();
     }
     let x = 1.0 - cos_x;
+	if debug {
+		println!("r0 {}, x {}", r0, x);
+	}
     let ret = r0 + (1.0 - r0) * x.powf(5.);
-
     // adjust reflect multiplier for object reflectivity
-    f0 * (1.0 - ret) + f90 * ret
+    reflectivity * ret
 }
 
-pub fn global_lighting_from_hit(scene: &Scene, hit: &Hit, ray: &Ray) -> Color {
-    let absorbed = 1.0 - hit.metalness() - hit.refraction();
+pub fn global_lighting_from_hit(scene: &Scene, hit: &mut Hit, ray: &Ray) -> Color {
+	if ray.debug {
+		println!("Lighting is being done");
+	}
     if ray.debug {
         println!(
-            "Metal : {}, Roughness: {}, Color: {}, Norm: {}, Emissive: {}, Opacity: {}, Refraction: {}",
+            "Metal : {}, Roughness: {}, Color: {}, Norm: {}, Emissive: {}, Opacity: {}",
             hit.metalness(),
             hit.roughness(),
             hit.color(),
             hit.norm(),
             hit.emissive(),
             hit.opacity(),
-            hit.refraction()
         );
     }
     if hit.emissive() > f64::EPSILON {
         return hit.emissive() * hit.color();
     }
     let mut light_color = Color::new(0., 0., 0.);
-    
-	let is_inside;
-	
-	if hit.all_dist().len() % 2 == 0 {
-		let mut nb_dist_positif = 0;
-		for dist in hit.all_dist() {
-			if dist > &0. {
-				nb_dist_positif += 1;
-			}
-		}
-		is_inside = nb_dist_positif % 2 != 0;
-	} else {
-		is_inside = true;
-	} 
-
-	let current_refraction_index;
-	let next_refraction_index;
-	let normal: Vec3;
-	let parent_element_index = if let Some(_) = get_parent(hit.t_list().clone(), *hit.dist()) {
-		dbg!("Parent");
-		1.52
-	} else {
-		1.
-	};
-	if is_inside {
-		current_refraction_index = hit.refraction();
-		next_refraction_index = parent_element_index;
-		normal = -hit.norm().clone();
-	} else {
-		current_refraction_index = parent_element_index;
-		next_refraction_index = hit.refraction();
-		normal = hit.norm().clone();
+	if ray.get_depth() >= scene.settings().depth as u8 {
+		return light_color;
 	}
 
-	let fresnel_factor =
-        fresnel_reflect_ratio(current_refraction_index, next_refraction_index, &normal, ray.get_dir(), 0., 1.0 - hit.roughness());
-	let reflected = fresnel_factor * absorbed;
+	let mut current_refraction_index = 1.;
+	let mut next_refraction_index = 1.;
+	if hit.transparency() > EPSILON {
+		let is_inside;
+		
+		if hit.all_dist().len() % 2 == 0 {
+			let mut nb_dist_positif = 0;
+			for dist in hit.all_dist() {
+				if dist > &0. {
+					nb_dist_positif += 1;
+				}
+			}
+			is_inside = nb_dist_positif % 2 != 0;
+		} else {
+			is_inside = false;
+		} 
+		let parent_element_index = if let Some(parent) = get_parent(hit.t_list().clone(), *hit.dist()) {
+			parent.material().refraction()
+		} else {
+			1.
+		};
+		if is_inside {
+			current_refraction_index = hit.element().material().refraction();
+			next_refraction_index = parent_element_index;
+			hit.set_norm(-hit.norm().clone());
+			
+		} else {
+			current_refraction_index = parent_element_index;
+			next_refraction_index = hit.element().material().refraction();
+		}
+	}
+	
+
+	let fresnel_factor;
+	if ray.debug {
+		fresnel_factor =
+			fresnel_reflect_ratio(current_refraction_index, next_refraction_index, &hit.norm(), ray.get_dir(), 1.0 - hit.roughness(), true);	
+	} else {
+		fresnel_factor =
+			fresnel_reflect_ratio(current_refraction_index, next_refraction_index, &hit.norm(), ray.get_dir(), 1.0 - hit.roughness(), false);
+	}
+	if ray.debug {
+		println!("fresnel {}", fresnel_factor);
+	}
+	
+	let reflected = fresnel_factor * (1.0 - hit.metalness());
+	let absorbed = 1.0 - hit.metalness() - reflected;
+	if ray.debug {
+		println!("Reflected {}, absorbed {}, fresnel_factor: {}", reflected, absorbed, fresnel_factor);
+	}
     let rand = rand::thread_rng().gen_range(0.0..1.0);
-    if rand < reflected && scene.settings().reflections && ray.get_depth() < scene.settings().depth as u8 {
+    if rand > absorbed && scene.settings().reflections {
 		// Reflected Light
-        if rand > hit.metalness() {
+        if rand > absorbed + hit.metalness() {
             light_color += get_reflected_light_color(scene, hit, ray);
         } else {
             light_color += get_reflected_light_color(scene, hit, ray) * hit.color();
         }
     } else {
-		let rand = rand::thread_rng().gen_range(0.0..1.0);
-		if rand < hit.transparency() && ray.get_depth() < scene.settings().depth as u8 {
+		if rand < absorbed * hit.transparency() {
 			// Refracted Light
-			// light_color += Color::new(1., 0., 0.)
-			light_color += get_refracted_light_color(scene, hit, ray, current_refraction_index, next_refraction_index, &normal);
-		} else if scene.settings().indirect && ray.get_depth() < scene.settings().depth as u8 {
+			light_color += get_refracted_light_color(scene, hit, ray, current_refraction_index, next_refraction_index, &hit.norm());
+		} else if scene.settings().indirect {
 			// Indirect Light
 			light_color += get_indirect_light_color(scene, hit, ray);
         }
