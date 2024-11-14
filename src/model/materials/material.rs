@@ -1,12 +1,6 @@
+use super::texture::Texture;
+use crate::model::maths::vec3::Vec3;
 use std::fmt::Debug;
-
-use crate::{model::maths::{hit::Hit, vec3::Vec3}, ui::{uielement::UIElement, utils::Displayable}};
-
-use super::{
-    color::Color,
-    diffuse::Diffuse,
-    texture::{Texture, TextureType},
-};
 
 #[derive(Debug, Clone, Default)]
 pub struct Projection {

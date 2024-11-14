@@ -1,6 +1,8 @@
-use crate::model::maths::{hit::Hit, vec3::Vec3};
-
-use super::{color::Color, material::Material, texture::{Texture, TextureType}};
+use crate::model::maths::vec3::Vec3;
+use super::{
+    material::Material,
+    texture::{Texture, TextureType}
+};
 
 #[derive(Clone, Debug)]
 pub struct Diffuse {

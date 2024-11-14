@@ -1,17 +1,21 @@
+use super::Shape;
 use std::f64::consts::PI;
 use std::sync::{Arc, RwLock};
-
-use super::Shape;
-use crate::model::materials::material::Projection;
-use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
-use crate::model::scene::Scene;
-use crate::model::Element;
-use crate::render::raycasting::get_sorted_hit_from_t;
-use crate::ui::prefabs::shape_ui::ShapeUI;
-use crate::ui::prefabs::vector_ui::get_vector_ui;
-use crate::ui::ui::UI;
-use crate::ui::uielement::{Category, UIElement};
-use crate::ui::utils::misc::{ElemType, Property, Value};
+use crate::{
+    model::{
+        materials::material::Projection,
+        maths::{hit::Hit, ray::Ray, vec3::Vec3},
+        scene::Scene,
+        Element
+    },
+    ui::{
+        prefabs::vector_ui::get_vector_ui,
+        ui::UI,
+        uielement::{Category, UIElement},
+        utils::misc::{ElemType, Property, Value}
+    },
+    render::raycasting::get_sorted_hit_from_t
+};
 
 #[derive(Debug)]
 pub struct Sphere {
@@ -22,7 +26,7 @@ pub struct Sphere {
 }
 
 impl Shape for Sphere {
-    fn distance(&self, vec: &Vec3) -> f64 {
+    fn distance(&self, _vec: &Vec3) -> f64 {
         unimplemented!()
     }
 
@@ -52,7 +56,7 @@ impl Shape for Sphere {
 		let step_size: f64 = scene.settings().sphere_displacement_step; // step number ~ 1 / step_size 
 
 		let biggest_sphere_size: f64 = self.radius * displaced_factor;
-		let mut t: Option<Vec<f64>> = self.outer_intersect(ray, displaced_factor);
+		let t: Option<Vec<f64>> = self.outer_intersect(ray, displaced_factor);
 		if let Some(mut hits) = get_sorted_hit_from_t(scene, ray, &t, element) {
 			if hits.len() == 1 {
 				return None; // Inside the sphere
@@ -113,7 +117,7 @@ impl Shape for Sphere {
         projection
     }
 
-    fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {
+    fn norm(&self, hit_position: &Vec3, _ray_dir: &Vec3) -> Vec3 {
         (hit_position - self.pos()).normalize()
     }
 
@@ -132,7 +136,7 @@ impl Shape for Sphere {
         Some(&self.aabb)
     }
 
-    fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
+    fn get_ui(&self, element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
         let mut category = UIElement::new("Sphere", "sphere", ElemType::Category(Category::default()), ui.uisettings());
 
         if let Some(sphere) = element.shape().as_sphere() {
@@ -167,7 +171,7 @@ impl Shape for Sphere {
                 }),
                 false, None, None));
             category.add_element(get_vector_ui(sphere.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
-                Box::new(move |_, value, scene, ui| {
+                Box::new(move |_, value, scene, _ui| {
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(sphere) = elem.shape_mut().as_sphere_mut() {

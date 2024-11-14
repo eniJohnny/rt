@@ -1,8 +1,13 @@
-use std::sync::{Arc, RwLock};
-
-use crate::{model::scene::Scene, ui::{ui::UI, uielement::{Category, UIElement}, uisettings::UISettings}};
-
 use super::style::{Formattable, Style, StyleBuilder};
+use std::sync::{Arc, RwLock};
+use crate::{
+    model::scene::Scene,
+    ui::{
+        ui::UI,
+        uielement::{Category, UIElement},
+        uisettings::UISettings
+    }
+};
 
 pub type FnSubmitValue = Box<dyn Fn(Option<&UIElement>, Value, &Arc<RwLock<Scene>>, &mut UI)>;
 pub type FnAny = Box<dyn Fn(Option<&mut UIElement>, &Arc<RwLock<Scene>>, &mut UI)>;

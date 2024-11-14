@@ -1,17 +1,23 @@
-use std::vec;
-use std::sync::{Arc, RwLock};
-
 use super::Shape;
-use crate::model::materials::material::Projection;
-use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
-use crate::model::scene::Scene;
-use crate::model::shapes::plane::Plane;
-use crate::model::Element;
-use crate::ui::prefabs::shape_ui::ShapeUI;
-use crate::ui::prefabs::vector_ui::get_vector_ui;
-use crate::ui::ui::UI;
-use crate::ui::uielement::{Category, UIElement};
-use crate::ui::utils::misc::{ElemType, Property, Value};
+use std::{
+    sync::{Arc, RwLock},
+    vec
+};
+use crate::{
+    model::{
+        materials::material::Projection,
+        maths::{hit::Hit, ray::Ray, vec3::Vec3},
+        scene::Scene,
+        shapes::plane::Plane,
+        Element
+    },
+    ui::{
+        prefabs::vector_ui::get_vector_ui,
+        uielement::{Category, UIElement},
+        utils::misc::{ElemType, Property, Value},
+        ui::UI
+    }
+};
 
 #[derive(Debug)]
 pub struct Cone {
@@ -27,7 +33,7 @@ pub struct Cone {
 unsafe impl Send for Cone {}
 
 impl Shape for Cone {
-    fn distance(&self, vec: &Vec3) -> f64 {
+    fn distance(&self, _vec: &Vec3) -> f64 {
         unimplemented!()
     }
     fn intersect(&self, r: &Ray) -> Option<Vec<f64>> {
@@ -92,11 +98,11 @@ impl Shape for Cone {
         return Some(intersections);
     }
 
-	fn outer_intersect(&self, r: &Ray, displaced_factor: f64) -> Option<Vec<f64>> {
+	fn outer_intersect(&self, r: &Ray, _displaced_factor: f64) -> Option<Vec<f64>> {
 		self.intersect(r)
 	}
 
-    fn intersect_displacement(&self, ray: &Ray, element: &Element, scene: &Scene) -> Option<Vec<f64>> {
+    fn intersect_displacement(&self, ray: &Ray, _element: &Element, _scene: &Scene) -> Option<Vec<f64>> {
 		self.intersect(ray)
 	}
 
@@ -173,7 +179,7 @@ impl Shape for Cone {
         Some(&self.aabb)
     }
     
-    fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
+    fn get_ui(&self, element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
         let mut category = UIElement::new("Cone", "cone", ElemType::Category(Category::default()), ui.uisettings());
 
         if let Some(cone) = element.shape().as_cone() {
@@ -208,7 +214,7 @@ impl Shape for Cone {
                 }),
                 true, None, None));
             category.add_element(get_vector_ui(cone.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
-                Box::new(move |_, value, scene, ui| {
+                Box::new(move |_, value, scene, _ui| {
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(cone) = elem.shape_mut().as_cone_mut() {

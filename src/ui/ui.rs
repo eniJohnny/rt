@@ -1,3 +1,6 @@
+use crate::{model::scene::Scene, ui::uisettings::UISettings};
+use image::{ImageBuffer, Rgba, RgbaImage};
+use winit::keyboard::Key;
 use std::{
     collections::HashMap,
     sync::{
@@ -5,13 +8,17 @@ use std::{
         Arc, RwLock,
     },
 };
-
-use image::{ImageBuffer, Rgba, RgbaImage};
-use winit::keyboard::Key;
-
-use crate::{model::scene::Scene, ui::uisettings::UISettings, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32};
-
-use super::{uibox::{self, UIBox}, uieditbar::UIEditBar, uielement::UIElement, utils::{draw_utils::is_inside_box, misc::Property, ui_utils::{get_parent_ref, give_back_element, take_element, Editing, UIContext}, HitBox}};
+use super::{
+    uibox::UIBox,
+    uieditbar::UIEditBar,
+    uielement::UIElement,
+     utils::{
+        draw_utils::is_inside_box,
+        ui_utils::{get_parent_ref, give_back_element, take_element, Editing, UIContext},
+        misc::Property,
+        HitBox
+    }
+};
 
 pub struct UI {
     boxes: HashMap<String, UIBox>,

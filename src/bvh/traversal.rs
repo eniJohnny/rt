@@ -1,6 +1,12 @@
-use crate::{model::{materials::texture::{Texture, TextureType}, maths::{hit::{self, Hit}, ray::Ray}, scene::{self, Scene}, shapes::{aabb::Aabb, Shape}, Element}, render::raycasting::{get_closest_hit, get_closest_hit_from_elements, get_closest_hit_from_elements_with_index}, USING_BVH};
-
 use super::node::Node;
+use crate::{
+    model::{
+        maths::{hit::Hit, ray::Ray},
+        scene::Scene,
+        shapes::Shape
+    },
+    render::raycasting::get_closest_hit_from_elements_with_index
+};
 
 pub fn recursive_traversal<'a>(ray: &Ray, node: &Node, scene: &'a Scene, closest: Option<Hit<'a>>) -> Option<Hit<'a>> {
     if let Some(t_list) = node.aabb().intersect(ray) {

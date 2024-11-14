@@ -1,10 +1,6 @@
-use std::{fmt::Display, u8};
-
-use image::RgbaImage;
-
-use crate::{model::maths::vec3::Vec3, ui::utils::misc::Value};
-
 use super::{color::Color, material::Projection};
+use crate::{model::maths::vec3::Vec3, ui::utils::misc::Value};
+use image::RgbaImage;
 
 #[derive(Clone, Debug)]
 pub enum TextureType {

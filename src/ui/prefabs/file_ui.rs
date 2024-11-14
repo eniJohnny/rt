@@ -1,8 +1,17 @@
 use image::Rgba;
-
-use crate::{picker::get_files_in_folder, ui::{uibox::{BoxPosition, UIBox}, uielement::{Category, UIElement}, uisettings::UISettings, utils::{misc::{ElemType, FnSubmitValue, Property, Value}, style::Style, ui_utils::get_parent_ref}}};
-
-
+use crate::{
+    picker::get_files_in_folder,
+    ui::{
+        uibox::{BoxPosition, UIBox},
+        uielement::{Category, UIElement},
+        uisettings::UISettings,
+        utils::{
+            misc::{ElemType, FnSubmitValue, Property, Value},
+            ui_utils::get_parent_ref,
+            style::Style
+        }
+    }
+};
 
 pub fn get_file_box(path: String, box_name: String, submit: FnSubmitValue, settings: &UISettings, initial_value: String) -> UIBox {
     let mut style_selected = Style::text(settings);

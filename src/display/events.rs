@@ -1,23 +1,22 @@
+use super::{display::blend_scene_and_ui, ui_setup::setup_element_ui};
+use chrono::{DateTime, Utc};
 use std::{
     path::Path,
     sync::{Arc, RwLock},
 };
-
-use chrono::{DateTime, Utc};
 use winit::{
     event::WindowEvent,
     event_loop::EventLoopWindowTarget,
     keyboard::{Key, NamedKey},
 };
-
 use crate::{
-    model::scene::Scene, render::raycasting::{get_closest_hit, get_lighting_from_ray, get_ray, get_ray_debug}, ui::{
+    model::scene::Scene,
+    render::raycasting::{get_closest_hit, get_lighting_from_ray, get_ray_debug},
+    ui::{
         ui::{ui_clicked, UI},
-        uisettings::UISettings, utils::{misc::Value, ui_utils::Editing},
+        utils::{misc::Value, ui_utils::Editing},
     }
 };
-
-use super::{display::blend_scene_and_ui, ui_setup::setup_element_ui};
 
 pub fn handle_event(
     event: WindowEvent,

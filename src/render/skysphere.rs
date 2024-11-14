@@ -1,6 +1,6 @@
 use std::f64::consts::PI;
 
-use crate::model::{materials::{color::{self, Color}, material::Projection, texture}, maths::{ray::Ray, vec3::Vec3}, scene::{self, Scene}, shapes::{sphere::{self, Sphere}, Shape}};
+use crate::model::{materials::{color::Color, material::Projection, texture}, maths::{ray::Ray, vec3::Vec3}, scene::Scene, shapes::{sphere::{self, Sphere}, Shape}};
 
 
 pub fn get_skysphere_color(scene: &Scene, ray: &Ray) -> Color {

@@ -1,18 +1,24 @@
-use std::{collections::HashMap, iter, ops::Range};
-
-use image::{ImageBuffer, Rgba};
 use rand::Rng;
-
 use crate::{
     bvh::traversal::recursive_traversal, model::{
-        materials::{color::Color, texture::{Texture, TextureType}},
-        maths::{hit::Hit, quaternion::Quaternion, ray::Ray, vec3::Vec3},
+        materials::{
+            color::Color,
+            texture::{Texture, TextureType}
+        },
+        maths::{hit::Hit, ray::Ray, vec3::Vec3},
         scene::Scene,
         Element,
-    }, ANTIALIASING, FILTER, MAX_DEPTH, SCREEN_HEIGHT, SCREEN_WIDTH, USING_BVH
+    },
+    ANTIALIASING, FILTER, SCREEN_HEIGHT, SCREEN_WIDTH, USING_BVH
 };
-
-use super::{lighting::{lighting_real::global_lighting_from_hit, simple::simple_lighting_from_hit}, settings::ViewMode, skysphere::get_skysphere_color};
+use super::{
+    lighting::{
+        lighting_real::global_lighting_from_hit,
+        simple::simple_lighting_from_hit
+    },
+    settings::ViewMode,
+    skysphere::get_skysphere_color
+};
 
 pub fn get_ray_debug(scene: &Scene, x: usize, y: usize, debug: bool) -> Ray {
     let width = (scene.camera().fov() / 2.).tan() * 2.;
@@ -72,9 +78,9 @@ pub fn get_closest_hit_from_elements<'a>(scene: &'a Scene, ray: &Ray, closest: O
 pub fn get_closest_hit_from_elements_with_index<'a>(scene: &'a Scene, ray: &Ray, mut closest: Option<Hit<'a>>, elements: &'a Vec<Element>, elements_index: &Vec<usize>) -> Option<Hit<'a>> {
     for index in elements_index {
         let element = &elements[*index];
-        let mut t = None;
+        let t;
 		if scene.settings().displacement {
-            if let Texture::Texture(file, TextureType::Float) = element.material().displacement() {
+            if let Texture::Texture(_file, TextureType::Float) = element.material().displacement() {
                 t = element.shape().intersect_displacement(ray, &element, scene);
             }
             else {

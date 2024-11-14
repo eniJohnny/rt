@@ -1,16 +1,22 @@
-use std::
-    sync::{Arc, RwLock}
-;
-
+use std::sync::{Arc, RwLock};
 use image::RgbaImage;
-
 use crate::{
     model::scene::Scene,
     ui::uisettings::UISettings,
     SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32,
 };
-
-use super::{ui::UI, uieditbar::UIEditBar, uielement::UIElement, utils::{draw_utils::{draw_background, get_needed_height, get_size}, misc::{ElemType, FnAny, Property}, style::Style, ui_utils::translate_hitboxes, HitBox}};
+use super::{
+    ui::UI,
+    uieditbar::UIEditBar,
+    uielement::UIElement,
+    utils::{
+        draw_utils::{draw_background, get_needed_height, get_size},
+        ui_utils::translate_hitboxes,
+        misc::{ElemType, FnAny, Property},
+        style::Style,
+        HitBox
+    }
+};
 
 pub struct UIBox {
     pub relative_pos: BoxPosition,

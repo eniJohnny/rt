@@ -1,9 +1,6 @@
 extern crate image;
 use display::mainloop::start_scene;
-use image::flat::View;
-use model::maths::vec3::Vec3;
-use parsing::{get_scene, obj::Obj};
-use render::settings::ViewMode;
+use parsing::get_scene;
 
 pub mod display;
 pub mod ui;
@@ -13,12 +10,13 @@ pub mod picker;
 pub mod render;
 pub mod bvh;
 
-const OBJ: bool = true;
-const OBJ_DEFAULT_DIR: (f64, f64, f64) = (0.0, 1.0, 0.0);
-
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
 const SCENE: &str = "metalrough";
+
+/************* Camera **************/
+const STEP: f64 = 0.2;
+const LOOK_STEP: f64 = 0.05;
 
 /************* Displacement **************/
 const DISPLACEMENT: bool = false;
@@ -55,10 +53,11 @@ const EDGE_THRESHOLD: u32 = 100;
 const MARGIN: usize = 3;
 const GUI_WIDTH: u32 = 600;
 const GUI_HEIGHT: u32 = 600;
-const VIEW_MODE: ViewMode = ViewMode::HighDef;
+// Available view modes: Simple, HighDef, Norm, BVH
+const VIEW_MODE: &str = "Simple";
 const FIELD_PADDING_X: u32 = 10;
 const FIELD_PADDING_Y: u32 = 3;
-const INDENT_PADDING: u32 = 10;
+const _INDENT_PADDING: u32 = 10;
 const BASE_FONT_SIZE: u32 = 16;
 const UI_REFRESH_TIME: u32 = 1000;
 

@@ -1,13 +1,13 @@
-use std::f64::consts::PI;
-use std::ops::Div;
-
-use super::rectangle::{self, Rectangle};
-use super::ComposedShape;
-use crate::model::materials::diffuse::Diffuse;
-use crate::model::materials::material::{Material, Projection};
-use crate::model::materials::texture::{Texture, TextureType};
-use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
-use crate::model::Element;
+use super::{rectangle::Rectangle, ComposedShape};
+use crate::model::{
+    materials::{
+        diffuse::Diffuse,
+        material::Material,
+        texture::{Texture, TextureType}
+    },
+    maths::vec3::Vec3,
+    Element
+};
 
 #[derive(Debug)]
 pub struct Brick {

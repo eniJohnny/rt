@@ -1,6 +1,4 @@
-use std::{fmt, io::Write};
-
-use crate::model::{maths::vec3::Vec3, scene::Scene, shapes::aabb::{self, Aabb}};
+use crate::model::{scene::Scene, shapes::aabb::Aabb};
 
 #[derive(Debug, Clone)]
 pub struct Node {
