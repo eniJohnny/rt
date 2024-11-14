@@ -46,7 +46,7 @@ pub fn setup_element_ui(element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene
     let mut elem_box = UIBox::new(ELEMENT, BoxPosition::CenterRight(10), ui.uisettings().gui_width, ui.uisettings());
     let mut category = UIElement::new(&name, &name, ElemType::Category(Category::default()), ui.uisettings());
 
-    category.on_click = Some(Box::new(move |_element,_scenee, ui| {
+    category.on_click = Some(Box::new(move |_element,_scene, ui| {
         ui.destroy_box(ELEMENT);
     }));
     category.add_element(element.shape().get_ui(element, ui, scene));

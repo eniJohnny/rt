@@ -112,7 +112,7 @@ impl Shape for Any {
         self.intersect(ray)
     }
 
-    fn intersect_displacement(&self, ray: &Ray, _element: &crate::model::Element,_scenee: &crate::model::scene::Scene) -> Option<Vec<f64>> {
+    fn intersect_displacement(&self, ray: &Ray, _element: &crate::model::Element,_scene: &crate::model::scene::Scene) -> Option<Vec<f64>> {
         self.intersect(ray)
     }
 
