@@ -1,11 +1,10 @@
 use super::{aabb::Aabb,Shape};
 use nalgebra::Matrix3;
 use crate::{
-    model::{
+    error, model::{
         materials::material::Projection,
         maths::{hit::Hit, ray::Ray, vec3::Vec3}
-    },
-    error
+    }, ui::{uielement::{Category, UIElement}, utils::misc::ElemType}
 };
 
 #[derive(Debug)]
@@ -93,8 +92,8 @@ impl Shape for Cube {
     fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {
         let axis_aligned_cube = self.axis_aligned_cube.clone();
         let rotation = self.rotation;
-        let pos = matrix3_vec3_mult(-rotation, *hit_position);
-        let dir = matrix3_vec3_mult(-rotation, *ray_dir);
+        let pos = matrix3_vec3_mult(rotation.transpose(), *hit_position);
+        let dir = matrix3_vec3_mult(rotation.transpose(), *ray_dir);
         let norm = axis_aligned_cube.norm(&pos, &dir);
         
         matrix3_vec3_mult(rotation, norm)
@@ -117,8 +116,8 @@ impl Shape for Cube {
     }
 
     fn get_ui(&self, _element: &crate::model::Element, _ui: &mut crate::ui::ui::UI, _scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
-        todo!()
-    }
+		UIElement::new("Not implemented", "notimplemented", ElemType::Category(Category::default()), _ui.uisettings())
+	}
 }
 
 impl Cube {
