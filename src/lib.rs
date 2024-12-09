@@ -12,7 +12,7 @@ pub mod bvh;
 
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
-const SCENE: &str = "metalrough";
+const SCENE: &str = "composed_shapes";
 
 /************* Camera **************/
 const STEP: f64 = 0.2;
@@ -38,7 +38,7 @@ const MAX_THREADS: usize = 4;
 const BASE_SIMPLIFICATION: usize = 32;
 const MAX_DEPTH: usize = 10;
 const ANTIALIASING: f64 = 0.001;
-const MAX_ITERATIONS: usize = 1500;
+const MAX_ITERATIONS: usize = 10;
 
 /************* Modifiers **************/
 const ANAGLYPH: bool = false;
