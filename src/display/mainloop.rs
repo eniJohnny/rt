@@ -7,7 +7,7 @@ use std::{
     sync::{Arc, RwLock}, time::{Duration, Instant}
 };
 use winit::{
-    dpi::LogicalSize,
+    dpi::PhysicalSize,
     event::Event,
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
@@ -23,7 +23,7 @@ pub fn start_scene(scene: Scene) {
     // Set up window and event loop (can't move them elsewhere because of the borrow checker)
     let event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new()
-        .with_inner_size(LogicalSize::new(SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32))
+        .with_inner_size(PhysicalSize::new(SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32))
         .with_title("Image Viewer")
         .with_resizable(false)
         .build(&event_loop)

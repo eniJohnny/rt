@@ -96,7 +96,6 @@ impl Scene {
             material.metalness(),
             material.norm(),
             material.emissive(),
-            material.refraction(),
             material.opacity(),
 			material.displacement(),
         ];

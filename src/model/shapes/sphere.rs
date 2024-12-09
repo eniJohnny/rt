@@ -89,7 +89,8 @@ impl Shape for Sphere {
 					hit.dist() + displaced_dist,
 					hit.pos() + ray.get_dir() * displaced_dist,
 					ray.get_dir(),
-					scene.textures()
+					scene.textures(),
+					vec![hit.dist() + displaced_dist]
 				);
 			}
 		}
