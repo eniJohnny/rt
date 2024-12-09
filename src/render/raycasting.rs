@@ -117,8 +117,7 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     
     if USING_BVH {
         closest = get_closest_hit_from_elements_with_index(scene, ray, closest, scene.elements(), scene.non_bvh_elements());
-        for composed_index in scene.non_bvh_composed_elements() {
-            let composed = &scene.composed_elements()[*composed_index];
+        for composed in scene.composed_elements() {
             closest = get_closest_hit_from_elements(scene, ray, closest, composed.composed_shape().elements());
         }
         if let Some(root_node) = scene.bvh() {

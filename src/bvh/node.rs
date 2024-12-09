@@ -6,9 +6,6 @@ pub struct Node {
     a: Option<Box<Node>>,
     b: Option<Box<Node>>,
     elements: Vec<usize>,
-    len_elements: usize,
-    non_bvh_elements: Vec<usize>,
-    len_non_bvh_elements: usize,
     is_leaf: bool
 }
 
@@ -20,9 +17,6 @@ impl Node {
             a: None,
             b: None,
             elements: vec![],
-            len_elements: 0,
-            non_bvh_elements : vec![],
-            len_non_bvh_elements: 0,
             is_leaf: false
         }
     }
@@ -32,9 +26,6 @@ impl Node {
     pub fn a(&self) -> &Option<Box<Node>> { &self.a }
     pub fn b(&self) -> &Option<Box<Node>> { &self.b }
     pub fn elements(&self) -> &Vec<usize> { &self.elements }
-    pub fn len_elements(&self) -> usize { self.len_elements }
-    pub fn non_bvh_elements(&self) -> &Vec<usize> { &self.non_bvh_elements }
-    pub fn len_non_bvh_elements(&self) -> usize { self.len_non_bvh_elements }
     pub fn is_leaf(&self) -> bool { self.is_leaf }
     pub fn node(&self) -> &Node { self }
 
@@ -43,12 +34,7 @@ impl Node {
     pub fn set_a(&mut self, a: Option<Box<Node>>) { self.a = a; }
     pub fn set_b(&mut self, b: Option<Box<Node>>) { self.b = b; }
     pub fn set_elements(&mut self, elements: Vec<usize>) {
-        self.len_elements = elements.len();
         self.elements = elements;
-    }
-    pub fn set_non_bvh_elements(&mut self, non_bvh_elements: Vec<usize>) {
-        self.len_non_bvh_elements = non_bvh_elements.len();
-        self.non_bvh_elements = non_bvh_elements;
     }
     pub fn set_is_leaf(&mut self, is_leaf: bool) { self.is_leaf = is_leaf; }
 
@@ -90,7 +76,6 @@ impl Node {
         }
 
         let (aabb_a, aabb_b) = &self.aabb.better_split(scene);
-        // let (aabb_a, aabb_b) = split_aabb(&self.aabb, scene);
         let (mut node_a, mut node_b) = (Node::new(&aabb_a), Node::new(&aabb_b));
 
         let split_cost_a = split_cost(&node_a.aabb, scene);
@@ -103,7 +88,6 @@ impl Node {
 
         if split_cost_a < 1.0 {
             let (aabb_a_a, aabb_a_b) = &node_a.aabb.better_split(scene);
-            // let (aabb_a_a, aabb_a_b) = split_aabb(&node_a.aabb, scene);
             let (node_a_a, node_a_b) = (Node::new(&aabb_a_a), Node::new(&aabb_a_b));
             node_a.set_a(Some(Box::new(node_a_a)));
             node_a.set_b(Some(Box::new(node_a_b)));
@@ -111,7 +95,6 @@ impl Node {
 
         if split_cost_b < 1.0 {
             let (aabb_b_a, aabb_b_b) = &node_b.aabb.better_split(scene);
-            // let (aabb_b_a, aabb_b_b) = split_aabb(&node_b.aabb, scene);
             let (node_b_a, node_b_b) = (Node::new(&aabb_b_a), Node::new(&aabb_b_b));
             node_b.set_a(Some(Box::new(node_b_a)));
             node_b.set_b(Some(Box::new(node_b_b)));
@@ -121,14 +104,11 @@ impl Node {
 
     fn build_leaf(&mut self, scene: &Scene) {
         let mut elements = vec![];
-        let mut non_bvh_elements = vec![];
 
         for i in 0..scene.elements().len() {
             let element = scene.elements()[i].shape();
             let element_aabb = element.aabb();
-            if element_aabb.is_none() {
-                non_bvh_elements.push(i);
-            } else {
+            if element_aabb.is_some() {
                 let element_aabb = element_aabb.unwrap();
                 let intersection = self.aabb.intersection(element_aabb);
 
@@ -139,7 +119,6 @@ impl Node {
         }
 
         self.set_elements(elements);
-        self.set_non_bvh_elements(non_bvh_elements);
         self.set_is_leaf(true);
     }
 
