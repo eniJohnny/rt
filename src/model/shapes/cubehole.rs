@@ -32,8 +32,8 @@ impl Shape for Cubehole {
 
         let axis_aligned_cube = self.axis_aligned_cube.clone();
         let rotation = self.rotation;
-        let pos = matrix3_vec3_mult(-rotation, *r.get_pos());
-        let dir = matrix3_vec3_mult(-rotation, *r.get_dir());
+        let pos = matrix3_vec3_mult(rotation.transpose(), *r.get_pos());
+        let dir = matrix3_vec3_mult(rotation.transpose(), *r.get_dir());
 
         let mut ray = r.clone();
         ray.set_pos(pos);
@@ -67,7 +67,7 @@ impl Shape for Cubehole {
     fn projection(&self, hit: &Hit) -> Projection {
         let axis_aligned_cube = self.axis_aligned_cube.clone();
         let rotation = self.rotation;
-        let pos = matrix3_vec3_mult(-rotation, *hit.pos());
+        let pos = matrix3_vec3_mult(rotation.transpose(), *hit.pos());
 
         let mut u: f64;
         let mut v: f64;
@@ -108,8 +108,8 @@ impl Shape for Cubehole {
     fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {
         let axis_aligned_cube = self.axis_aligned_cube.clone();
         let rotation = self.rotation;
-        let pos = matrix3_vec3_mult(-rotation, *hit_position);
-        let dir = matrix3_vec3_mult(-rotation, *ray_dir);
+        let pos = matrix3_vec3_mult(rotation.transpose(), *hit_position);
+        let dir = matrix3_vec3_mult(rotation.transpose(), *ray_dir);
         let mut norm = axis_aligned_cube.norm(&pos, &dir);
 
         if norm == Vec3::new(0.0, 0.0, 0.0) {

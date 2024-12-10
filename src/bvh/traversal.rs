@@ -9,11 +9,11 @@ use crate::{
 };
 
 pub fn recursive_traversal<'a>(ray: &Ray, node: &Node, scene: &'a Scene, closest: Option<Hit<'a>>) -> Option<Hit<'a>> {
-    if let Some(t_list) = node.aabb().intersect(ray) {
+    if let Some(t_aabb) = node.aabb().intersect(ray) {
         if closest.is_some() {
             let mut go_on = false;
-            for t in t_list {
-                if t > 0. && &t < closest.clone().unwrap().dist() {
+            for t in t_aabb {
+                if &t < closest.clone().unwrap().dist() {
                     go_on = true;
                 }
             }

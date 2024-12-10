@@ -12,7 +12,7 @@ pub mod bvh;
 
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
-const SCENE: &str = "composed_shapes";
+const SCENE: &str = "metalrough";
 
 /************* Camera **************/
 const STEP: f64 = 0.2;
@@ -30,7 +30,7 @@ const AABB_STEPS_NB: usize = 10;
 const DISPLAY_WIREFRAME: bool = false;
 const WIREFRAME_THICKNESS: f64 = 0.05;
 const ERROR_MARGIN: f64 = 0.000000000001;
-const SCREEN_WIDTH: usize = 1600;
+const SCREEN_WIDTH: usize = 1800;
 const SCREEN_HEIGHT: usize = 900;
 const SCREEN_WIDTH_U32: u32 = SCREEN_WIDTH as u32;
 const SCREEN_HEIGHT_U32: u32 = SCREEN_HEIGHT as u32;
@@ -72,7 +72,7 @@ pub fn run() {
     let path = String::from(format!("{}/{}.json", SCENE_FOLDER, SCENE));
     if path != "" {
         let mut scene = get_scene(&path);
-        scene.add_skysphere_texture("skysphere.jpg");
+        scene.add_skysphere_texture("skybox_night.jpg");
         
         if DISPLAY_WIREFRAME {
             scene.add_wireframes();

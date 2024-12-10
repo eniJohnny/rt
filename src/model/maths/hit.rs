@@ -22,9 +22,11 @@ pub struct Hit<'a> {
     color: Color,
     metalness: f64,
     roughness: f64,
-    refraction: f64,
+	transparency: f64,
     emissive: f64,
     opacity: f64,
+    all_dist: Vec<f64>,
+    t_list: Vec<(&'a Element, Vec<f64>)>
 }
 
 impl<'a> Hit<'a> {
@@ -34,6 +36,7 @@ impl<'a> Hit<'a> {
         pos: Vec3,
         ray_dir: &Vec3,
         textures: &HashMap<String, RgbaImage>,
+        all_dist: Vec<f64>
     ) -> Self {
         let mut hit = Hit {
             element,
@@ -44,13 +47,26 @@ impl<'a> Hit<'a> {
             color: Color::new(0., 0., 0.),
             metalness: 0.,
             roughness: 0.,
-            refraction: 0.,
+            transparency: 0.,
             emissive: 0.,
             opacity: 1.,
+            all_dist,
+            t_list: vec![]
         };
         hit.map_norm(textures);
         hit.map_opacity(textures);
         hit
+    }
+
+    pub fn set_t_list(&mut self, t_list: Vec<(&'a Element, Vec<f64>)>) {
+        self.t_list = t_list;
+    }
+    pub fn set_norm(&mut self, norm: Vec3) {
+        self.norm = norm;
+    }
+
+    pub fn t_list(&self) -> &Vec<(&'a Element, Vec<f64>)> {
+        &self.t_list
     }
 
     pub fn element(&self) -> &'a Element {
@@ -79,8 +95,8 @@ impl<'a> Hit<'a> {
     pub fn metalness(&self) -> f64 {
         self.metalness
     }
-    pub fn refraction(&self) -> f64 {
-        self.refraction
+    pub fn transparency(&self) -> f64 {
+        self.transparency
     }
     pub fn roughness(&self) -> f64 {
         self.roughness
@@ -148,9 +164,9 @@ impl<'a> Hit<'a> {
             .to_value();
     }
 
-    fn map_refraction(&mut self, textures: &HashMap<String, RgbaImage>) {
-        self.refraction = self
-            .map_texture(self.element.material().refraction(), textures, Vec3::from_value(0.))
+    fn map_transparency(&mut self, textures: &HashMap<String, RgbaImage>) {
+        self.transparency = self
+            .map_texture(self.element.material().transparency(), textures, Vec3::from_value(0.))
             .to_value();
     }
 
@@ -174,7 +190,11 @@ impl<'a> Hit<'a> {
         self.map_color(textures);
         self.map_roughness(textures);
         self.map_metalness(textures);
-        self.map_refraction(textures);
+		self.map_transparency(textures);
         self.map_emissive(textures);
+    }
+
+    pub fn all_dist(&self) -> &Vec<f64> {
+        &self.all_dist
     }
 }
