@@ -84,13 +84,19 @@ impl ComposedShape for Mobius {
                 ElemType::Property(Property::new(
                     Value::Float(mobius.radius), 
                     Box::new(move |_, value, scene, _: &mut UI| {
+                        let next_id = scene.read().unwrap().get_next_element_id();
+                        let mut id_increment = 0;
                         let mut scene = scene.write().unwrap();
                         let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                         if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
                             if let Value::Float(value) = value {
-                                mobius.set_radius(value);
+                                let m = mobius.elements().len() as u32;
+                                mobius.set_radius(value, next_id);
+                                let n = mobius.elements().len() as u32;
+                                id_increment = next_id + n - m;
                             }
                         }
+                        scene.set_next_element_id(id_increment);
                         scene.set_dirty(true);
                     }),
                     Box::new(|_, _, _| Ok(())),
@@ -104,13 +110,19 @@ impl ComposedShape for Mobius {
                 ElemType::Property(Property::new(
                     Value::Float(mobius.half_width), 
                     Box::new(move |_, value, scene, _: &mut UI| {
+                        let next_id = scene.read().unwrap().get_next_element_id();
+                        let mut id_increment = 0;
                         let mut scene = scene.write().unwrap();
                         let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                         if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
                             if let Value::Float(value) = value {
-                                mobius.set_half_width(value);
+                                let m = mobius.elements().len() as u32;
+                                mobius.set_half_width(value, next_id);
+                                let n = mobius.elements().len() as u32;
+                                id_increment = next_id + n - m;
                             }
                         }
+                        scene.set_next_element_id(id_increment);
                         scene.set_dirty(true);
                     }),
                     Box::new(|_, _, _| Ok(())),
@@ -125,7 +137,7 @@ impl ComposedShape for Mobius {
                 if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
                     if let Value::Float(value) = value {
                         mobius.color.set_x(value);
-                        mobius.update();
+                        mobius.update(0);
                     }
                 }
             }),
@@ -135,7 +147,7 @@ impl ComposedShape for Mobius {
                 if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
                     if let Value::Float(value) = value {
                         mobius.color.set_y(value);
-                        mobius.update();
+                        mobius.update(0);
                     }
                 }
             }),
@@ -145,7 +157,7 @@ impl ComposedShape for Mobius {
                 if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
                     if let Value::Float(value) = value {
                         mobius.color.set_z(value);
-                        mobius.update();
+                        mobius.update(0);
                     }
                 }
             }),
@@ -155,7 +167,7 @@ impl ComposedShape for Mobius {
     }
 
     fn update(&mut self) {
-        self.update();
+        self.update(0);
     }
 }
 
@@ -180,24 +192,24 @@ impl Mobius {
     // Mutators
     pub fn set_pos(&mut self, pos: Vec3) {
         self.pos = pos;
-        self.update();
+        self.update(0);
     }
-    pub fn set_radius(&mut self, radius: f64) {
+    pub fn set_radius(&mut self, radius: f64, next_id: u32) {
         self.radius = radius;
-        self.update();
+        self.update(next_id);
     }
-    pub fn set_half_width(&mut self, half_width: f64) {
+    pub fn set_half_width(&mut self, half_width: f64, next_id: u32) {
         self.half_width = half_width;
-        self.update();
+        self.update(next_id);
     }
     pub fn set_elements(&mut self, elements: Vec<Element>) {
         self.elements = elements;
-        self.update();
+        self.update(0);
     }
     pub fn set_color(&mut self, color: Vec3) {
         self.color = color;
         self.material.set_color(Texture::Value(color, TextureType::Color));
-        self.update();
+        self.update(0);
     }
 
     // Constructor
@@ -247,7 +259,8 @@ impl Mobius {
     }
 
     // Methods
-    pub fn update(&mut self) {
+    pub fn update(&mut self, next_id: u32) {
+        let mut next_id = next_id;
         let mut elem_ids: Vec<u32> = Vec::new();
         for elem in self.elements() {
             elem_ids.push(elem.id());
@@ -261,7 +274,12 @@ impl Mobius {
         *self = Mobius::new(pos, radius, half_width, color);
 
         for (i, elem) in self.elements.iter_mut().enumerate() {
-            elem.set_id(elem_ids[i]);
+            if i < elem_ids.len() {
+                elem.set_id(elem_ids[i]);
+            } else {
+                elem.set_id(next_id);
+                next_id += 1;
+            }
         }
     }
 }
