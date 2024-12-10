@@ -35,13 +35,14 @@ impl Shape for Cube {
 
         let axis_aligned_cube = self.axis_aligned_cube.clone();
         let rotation = self.rotation;
-        let pos = matrix3_vec3_mult(-rotation, *r.get_pos());
-        let dir = matrix3_vec3_mult(-rotation, *r.get_dir());
+        let pos = matrix3_vec3_mult(rotation.transpose(), *r.get_pos());
+        let dir = matrix3_vec3_mult(rotation.transpose(), *r.get_dir());
 
         let mut ray = r.clone();
         ray.set_pos(pos);
         ray.set_dir(dir);
         let hit = axis_aligned_cube.intersect(&ray);
+        
         
         hit
     }
@@ -49,7 +50,7 @@ impl Shape for Cube {
     fn projection(&self, hit: &Hit) -> Projection {
         let axis_aligned_cube = self.axis_aligned_cube.clone();
         let rotation = self.rotation;
-        let pos = matrix3_vec3_mult(-rotation, *hit.pos());
+        let pos = matrix3_vec3_mult(rotation.transpose(), *hit.pos());
 
         let mut u: f64;
         let mut v: f64;

@@ -13,7 +13,7 @@ pub fn recursive_traversal<'a>(ray: &Ray, node: &Node, scene: &'a Scene, closest
         if closest.is_some() {
             let mut go_on = false;
             for t in t_aabb {
-                if t > 0. && &t < closest.clone().unwrap().dist() {
+                if &t < closest.clone().unwrap().dist() {
                     go_on = true;
                 }
             }

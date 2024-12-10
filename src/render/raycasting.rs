@@ -129,14 +129,17 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     let mut closest: Option<Hit> = None;
     
     if USING_BVH {
+        // We first check the infinite forms that are not included in the BVH for intersections
         closest = get_closest_hit_from_elements_with_index(scene, ray, closest, scene.elements(), scene.non_bvh_elements());
         for composed in scene.composed_elements() {
             closest = get_closest_hit_from_elements(scene, ray, closest, composed.composed_shape().elements());
         }
+        // Then we do the recursive travel of the bvh to check for intersections on the finite forms
         if let Some(root_node) = scene.bvh() {
             closest = recursive_traversal(ray, root_node, scene, closest);
         }
     } else {
+        // When we are not using the bvh, we just check for every element intersection, and then every composed elements
         closest = get_closest_hit_from_elements(scene, ray, closest, scene.elements());
         for composed in scene.composed_elements() {
             closest = get_closest_hit_from_elements(scene, ray, closest, composed.composed_shape().elements());
@@ -146,6 +149,8 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     match closest {
         None => None,
         Some(mut hit) => {
+            // For optimization purposes, every texture that doesn't need to be mapped to check for the intersection is mapped once we have the final one.
+            // Unfortunately, some properties like the norm, the opacity and such need to be processed for every possible intersection beforehand
             hit.map_textures(scene.textures());
             Some(hit)
         }

@@ -12,7 +12,7 @@ pub mod bvh;
 
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
-const SCENE: &str = "composed_shapes";
+const SCENE: &str = "cube";
 
 /************* Camera **************/
 const STEP: f64 = 0.2;

@@ -17,9 +17,6 @@ pub fn fresnel_reflect_ratio(n1: f64, n2: f64, norm: &Vec3, ray: &Vec3, reflecti
     let mut r0 = (n1 - n2) / (n1 + n2);
     r0 = r0 * r0;
     let mut cos_x = (norm.dot(&ray)).abs();
-	if debug {
-		println!("cos_x {}, norm {} {} {}, ray {} {} {}", cos_x, norm.x(), norm.y(), norm.z(), ray.x(), ray.y(), ray.z());
-	}
     if n1 > n2 {
         let n = n1 / n2;
         let sin_t2 = n * n * (1.0 - cos_x * cos_x);
@@ -30,18 +27,12 @@ pub fn fresnel_reflect_ratio(n1: f64, n2: f64, norm: &Vec3, ray: &Vec3, reflecti
         cos_x = (1.0 - sin_t2).sqrt();
     }
     let x = 1.0 - cos_x;
-	if debug {
-		println!("r0 {}, x {}", r0, x);
-	}
     let ret = r0 + (1.0 - r0) * x.powf(5.);
     // adjust reflect multiplier for object reflectivity
     reflectivity * ret
 }
 
 pub fn global_lighting_from_hit(scene: &Scene, hit: &mut Hit, ray: &Ray) -> Color {
-	if ray.debug {
-		println!("Lighting is being done");
-	}
     if ray.debug {
         println!(
             "Metal : {}, Roughness: {}, Color: {}, Norm: {}, Emissive: {}, Opacity: {}",
@@ -80,7 +71,7 @@ pub fn global_lighting_from_hit(scene: &Scene, hit: &mut Hit, ray: &Ray) -> Colo
 		let parent_element_index = if let Some(parent) = get_parent(hit.t_list().clone(), *hit.dist()) {
 			parent.material().refraction()
 		} else {
-			1.
+			1.0
 		};
 		if is_inside {
 			current_refraction_index = hit.element().material().refraction();
@@ -102,15 +93,9 @@ pub fn global_lighting_from_hit(scene: &Scene, hit: &mut Hit, ray: &Ray) -> Colo
 		fresnel_factor =
 			fresnel_reflect_ratio(current_refraction_index, next_refraction_index, &hit.norm(), ray.get_dir(), 1.0 - hit.roughness(), false);
 	}
-	if ray.debug {
-		println!("fresnel {}", fresnel_factor);
-	}
 	
 	let reflected = fresnel_factor * (1.0 - hit.metalness());
 	let absorbed = 1.0 - hit.metalness() - reflected;
-	if ray.debug {
-		println!("Reflected {}, absorbed {}, fresnel_factor: {}", reflected, absorbed, fresnel_factor);
-	}
     let rand = rand::thread_rng().gen_range(0.0..1.0);
     if rand > absorbed && scene.settings().reflections {
 		// Reflected Light
@@ -142,7 +127,8 @@ fn get_indirect_light_color(scene: &Scene, hit: &Hit, ray: &Ray) -> Color
 			indirect_dir = hit.norm().clone();
 		}
 		indirect_dir = indirect_dir.normalize();
-		let indirect_ray = Ray::new(hit.pos().clone(), indirect_dir, ray.get_depth() + 1);
+		let mut indirect_ray = Ray::new(hit.pos().clone(), indirect_dir, ray.get_depth() + 1);
+		indirect_ray.debug = ray.debug;
 		light_color = get_lighting_from_ray(scene, &indirect_ray) * hit.color();
 	}
 	light_color
@@ -151,7 +137,7 @@ fn get_indirect_light_color(scene: &Scene, hit: &Hit, ray: &Ray) -> Color
 fn get_reflected_light_color(scene: &Scene, hit: &Hit, ray: &Ray) -> Color
 {
 	let reflect_color;
-	let dir = (reflect_dir(ray.get_dir(), hit.norm()) + random_unit_vector() * hit.roughness())
+	let dir = (reflect_dir(ray.get_dir(), hit.norm()) + random_unit_vector() * hit.roughness() * hit.roughness())
 		.normalize();
 	if dir.dot(hit.norm()) > f64::EPSILON {
 		let reflect_ray = Ray::new(hit.pos().clone(), dir, ray.get_depth() + 1);
@@ -162,32 +148,48 @@ fn get_reflected_light_color(scene: &Scene, hit: &Hit, ray: &Ray) -> Color
 	reflect_color
 }
 
-fn refract_dir(incoming: &Vec3, normal: &Vec3, n1: f64, n2: f64) -> Option<Vec3>
+fn refract_dir(incoming: &Vec3, normal: &Vec3, n1: f64, n2: f64, roughness: f64) -> Option<Vec3>
+{
+	refract_dir_debug(incoming, normal, n1, n2, roughness, false)
+}
+
+fn refract_dir_debug(incoming: &Vec3, normal: &Vec3, n1: f64, n2: f64, roughness: f64, debug: bool) -> Option<Vec3>
 {
     let n = n1 / n2;
-    let cos_i = -incoming.dot(&normal);
-    let sin_t2 = n * n * (1.0 - cos_i * cos_i);
+    let mut cos_i = incoming.dot(&normal);
+	if cos_i > 0. {
+		cos_i = -cos_i;
+	}
+    let sin_t2 = 1.0 - n * n * (1.0 - cos_i * cos_i);
+	if debug {
+		println!("sin_t2 {}, n1 {}, n2 {}, cos_i {}", sin_t2, n1, n2, cos_i);
+	}
 
     // Check for total internal reflection
-    if sin_t2 > 1.0 {
+    if sin_t2 < 0.0 {
         return None;
     }
-    let cos_t = (1.0 - sin_t2).sqrt();
-    let refracted = n * incoming + (n * cos_i - cos_t) * normal;
-    Some(refracted)
+    let refracted = (incoming + cos_i * normal) * sin_t2 - normal * sin_t2.sqrt();
+	let with_roughness = refracted.clone() + random_unit_vector() * roughness * roughness;
+	if with_roughness.length() < 0.01 {
+		return Some(refracted.normalize());
+	}
+    Some(with_roughness.normalize())
 }
 
 fn get_refracted_light_color(scene: &Scene, hit: &Hit, ray: &Ray, n1: f64, n2: f64, normal: &Vec3) -> Color
 {
 	let mut refract_color = Color::new(0., 0., 0.);
-	let refraction_result = refract_dir(&ray.get_dir(), normal, n1, n2);
+	let refraction_result = refract_dir_debug(&ray.get_dir(), normal, n1, n2, hit.roughness(), ray.debug);
 	if let Some(refracted_ray) = refraction_result {
-		let refract_ray = Ray::new(hit.pos().clone() - normal * 0.2, refracted_ray.clone(), ray.get_depth());
+		if ray.debug {
+			println!("refract_dir {} {} {}", refracted_ray.x(), refracted_ray.y(), refracted_ray.z());
+		}
+		let refract_ray = Ray::new(hit.pos().clone() - normal * 0.01, refracted_ray.clone(), ray.get_depth());
 		refract_color = get_lighting_from_ray(scene, &refract_ray);
 	}
 	refract_color
 }
-
 pub fn get_parent<'a>(mut t_s: Vec<(&Element, Vec<f64>)>, closest_dist: f64) -> Option<&Element> {
 	for (_, t) in t_s.iter_mut() {
 		for dist in t.iter_mut() {
@@ -208,7 +210,7 @@ pub fn get_parent<'a>(mut t_s: Vec<(&Element, Vec<f64>)>, closest_dist: f64) -> 
 						nb_t_positives += 1;
 					}
 				}
-				if nb_t_positives % 2 == 0
+				if nb_t_positives % 2 != 0
 				{
 					for dist in t
 					{

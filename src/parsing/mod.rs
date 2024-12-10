@@ -61,7 +61,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let aabb_element = Element::new(aabb_shape, aabb_material);
 
                 scene.add_element(element);
-                scene.add_element(aabb_element);
+                // scene.add_element(aabb_element);
             }
             "plane" => {
                 let pos = get_coordinates_value(&object, "pos");
@@ -93,7 +93,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let aabb_element = Element::new(aabb_shape, aabb_material);
 
                 scene.add_element(element);
-                scene.add_element(aabb_element);
+                // scene.add_element(aabb_element);
             }
             "cone" => {
                 let pos = get_coordinates_value(&object, "pos");
@@ -113,7 +113,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let element = Element::new(shape, material);
                 let aabb_element = Element::new(aabb_shape, aabb_material);
                 scene.add_element(element);
-                scene.add_element(aabb_element);
+                // scene.add_element(aabb_element);
             }
             "triangle" => {
                 let a = get_coordinates_value(&object, "a");
@@ -134,7 +134,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let aabb_element = Element::new(aabb_shape, aabb_material);
 
                 scene.add_element(element);
-                scene.add_element(aabb_element);
+                // scene.add_element(aabb_element);
             }
             "rectangle" => {
                 let pos = get_coordinates_value(&object, "pos");
@@ -158,7 +158,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
 
                 // println!("{:?}", &element);
                 scene.add_element(element);
-                scene.add_element(aabb_element);
+                // scene.add_element(aabb_element);
             }
             "camera" => {
                 let pos = get_coordinates_value(&object, "pos");
@@ -286,7 +286,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let aabb_element = Element::new(aabb_shape, aabb_material);
 
                 scene.add_element(element);
-                scene.add_element(aabb_element);
+                // scene.add_element(aabb_element);
             }
             "cube" => {
                 let pos = get_coordinates_value(&object, "pos");

@@ -19,12 +19,24 @@
     },
     {
         "type": "sphere",
-        "pos": [0, 0, -2],
+        "pos": [0, 0, -4],
         "dir": [0, 1, 0],
         "color": [0, 0, 0],
-        "radius": 2.5,
+        "radius": 1.5,
 		"transparency": 1.0,
-		"refraction": 1.52
+		"refraction": 1.52,
+        "roughness": 0.0
+    },
+
+    {
+        "type": "sphere",
+        "pos": [0, 0, -4],
+        "dir": [0, 1, 0],
+        "color": [0, 0, 0],
+        "radius": 1.48,
+		"transparency": 1.0,
+		"refraction": 1.0,
+        "roughness": 0.0
     },
     {
         "type": "sphere",
