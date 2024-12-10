@@ -149,8 +149,10 @@ impl ComposedShape for Torusphere {
                         let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                         if let Some(torusphere) = elem.composed_shape_mut().as_torusphere_mut() {
                             if let Value::Unsigned(value) = value {
+                                let m = torusphere.elements().len() as u32;
                                 torusphere.set_steps(value as usize, next_id);
-                                id_increment = next_id + value - torusphere.steps as u32;
+                                let n = torusphere.elements().len() as u32;
+                                id_increment = next_id + n - m;
                             }
                         }
                         scene.set_next_element_id(id_increment);
