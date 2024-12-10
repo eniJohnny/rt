@@ -1,6 +1,6 @@
 use super::{sphere::Sphere, cylinder::Cylinder, ComposedShape};
 use std::f64::consts::PI;
-use crate::model::{
+use crate::{model::{
     materials::{
         diffuse::Diffuse,
         material::Material,
@@ -8,7 +8,7 @@ use crate::model::{
     },
     maths::vec3::Vec3,
     Element
-};
+}, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}};
 
 #[derive(Debug)]
 pub struct Helix {
@@ -32,6 +32,107 @@ impl ComposedShape for Helix {
     }
     fn as_helix(&self) -> Option<&self::Helix> {
         return Some(self);
+    }
+    fn as_helix_mut(&mut self) -> Option<&mut self::Helix> {
+        return Some(self);
+    }
+
+    fn get_ui(&self, element: &crate::model::ComposedElement, ui: &mut crate::ui::ui::UI, _scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
+        let mut category = UIElement::new("Helix", "helix", ElemType::Category(Category::default()), ui.uisettings());
+
+        if let Some(helix) = self.as_helix() {
+            let id = element.id();
+
+            // pos
+            category.add_element(get_vector_ui(helix.pos.clone(), "Position", "pos", &ui.uisettings_mut(),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
+                    if let Value::Float(value) = value {
+                        println!("setting x to: {}", value);
+                        helix.pos.set_x(value);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
+                    if let Value::Float(value) = value {
+                        println!("setting y to: {}", value);
+                        helix.pos.set_y(value);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
+                    if let Value::Float(value) = value {
+                        println!("setting z to: {}", value);
+                        helix.pos.set_z(value);
+                    }
+                }
+            }),
+            false, None, None));
+
+            // dir
+            category.add_element(get_vector_ui(helix.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
+                    if let Value::Float(value) = value {
+                        helix.dir.set_x(value);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
+                    if let Value::Float(value) = value {
+                        helix.dir.set_y(value);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
+                    if let Value::Float(value) = value {
+                        helix.dir.set_z(value);
+                    }
+                }
+            }),
+            false, None, None));
+
+            // height
+            category.add_element(UIElement::new(
+                "Height",
+                "height", 
+                ElemType::Property(Property::new(
+                    Value::Float(helix.height), 
+                    Box::new(move |_, value, scene, _: &mut UI| {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                        if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
+                            if let Value::Float(value) = value {
+                                helix.set_height(value);
+                            }
+                        }
+                        scene.set_dirty(true);
+                    }),
+                    Box::new(|_, _, _| Ok(())),
+                    ui.uisettings())),
+                ui.uisettings()));
+        }
+        category
+    }
+
+    fn update(&mut self) {
+        self.update();
     }
 }
 
@@ -121,10 +222,19 @@ impl Helix {
 
     // Methods
     pub fn update(&mut self) {
-        let pos = self.pos;
+        let mut elem_ids: Vec<u32> = Vec::new();
+        for elem in self.elements() {
+            elem_ids.push(elem.id());
+        }
+
         let dir = self.dir;
         let height = self.height;
+        let pos = self.pos + dir * height / 2.0;
 
         *self = Helix::new(pos, dir, height);
+
+        for (i, elem) in self.elements.iter_mut().enumerate() {
+            elem.set_id(elem_ids[i]);
+        }
     }
 }

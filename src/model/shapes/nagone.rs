@@ -1,6 +1,6 @@
 use super::{cylinder::Cylinder, sphere::Sphere, ComposedShape};
 use std::f64::consts::PI;
-use crate::model::{
+use crate::{model::{
     materials::{
         diffuse::Diffuse,
         material::Material,
@@ -8,7 +8,7 @@ use crate::model::{
     },
     maths::vec3::Vec3,
     Element
-};
+}, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}};
 
 #[derive(Debug)]
 pub struct Nagone {
@@ -33,6 +33,165 @@ impl ComposedShape for Nagone {
     }
     fn as_nagone(&self) -> Option<&self::Nagone> {
         return Some(self);
+    }
+    fn as_nagone_mut(&mut self) -> Option<&mut self::Nagone> {
+        return Some(self);
+    }
+
+    fn get_ui(&self, element: &crate::model::ComposedElement, ui: &mut crate::ui::ui::UI, _scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
+        let mut category = UIElement::new("Nagone", "nagone", ElemType::Category(Category::default()), ui.uisettings());
+
+        if let Some(nagone) = self.as_nagone() {
+            let id = element.id();
+
+            // pos
+            category.add_element(get_vector_ui(nagone.pos.clone(), "Position", "pos", &ui.uisettings_mut(),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
+                    if let Value::Float(value) = value {
+                        nagone.pos.set_x(value);
+                        elem.update();
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
+                    if let Value::Float(value) = value {
+                        nagone.pos.set_y(value);
+                        elem.update();
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
+                    if let Value::Float(value) = value {
+                        nagone.pos.set_z(value);
+                        elem.update();
+                    }
+                }
+            }),
+            false, None, None));
+
+            // dir
+            category.add_element(get_vector_ui(nagone.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
+                    if let Value::Float(value) = value {
+                        nagone.dir.set_x(value);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
+                    if let Value::Float(value) = value {
+                        nagone.dir.set_y(value);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
+                    if let Value::Float(value) = value {
+                        nagone.dir.set_z(value);
+                    }
+                }
+            }),
+            false, None, None));
+
+            // radius
+            category.add_element(UIElement::new(
+                "Radius",
+                "radius", 
+                ElemType::Property(Property::new(
+                    Value::Float(nagone.radius), 
+                    Box::new(move |_, value, scene, _: &mut UI| {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                        if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
+                            if let Value::Float(value) = value {
+                                nagone.set_radius(value);
+                            }
+                        }
+                        scene.set_dirty(true);
+                    }),
+                    Box::new(|_, _, _| Ok(())),
+                    ui.uisettings())),
+                ui.uisettings()));
+
+            // angles
+            category.add_element(UIElement::new(
+                "Angles",
+                "angles", 
+                ElemType::Property(Property::new(
+                    Value::Unsigned(nagone.angles as u32), 
+                    Box::new(move |_, value, scene, _: &mut UI| {
+                        let next_id = scene.read().unwrap().get_next_element_id();
+                        let mut id_increment = 0;
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                        if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
+                            if let Value::Unsigned(value) = value {
+                                nagone.set_angles(value as usize, next_id);
+                                id_increment = next_id + value - nagone.angles as u32;
+                            }
+                        }
+                        scene.set_next_element_id(id_increment);
+                        scene.set_dirty(true);
+                    }),
+                    Box::new(|_, _, _| Ok(())),
+                    ui.uisettings())),
+                ui.uisettings()));
+
+            // color
+            category.add_element(get_vector_ui(nagone.color.clone(), "Color", "color", &ui.uisettings_mut(),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
+                    if let Value::Float(value) = value {
+                        nagone.color.set_x(value);
+                        nagone.update(0);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
+                    if let Value::Float(value) = value {
+                        nagone.color.set_y(value);
+                        nagone.update(0);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
+                    if let Value::Float(value) = value {
+                        nagone.color.set_z(value);
+                        nagone.update(0);
+                    }
+                }
+            }),
+            false, None, None));
+        }
+        category
+    }
+
+    fn update(&mut self) {
+        self.update(0);
     }
 }
 
@@ -102,28 +261,34 @@ impl Nagone {
     // Setters
     pub fn set_pos(&mut self, pos: Vec3) {
         self.pos = pos;
-        self.update();
+        self.update(0);
     }
     pub fn set_dir(&mut self, dir: Vec3) {
         self.dir = dir;
-        self.update();
+        self.update(0);
     }
     pub fn set_radius(&mut self, radius: f64) {
         self.radius = radius;
-        self.update();
+        self.update(0);
     }
-    pub fn set_angles(&mut self, angles: usize) {
+    pub fn set_angles(&mut self, angles: usize, next_id: u32) {
         self.angles = angles;
-        self.update();
+        self.update(next_id);
     }
     pub fn set_color(&mut self, color: Vec3) {
         self.color = color;
         self.material.set_color(Texture::Value(color, TextureType::Color));
-        self.update();
+        self.update(0);
     }
 
     // Methods
-    pub fn update(&mut self) {
+    pub fn update(&mut self, next_id: u32) {
+        let mut next_id = next_id;
+        let mut elem_ids: Vec<u32> = Vec::new();
+        for elem in self.elements() {
+            elem_ids.push(elem.id());
+        }
+
         let pos = self.pos;
         let dir = self.dir;
         let radius = self.radius;
@@ -131,5 +296,14 @@ impl Nagone {
         let angles = self.angles;
 
         *self = Nagone::new(pos, dir, radius, angles, color);
+
+        for (i, elem) in self.elements.iter_mut().enumerate() {
+            if i < elem_ids.len() {
+                elem.set_id(elem_ids[i]);
+            } else {
+                elem.set_id(next_id);
+                next_id += 1;
+            }
+        }
     }
 }

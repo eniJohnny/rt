@@ -1,4 +1,4 @@
-use super::{display::blend_scene_and_ui, ui_setup::setup_element_ui};
+use super::{display::blend_scene_and_ui, ui_setup::{setup_composed_element_ui, setup_element_ui}};
 use chrono::{DateTime, Utc};
 use std::{
     path::Path,
@@ -38,7 +38,15 @@ pub fn handle_event(
                         get_lighting_from_ray(&scene_read, &ray);
                         ray.debug = false;
                         if let Some(hit) = get_closest_hit(&scene_read, &ray) {
-                            setup_element_ui(hit.element(), ui, scene);
+                            // TESTING - GET COMPOSED ELEMENTS UI
+                            println!("Hit element id: {:?}", hit.element().id());
+                            if let Some(elem_id) = scene_read.is_composed_element(hit.element().id()) {
+                                if let Some(elem) = scene_read.composed_element_by_id(elem_id) {
+                                    setup_composed_element_ui(elem, ui, scene);
+                                }
+                            } else {
+                                setup_element_ui(hit.element(), ui, scene);
+                            }
                         }
                     } else {
                         ui.set_editing(None);

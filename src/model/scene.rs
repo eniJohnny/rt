@@ -31,7 +31,8 @@ pub struct Scene {
     textures: HashMap<String, image::RgbaImage>,
     dirty: bool,
     bvh: Option<bvh::node::Node>,
-    next_element_id: u32
+    next_element_id: u32,
+    next_composed_element_id: u32
 }
 
 impl Scene {
@@ -48,7 +49,8 @@ impl Scene {
             textures: HashMap::new(),
             dirty: true,
             bvh: None,
-            next_element_id: 0
+            next_element_id: 0,
+            next_composed_element_id: 0
         }
     }
 
@@ -59,8 +61,14 @@ impl Scene {
         self.next_element_id += 1;
     }
 
-    pub fn add_composed_element(&mut self, composed_element: ComposedElement) {
+    pub fn add_composed_element(&mut self, mut composed_element: ComposedElement) {
+        for element in composed_element.composed_shape_mut().elements_as_mut() {
+            element.set_id(self.next_element_id);
+            self.next_element_id += 1;
+        }
+        composed_element.set_id(self.next_composed_element_id);
         self.composed_elements.push(composed_element);
+        self.next_composed_element_id += 1;
     }
 
     pub fn add_camera(&mut self, camera: Camera) {
@@ -243,6 +251,23 @@ impl Scene {
         }
         None
     }
+
+    pub fn composed_element_by_id(&self, id: u32) -> Option<&ComposedElement> {
+        for element in &self.composed_elements {
+            if element.id == id {
+                return Some(element);
+            }
+        }
+        None
+    }
+    pub fn composed_element_mut_by_id(&mut self, id: u32) -> Option<&mut ComposedElement> {
+        for element in &mut self.composed_elements {
+            if element.id == id {
+                return Some(element);
+            }
+        }
+        None
+    }
     
     pub fn camera(&self) -> &Camera {
         &self.camera
@@ -308,6 +333,13 @@ impl Scene {
             .collect()
     }
 
+    pub fn get_next_element_id(&self) -> u32 {
+        self.next_element_id
+    }
+    pub fn get_next_composed_element_id(&self) -> u32 {
+        self.next_composed_element_id
+    }
+
     // Mutators
 
     pub fn set_elements(&mut self, elements: Vec<Element>) {
@@ -328,5 +360,17 @@ impl Scene {
 
     pub fn set_bvh(&mut self, bvh: Option<bvh::node::Node>) {
         self.bvh = bvh;
+    }
+
+    pub fn set_next_element_id(&mut self, id: u32) {
+        self.next_element_id = id;
+    }
+    pub fn set_next_composed_element_id(&mut self, id: u32) {
+        self.next_composed_element_id = id;
+    }
+
+    // TESTING - GET COMPOSED ELEMENTS UI
+    pub fn is_composed_element(&self, id: u32) -> Option<u32> {
+        self.composed_elements().iter().find(|composed_element| composed_element.composed_shape().elements().iter().any(|element| element.id() == id)).map(|composed_element| composed_element.id())
     }
 }

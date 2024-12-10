@@ -1,7 +1,7 @@
 use std::sync::{Arc, RwLock};
 use image::Rgba;
 use crate::{
-    model::{scene::Scene, Element},
+    model::{scene::Scene, ComposedElement, Element},
     render::render_threads::start_render_threads,
     ui::{
         prefabs::material_ui::get_material_ui,
@@ -53,6 +53,24 @@ pub fn setup_element_ui(element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene
     category.add_element(get_material_ui(element, ui, scene));
     elem_box.add_elements(vec![category]);
     elem_box.set_edit_bar(ui.uisettings(), Some(Box::new(|_, scene, _| {
+        scene.write().unwrap().set_dirty(true);
+    })));
+    ui.add_box(elem_box);
+}
+
+pub fn setup_composed_element_ui(element: &ComposedElement, ui: &mut UI, scene: &Arc<RwLock<Scene>>) {
+    ui.destroy_box(ELEMENT);
+    let name = "ComposedElement".to_string() + &element.id().to_string();
+    let mut elem_box = UIBox::new(ELEMENT, BoxPosition::CenterRight(10), ui.uisettings().gui_width, ui.uisettings());
+    let mut category = UIElement::new(&name, &name, ElemType::Category(Category::default()), ui.uisettings());
+
+    category.on_click = Some(Box::new(move |_element,_scene, ui| {
+        ui.destroy_box(ELEMENT);
+    }));
+    category.add_element(element.composed_shape().get_ui(element, ui, scene));
+    elem_box.add_elements(vec![category]);
+    elem_box.set_edit_bar(ui.uisettings(), Some(Box::new(|_, scene, _| {
+        // scene_write.composed_element_mut_by_id(element.id()).unwrap().update();
         scene.write().unwrap().set_dirty(true);
     })));
     ui.add_box(elem_box);

@@ -1,5 +1,5 @@
 use super::{rectangle::Rectangle, ComposedShape};
-use crate::model::{
+use crate::{model::{
     materials::{
         diffuse::Diffuse,
         material::Material,
@@ -7,7 +7,7 @@ use crate::model::{
     },
     maths::vec3::Vec3,
     Element
-};
+}, ui::{prefabs::vector_ui::get_vector_ui, uielement::{Category, UIElement}, utils::misc::{ElemType, Value}}};
 
 #[derive(Debug)]
 pub struct Brick {
@@ -31,6 +31,156 @@ impl ComposedShape for Brick {
     }
     fn as_brick(&self) -> Option<&self::Brick> {
         return Some(self);
+    }
+    fn as_brick_mut(&mut self) -> Option<&mut self::Brick> {
+        return Some(self);
+    }
+
+    fn get_ui(&self, element: &crate::model::ComposedElement, ui: &mut crate::ui::ui::UI, _scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
+        let mut category = UIElement::new("Brick", "brick", ElemType::Category(Category::default()), ui.uisettings());
+
+        if let Some(brick) = self.as_brick() {
+            let id = element.id();
+
+            // pos
+            category.add_element(get_vector_ui(brick.pos.clone(), "Position", "pos", &ui.uisettings_mut(),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
+                    if let Value::Float(value) = value {
+                        brick.pos.set_x(value);
+                        elem.update();
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
+                    if let Value::Float(value) = value {
+                        brick.pos.set_y(value);
+                        elem.update();
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
+                    if let Value::Float(value) = value {
+                        brick.pos.set_z(value);
+                        elem.update();
+                    }
+                }
+            }),
+            false, None, None));
+
+            // dir
+            category.add_element(get_vector_ui(brick.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
+                    if let Value::Float(value) = value {
+                        brick.dir.set_x(value);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
+                    if let Value::Float(value) = value {
+                        brick.dir.set_y(value);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
+                    if let Value::Float(value) = value {
+                        brick.dir.set_z(value);
+                    }
+                }
+            }),
+            false, None, None));
+
+            // dimensions
+            category.add_element(get_vector_ui(brick.dimensions.clone(), "Dimensions", "dimensions", &ui.uisettings_mut(),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
+                    if let Value::Float(value) = value {
+                        brick.dimensions.set_x(value);
+                        elem.update();
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
+                    if let Value::Float(value) = value {
+                        brick.dimensions.set_y(value);
+                        elem.update();
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
+                    if let Value::Float(value) = value {
+                        brick.dimensions.set_z(value);
+                        elem.update();
+                    }
+                }
+            }),
+            false, None, None));
+
+            // color
+            category.add_element(get_vector_ui(brick.color.clone(), "Color", "color", &ui.uisettings_mut(),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
+                    if let Value::Float(value) = value {
+                        brick.color.set_x(value);
+                        elem.update();
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
+                    if let Value::Float(value) = value {
+                        brick.color.set_y(value);
+                        elem.update();
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
+                    if let Value::Float(value) = value {
+                        brick.color.set_z(value);
+                        elem.update();
+                    }
+                }
+            }),
+            false, None, None));
+        }
+
+        return category;
+    }
+
+    fn update(&mut self) {
+        self.update();
     }
 }
 
@@ -145,6 +295,19 @@ impl Brick {
             color,
             material,
             elements,
+        }
+    }
+
+    pub fn update(&mut self) {
+        let mut elem_ids: Vec<u32> = Vec::new();
+        for elem in self.elements() {
+            elem_ids.push(elem.id());
+        }
+
+        *self = Brick::new(self.pos.clone(), self.dir.clone(), self.dimensions.clone(), self.color.clone());
+
+        for (i, elem) in self.elements.iter_mut().enumerate() {
+            elem.set_id(elem_ids[i]);
         }
     }
 }

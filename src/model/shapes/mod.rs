@@ -2,10 +2,7 @@ use crate::ui::{ui::UI, uielement::UIElement};
 use self::{wireframe::Wireframe, aabb::Aabb, cone::Cone, cylinder::Cylinder, plane::Plane, sphere::Sphere, rectangle::Rectangle, triangle::Triangle};
 use std::{fmt::Debug, sync::{Arc, RwLock}};
 use super::{
-    materials::material::{Material, Projection},
-    maths::{hit::Hit, ray::Ray, vec3::Vec3},
-    scene::Scene,
-    Element,
+    materials::material::{Material, Projection}, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene, ComposedElement, Element
 };
 
 pub mod cone;
@@ -115,4 +112,7 @@ pub trait ComposedShape: Debug + Sync + Send {
     fn as_brick_mut(&mut self) -> Option<&mut brick::Brick> { None }
     fn as_nagone_mut(&mut self) -> Option<&mut nagone::Nagone> { None }
     fn as_mobius_mut(&mut self) -> Option<&mut mobius::Mobius> { None }
+
+    fn get_ui(&self, element: &ComposedElement, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement;
+    fn update(&mut self);
 }
