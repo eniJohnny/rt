@@ -58,12 +58,14 @@ impl Element {
 #[derive(Debug)]
 pub struct ComposedElement {
     composed_shape: Box<dyn Sync + ComposedShape>,
+    id: u32,
 }
 
 impl ComposedElement {
     pub fn new(composed_shape: Box<dyn Sync + ComposedShape>) -> Self {
         Self {
             composed_shape,
+            id: 0
         }
     }
 
@@ -77,5 +79,17 @@ impl ComposedElement {
 
     pub fn material(&self) -> &dyn Material {
         self.composed_shape().material()
+    }
+
+    pub fn set_id(&mut self, id: u32) {
+        self.id = id;
+    }
+
+    pub fn id(&self) -> u32 {
+        self.id
+    }
+
+    pub fn update(&mut self) {
+        self.composed_shape_mut().update();
     }
 }

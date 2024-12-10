@@ -1,6 +1,6 @@
 use super::{triangle::Triangle, ComposedShape};
 use std::f64::consts::PI;
-use crate::model::{
+use crate::{model::{
     materials::{
         diffuse::Diffuse,
         material::Material,
@@ -8,7 +8,7 @@ use crate::model::{
     },
     maths::vec3::Vec3,
     Element
-};
+}, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}};
 
 #[derive(Debug)]
 pub struct Mobius {
@@ -32,6 +32,130 @@ impl ComposedShape for Mobius {
     }
     fn as_mobius(&self) -> Option<&self::Mobius> {
         return Some(self);
+    }
+    fn as_mobius_mut(&mut self) -> Option<&mut self::Mobius> {
+        return Some(self);
+    }
+
+    fn get_ui(&self, element: &crate::model::ComposedElement, ui: &mut crate::ui::ui::UI, _scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
+        let mut category = UIElement::new("Mobius", "mobius", ElemType::Category(Category::default()), ui.uisettings());
+
+        if let Some(mobius) = self.as_mobius() {
+            let id = element.id();
+
+            // pos
+            category.add_element(get_vector_ui(mobius.pos.clone(), "Position", "pos", &ui.uisettings_mut(),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
+                    if let Value::Float(value) = value {
+                        mobius.pos.set_x(value);
+                        elem.update();
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
+                    if let Value::Float(value) = value {
+                        mobius.pos.set_y(value);
+                        elem.update();
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
+                    if let Value::Float(value) = value {
+                        mobius.pos.set_z(value);
+                        elem.update();
+                    }
+                }
+            }),
+            false, None, None));
+
+            // radius
+            category.add_element(UIElement::new(
+                "Radius",
+                "radius", 
+                ElemType::Property(Property::new(
+                    Value::Float(mobius.radius), 
+                    Box::new(move |_, value, scene, _: &mut UI| {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                        if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
+                            if let Value::Float(value) = value {
+                                mobius.set_radius(value);
+                            }
+                        }
+                        scene.set_dirty(true);
+                    }),
+                    Box::new(|_, _, _| Ok(())),
+                    ui.uisettings())),
+                ui.uisettings()));
+
+            // half_width
+            category.add_element(UIElement::new(
+                "Half Width",
+                "half_width", 
+                ElemType::Property(Property::new(
+                    Value::Float(mobius.half_width), 
+                    Box::new(move |_, value, scene, _: &mut UI| {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                        if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
+                            if let Value::Float(value) = value {
+                                mobius.set_half_width(value);
+                            }
+                        }
+                        scene.set_dirty(true);
+                    }),
+                    Box::new(|_, _, _| Ok(())),
+                    ui.uisettings())),
+                ui.uisettings()));
+
+            // color
+            category.add_element(get_vector_ui(mobius.color.clone(), "Color", "color", &ui.uisettings_mut(),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
+                    if let Value::Float(value) = value {
+                        mobius.color.set_x(value);
+                        mobius.update();
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
+                    if let Value::Float(value) = value {
+                        mobius.color.set_y(value);
+                        mobius.update();
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
+                    if let Value::Float(value) = value {
+                        mobius.color.set_z(value);
+                        mobius.update();
+                    }
+                }
+            }),
+            false, None, None));
+        }
+        category
+    }
+
+    fn update(&mut self) {
+        self.update();
     }
 }
 
@@ -124,12 +248,21 @@ impl Mobius {
 
     // Methods
     pub fn update(&mut self) {
+        let mut elem_ids: Vec<u32> = Vec::new();
+        for elem in self.elements() {
+            elem_ids.push(elem.id());
+        }
+
         let pos = self.pos;
         let radius = self.radius;
         let half_width = self.half_width;
         let color = self.color;
 
         *self = Mobius::new(pos, radius, half_width, color);
+
+        for (i, elem) in self.elements.iter_mut().enumerate() {
+            elem.set_id(elem_ids[i]);
+        }
     }
 }
 
