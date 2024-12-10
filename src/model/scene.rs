@@ -2,7 +2,7 @@ use std::{collections::HashMap, fs};
 use image::RgbaImage;
 use crate::{
     bvh::{self},
-    model::{objects::light::AmbientLight, shapes::aabb},
+    model::objects::light::AmbientLight,
     parsing::obj::Obj,
     render::settings::Settings
 };

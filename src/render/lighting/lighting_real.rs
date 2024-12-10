@@ -12,7 +12,7 @@ use crate::{
     },
     render::raycasting::get_lighting_from_ray
 };
-pub fn fresnel_reflect_ratio(n1: f64, n2: f64, norm: &Vec3, ray: &Vec3, reflectivity: f64, debug: bool) -> f64 {
+pub fn fresnel_reflect_ratio(n1: f64, n2: f64, norm: &Vec3, ray: &Vec3, reflectivity: f64) -> f64 {
     // Schlick aproximation
     let mut r0 = (n1 - n2) / (n1 + n2);
     r0 = r0 * r0;
@@ -85,14 +85,7 @@ pub fn global_lighting_from_hit(scene: &Scene, hit: &mut Hit, ray: &Ray) -> Colo
 	}
 	
 
-	let fresnel_factor;
-	if ray.debug {
-		fresnel_factor =
-			fresnel_reflect_ratio(current_refraction_index, next_refraction_index, &hit.norm(), ray.get_dir(), 1.0 - hit.roughness(), true);	
-	} else {
-		fresnel_factor =
-			fresnel_reflect_ratio(current_refraction_index, next_refraction_index, &hit.norm(), ray.get_dir(), 1.0 - hit.roughness(), false);
-	}
+	let fresnel_factor = fresnel_reflect_ratio(current_refraction_index, next_refraction_index, &hit.norm(), ray.get_dir(), 1.0 - hit.roughness());
 	
 	let reflected = fresnel_factor * (1.0 - hit.metalness());
 	let absorbed = 1.0 - hit.metalness() - reflected;
@@ -147,13 +140,7 @@ fn get_reflected_light_color(scene: &Scene, hit: &Hit, ray: &Ray) -> Color
 	}
 	reflect_color
 }
-
 fn refract_dir(incoming: &Vec3, normal: &Vec3, n1: f64, n2: f64, roughness: f64) -> Option<Vec3>
-{
-	refract_dir_debug(incoming, normal, n1, n2, roughness, false)
-}
-
-fn refract_dir_debug(incoming: &Vec3, normal: &Vec3, n1: f64, n2: f64, roughness: f64, debug: bool) -> Option<Vec3>
 {
     let n = n1 / n2;
     let mut cos_i = incoming.dot(&normal);
@@ -161,9 +148,6 @@ fn refract_dir_debug(incoming: &Vec3, normal: &Vec3, n1: f64, n2: f64, roughness
 		cos_i = -cos_i;
 	}
     let sin_t2 = 1.0 - n * n * (1.0 - cos_i * cos_i);
-	if debug {
-		println!("sin_t2 {}, n1 {}, n2 {}, cos_i {}", sin_t2, n1, n2, cos_i);
-	}
 
     // Check for total internal reflection
     if sin_t2 < 0.0 {
@@ -180,7 +164,7 @@ fn refract_dir_debug(incoming: &Vec3, normal: &Vec3, n1: f64, n2: f64, roughness
 fn get_refracted_light_color(scene: &Scene, hit: &Hit, ray: &Ray, n1: f64, n2: f64, normal: &Vec3) -> Color
 {
 	let mut refract_color = Color::new(0., 0., 0.);
-	let refraction_result = refract_dir_debug(&ray.get_dir(), normal, n1, n2, hit.roughness(), ray.debug);
+	let refraction_result = refract_dir(&ray.get_dir(), normal, n1, n2, hit.roughness());
 	if let Some(refracted_ray) = refraction_result {
 		if ray.debug {
 			println!("refract_dir {} {} {}", refracted_ray.x(), refracted_ray.y(), refracted_ray.z());

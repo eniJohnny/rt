@@ -50,7 +50,6 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let dir = get_coordinates_value(&object, "dir");
 
                 let shape = Box::new(Sphere::new(pos, dir, radius));
-                let aabb_shape = Box::new(shape.aabb().clone());
 
                 let material = get_material(&object, color);
                 scene.add_textures(&material);
@@ -58,10 +57,8 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
                 
                 let element = Element::new(shape, material);
-                let aabb_element = Element::new(aabb_shape, aabb_material);
 
                 scene.add_element(element);
-                // scene.add_element(aabb_element);
             }
             "plane" => {
                 let pos = get_coordinates_value(&object, "pos");
@@ -82,7 +79,6 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let dir: Vec3 = get_coordinates_value(&object, "dir");
 
                 let shape = Box::new(Cylinder::new(pos, dir, radius, height));
-                let aabb_shape = Box::new(shape.aabb().clone());
 
                 let material = get_material(&object, color);
                 scene.add_textures(&material);
@@ -90,10 +86,8 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
 
                 let element = Element::new(shape, material);
-                let aabb_element = Element::new(aabb_shape, aabb_material);
 
                 scene.add_element(element);
-                // scene.add_element(aabb_element);
             }
             "cone" => {
                 let pos = get_coordinates_value(&object, "pos");
@@ -103,7 +97,6 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let dir: Vec3 = get_coordinates_value(&object, "dir");
 
                 let shape = Box::new(Cone::new(pos, dir, radius, height));
-                let aabb_shape = Box::new(shape.aabb().clone());
 
                 let material = get_material(&object, color);
                 let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
@@ -111,9 +104,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 scene.add_textures(&material);
 
                 let element = Element::new(shape, material);
-                let aabb_element = Element::new(aabb_shape, aabb_material);
                 scene.add_element(element);
-                // scene.add_element(aabb_element);
             }
             "triangle" => {
                 let a = get_coordinates_value(&object, "a");
@@ -122,7 +113,6 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let color = get_color(&object);
 
                 let shape = Box::new(Triangle::new(a,b,c));
-                let aabb_shape = Box::new(shape.aabb().clone());
 
                 let material = get_material(&object, color);
                 let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
@@ -131,10 +121,8 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 scene.add_textures(&material);
 
                 let element = Element::new(shape, material);
-                let aabb_element = Element::new(aabb_shape, aabb_material);
 
                 scene.add_element(element);
-                // scene.add_element(aabb_element);
             }
             "rectangle" => {
                 let pos = get_coordinates_value(&object, "pos");
@@ -145,7 +133,6 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let color = get_color(&object);
 
                 let shape = Box::new(Rectangle::new(pos, length, width, dir_l, dir_w));
-                let aabb_shape = Box::new(shape.aabb().clone());
 
                 let material = get_material(&object, color);
                 let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
@@ -154,11 +141,8 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 scene.add_textures(&material);
 
                 let element = Element::new(shape, material);
-                let aabb_element = Element::new(aabb_shape, aabb_material);
 
-                // println!("{:?}", &element);
                 scene.add_element(element);
-                // scene.add_element(aabb_element);
             }
             "camera" => {
                 let pos = get_coordinates_value(&object, "pos");
@@ -275,7 +259,6 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let color = get_color(&object);
 
                 let shape = Box::new(Ellipse::new(pos, dir, u, v));
-                let aabb_shape = Box::new(shape.aabb().clone());
 
                 let material = get_material(&object, color);
                 scene.add_textures(&material);
@@ -283,10 +266,8 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
                 
                 let element = Element::new(shape, material);
-                let aabb_element = Element::new(aabb_shape, aabb_material);
 
                 scene.add_element(element);
-                // scene.add_element(aabb_element);
             }
             "cube" => {
                 let pos = get_coordinates_value(&object, "pos");
