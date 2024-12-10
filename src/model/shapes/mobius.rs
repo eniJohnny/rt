@@ -228,10 +228,10 @@ impl Mobius {
             while t < half_width {
                 t = t.min(half_width);
 
-                let p1 = compute_position(v, t, pos);
-                let p2 = compute_position(v + step, t, pos);
-                let p3 = compute_position(v, t + step, pos);
-                let p4 = compute_position(v + step, t + step, pos);
+                let p1 = compute_position(v, t, pos, radius);
+                let p2 = compute_position(v + step, t, pos, radius);
+                let p3 = compute_position(v, t + step, pos, radius);
+                let p4 = compute_position(v + step, t + step, pos, radius);
 
                 let triangle1 = Triangle::new(p1, p2, p3);
                 let triangle2 = Triangle::new(p3, p2, p4);
@@ -284,12 +284,12 @@ impl Mobius {
     }
 }
 
-fn compute_position(v: f64, t: f64, pos: Vec3) -> Vec3 {
+fn compute_position(v: f64, t: f64, pos: Vec3, radius: f64) -> Vec3 {
     let cdv = (v * 2.0).cos();
     let sdv = (v * 2.0).sin();
     let ctv = v.cos();
     let stv = v.sin();
-    let c = 2.0 + t * ctv;
+    let c = radius + t * ctv;
 
     Vec3::new(
         c * cdv,
