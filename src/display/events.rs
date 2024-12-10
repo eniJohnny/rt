@@ -39,7 +39,6 @@ pub fn handle_event(
                         ray.debug = false;
                         if let Some(hit) = get_closest_hit(&scene_read, &ray) {
                             // TESTING - GET COMPOSED ELEMENTS UI
-                            println!("Hit element id: {:?}", hit.element().id());
                             if let Some(elem_id) = scene_read.is_composed_element(hit.element().id()) {
                                 if let Some(elem) = scene_read.composed_element_by_id(elem_id) {
                                     setup_composed_element_ui(elem, ui, scene);
