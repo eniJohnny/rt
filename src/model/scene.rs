@@ -96,7 +96,6 @@ impl Scene {
             material.metalness(),
             material.norm(),
             material.emissive(),
-            material.refraction(),
             material.opacity(),
 			material.displacement(),
         ];
@@ -218,6 +217,7 @@ impl Scene {
 
     pub fn update_bvh(&mut self) {
         let aabbs = self.all_aabb();
+        println!("AABB count : {}", aabbs.len());
         let biggest_aabb = Aabb::from_aabbs(&aabbs);
         let mut node = bvh::node::Node::new(&biggest_aabb);
         node.build_tree(self);

@@ -34,8 +34,9 @@ pub fn handle_event(
                 if !ui_clicked(pos, scene, ui) {
                     if let None = ui.editing() {
                         let scene_read = scene.read().unwrap();
-                        let ray = get_ray_debug(&scene_read, pos.0 as usize, pos.1 as usize, true);
+                        let mut ray = get_ray_debug(&scene_read, pos.0 as usize, pos.1 as usize, true);
                         get_lighting_from_ray(&scene_read, &ray);
+                        ray.debug = false;
                         if let Some(hit) = get_closest_hit(&scene_read, &ray) {
                             setup_element_ui(hit.element(), ui, scene);
                         }
