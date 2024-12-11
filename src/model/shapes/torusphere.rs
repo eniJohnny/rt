@@ -181,52 +181,6 @@ impl ComposedShape for Torusphere {
                     Box::new(|_, _, _| Ok(())),
                     ui.uisettings())),
                 ui.uisettings()));
-
-            // color
-            category.add_element(get_vector_ui(torusphere.sphere_color.clone(), "Color", "color", &ui.uisettings_mut(),
-            Box::new(move |_, value, scene, _| {
-                let mut scene = scene.write().unwrap();
-                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
-                if let Some(torusphere) = elem.composed_shape_mut().as_torusphere_mut() {
-                    if let Value::Float(value) = value {
-
-                        torusphere.set_color(Vec3::new(
-                            value,
-                            *torusphere.color().y(),
-                            *torusphere.color().z()
-                        ));
-                    }
-                }
-            }),
-            Box::new(move |_, value, scene, _| {
-                let mut scene = scene.write().unwrap();
-                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
-                if let Some(torusphere) = elem.composed_shape_mut().as_torusphere_mut() {
-                    if let Value::Float(value) = value {
-                        torusphere.set_color(Vec3::new(
-                            *torusphere.color().x(),
-                            value,
-                            *torusphere.color().z()
-                        ));
-                    }
-                }
-            }),
-            Box::new(move |_, value, scene, _| {
-                let mut scene = scene.write().unwrap();
-                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
-                if let Some(torusphere) = elem.composed_shape_mut().as_torusphere_mut() {
-                    if let Value::Float(value) = value {
-                        torusphere.set_color(
-                            Vec3::new(
-                                *torusphere.color().x(),
-                                *torusphere.color().y(),
-                                value
-                            )
-                        );
-                    }
-                }
-            }),
-            false, None, None));
         }
         category
     }

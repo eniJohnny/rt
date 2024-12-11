@@ -128,40 +128,6 @@ impl ComposedShape for Mobius {
                     Box::new(|_, _, _| Ok(())),
                     ui.uisettings())),
                 ui.uisettings()));
-
-            // color
-            category.add_element(get_vector_ui(mobius.color.clone(), "Color", "color", &ui.uisettings_mut(),
-            Box::new(move |_, value, scene, _| {
-                let mut scene = scene.write().unwrap();
-                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
-                if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
-                    if let Value::Float(value) = value {
-                        mobius.color.set_x(value);
-                        mobius.update(0);
-                    }
-                }
-            }),
-            Box::new(move |_, value, scene, _| {
-                let mut scene = scene.write().unwrap();
-                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
-                if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
-                    if let Value::Float(value) = value {
-                        mobius.color.set_y(value);
-                        mobius.update(0);
-                    }
-                }
-            }),
-            Box::new(move |_, value, scene, _| {
-                let mut scene = scene.write().unwrap();
-                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
-                if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
-                    if let Value::Float(value) = value {
-                        mobius.color.set_z(value);
-                        mobius.update(0);
-                    }
-                }
-            }),
-            false, None, None));
         }
         category
     }

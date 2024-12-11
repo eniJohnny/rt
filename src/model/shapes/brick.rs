@@ -140,40 +140,6 @@ impl ComposedShape for Brick {
                 }
             }),
             false, None, None));
-
-            // color
-            category.add_element(get_vector_ui(brick.color.clone(), "Color", "color", &ui.uisettings_mut(),
-            Box::new(move |_, value, scene, _| {
-                let mut scene = scene.write().unwrap();
-                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
-                if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
-                    if let Value::Float(value) = value {
-                        brick.color.set_x(value);
-                        elem.update();
-                    }
-                }
-            }),
-            Box::new(move |_, value, scene, _| {
-                let mut scene = scene.write().unwrap();
-                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
-                if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
-                    if let Value::Float(value) = value {
-                        brick.color.set_y(value);
-                        elem.update();
-                    }
-                }
-            }),
-            Box::new(move |_, value, scene, _| {
-                let mut scene = scene.write().unwrap();
-                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
-                if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
-                    if let Value::Float(value) = value {
-                        brick.color.set_z(value);
-                        elem.update();
-                    }
-                }
-            }),
-            false, None, None));
         }
 
         return category;

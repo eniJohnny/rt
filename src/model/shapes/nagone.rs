@@ -152,40 +152,6 @@ impl ComposedShape for Nagone {
                     Box::new(|_, _, _| Ok(())),
                     ui.uisettings())),
                 ui.uisettings()));
-
-            // color
-            category.add_element(get_vector_ui(nagone.color.clone(), "Color", "color", &ui.uisettings_mut(),
-            Box::new(move |_, value, scene, _| {
-                let mut scene = scene.write().unwrap();
-                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
-                if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
-                    if let Value::Float(value) = value {
-                        nagone.color.set_x(value);
-                        nagone.update(0);
-                    }
-                }
-            }),
-            Box::new(move |_, value, scene, _| {
-                let mut scene = scene.write().unwrap();
-                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
-                if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
-                    if let Value::Float(value) = value {
-                        nagone.color.set_y(value);
-                        nagone.update(0);
-                    }
-                }
-            }),
-            Box::new(move |_, value, scene, _| {
-                let mut scene = scene.write().unwrap();
-                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
-                if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
-                    if let Value::Float(value) = value {
-                        nagone.color.set_z(value);
-                        nagone.update(0);
-                    }
-                }
-            }),
-            false, None, None));
         }
         category
     }
