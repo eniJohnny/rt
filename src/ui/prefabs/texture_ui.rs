@@ -19,7 +19,7 @@ use crate::{
 };
 
 
-pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<dyn Fn(Texture, &Arc<RwLock<Scene>>)>, settings: &UISettings, only_file: bool, min: Option<f64>, max: Option<f64>) -> UIElement {
+pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<dyn Fn(Texture, &Arc<RwLock<Scene>>)>, settings: &UISettings, file: bool, only_file: bool, min: Option<f64>, max: Option<f64>) -> UIElement {
     let mut category = UIElement::new(name, name, ElemType::Category(Category::collapsed()), settings);
     
 
@@ -45,60 +45,62 @@ pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<dyn Fn(Texture,
     {
         let texture_type = texture_type.clone();
         let as_file = as_file;
-        let chk_name ;
-        if only_file {
-            chk_name = "Textured";
-        } else {
-            chk_name = "As file"
-        }
-        let mut chk_file = UIElement::new(chk_name, "chk_file", ElemType::Property(
-            Property::new(Value::Bool(as_file), 
-                Box::new(move |elem, value, scene, ui| {
-                    if let Some(elem) = elem {
-                        if let Value::Bool(as_file) = value {
-                            let parent_ref = get_parent_ref(elem.reference.clone());
-                            if as_file {
-                                let file_element_reference = parent_ref + ".as_file";
-                                let file_element = ui.get_property_mut(&file_element_reference);
-                                if let Some(property) = file_element {
-                                    if let Value::Text(file) = &property.value {
-                                        submit(Texture::Texture(file.clone(), texture_type.clone()), scene);
-                                    }
-                                }
-                            } else {
-                                let value_element_reference = parent_ref + ".as_value";
-                                let value_element = ui.get_element_mut(value_element_reference);
-                                if let Some(elem) = value_element {
-                                    if let ElemType::Property(property) = &elem.elem_type {
-                                        submit(Texture::from_value(&property.value), scene);
-                                    } else {
-                                        submit(Texture::from_vector(&"".to_string(), get_vector_from_vector_ui(elem, false)), scene);
+        if file {
+            let chk_name ;
+            if only_file {
+                chk_name = "Textured";
+            } else {
+                chk_name = "As file"
+            }
+            let mut chk_file = UIElement::new(chk_name, "chk_file", ElemType::Property(
+                Property::new(Value::Bool(as_file), 
+                    Box::new(move |elem, value, scene, ui| {
+                        if let Some(elem) = elem {
+                            if let Value::Bool(as_file) = value {
+                                let parent_ref = get_parent_ref(elem.reference.clone());
+                                if as_file {
+                                    let file_element_reference = parent_ref + ".as_file";
+                                    let file_element = ui.get_property_mut(&file_element_reference);
+                                    if let Some(property) = file_element {
+                                        if let Value::Text(file) = &property.value {
+                                            submit(Texture::Texture(file.clone(), texture_type.clone()), scene);
+                                        }
                                     }
                                 } else {
-                                    submit(Texture::Texture("".to_string(), texture_type.clone()), scene);
+                                    let value_element_reference = parent_ref + ".as_value";
+                                    let value_element = ui.get_element_mut(value_element_reference);
+                                    if let Some(elem) = value_element {
+                                        if let ElemType::Property(property) = &elem.elem_type {
+                                            submit(Texture::from_value(&property.value), scene);
+                                        } else {
+                                            submit(Texture::from_vector(&"".to_string(), get_vector_from_vector_ui(elem, false)), scene);
+                                        }
+                                    } else {
+                                        submit(Texture::Texture("".to_string(), texture_type.clone()), scene);
+                                    }
                                 }
                             }
                         }
+                    })
+                    , Box::new(|_, _, _| Ok(())), settings)
+            ), settings);
+            chk_file.on_click = Some(Box::new(move |elem, _, ui| {
+                let elem = elem.unwrap();
+                if let ElemType::Property(property) = &elem.elem_type {
+                    if let Value::Bool(is_file) = property.value {
+                        let parent_ref = get_parent_ref(elem.reference.clone());
+                            let file_element_reference = parent_ref.clone() + ".as_file";
+                            let file_element = ui.get_element_mut(file_element_reference).unwrap();
+                            file_element.style.visible = is_file;
+                            let value_element_reference = parent_ref + ".as_value";
+                            if let Some(value_element) = ui.get_element_mut(value_element_reference) {
+                                value_element.style.visible = !is_file;
+                            }
                     }
-                })
-                , Box::new(|_, _, _| Ok(())), settings)
-        ), settings);
-        chk_file.on_click = Some(Box::new(move |elem, _, ui| {
-            let elem = elem.unwrap();
-            if let ElemType::Property(property) = &elem.elem_type {
-                if let Value::Bool(is_file) = property.value {
-                    let parent_ref = get_parent_ref(elem.reference.clone());
-                        let file_element_reference = parent_ref.clone() + ".as_file";
-                        let file_element = ui.get_element_mut(file_element_reference).unwrap();
-                        file_element.style.visible = is_file;
-                        let value_element_reference = parent_ref + ".as_value";
-                        if let Some(value_element) = ui.get_element_mut(value_element_reference) {
-                            value_element.style.visible = !is_file;
-                        }
                 }
-            }
-        }));
-        category.add_element(chk_file);
+            }));
+            category.add_element(chk_file);
+        }
     }
     if !only_file {
         let mut elem = match texture_type {
