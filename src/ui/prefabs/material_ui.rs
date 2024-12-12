@@ -1,7 +1,7 @@
 use super::texture_ui::get_texture_ui;
 use std::sync::{Arc, RwLock};
 use crate::{
-    model::{materials::texture::Texture, maths::vec3::Vec3, scene::Scene, ComposedElement, Element},
+    model::{materials::texture::Texture, maths::vec3::Vec3, scene::Scene, Element},
     ui::{
         ui::UI,
         uielement::{Category, UIElement},
@@ -18,9 +18,8 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
     material_category.add_element(get_texture_ui("Color", element.material().color(), Box::new(move |texture, scene| {
         let mut texture_to_load = "".to_string();
         if let Some(element) = scene.write().unwrap().composed_element_mut_by_id(id_element) {
-            for element in element.composed_shape_mut().elements_as_mut() {
-                element.material_mut().set_color(texture.clone());
-            }
+            element.composed_shape_mut().material_mut().set_color(texture);
+            element.composed_shape_mut().update_material();
         } else if let Some(element) = scene.write().unwrap().element_mut_by_id(id_element) {
             if let Texture::Texture(file, _) = &texture {
                 texture_to_load = file.to_string();

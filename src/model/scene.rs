@@ -64,9 +64,11 @@ impl Scene {
     pub fn add_composed_element(&mut self, mut composed_element: ComposedElement) {
         for element in composed_element.composed_shape_mut().elements_as_mut() {
             element.set_id(self.next_element_id);
+            element.set_composed_id(self.next_composed_element_id);
             self.next_element_id += 1;
         }
-        composed_element.set_id(self.next_composed_element_id);
+
+        composed_element.set_id(self. next_composed_element_id);
         self.composed_elements.push(composed_element);
         self.next_composed_element_id += 1;
     }

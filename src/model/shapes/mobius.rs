@@ -16,13 +16,16 @@ pub struct Mobius {
     pub radius: f64,
     pub half_width: f64,
     pub color: Vec3,
-    pub material: Box<dyn Material + Sync>,
+    pub material: Box<dyn Material + Send + Sync>,
     pub elements: Vec<Element>,
 }
 
 impl ComposedShape for Mobius {
-    fn material(&self) -> &dyn Material {
-        return self.material.as_ref();
+    fn material(&self) -> &Box<dyn Material + Send +Sync> {
+        return &self.material;
+    }
+    fn material_mut(&mut self) -> &mut Box<dyn Material + Send +Sync> {
+        return &mut self.material;
     }
     fn elements(&self) -> &Vec<Element> {
         return &self.elements();
@@ -135,6 +138,10 @@ impl ComposedShape for Mobius {
     fn update(&mut self) {
         self.update(0);
     }
+
+    fn update_material(&mut self) {
+        self.update_material();
+    }
 }
 
 impl Mobius {
@@ -228,6 +235,7 @@ impl Mobius {
     pub fn update(&mut self, next_id: u32) {
         let mut next_id = next_id;
         let mut elem_ids: Vec<u32> = Vec::new();
+
         for elem in self.elements() {
             elem_ids.push(elem.id());
         }
@@ -236,6 +244,7 @@ impl Mobius {
         let radius = self.radius;
         let half_width = self.half_width;
         let color = self.color;
+        let composed_id = self.id();
 
         *self = Mobius::new(pos, radius, half_width, color);
 
@@ -246,6 +255,17 @@ impl Mobius {
                 elem.set_id(next_id);
                 next_id += 1;
             }
+
+            if let Some(composed_id) = composed_id {
+                elem.set_composed_id(composed_id);
+            }
+        }
+    }
+
+    pub fn update_material(&mut self) {
+        let material = self.material.clone();
+        for elem in self.elements_as_mut() {
+            elem.set_material(material.clone());
         }
     }
 }

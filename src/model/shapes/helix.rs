@@ -1,10 +1,8 @@
-use super::{sphere::Sphere, cylinder::Cylinder, ComposedShape};
+use super::{cylinder::Cylinder, sphere::{self, Sphere}, ComposedShape};
 use std::f64::consts::PI;
 use crate::{model::{
     materials::{
-        diffuse::Diffuse,
-        material::Material,
-        texture::{Texture, TextureType}
+        color::{self, Color}, diffuse::Diffuse, material::Material, texture::{Texture, TextureType}
     },
     maths::vec3::Vec3,
     Element
@@ -15,14 +13,17 @@ pub struct Helix {
     pub pos: Vec3,
     pub dir: Vec3,
     pub height: f64,
-    pub material: Box<dyn Material>,
-    pub sphere_material: Box<dyn Material>,
+    pub material: Box<dyn Material + Send +Sync>,
+    pub sphere_material: Box<dyn Material + Send +Sync>,
     pub elements: Vec<Element>,
 }
 
 impl ComposedShape for Helix {
-    fn material(&self) -> &dyn Material {
-        return self.material.as_ref();
+    fn material(&self) -> &Box<dyn Material + Send +Sync> {
+        return self.material();
+    }
+    fn material_mut(&mut self) -> &mut Box<dyn Material + Send +Sync> {
+        return self.material_mut();
     }
     fn elements(&self) -> &Vec<Element> {
         return &self.elements();
@@ -50,7 +51,6 @@ impl ComposedShape for Helix {
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
                     if let Value::Float(value) = value {
-                        println!("setting x to: {}", value);
                         helix.pos.set_x(value);
                     }
                 }
@@ -60,7 +60,6 @@ impl ComposedShape for Helix {
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
                     if let Value::Float(value) = value {
-                        println!("setting y to: {}", value);
                         helix.pos.set_y(value);
                     }
                 }
@@ -70,7 +69,6 @@ impl ComposedShape for Helix {
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
                     if let Value::Float(value) = value {
-                        println!("setting z to: {}", value);
                         helix.pos.set_z(value);
                     }
                 }
@@ -133,6 +131,10 @@ impl ComposedShape for Helix {
 
     fn update(&mut self) {
         self.update();
+    }
+
+    fn update_material(&mut self) {
+        self.update_material();
     }
 }
 
@@ -202,8 +204,10 @@ impl Helix {
     pub fn pos(&self) -> &Vec3 { &self.pos }
     pub fn dir(&self) -> &Vec3 { &self.dir }
     pub fn height(&self) -> f64 { self.height }
-    pub fn material(&self) -> &dyn Material { self.material.as_ref() }
-    pub fn sphere_material(&self) -> &dyn Material { self.sphere_material.as_ref() }
+    pub fn material(&self) -> &Box<dyn Material + Send +Sync> { &self.material }
+    pub fn material_mut(&mut self) -> &mut Box<dyn Material + Send +Sync> { &mut self.material }
+    pub fn sphere_material(&self) -> &Box<dyn Material + Send +Sync> { &self.sphere_material }
+    pub fn sphere_material_mut(&mut self) -> &mut Box<dyn Material + Send +Sync> { &mut self.sphere_material }
     pub fn elements(&self) -> &Vec<Element> { &self.elements }
 
     // Setters
@@ -219,10 +223,23 @@ impl Helix {
         self.height = radius;
         self.update();
     }
+    pub fn set_material(&mut self, material: Box<dyn Material + Send +Sync>) {
+        self.material = material;
+        let color = self.material.color().clone();
+        // get the opposite color
+        // let opposite_color = Vec3::from_value(1.0);
+
+        // for elem in self.elements_as_mut() {
+        //     elem.material_mut().set_color(color.clone());
+        // }
+
+    }
 
     // Methods
     pub fn update(&mut self) {
         let mut elem_ids: Vec<u32> = Vec::new();
+        let composed_id = self.id();
+
         for elem in self.elements() {
             elem_ids.push(elem.id());
         }
@@ -235,6 +252,34 @@ impl Helix {
 
         for (i, elem) in self.elements.iter_mut().enumerate() {
             elem.set_id(elem_ids[i]);
+            if let Some(composed_id) = composed_id {
+                elem.set_composed_id(composed_id);
+            }
         }
     }
+
+    pub fn update_material(&mut self) {
+        let opposite_color = get_opposite_color(self.material.color().clone());
+        self.sphere_material.set_color(opposite_color.clone());
+
+        let material = self.material.clone();
+        let sphere_material = self.sphere_material.clone();
+
+        for elem in self.elements_as_mut() {
+            if elem.shape().as_sphere().is_some() {
+                elem.set_material(sphere_material.clone());
+            } else {
+                elem.set_material(material.clone());
+            }
+        }
+    }
+}
+
+fn get_opposite_color(color: Texture) -> Texture {
+    let white = Vec3::new(1.0, 1.0, 1.0);
+    let color = color.clone().to_string();
+    let color: Vec<&str> = color.trim_matches(['(', ')']).split(", ").collect();
+    let color = Vec3::new(color[0].parse::<f64>().unwrap(), color[1].parse::<f64>().unwrap(), color[2].parse::<f64>().unwrap());
+
+    Texture::Value(white - color, TextureType::Color)
 }

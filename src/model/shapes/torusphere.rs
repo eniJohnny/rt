@@ -24,13 +24,16 @@ pub struct Torusphere {
     pub steps: usize,
     pub sphere_radius: f64,
     pub sphere_color: Vec3,
-    pub material: Box<dyn Material>,
+    pub material: Box<dyn Material + Send +Sync>,
     pub elements: Vec<Element>,
 }
 
 impl ComposedShape for Torusphere {
-    fn material(&self) -> &dyn Material {
-        return self.material.as_ref();
+    fn material(&self) -> &Box<dyn Material + Send +Sync> {
+        return &self.material;
+    }
+    fn material_mut(&mut self) -> &mut Box<dyn Material + Send +Sync> {
+        return &mut self.material;
     }
     fn elements(&self) -> &Vec<Element> {
         return &self.elements();
@@ -188,6 +191,10 @@ impl ComposedShape for Torusphere {
     fn update(&mut self) {
         self.update(0);
     }
+
+    fn update_material(&mut self) {
+        self.update_material();
+    }
 }
 
 impl Torusphere {
@@ -238,7 +245,8 @@ impl Torusphere {
     pub fn steps(&self) -> usize { self.steps }
     pub fn sphere_radius(&self) -> f64 { self.sphere_radius }
     pub fn color(&self) -> &Vec3 { &self.sphere_color }
-    pub fn material(&self) -> &dyn Material { self.material.as_ref() }
+    pub fn material(&self) -> &Box<dyn Material + Send +Sync> { &self.material }
+    pub fn material_mut(&mut self) -> &mut Box<dyn Material + Send +Sync> { &mut self.material }
     pub fn elements(&self) -> &Vec<Element> { &self.elements }
 
     // Setters
@@ -272,6 +280,8 @@ impl Torusphere {
     pub fn update(&mut self, next_id: u32) {
         let mut next_id = next_id;
         let mut elem_ids: Vec<u32> = Vec::new();
+        let composed_id = self.id();
+
         for elem in self.elements() {
             elem_ids.push(elem.id());
         }
@@ -291,6 +301,17 @@ impl Torusphere {
                 elem.set_id(next_id);
                 next_id += 1;
             }
+
+            if let Some(composed_id) = composed_id {
+                elem.set_composed_id(composed_id);
+            }
+        }
+    }
+
+    pub fn update_material(&mut self) {
+        let material = self.material.clone();
+        for elem in self.elements_as_mut() {
+            elem.set_material(material.clone());
         }
     }
 }

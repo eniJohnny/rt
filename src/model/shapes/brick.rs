@@ -15,13 +15,16 @@ pub struct Brick {
     pub dir: Vec3,
     pub dimensions: Vec3,
     pub color: Vec3,
-    pub material: Box<dyn Material>,
+    pub material: Box<dyn Material + Send +Sync>,
     pub elements: Vec<Element>,
 }
 
 impl ComposedShape for Brick {
-    fn material(&self) -> &dyn Material {
-        return self.material.as_ref();
+    fn material(&self) -> &Box<dyn Material + Send +Sync> {
+        return &self.material;
+    }
+    fn material_mut(&mut self) -> &mut Box<dyn Material + Send +Sync> {
+        return &mut self.material;
     }
     fn elements(&self) -> &Vec<Element> {
         return &self.elements();
@@ -148,6 +151,10 @@ impl ComposedShape for Brick {
     fn update(&mut self) {
         self.update();
     }
+
+    fn update_material(&mut self) {
+        self.update_material();
+    }
 }
 
 impl Brick {
@@ -266,6 +273,8 @@ impl Brick {
 
     pub fn update(&mut self) {
         let mut elem_ids: Vec<u32> = Vec::new();
+        let composed_id = self.id();
+
         for elem in self.elements() {
             elem_ids.push(elem.id());
         }
@@ -274,6 +283,16 @@ impl Brick {
 
         for (i, elem) in self.elements.iter_mut().enumerate() {
             elem.set_id(elem_ids[i]);
+            if let Some(composed_id) = composed_id {
+                elem.set_composed_id(composed_id);
+            }
+        }
+    }
+
+    pub fn update_material(&mut self) {
+        let material = self.material.clone();
+        for elem in self.elements_as_mut() {
+            elem.set_material(material.clone());
         }
     }
 }

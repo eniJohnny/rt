@@ -10,16 +10,18 @@ pub mod scene;
 #[derive(Debug)]
 pub struct Element {
     id: u32,
-    material: Box<dyn Sync + Material>,
+    material: Box<dyn Material + Send +Sync>,
     shape: Box<dyn Sync + Shape>,
+    composed_id: Option<u32>
 }
 
 impl Element {
-    pub fn new(shape: Box<dyn Shape + Sync>, material: Box<dyn Material + Sync>) -> Self {
+    pub fn new(shape: Box<dyn Shape + Sync>, material: Box<dyn Material + Send + Sync>) -> Self {
         Self {
             shape,
             material,
-            id: 0
+            id: 0,
+            composed_id: None
         }
     }
 
@@ -42,7 +44,11 @@ impl Element {
         self.id
     }
 
-    pub fn set_material(&mut self, material: Box<dyn Sync + Material>) {
+    pub fn composed_id(&self) -> Option<u32> {
+        self.composed_id
+    }
+
+    pub fn set_material(&mut self, material: Box<dyn Material + Send + Sync>) {
         self.material = material;
     }
 
@@ -52,6 +58,10 @@ impl Element {
 
     pub fn set_id(&mut self, id: u32) {
         self.id = id;
+    }
+
+    pub fn set_composed_id(&mut self, id: u32) {
+        self.composed_id = Some(id);
     }
 }
 
@@ -77,7 +87,7 @@ impl ComposedElement {
         &mut self.composed_shape
     }
 
-    pub fn material(&self) -> &dyn Material {
+    pub fn material(&self) -> &Box<dyn Material + Send +Sync> {
         self.composed_shape().material()
     }
 

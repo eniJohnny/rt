@@ -97,7 +97,8 @@ pub trait Shape: Debug + Sync + Send {
 }
 
 pub trait ComposedShape: Debug + Sync + Send {
-    fn material(&self) -> &dyn Material;
+    fn material(&self) -> &Box<dyn Material + Send +Sync>;
+    fn material_mut(&mut self) -> &mut Box<dyn Material + Send +Sync>;
     fn elements(&self) -> &Vec<Element>;
     fn elements_as_mut(&mut self) -> &mut Vec<Element>;
 
@@ -114,5 +115,7 @@ pub trait ComposedShape: Debug + Sync + Send {
     fn as_mobius_mut(&mut self) -> Option<&mut mobius::Mobius> { None }
 
     fn get_ui(&self, element: &ComposedElement, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement;
+    fn id(&self) -> Option<u32> {self.elements()[0].composed_id()}
     fn update(&mut self);
+    fn update_material(&mut self);
 }
