@@ -2,7 +2,7 @@ use super::{cylinder::Cylinder, sphere::{self, Sphere}, ComposedShape};
 use std::f64::consts::PI;
 use crate::{model::{
     materials::{
-        color::{self, Color}, diffuse::Diffuse, material::Material, texture::{Texture, TextureType}
+        diffuse::Diffuse, material::Material, texture::{Texture, TextureType}
     },
     maths::vec3::Vec3,
     Element
@@ -222,17 +222,6 @@ impl Helix {
     pub fn set_height(&mut self, radius: f64) {
         self.height = radius;
         self.update();
-    }
-    pub fn set_material(&mut self, material: Box<dyn Material + Send +Sync>) {
-        self.material = material;
-        let color = self.material.color().clone();
-        // get the opposite color
-        // let opposite_color = Vec3::from_value(1.0);
-
-        // for elem in self.elements_as_mut() {
-        //     elem.material_mut().set_color(color.clone());
-        // }
-
     }
 
     // Methods

@@ -23,6 +23,7 @@ pub mod ellipse;
 pub mod cube;
 pub mod any;
 pub mod hyperboloid;
+pub mod obj;
 
 pub trait Shape: Debug + Sync + Send {
     fn distance(&self, vec: &Vec3) -> f64;
@@ -59,6 +60,8 @@ pub trait Shape: Debug + Sync + Send {
             return "Hyperboloid".to_string();
         } else if self.as_any().is_some() {
             return "Any".to_string();
+        } else if self.as_obj().is_some() {
+            return "Obj".to_string(); 
         } else {
             return "Unknown".to_string();
         }
@@ -77,6 +80,7 @@ pub trait Shape: Debug + Sync + Send {
     fn as_cubehole(&self) -> Option<&cubehole::Cubehole> { None }
     fn as_hyperboloid(&self) -> Option<&hyperboloid::Hyperboloid> { None }
     fn as_any(&self) -> Option<&any::Any> { None }
+    fn as_obj(&self) -> Option<&obj::Obj> { None }
     fn aabb(&self) -> Option<&Aabb> { None }
 
     fn as_sphere_mut(&mut self) -> Option<&mut Sphere> { None }
@@ -92,6 +96,7 @@ pub trait Shape: Debug + Sync + Send {
     fn as_cubehole_mut(&mut self) -> Option<&mut cubehole::Cubehole> { None }
     fn as_hyperboloid_mut(&mut self) -> Option<&mut hyperboloid::Hyperboloid> { None }
     fn as_any_mut(&mut self) -> Option<&mut any::Any> { None }
+    fn as_obj_mut(&mut self) -> Option<&mut obj::Obj> { None }
 
     fn get_ui(&self, element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement;
 }
@@ -107,15 +112,17 @@ pub trait ComposedShape: Debug + Sync + Send {
     fn as_brick(&self) -> Option<&brick::Brick> { None }
     fn as_nagone(&self) -> Option<&nagone::Nagone> { None }
     fn as_mobius(&self) -> Option<&mobius::Mobius> { None }
+    fn as_obj(&self) -> Option<&obj::Obj> { None }
 
     fn as_torusphere_mut(&mut self) -> Option<&mut torusphere::Torusphere> { None }
     fn as_helix_mut(&mut self) -> Option<&mut helix::Helix> { None }
     fn as_brick_mut(&mut self) -> Option<&mut brick::Brick> { None }
     fn as_nagone_mut(&mut self) -> Option<&mut nagone::Nagone> { None }
     fn as_mobius_mut(&mut self) -> Option<&mut mobius::Mobius> { None }
+    fn as_obj_mut(&mut self) -> Option<&mut obj::Obj> { None }
 
     fn get_ui(&self, element: &ComposedElement, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement;
-    fn id(&self) -> Option<u32> {self.elements()[0].composed_id()}
+    fn id(&self) -> Option<u32> {self.elements()[0].composed_id() }
     fn update(&mut self);
     fn update_material(&mut self);
 }

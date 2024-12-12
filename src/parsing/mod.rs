@@ -1,10 +1,11 @@
-use obj::Obj;
+// use obj::Obj;
 use std::{
     collections::HashMap,
     f64::consts::PI,
     io::Write,
     ops::Add
 };
+
 use crate::{
     error, model::{
         materials::{
@@ -15,12 +16,10 @@ use crate::{
         }, maths::vec3::Vec3, objects::{
             camera::Camera, light::{AmbientLight, AnyLight, ParallelLight, PointLight}
         }, scene::Scene, shapes::{ 
-            any::Any, brick::Brick, cone::Cone, cube::Cube, cubehole::Cubehole, cylinder::Cylinder, ellipse::Ellipse, helix::Helix, hyperboloid::Hyperboloid, mobius::Mobius, nagone::Nagone, plane::Plane, rectangle::Rectangle, sphere::Sphere, torusphere::Torusphere, triangle::Triangle, ComposedShape
+            any::Any, brick::Brick, cone::Cone, cube::Cube, cubehole::Cubehole, cylinder::Cylinder, ellipse::Ellipse, helix::Helix, hyperboloid::Hyperboloid, mobius::Mobius, nagone::Nagone, obj::Obj, plane::Plane, rectangle::Rectangle, sphere::Sphere, torusphere::Torusphere, triangle::Triangle, ComposedShape
         }, ComposedElement, Element
     }, AABB_OPACITY
 };
-
-pub mod obj;
 
 pub fn print_scene(scene: &Scene) {
     write!(std::io::stdout(), "{:#?}\n", scene).expect("Error printing scene");
@@ -316,20 +315,27 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 scene.add_element(element);
             }
             "obj" => {
+
                 let color = get_color(&object);
+
                 let material = get_material(&object, color);
-                let mut obj = Obj::new(material.clone());
+                scene.load_material_textures(&material);
+
+
                 let file = get_string_value(&object, "file");
                 let pos = get_coordinates_value(&object, "pos");
                 let scale = get_float_value(&object, "scale");
                 let dir = get_coordinates_value(&object, "dir");
 
-                obj.set_pos(pos);
-                obj.set_dir(dir);
-                obj.set_scale(scale);
-                obj.set_filepath(file);
 
-                scene.add_obj(&mut obj);
+                let mut obj = Obj::new(pos, dir, scale, file, material);
+
+                // scene.add_obj(&mut obj);
+                // let obj = Obj::new(&mut obj);
+
+                let composed_shape = Box::new(obj);
+                let composed_element = ComposedElement::new(composed_shape);
+                scene.add_composed_element(composed_element);
             }
             _ => {}
         }

@@ -1,9 +1,8 @@
-use std::collections::HashMap;
-
+use std::{collections::HashMap, fs};
+use image::RgbaImage;
 use crate::{
     bvh::{self},
     model::objects::light::AmbientLight,
-    parsing::obj::Obj,
     render::settings::Settings
 };
 use super::{
@@ -14,7 +13,7 @@ use super::{
     },
     maths::vec3::Vec3,
     objects::{camera::Camera, light::AnyLight},
-    shapes::{self, aabb::Aabb, triangle::Triangle},
+    shapes::{self, aabb::Aabb},
     ComposedElement, Element
 };
 
@@ -110,6 +109,9 @@ impl Scene {
             );
         }
     }
+    pub fn remove_texture(&mut self, name: String) {
+        self.textures.remove(&name);
+    }
 
     pub fn load_material_textures(&mut self, material: &Box<dyn Material + Sync + Send>) {
         let textures = [
@@ -131,53 +133,67 @@ impl Scene {
         }
     }
 
-    pub fn add_obj(&mut self, obj: &mut Obj) {
-        // let mut obj = Obj::new();
-        let path = obj.filepath().clone();
-        let result = obj.parse_file(path.clone());
+    // pub fn add_obj(&mut self, obj: &mut Obj) {
+    //     // let mut obj = Obj::new();
+    //     let path = obj.filepath().clone();
+    //     let texture_path = obj.texturepath().clone();
+    //     let result = obj.parse_file(path.clone());
+    //     let mut texture = Texture::Value(Vec3::from_value(1.0), TextureType::Float);
 
-        match result {
-            Ok(_) => {
-                let len = obj.faces.len();
+    //     match result {
+    //         Ok(_) => {
+    //             let len = obj.faces.len();
 
-                for i in 0..len {
-                    let face = &obj.faces[i];
-                    let mut vertices: Vec<Vec3> = vec![];
-                    let mut normals: Vec<Vec3> = vec![];
-                    let mut textures: Vec<Vec3> = vec![];
-                    let modulo = obj.params_number();
+    //             if texture_path != "" && fs::File::open(texture_path.clone()).is_ok() {
+    //                 self.add_texture(texture_path.clone(), image::open(texture_path.clone()).unwrap().to_rgba8());
+    //                 texture = Texture::Texture(texture_path.clone(), TextureType::Color);
+    //             } else if texture_path != "" {
+    //                 println!("Texture file not found: {}", texture_path);
+    //             }
+
+    //             for i in 0..len {
+    //                 let face = &obj.faces[i];
+    //                 let mut vertices: Vec<Vec3> = vec![];
+    //                 let mut normals: Vec<Vec3> = vec![];
+    //                 let mut textures: Vec<Vec3> = vec![];
+    //                 let modulo = obj.params_number();
         
-                    for j in 0..face.len() {
-                        match j % modulo {
-                            0 => vertices.push(face[j]),
-                            1 => textures.push(face[j]),
-                            2 => normals.push(face[j]),
-                            _ => {}
-                        }
-                    }        
+    //                 for j in 0..face.len() {
+    //                     match j % modulo {
+    //                         0 => vertices.push(face[j]),
+    //                         1 => textures.push(face[j]),
+    //                         2 => normals.push(face[j]),
+    //                         _ => {}
+    //                     }
+    //                 }        
 
-                    for k in 0..obj.triangle_count()[i] {
-                        let material = obj.material.clone();
-                        let (a, b, c) = (vertices[0], vertices[k + 1], vertices[k + 2]);
-                        let (a_uv, b_uv, c_uv) = (textures[0].xy(), textures[k + 1].xy(), textures[k + 2].xy());
+                    // for k in 0..obj.triangle_count()[i] {
+                    //     let mut material = Diffuse::default();
+                    //     material.set_color(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
+                    //     material.set_opacity(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
+                    //     material.set_color(texture.clone());
+                    //     let (a, b, c) = (vertices[0], vertices[k + 1], vertices[k + 2]);
+                    //     let (a_uv, b_uv, c_uv) = (textures[0].xy(), textures[k + 1].xy(), textures[k + 2].xy());
 
-                        let mut triangle = Triangle::new(a, b, c);
-                        triangle.set_is_obj(true);
-                        triangle.set_a_uv(a_uv);
-                        triangle.set_b_uv(b_uv);
-                        triangle.set_c_uv(c_uv);
+    //                     let mut triangle = Triangle::new(a, b, c);
+    //                     triangle.set_is_obj(true);
+    //                     triangle.set_a_uv(a_uv);
+    //                     triangle.set_b_uv(b_uv);
+    //                     triangle.set_c_uv(c_uv);
 
-                        let elem = Element::new(Box::new(triangle), material);
-                        self.add_element(elem);
-                    }
+    //                     let elem = Element::new(Box::new(triangle), material);
+    //                     // TODO: Add the element to a composed element
+    //                     // self.add_element(elem);
+    //                     obj.add_element(elem);
+    //                 }
 
-                }
-            }
-            Err(e) => {
-                println!("Error: {:?}", e);
-            }
-        }
-    }
+    //             }
+    //         }
+    //         Err(e) => {
+    //             println!("Error: {:?}", e);
+    //         }
+    //     }
+    // }
     
     pub fn add_wireframes(&mut self) {
         let aabbs = self.all_aabb();
