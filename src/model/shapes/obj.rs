@@ -3,9 +3,7 @@ use std::{fs::File, io::{BufRead, BufReader}};
 use super::{triangle::Triangle, ComposedShape};
 use crate::{model::{
     materials::{
-        diffuse::Diffuse,
-        material::Material,
-        texture::{Texture, TextureType}
+        material::Material, texture::{Texture, TextureType}
     }, maths::vec3::Vec3, Element
 }, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}};
 
@@ -58,8 +56,9 @@ impl ComposedShape for Obj {
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(obj) = elem.composed_shape_mut().as_obj_mut() {
                     if let Value::Float(value) = value {
-                        obj.pos.set_x(value);
-                        elem.update();
+                        let newpos = Vec3::new(value, *obj.pos.y(), *obj.pos.z());
+                        obj.set_pos(newpos);
+                        // elem.update();
                     }
                 }
             }),
@@ -68,8 +67,9 @@ impl ComposedShape for Obj {
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(obj) = elem.composed_shape_mut().as_obj_mut() {
                     if let Value::Float(value) = value {
-                        obj.pos.set_y(value);
-                        elem.update();
+                        let newpos = Vec3::new(*obj.pos.x(), value, *obj.pos.z());
+                        obj.set_pos(newpos);
+                        // elem.update();
                     }
                 }
             }),
@@ -78,7 +78,8 @@ impl ComposedShape for Obj {
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(obj) = elem.composed_shape_mut().as_obj_mut() {
                     if let Value::Float(value) = value {
-                        obj.pos.set_z(value);
+                        let newpos = Vec3::new(*obj.pos.x(), *obj.pos.y(), value);
+                        obj.set_pos(newpos);
                         elem.update();
                     }
                 }
@@ -128,6 +129,7 @@ impl ComposedShape for Obj {
                         if let Some(obj) = elem.composed_shape_mut().as_obj_mut() {
                             if let Value::Float(value) = value {
                                 obj.set_scale(value);
+                                elem.update();
                             }
                         }
                         scene.set_dirty(true);
@@ -180,6 +182,9 @@ impl Obj {
     }
     pub fn vertices(&self) -> &Vec<Vec3> {
         &self.vertices
+    }
+    pub fn vertices_mut(&mut self) -> &mut Vec<Vec3> {
+        &mut self.vertices
     }
     pub fn normals(&self) -> &Vec<Vec3> {
         &self.normals
@@ -284,12 +289,17 @@ impl Obj {
 
                     match tokens[0] {
                         "v" => {
-                            let x = tokens[1].parse::<f64>().unwrap() * self.scale();
-                            let y = tokens[2].parse::<f64>().unwrap() * self.scale();
-                            let z = tokens[3].parse::<f64>().unwrap() * self.scale();
+                            // let x = tokens[1].parse::<f64>().unwrap() * self.scale();
+                            // let y = tokens[2].parse::<f64>().unwrap() * self.scale();
+                            // let z = tokens[3].parse::<f64>().unwrap() * self.scale();
+                            let x = tokens[1].parse::<f64>().unwrap();
+                            let y = tokens[2].parse::<f64>().unwrap();
+                            let z = tokens[3].parse::<f64>().unwrap();
 
-                            let rotated_coords = self.rotated_vertex(x, y, z) + self.pos();
+                            // let rotated_coords = self.rotated_vertex(x, y, z) + self.pos();
+                            let rotated_coords = self.rotated_vertex(x, y, z);
                             self.add_vertex(rotated_coords);
+                            // self.add_vertex(Vec3::new(x, y, z));
                         }
                         "vn" => {
                             let x = tokens[1].parse::<f64>().unwrap();
@@ -387,10 +397,12 @@ impl Obj {
     }
 
     pub fn update_logic(&mut self) {
+        self.elements.clear();
+        
         let len = self.faces.len();
 
         for i in 0..len {
-            let face = &self.faces[i];
+            let face = self.faces[i].clone();
             let mut vertices: Vec<Vec3> = vec![];
             let mut normals: Vec<Vec3> = vec![];
             let mut textures: Vec<Vec3> = vec![];
@@ -398,7 +410,7 @@ impl Obj {
 
             for j in 0..face.len() {
                 match j % modulo {
-                    0 => vertices.push(face[j]),
+                    0 => vertices.push(face[j].clone() * self.scale() - self.pos()),
                     1 => textures.push(face[j]),
                     2 => normals.push(face[j]),
                     _ => {}

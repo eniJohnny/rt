@@ -315,23 +315,19 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 scene.add_element(element);
             }
             "obj" => {
-
+                let file = get_string_value(&object, "file");
+                let pos = get_coordinates_value(&object, "pos");
+                let scale = get_float_value(&object, "scale");
+                let dir = get_coordinates_value(&object, "dir");
                 let color = get_color(&object);
 
                 let material = get_material(&object, color);
                 scene.load_material_textures(&material);
 
 
-                let file = get_string_value(&object, "file");
-                let pos = get_coordinates_value(&object, "pos");
-                let scale = get_float_value(&object, "scale");
-                let dir = get_coordinates_value(&object, "dir");
-
-
                 let mut obj = Obj::new(pos, dir, scale, file, material);
 
-                // scene.add_obj(&mut obj);
-                // let obj = Obj::new(&mut obj);
+                obj.update_logic();
 
                 let composed_shape = Box::new(obj);
                 let composed_element = ComposedElement::new(composed_shape);
