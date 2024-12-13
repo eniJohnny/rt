@@ -144,9 +144,9 @@ impl Aabb {
     }
 
     pub fn volume(&self) -> f64 {
-        let x = self.x_max - self.x_min;
-        let y = self.y_max - self.y_min;
-        let z = self.z_max - self.z_min;
+        let x = (self.x_max - self.x_min).abs();
+        let y = (self.y_max - self.y_min).abs();
+        let z = (self.z_max - self.z_min).abs();
 
         x * y * z
     }
@@ -182,19 +182,16 @@ impl Aabb {
         let y = self.y_max - self.y_min;
         let z = self.z_max - self.z_min;
         
-        x * y * z
+        2.0 * ((x * y) + (y * z) + (x * z))
     }
 
     pub fn split_aabb(&mut self, axis: usize, t: f64) -> (Aabb, Aabb) {
         // Split AABB into two parts along the axis at distance t
-        // println!("Split with axis {} and t {}", axis, t);
-        // println!("Parent : x[{},{}], y[{}, {}], z[{}, {}]", self.x_min, self.x_max, self.y_min, self.y_max, self.z_min, self.z_max);
         let mut aabb1 = self.clone();
         let mut aabb2 = self.clone();
 
         if axis == 0 {
             let new_x = self.x_min + (self.x_max - self.x_min) * t;
-            // println!("new_x {}", new_x);
             aabb1.set_x_max(new_x);
             aabb2.set_x_min(new_x);
         } else if axis == 1 {
@@ -210,23 +207,7 @@ impl Aabb {
         aabb1.update_pos();
         aabb2.update_pos();
 
-        // println!("Child 1 : x[{},{}], y[{}, {}], z[{}, {}]", aabb1.x_min, aabb1.x_max, aabb1.y_min, aabb1.y_max, aabb1.z_min, aabb1.z_max);
-        // println!("Child 2 : x[{},{}], y[{}, {}], z[{}, {}]", aabb2.x_min, aabb2.x_max, aabb2.y_min, aabb2.y_max, aabb2.z_min, aabb2.z_max);
-
         (aabb1, aabb2)
-    }
-
-    pub fn get_children_aabbs(&self, scene: &Scene) -> Vec<Aabb> {
-        let aabbs = scene.all_aabb();
-        let mut children = vec![];
-
-        for aabb in aabbs {
-            if self.overlaps(&aabb) {
-                children.push(aabb.clone());
-            }
-        }
-
-        children
     }
 
     fn grow_to_include(&mut self, aabb: &Aabb) {
@@ -251,13 +232,13 @@ impl Aabb {
         }
     }
 
-    pub fn get_children_and_shrink(&mut self, scene: &Scene) -> Vec<usize> {
-        let elements = scene.elements();
+    pub fn get_children_and_shrink(&mut self, scene: &Scene, parent_vec: &Vec<usize>) -> Vec<usize> {
         let mut children = vec![];
 
         let mut new_aabb = Aabb::new(f64::MAX, f64::MIN, f64::MAX, f64::MIN, f64::MAX, f64::MIN);
 
-        for (i, element) in elements.iter().enumerate() {
+        for i in parent_vec {
+            let element = scene.elements().get(*i).unwrap();
             let mut aabb_shape = None;
 
             if let Some(aabb) = element.shape().as_aabb() {
@@ -268,28 +249,30 @@ impl Aabb {
 
             if let Some(aabb_shape) = aabb_shape {
                 if aabb_shape.is_child_of(self) {
-                    children.push(i);
+                    children.push(*i);
                     new_aabb.grow_to_include(aabb_shape);
                 }
             }
         }
-        if new_aabb.x_min > self.x_min {
-            self.x_min = new_aabb.x_min;
-        }
-        if new_aabb.x_max < self.x_max {
-            self.x_max = new_aabb.x_max;
-        }
-        if new_aabb.y_min > self.y_min {
-            self.y_min = new_aabb.y_min;
-        }
-        if new_aabb.y_max < self.y_max {
-            self.y_max = new_aabb.y_max;
-        }
-        if new_aabb.z_min > self.z_min {
-            self.z_min = new_aabb.z_min;
-        }
-        if new_aabb.z_max < self.z_max {
-            self.z_max = new_aabb.z_max;
+        if children.len() > 0 {
+            if new_aabb.x_min > self.x_min {
+                self.x_min = new_aabb.x_min;
+            }
+            if new_aabb.x_max < self.x_max {
+                self.x_max = new_aabb.x_max;
+            }
+            if new_aabb.y_min > self.y_min {
+                self.y_min = new_aabb.y_min;
+            }
+            if new_aabb.y_max < self.y_max {
+                self.y_max = new_aabb.y_max;
+            }
+            if new_aabb.z_min > self.z_min {
+                self.z_min = new_aabb.z_min;
+            }
+            if new_aabb.z_max < self.z_max {
+                self.z_max = new_aabb.z_max;
+            }
         }
         children
     }

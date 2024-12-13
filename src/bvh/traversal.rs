@@ -62,14 +62,22 @@ pub fn recursive_traversal<'a>(ray: &Ray, node: &Node, scene: &'a Scene, mut clo
                 // We first check for intersections in the closest AABB, because if we find a hit there, there's no reason to check for one in the other one.
                 if dist_a[0] < dist_b[0] {
                     if let Some(hit_info) = recursive_traversal(ray, a, scene, closest.clone(), dist_a, depth + 1) {
-                        return Some(hit_info);
+                        if hit_info.dist() < &dist_b[0] {
+                            return Some(hit_info);
+                        }
+                        closest = Some(hit_info);
+                        return_closest = true;
                     }
                     if let Some(hit_info) = recursive_traversal(ray, b, scene, closest.clone(), dist_b, depth + 1) {
                         return Some(hit_info);
                     }
                 } else {
                     if let Some(hit_info) = recursive_traversal(ray, b, scene, closest.clone(), dist_b, depth + 1) {
-                        return Some(hit_info);
+                        if hit_info.dist() < &dist_a[0] {
+                            return Some(hit_info);
+                        }
+                        closest = Some(hit_info);
+                        return_closest = true;
                     }
                     if let Some(hit_info) = recursive_traversal(ray, a, scene, closest.clone(), dist_a, depth + 1) {
                         return Some(hit_info);

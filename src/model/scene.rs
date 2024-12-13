@@ -186,10 +186,10 @@ impl Scene {
 
     pub fn update_bvh(&mut self) {
         let aabbs = self.all_aabb();
-        println!("AABB count : {}", aabbs.len());
         let biggest_aabb = Aabb::from_aabbs(&aabbs);
         let mut node = bvh::node::Node::new(&biggest_aabb);
         node.build_tree(self);
+
         self.non_bvh_elements_index.clear();
         self.non_bvh_composed_elements_index.clear();
         let mut nb_elements = 0;

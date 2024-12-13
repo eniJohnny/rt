@@ -122,7 +122,7 @@ fn get_indirect_light_color(scene: &Scene, hit: &Hit, ray: &Ray) -> Color
 			indirect_dir = hit.norm().clone();
 		}
 		indirect_dir = indirect_dir.normalize();
-		let mut indirect_ray = Ray::new(hit.pos().clone(), indirect_dir, ray.get_depth() + 1);
+		let mut indirect_ray = Ray::new(hit.pos().clone() + 0.01 * indirect_dir, indirect_dir, ray.get_depth() + 1);
 		indirect_ray.debug = ray.debug;
 		light_color = get_lighting_from_ray(scene, &indirect_ray) * hit.color();
 	}

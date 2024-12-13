@@ -40,24 +40,31 @@ impl Node {
 
     // Methods
     pub fn build_tree(&mut self, scene: &Scene) {
-        let parent_children = self.aabb.get_children_and_shrink(scene);
+        let parent_children = self.aabb.get_children_and_shrink(scene, &(0..scene.elements().len()).collect());
         self.set_elements(parent_children);
 
         self.build_node(scene, 1);
     }
 
     fn build_node(&mut self, scene: &Scene, depth: usize) {
-        if let Some((mut node_a, mut node_b)) = self.split_node(scene) {
-            node_a.build_node(scene, depth + 1);
-            node_b.build_node(scene, depth + 1);
-            self.a = Some(Box::new(node_a));
-            self.b = Some(Box::new(node_b));
-        } else {
+        println!("Initial children {}", self.elements.len());
+        let (node_a, mut node_b) = self.split_node(scene, depth);
+        println!("Depth {}, parent {}, a {}, b {}", depth, self.elements().len(), node_a.clone().map(|node| node.elements().len()).unwrap_or(0), node_b.clone().map(|node| node.elements().len()).unwrap_or(0));
+        if node_a.is_none() && node_b.is_none() {
+            println!("Ended with depth {} and children elements {}", depth, self.elements().len());
             self.set_is_leaf(true);
+        }
+        if let Some(mut node_a) = node_a {
+            node_a.build_node(scene, depth + 1);
+            self.a = Some(Box::new(node_a));
+        }
+        if let Some(mut node_b) = node_b {
+            node_b.build_node(scene, depth + 1);
+            self.b = Some(Box::new(node_b));
         }
     }
 
-    pub fn split_node(&mut self, scene: &Scene) -> Option<(Node, Node)> {
+    pub fn split_node(&mut self, scene: &Scene, depth: usize) -> (Option<Node>, Option<Node>) {
         let t_vec = get_t_vec(AABB_STEPS_NB);
 
         let mut best_configuration: Option<(f64, (Node, Node, Vec<usize>))> = None;
@@ -66,8 +73,22 @@ impl Node {
             for t in &t_vec {
                 let (mut aabb1_tmp, mut aabb2_tmp) = self.aabb.split_aabb(axis, *t);
                 
-                let aabb1_children = aabb1_tmp.get_children_and_shrink(scene);
-                let aabb2_children = aabb2_tmp.get_children_and_shrink(scene);
+                let aabb1_children = aabb1_tmp.get_children_and_shrink(scene, self.elements());
+                let mut elements_left = vec![];
+                for child in &self.elements {
+                    if !aabb1_children.contains(child) {
+                        elements_left.push(*child);
+                    }
+                }
+                let aabb2_children = aabb2_tmp.get_children_and_shrink(scene, &elements_left);
+
+                // if (aabb1_children.len() + aabb2_children.len() > self.elements().len()) {
+                //     println!("parent {}, a {}, b {}", self.elements().len(), aabb1_children.len(), aabb2_children.len());
+                //     println!("parent x[{}, {}], y[{}, {}], z[{}, {}]", self.aabb().x_min(), self.aabb().x_max(), self.aabb().y_min(), self.aabb().y_max(), self.aabb().z_min(), self.aabb().z_max());
+                //     println!("aabb1 x[{}, {}], y[{}, {}], z[{}, {}]", aabb1_tmp.x_min(), aabb1_tmp.x_max(), aabb1_tmp.y_min(), aabb1_tmp.y_max(), aabb1_tmp.z_min(), aabb1_tmp.z_max());
+                //     println!("aabb2 x[{}, {}], y[{}, {}], z[{}, {}]", aabb2_tmp.x_min(), aabb2_tmp.x_max(), aabb2_tmp.y_min(), aabb2_tmp.y_max(), aabb2_tmp.z_min(), aabb2_tmp.z_max());
+                    
+                // }
 
                 let mut node_a = Node::new(&aabb1_tmp);
                 let mut node_b = Node::new(&aabb2_tmp);
@@ -88,10 +109,15 @@ impl Node {
         }
 
         if let Some((_, (a, b, new_parent_child))) = best_configuration {
+            if new_parent_child.len() == 0 && (a.elements().len() == 0 || b.elements().len() == 0) {
+                return (None, None);
+            }
+            let a = match a.elements().len() == 0 { true => None, false => Some(a) };
+            let b = match b.elements().len() == 0 { true => None, false => Some(b) };
             self.set_elements(new_parent_child);
-            Some((a, b))
+            (a, b)
         } else {
-            None
+            (None, None)
         }
     }
 
@@ -106,23 +132,19 @@ impl Node {
             }
         }
 
-        if a.elements().len() < 1 && b.elements().len() < 1 {
-            return None;
-        }
-
         let aabb1_volume = a.aabb.surface_area();
         let aabb2_volume = b.aabb.surface_area();
 
-        if aabb1_volume < f64::EPSILON || aabb1_volume < f64::EPSILON {
+
+        if a.elements().len() < 1 {
             return None;
         }
-        
 
         let c1 = aabb1_volume * a.elements().len() as f64;
         let c2 = aabb2_volume * b.elements().len() as f64;
         let cp = parent_volume * new_parent_children.len() as f64;
 
-        if initial_cost >  c1 + c2 + cp {
+        if initial_cost <  (c1 + c2 + cp) {
             return None;
         }
 
@@ -138,34 +160,4 @@ pub fn get_t_vec(steps: usize) -> Vec<f64> {
     }
 
     t_vec
-}
-
-pub fn split_cost(aabb: &Aabb, scene: &Scene) -> f64 {
-    let mut total_surface_area = 0.0;
-    let mut total_volume = 0.0;
-
-    for i in 0..scene.elements().len() {
-        let element = scene.elements()[i].shape();
-        let element_aabb = element.aabb();
-        if element_aabb.is_none() {
-            continue;
-        } else {
-            let element_aabb = element_aabb.unwrap();
-            let intersection = aabb.intersection(element_aabb);
-
-            if intersection.is_some() {
-                let intersection = intersection.unwrap();
-                let intersection_surface_area = intersection.surface_area();
-                let intersection_volume = intersection.volume();
-
-                total_surface_area += intersection_surface_area;
-                total_volume += intersection_volume;
-            }
-        }
-    }
-
-    let aabb_surface_area = aabb.surface_area();
-    let aabb_volume = aabb.volume();
-
-    total_surface_area / aabb_surface_area + total_volume / aabb_volume
 }
