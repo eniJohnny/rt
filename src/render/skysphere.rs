@@ -7,7 +7,7 @@ pub fn get_skysphere_color(scene: &Scene, ray: &Ray) -> Color {
     let sphere = sphere::Sphere::new(Vec3::new(0., 0., 0.), Vec3::new(0., 1., 0.), 1.);
     let hit_norm = sphere.norm(ray.get_dir(), ray.get_dir());
     let projection = skysphere_projection(&hit_norm, &sphere);
-    if let Some(img) = scene.get_texture("skysphere") {
+    if let Some(img) = scene.get_texture(&scene.settings().skybox_texture) {
         let color = texture::Texture::get(&projection, &img);
 
         &color * &color

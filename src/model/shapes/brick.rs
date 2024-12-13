@@ -134,7 +134,7 @@ impl Brick {
             );
 
             material.set_color(Texture::Value(color, TextureType::Color));
-            elements.push(Element::new(Box::new(rectangle), material.copy()));
+            elements.push(Element::new(Box::new(rectangle), material.clone()));
         }
 
         // Create and return the brick

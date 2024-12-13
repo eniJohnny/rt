@@ -4,10 +4,7 @@ use crate::{
         materials::{
             color::Color,
             texture::{Texture, TextureType}
-        },
-        maths::{hit::Hit, ray::Ray, vec3::Vec3},
-        scene::Scene,
-        Element,
+        }, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene, shapes::Shape, Element
     },
     ANTIALIASING, FILTER, SCREEN_HEIGHT, SCREEN_WIDTH, USING_BVH
 };
@@ -136,7 +133,16 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
         }
         // Then we do the recursive travel of the bvh to check for intersections on the finite forms
         if let Some(root_node) = scene.bvh() {
-            closest = recursive_traversal(ray, root_node, scene, closest);
+            if let Some(hit) = recursive_traversal(ray, root_node, scene, closest.clone(), root_node.aabb().intersect(ray).unwrap_or(vec![]), 1) {
+                if let Some(previous) = &closest {
+                    if hit.dist() < previous.dist() {
+                        closest = Some(hit);
+                    }
+                } else {
+                    closest = Some(hit);
+                }
+            }
+            
         }
     } else {
         // When we are not using the bvh, we just check for every element intersection, and then every composed elements

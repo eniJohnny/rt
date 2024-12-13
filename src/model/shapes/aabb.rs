@@ -1,4 +1,5 @@
 use super::Shape;
+use core::f64;
 use std::sync::{Arc, RwLock};
 use crate::{
     model::{
@@ -6,13 +7,11 @@ use crate::{
         maths::{hit::Hit, ray::Ray, vec3::Vec3},
         scene::Scene,
         Element
-    },
-    ui::{
+    }, ui::{
         ui::UI,
         uielement::UIElement,
         utils::misc::ElemType
-    },
-    AABB_STEPS_NB, ERROR_MARGIN, WIREFRAME_THICKNESS
+    }, ERROR_MARGIN, WIREFRAME_THICKNESS
 };
 
 #[derive(Debug, Clone)]
@@ -55,6 +54,7 @@ impl Aabb {
         let mut z_max = f64::MIN;
 
         for aabb in aabbs {
+            // println!("Aabb : x[{},{}], y[{}, {}], z[{}, {}]", aabb.x_min, aabb.x_max, aabb.y_min, aabb.y_max, aabb.z_min, aabb.z_max);
             x_min = x_min.min(aabb.x_min());
             x_max = x_max.max(aabb.x_max());
             y_min = y_min.min(aabb.y_min());
@@ -63,6 +63,7 @@ impl Aabb {
             z_max = z_max.max(aabb.z_max());
         }
 
+        // println!("Aabb : x[{},{}], y[{}, {}], z[{}, {}]", x_min, x_max, y_min, y_max, z_min, z_max);
         Aabb::new(x_min, x_max, y_min, y_max, z_min, z_max)
     }
 
@@ -181,72 +182,19 @@ impl Aabb {
         let y = self.y_max - self.y_min;
         let z = self.z_max - self.z_min;
         
-        2.0 * (x * y + y * z + z * x)
+        x * y * z
     }
 
-    pub fn calculate_sah_cost(&self, aabb1: &Aabb, aabb2: &Aabb, scene: &Scene) -> f64 {
-        let total_surface_area = self.surface_area();
-        let aabb1_surface_area = aabb1.surface_area();
-        let aabb2_surface_area = aabb2.surface_area();
-
-        let p1 = aabb1_surface_area / total_surface_area;
-        let p2 = aabb2_surface_area / total_surface_area;
-
-        let c1 = aabb1_surface_area * aabb1.get_children_elements(scene).len() as f64; // Can be optimized
-        let c2 = aabb2_surface_area * aabb2.get_children_elements(scene).len() as f64; // Can be optimized
-        let ct = 1.0; // Predefined constant in SAH, typically 1
-
-        ct + p1 * c1 + p2 * c2
-    }
-
-    pub fn better_split(&mut self, scene: &Scene) -> (Aabb, Aabb) {
-        let mut aabb1 = self.clone();
-        let mut aabb2 = self.clone();
-        let mut costs: Vec<Cost> = vec![];
-
-        let original_cost = self.surface_area() * self.get_children_elements(scene).len() as f64;
-        let t_vec = get_t_vec(AABB_STEPS_NB);
-
-        // Default cost is 1.0 (worst case scenario, original traversal cost)
-        let mut best_cost = Cost {
-            cost: original_cost,
-            axis: 0,
-            t: 0.0,
-        };
-
-        for axis in 0..2 {
-            for t in &t_vec {
-                let (aabb1_tmp, aabb2_tmp) = self.split(axis, *t);
-                let cost = self.calculate_sah_cost(&aabb1_tmp, &aabb2_tmp, scene);
-
-                if cost < best_cost.cost {
-                    best_cost = Cost { cost, axis, t: *t };
-                }
-
-                costs.push(Cost { cost, axis, t: *t });
-            }
-        }
-
-        if best_cost.cost < original_cost {
-            let (aabb1_tmp, aabb2_tmp) = self.split(best_cost.axis, best_cost.t);
-            aabb1 = aabb1_tmp;
-            aabb2 = aabb2_tmp;
-        }
-
-        // dbg!(original_cost, costs, aabb1 == aabb2);
-
-        (aabb1, aabb2)
-    }
-
-    pub fn split(&mut self, axis: usize, t: f64) -> (Aabb, Aabb) {
+    pub fn split_aabb(&mut self, axis: usize, t: f64) -> (Aabb, Aabb) {
         // Split AABB into two parts along the axis at distance t
-
-
+        // println!("Split with axis {} and t {}", axis, t);
+        // println!("Parent : x[{},{}], y[{}, {}], z[{}, {}]", self.x_min, self.x_max, self.y_min, self.y_max, self.z_min, self.z_max);
         let mut aabb1 = self.clone();
         let mut aabb2 = self.clone();
 
         if axis == 0 {
             let new_x = self.x_min + (self.x_max - self.x_min) * t;
+            // println!("new_x {}", new_x);
             aabb1.set_x_max(new_x);
             aabb2.set_x_min(new_x);
         } else if axis == 1 {
@@ -262,6 +210,9 @@ impl Aabb {
         aabb1.update_pos();
         aabb2.update_pos();
 
+        // println!("Child 1 : x[{},{}], y[{}, {}], z[{}, {}]", aabb1.x_min, aabb1.x_max, aabb1.y_min, aabb1.y_max, aabb1.z_min, aabb1.z_max);
+        // println!("Child 2 : x[{},{}], y[{}, {}], z[{}, {}]", aabb2.x_min, aabb2.x_max, aabb2.y_min, aabb2.y_max, aabb2.z_min, aabb2.z_max);
+
         (aabb1, aabb2)
     }
 
@@ -270,7 +221,7 @@ impl Aabb {
         let mut children = vec![];
 
         for aabb in aabbs {
-            if self.is_child(&aabb) {
+            if self.overlaps(&aabb) {
                 children.push(aabb.clone());
             }
         }
@@ -278,22 +229,33 @@ impl Aabb {
         children
     }
 
-    pub fn get_children_aabbs_id(&self, scene: &Scene) -> Vec<usize> {
-        let elements = scene.elements();
-        let mut children = vec![];
-
-        for (i, element) in elements.iter().enumerate() {
-            if element.shape().as_aabb().is_some() && self.is_child(element.shape().as_aabb().unwrap()){
-                children.push(i);
-            }
+    fn grow_to_include(&mut self, aabb: &Aabb) {
+        
+        if aabb.x_min < self.x_min {
+            self.x_min = aabb.x_min;
         }
-
-        children
+        if aabb.z_min < self.z_min {
+            self.z_min = aabb.z_min;
+        }
+        if aabb.y_min < self.y_min {
+            self.y_min = aabb.y_min;
+        }
+        if aabb.x_max > self.x_max {
+            self.x_max = aabb.x_max;
+        }
+        if aabb.y_max > self.y_max {
+            self.y_max = aabb.y_max;
+        }
+        if aabb.z_max > self.z_max {
+            self.z_max = aabb.z_max;
+        }
     }
 
-    pub fn get_children_elements(&self, scene: &Scene) -> Vec<usize> {
+    pub fn get_children_and_shrink(&mut self, scene: &Scene) -> Vec<usize> {
         let elements = scene.elements();
         let mut children = vec![];
+
+        let mut new_aabb = Aabb::new(f64::MAX, f64::MIN, f64::MAX, f64::MIN, f64::MAX, f64::MIN);
 
         for (i, element) in elements.iter().enumerate() {
             let mut aabb_shape = None;
@@ -304,64 +266,41 @@ impl Aabb {
                 aabb_shape = Some(aabb);
             }
 
-            if aabb_shape.is_some() && self.is_child(aabb_shape.unwrap()) {
-                children.push(i);
+            if let Some(aabb_shape) = aabb_shape {
+                if aabb_shape.is_child_of(self) {
+                    children.push(i);
+                    new_aabb.grow_to_include(aabb_shape);
+                }
             }
         }
-
+        if new_aabb.x_min > self.x_min {
+            self.x_min = new_aabb.x_min;
+        }
+        if new_aabb.x_max < self.x_max {
+            self.x_max = new_aabb.x_max;
+        }
+        if new_aabb.y_min > self.y_min {
+            self.y_min = new_aabb.y_min;
+        }
+        if new_aabb.y_max < self.y_max {
+            self.y_max = new_aabb.y_max;
+        }
+        if new_aabb.z_min > self.z_min {
+            self.z_min = new_aabb.z_min;
+        }
+        if new_aabb.z_max < self.z_max {
+            self.z_max = new_aabb.z_max;
+        }
         children
     }
 
-    pub fn get_children_number(&self, scene: &Scene) -> usize {
-        let elements = scene.elements();
-        let mut children = 0;
-
-        for element in elements {
-            if element.shape().as_aabb().is_some() || element.shape().aabb().is_some() {
-                children += 1;
-            }
-        }
-
-        children
+    pub fn is_child_of(&self, aabb: &Aabb) -> bool {
+        self.x_min >= aabb.x_min && self.x_max <= aabb.x_max &&
+        self.y_min >= aabb.y_min && self.y_max <= aabb.y_max &&
+        self.z_min >= aabb.z_min && self.z_max <= aabb.z_max
     }
 
-    pub fn get_children_elements_only(&self, scene: &Scene) -> Vec<usize> {
-        // Does not return the children aabbs
-
-        let elements = scene.elements();
-        let mut children = vec![];
-
-        for (i, element) in elements.iter().enumerate() {
-            let is_aabb = element.shape().as_aabb().is_some();
-            let aabb = element.shape().aabb();
-            let has_aabb = aabb.is_some();
-            
-            if !is_aabb && has_aabb && self.is_child(aabb.unwrap()) {
-                children.push(i);
-            }
-        }
-
-        children
-    }
-    
-    pub fn get_children_non_bvh_elements(&self, scene: &Scene) -> Vec<usize> {
-        let elements = scene.elements();
-        let mut children = vec![];
-
-        for (i, element) in elements.iter().enumerate() {
-            let is_aabb = element.shape().as_aabb().is_some();
-            let aabb = element.shape().aabb();
-            let has_aabb = aabb.is_some();
-            
-            if !is_aabb && !has_aabb {
-                children.push(i);
-            }
-        }
-
-        children
-    }
-
-    pub fn is_child(&self, aabb: &Aabb) -> bool {
+    pub fn overlaps(&self, aabb: &Aabb) -> bool {
         if self == aabb {
             return false;
         }
@@ -371,14 +310,6 @@ impl Aabb {
         let z_overlap = self.z_min() < aabb.z_max() && self.z_max() > aabb.z_min();
 
         x_overlap && y_overlap && z_overlap
-    }
-
-    pub fn contains_point(&self, point: &Vec3) -> bool {
-        let x = *point.x();
-        let y = *point.y();
-        let z = *point.z();
-
-        x >= self.x_min && x <= self.x_max && y >= self.y_min && y <= self.y_max && z >= self.z_min && z <= self.z_max
     }
 }
 
@@ -450,23 +381,6 @@ impl Shape for Aabb {
         } else if (z - self.z_max()).abs() < ERROR_MARGIN {
             return Vec3::new(0.0, 0.0, 1.0);
         } else {
-            // DEBUG - print all the diffs
-            // let xmin_diff = (x - self.x_min()).abs();
-            // let xmax_diff = (x - self.x_max()).abs();
-            // let ymin_diff = (y - self.y_min()).abs();
-            // let ymax_diff = (y - self.y_max()).abs();
-            // let zmin_diff = (z - self.z_min()).abs();
-            // let zmax_diff = (z - self.z_max()).abs();
-            // println!("----------------------------------------------------");
-            // println!("xmin_diff: {} - {}", xmin_diff, xmin_diff < ERROR_MARGIN);
-            // println!("xmax_diff: {} - {}", xmax_diff, xmax_diff < ERROR_MARGIN);
-            // println!("ymin_diff: {} - {}", ymin_diff, ymin_diff < ERROR_MARGIN);
-            // println!("ymax_diff: {} - {}", ymax_diff, ymax_diff < ERROR_MARGIN);
-            // println!("zmin_diff: {} - {}", zmin_diff, zmin_diff < ERROR_MARGIN);
-            // println!("zmax_diff: {} - {}", zmax_diff, zmax_diff < ERROR_MARGIN);
-            // println!("----------------------------------------------------");
-
-            // error("Error: hit_position is not on the AABB.\nThe problem certainly comes from the error margin.\nYou can use the debug print right above this message (src/model/shapes/aabb.rs:151 atm) to see why it didn't trigger.\nAdjust ERROR_MARGIN (src/lib.rs) if needed.");
             return Vec3::new(0.0, 0.0, 0.0);
         }
     }
@@ -506,51 +420,4 @@ fn get_tmax(tmin_x: f64, tmax_x: f64, tmin_y: f64, tmax_y: f64, tmin_z: f64, tma
 
     let tmax = xmax.min(ymax).min(zmax);
     tmax
-}
-
-#[derive(Debug, Clone, Copy)]
-struct Cost {
-    cost: f64,
-    axis: usize,
-    t: f64,
-}
-
-pub fn get_t_vec(steps: usize) -> Vec<f64> {
-    let mut t_vec = vec![];
-
-    for i in 0..steps {
-        t_vec.push((i as f64 + 1.0) / (steps as f64 + 1.0));
-    }
-
-    t_vec
-}
-
-// Tests
-
-pub fn aabb_split_test() {
-    let mut aabb = Aabb::new(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
-    let axis = 0;
-    let t = 0.75;
-
-    let (aabb1, aabb2) = aabb.split(axis, t);
-
-    dbg!(aabb, aabb1, aabb2);
-}
-
-pub fn aabb_better_split_test(scene: &Scene) {
-    let aabbs = scene.all_aabb();
-    let mut biggest_aabb = Aabb::from_aabbs(&aabbs);
-
-    let (aabb1, aabb2) = biggest_aabb.better_split(scene);
-
-    dbg!(biggest_aabb, aabb1, aabb2);
-}
-
-pub fn aabb_get_children_test(scene: &Scene) {
-    let aabbs = scene.all_aabb();
-    let aabb = aabbs.first().expect("No AABBs in scene");
-    let biggest_aabb = Aabb::from_aabbs(&aabbs);
-
-    dbg!(aabb, aabb.get_children_aabbs(scene));
-    dbg!(&biggest_aabb, biggest_aabb.get_children_aabbs(scene));
 }

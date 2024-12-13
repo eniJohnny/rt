@@ -1,3 +1,4 @@
+use crate::model::materials::material::Material;
 use crate::model::maths::vec3::Vec3;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -12,6 +13,7 @@ pub struct Obj {
     pub triangle_count: Vec<usize>,
     pub params_number: usize,
     pub filepath: String,
+    pub material: Box<dyn Material + Send + Sync>,
     pub texturepath: String,
     pub pos: Vec3,
     pub dir: Vec3,
@@ -19,7 +21,7 @@ pub struct Obj {
 }
 
 impl Obj {
-    pub fn new() -> Self {
+    pub fn new(material: Box<dyn Material + Send + Sync>) -> Self {
         Obj {
             vertices: Vec::new(),
             normals: Vec::new(),
@@ -28,6 +30,7 @@ impl Obj {
             triangle_count: Vec::new(),
             params_number: 1,
             filepath: String::new(),
+            material,
             texturepath: String::new(),
             pos: Vec3::new(0.0, 0.0, 0.0),
             dir: Vec3::new(0.0, 1.0, 0.0),
@@ -53,6 +56,14 @@ impl Obj {
 
     pub fn add_triangle_count(&mut self, shape: usize) {
         self.triangle_count.push(shape);
+    }
+
+    pub fn material(&self) -> &dyn Material {
+        self.material.as_ref()
+    }
+
+    pub fn material_mut(&mut self)-> &mut dyn Material {
+        self.material.as_mut()
     }
 
     pub fn set_filepath(&mut self, filepath: String) {

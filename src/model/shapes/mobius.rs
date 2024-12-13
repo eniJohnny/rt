@@ -100,8 +100,8 @@ impl Mobius {
                 let triangle1 = Triangle::new(p1, p2, p3);
                 let triangle2 = Triangle::new(p3, p2, p4);
 
-                let element1 = Element::new(Box::new(triangle1), material.copy());
-                let element2 = Element::new(Box::new(triangle2), material.copy());
+                let element1 = Element::new(Box::new(triangle1), material.clone());
+                let element2 = Element::new(Box::new(triangle2), material.clone());
 
                 elements.push(element1);
                 elements.push(element2);
