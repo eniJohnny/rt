@@ -112,6 +112,7 @@ impl ComposedShape for Obj {
                 if let Some(obj) = elem.composed_shape_mut().as_obj_mut() {
                     if let Value::Float(value) = value {
                         obj.dir.set_z(value);
+                        elem.update();
                     }
                 }
             }),
@@ -260,17 +261,20 @@ impl Obj {
     }
 
     pub fn rotated_vertex(&mut self, x: f64, y: f64, z: f64) -> Vec3 {
-        let point_pos = Vec3::new(x, y, z);
+        let point_pos = Vec3::new(x, y, z) - self.pos();
         let default_dir = Vec3::new(0.0, 1.0, 0.0);
 
         let rotation_axis = default_dir.cross(&self.dir());
         if rotation_axis.length() == 0.0 {
-            return point_pos;
+            if default_dir.dot(&self.dir()) < 0.0 {
+                return -point_pos + self.pos();
+            }
+            return point_pos + self.pos();
         }
 
         let rotation_angle = (default_dir.dot(&self.dir()) / (default_dir.length() * self.dir().length())).acos();
 
-        let rotated_point = point_pos.rotate_from_axis_angle(rotation_angle, &rotation_axis);
+        let rotated_point = point_pos.rotate_from_axis_angle(rotation_angle, &rotation_axis) + self.pos();
         rotated_point
     }
 
@@ -289,22 +293,17 @@ impl Obj {
 
                     match tokens[0] {
                         "v" => {
-                            // let x = tokens[1].parse::<f64>().unwrap() * self.scale();
-                            // let y = tokens[2].parse::<f64>().unwrap() * self.scale();
-                            // let z = tokens[3].parse::<f64>().unwrap() * self.scale();
                             let x = tokens[1].parse::<f64>().unwrap();
                             let y = tokens[2].parse::<f64>().unwrap();
                             let z = tokens[3].parse::<f64>().unwrap();
 
-                            // let rotated_coords = self.rotated_vertex(x, y, z) + self.pos();
-                            let rotated_coords = self.rotated_vertex(x, y, z);
-                            self.add_vertex(rotated_coords);
-                            // self.add_vertex(Vec3::new(x, y, z));
+                            self.add_vertex(Vec3::new(x, y, z));
                         }
                         "vn" => {
                             let x = tokens[1].parse::<f64>().unwrap();
                             let z = tokens[2].parse::<f64>().unwrap();
                             let y = tokens[3].parse::<f64>().unwrap();
+                            
                             self.add_normal(Vec3::new(x, y, z));
                         }
                         "vt" => {
@@ -398,7 +397,7 @@ impl Obj {
 
     pub fn update_logic(&mut self) {
         self.elements.clear();
-        
+
         let len = self.faces.len();
 
         for i in 0..len {
@@ -410,13 +409,19 @@ impl Obj {
 
             for j in 0..face.len() {
                 match j % modulo {
-                    0 => vertices.push(face[j].clone() * self.scale() - self.pos()),
+                    0 => {
+                        let vec = face[j].clone() * self.scale() + self.pos();
+                        vertices.push(self.rotated_vertex(*vec.x(), *vec.y(), *vec.z()));
+                    },
                     1 => textures.push(face[j]),
-                    2 => normals.push(face[j]),
+                    2 => {
+                        normals.push(self.rotated_vertex(*face[j].x(), *face[j].y(), *face[j].z()))
+                    },
                     _ => {}
                 }
-            }        
+            }
 
+            // println!("{}", i);
             for k in 0..self.triangle_count()[i] {
                 let material = self.material.clone();
                 let (a, b, c) = (vertices[0], vertices[k + 1], vertices[k + 2]);

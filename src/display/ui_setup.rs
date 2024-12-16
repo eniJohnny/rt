@@ -49,7 +49,16 @@ pub fn setup_element_ui(element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene
     category.on_click = Some(Box::new(move |_element,_scene, ui| {
         ui.destroy_box(ELEMENT);
     }));
-    category.add_element(element.shape().get_ui(element, ui, scene));
+    let mut is_composed = false;
+    if let Some(composed_id) = element.composed_id() {
+        if let Some(composed_element) = scene.read().unwrap().composed_element_by_id(composed_id) {
+            is_composed = true;
+            category.add_element(composed_element.composed_shape().get_ui(composed_element, ui, scene));
+        }
+    }
+    if !is_composed {
+        category.add_element(element.shape().get_ui(element, ui, scene));
+    }
     category.add_element(get_material_ui(element, ui, scene));
     elem_box.add_elements(vec![category]);
     elem_box.set_edit_bar(ui.uisettings(), Some(Box::new(|_, scene, _| {

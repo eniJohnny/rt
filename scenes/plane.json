@@ -64,7 +64,7 @@
         "type": "obj",
         "pos": [0, -2, -4],
         "scale": 2,
-        "dir": [0, 1, 0],
+        "dir": [1, 0, 0],
         "file": "obj/knight.obj",
         "color": [150, 125, 1]
     }

@@ -270,6 +270,24 @@ impl Scene {
         None
     }
 
+    pub fn composed_element_by_element_id(&self, id: u32) -> Option<&ComposedElement> {
+        if let Some(element) = self.element_by_id(id) {
+            if let Some(composed_id) = element.composed_id() {
+                return self.composed_element_by_id(composed_id);
+            }
+        }
+        None
+    }
+
+    pub fn composed_element_mut_by_element_id(&mut self, id:u32) -> Option<&mut ComposedElement> {
+        if let Some(element) = self.element_by_id(id) {
+            if let Some(composed_id) = element.composed_id() {
+                return self.composed_element_mut_by_id(composed_id);
+            }
+        }
+        None
+    }
+
     pub fn composed_element_by_id(&self, id: u32) -> Option<&ComposedElement> {
         for element in &self.composed_elements {
             if element.id == id {

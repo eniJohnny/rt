@@ -324,14 +324,21 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let material = get_material(&object, color);
                 scene.load_material_textures(&material);
 
+                println!("File {}", file);
 
                 let mut obj = Obj::new(pos, dir, scale, file, material);
+
+                let result = obj.parse_file();
+                if result.is_err() {
+                    error(&result.err().unwrap().to_string());
+                }
 
                 obj.update_logic();
 
                 let composed_shape = Box::new(obj);
                 let composed_element = ComposedElement::new(composed_shape);
                 scene.add_composed_element(composed_element);
+                println!("Composed elements : {}", scene.composed_elements().len());
             }
             _ => {}
         }
