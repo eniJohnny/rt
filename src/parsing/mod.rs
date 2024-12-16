@@ -6,6 +6,8 @@ use std::{
     ops::Add
 };
 
+use chrono::format;
+
 use crate::{
     error, model::{
         materials::{
@@ -316,9 +318,10 @@ pub fn get_scene(scene_file: &String) -> Scene {
             }
             "obj" => {
                 let file = get_string_value(&object, "file");
-                let pos = get_coordinates_value(&object, "pos");
-                let scale = get_float_value(&object, "scale");
-                let dir = get_coordinates_value(&object, "dir");
+                let pos = get_coordinates_value_or(&object, "pos", Some(Vec3::new(0., 0., 0.)));
+                let scale = get_float_value_or(&object, "scale", Some(1.));
+                let rotation = get_float_value_or(&object, "rotation", Some(0.));
+                let dir = get_coordinates_value_or(&object, "dir", Some(Vec3::new(0., 1., 0.)));
                 let color = get_color(&object);
 
                 let material = get_material(&object, color);
@@ -326,7 +329,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
 
                 println!("File {}", file);
 
-                let mut obj = Obj::new(pos, dir, scale, file, material);
+                let mut obj = Obj::new(pos, dir, rotation, scale, file, material);
 
                 let result = obj.parse_file();
                 if result.is_err() {
@@ -431,6 +434,13 @@ fn get_color(object: &HashMap<String, String>) -> Option<Color> {
 }
 
 fn get_coordinates_value(object: &HashMap<String, String>, key: &str) -> Vec3 {
+    get_coordinates_value_or(object, key, None)
+}
+
+fn get_coordinates_value_or(object: &HashMap<String, String>, key: &str, default: Option<Vec3>) -> Vec3 {
+    if !object.contains_key(&(key.to_owned() + "_x")) && !object.contains_key(&(key.to_owned() + "_y")) && !object.contains_key(&(key.to_owned() + "_z")) {
+        return default.expect(&format!("{} must be provided.", key));
+    }
     // Testing if the position is in the format [x, y, z]
     let pos_str = [
         &object[&(key.to_owned() + "_x")],
@@ -498,7 +508,14 @@ fn get_material(
 }
 
 fn get_float_value(object: &HashMap<String, String>, key: &str) -> f64 {
-    let str_value = object.get(key).expect(&format!("{}  was not found", key));
+    get_float_value_or(object, key, None)
+}
+
+fn get_float_value_or(object: &HashMap<String, String>, key: &str, default: Option<f64>) -> f64 {
+    if !object.contains_key(key) {
+        return default.expect(&format!("{}  was not found", key));
+    }
+    let str_value = object.get(key).unwrap();
 
     return str_value.parse::<f64>().expect(&format!("{}  doesn't have a correct float value.", key));
 }

@@ -1,4 +1,4 @@
-use std::{fs::File, io::{BufRead, BufReader}};
+use std::{f64::consts::PI, fs::File, io::{BufRead, BufReader}};
 
 use super::{triangle::Triangle, ComposedShape};
 use crate::{model::{
@@ -11,6 +11,7 @@ use crate::{model::{
 pub struct Obj {
     pub pos: Vec3,
     pub dir: Vec3,
+    pub rotation: f64,
     pub scale: f64,
     pub vertices: Vec<Vec3>,
     pub normals: Vec<Vec3>,
@@ -243,7 +244,7 @@ impl Obj {
     }
 
     // Constructor
-    pub fn new(pos: Vec3, dir: Vec3, scale: f64, filepath: String, material: Box<dyn Send + Sync + Material>) -> Obj {
+    pub fn new(pos: Vec3, dir: Vec3, rotation: f64, scale: f64, filepath: String, material: Box<dyn Send + Sync + Material>) -> Obj {
         Obj {
             vertices: Vec::new(),
             normals: Vec::new(),
@@ -251,11 +252,12 @@ impl Obj {
             faces: Vec::new(),
             triangle_count: Vec::new(),
             params_number: 1,
-            pos: pos,
-            dir: dir,
-            scale: scale,
-            filepath: filepath,
-            material: material,
+            pos,
+            dir,
+            rotation,
+            scale,
+            filepath,
+            material,
 			elements: Vec::new(),
         }
     }
@@ -265,17 +267,25 @@ impl Obj {
         let default_dir = Vec3::new(0.0, 1.0, 0.0);
 
         let rotation_axis = default_dir.cross(&self.dir());
-        if rotation_axis.length() == 0.0 {
-            if default_dir.dot(&self.dir()) < 0.0 {
-                return -point_pos + self.pos();
+        let point_with_dir = match rotation_axis.length() == 0.0 {
+            true => {
+                if default_dir.dot(&self.dir()) < 0.0 {
+                    -point_pos
+                } else {
+                    point_pos
+                }
+            },
+            false => {
+                let rotation_angle = (default_dir.dot(&self.dir()) / (default_dir.length() * self.dir().length())).acos();
+                point_pos.rotate_from_axis_angle(rotation_angle, &rotation_axis)
             }
-            return point_pos + self.pos();
+        };
+
+        if self.rotation == 0. {
+            return point_with_dir + self.pos();
         }
-
-        let rotation_angle = (default_dir.dot(&self.dir()) / (default_dir.length() * self.dir().length())).acos();
-
-        let rotated_point = point_pos.rotate_from_axis_angle(rotation_angle, &rotation_axis) + self.pos();
-        rotated_point
+        let point_with_dir_and_rotation = point_with_dir.rotate_from_axis_angle(self.rotation * PI * 2. / 360., &self.dir);
+        point_with_dir_and_rotation + self.pos()
     }
 
     pub fn parse_file(&mut self) -> Result<(), std::io::Error> {
@@ -303,7 +313,7 @@ impl Obj {
                             let x = tokens[1].parse::<f64>().unwrap();
                             let z = tokens[2].parse::<f64>().unwrap();
                             let y = tokens[3].parse::<f64>().unwrap();
-                            
+
                             self.add_normal(Vec3::new(x, y, z));
                         }
                         "vt" => {
