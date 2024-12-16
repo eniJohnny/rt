@@ -12,7 +12,8 @@ pub mod bvh;
 
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
-const SCENE: &str = "metalrough";
+const SCENE: &str = "plane";
+const SKYBOX_TEXTURE: &str = "skybox_night.jpg";
 
 /************* Camera **************/
 const STEP: f64 = 0.2;
@@ -26,7 +27,7 @@ const SPHERE_DISPLACED_DISTANCE: f64 = 0.05;
 const SPHERE_DISPLACEMENT_STEP: f64 = 0.1;
 
 const AABB_OPACITY: f64 = 0.0;
-const AABB_STEPS_NB: usize = 10;
+const AABB_STEPS_NB: usize = 5;
 const DISPLAY_WIREFRAME: bool = false;
 const WIREFRAME_THICKNESS: f64 = 0.05;
 const ERROR_MARGIN: f64 = 0.000000000001;
@@ -34,11 +35,11 @@ const SCREEN_WIDTH: usize = 1800;
 const SCREEN_HEIGHT: usize = 900;
 const SCREEN_WIDTH_U32: u32 = SCREEN_WIDTH as u32;
 const SCREEN_HEIGHT_U32: u32 = SCREEN_HEIGHT as u32;
-const MAX_THREADS: usize = 4;
+const MAX_THREADS: usize = 8;
 const BASE_SIMPLIFICATION: usize = 32;
 const MAX_DEPTH: usize = 10;
 const ANTIALIASING: f64 = 0.001;
-const MAX_ITERATIONS: usize = 10;
+const MAX_ITERATIONS: usize = 1500;
 
 /************* Modifiers **************/
 const ANAGLYPH: bool = false;
@@ -72,7 +73,7 @@ pub fn run() {
     let path = String::from(format!("{}/{}.json", SCENE_FOLDER, SCENE));
     if path != "" {
         let mut scene = get_scene(&path);
-        scene.add_skysphere_texture("skybox_night.jpg");
+        scene.load_texture(SKYBOX_TEXTURE);
         
         if DISPLAY_WIREFRAME {
             scene.add_wireframes();

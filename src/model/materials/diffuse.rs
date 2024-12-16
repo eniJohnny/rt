@@ -55,20 +55,6 @@ impl Diffuse {
 			0.,
         ))
     }
-
-    pub fn copy(&self) -> Box<dyn Material + Sync> {
-        Box::new(Diffuse::new(
-            self.color().clone(),
-            self.metalness().clone(),
-            self.roughness().clone(),
-            self.emissive().clone(),
-            self.transparency().clone(),
-            self.norm().clone(),
-            self.opacity().clone(),
-            self.displacement().clone(),
-            self.refraction().clone()
-        ))
-    }
 }
 
 unsafe impl Send for Diffuse {}

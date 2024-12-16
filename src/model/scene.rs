@@ -1,5 +1,5 @@
-use std::{collections::HashMap, fs};
-use image::RgbaImage;
+use std::collections::HashMap;
+
 use crate::{
     bvh::{self},
     model::objects::light::AmbientLight,
@@ -85,11 +85,23 @@ impl Scene {
         &mut self.settings
     }
 
-    pub fn add_texture(&mut self, name: String, texture: RgbaImage) {
-        self.textures.insert(name, texture);
+    pub fn load_texture(&mut self, path: &str) {
+        if path == "" || path.contains("..") {
+            panic!("Textures should only be stored in the textures folder.");
+        }
+        if !self.textures.contains_key(path) {
+            let path_str = String::from("./textures/") + path;
+            self.textures.insert(
+                path.to_string(),
+                match image::open(&path_str) {
+                    Ok(img) => img.to_rgba8(),
+                    Err(_) => panic!("Error opening texture file {}", path),
+                },
+            );
+        }
     }
 
-    pub fn add_textures(&mut self, material: &Box<dyn Material + Sync + Send>) {
+    pub fn load_material_textures(&mut self, material: &Box<dyn Material + Sync + Send>) {
         let textures = [
             material.color(),
             material.roughness(),
@@ -103,60 +115,20 @@ impl Scene {
             match texture {
                 Texture::Value(..) => {}
                 Texture::Texture(path, _) => {
-                    if path == "" || path.contains("..") {
-                        panic!("Textures should only be stored in the textures folder.");
-                    }
-                    if !self.textures.contains_key(path) {
-                        let path_str = String::from("./textures/") + path;
-                        self.add_texture(
-                            path.to_string(),
-                            match image::open(&path_str) {
-                                Ok(img) => img.to_rgba8(),
-                                Err(_) => panic!("Error opening texture file {}", path),
-                            },
-                        );
-                    }
+                    self.load_texture(path);
                 }
             }
-        }
-    }
-
-    pub fn add_skysphere_texture(&mut self, path: &str) {
-        let key = "skysphere";
-
-        if path == "" || path.contains("..") {
-            panic!("Textures should only be stored in the textures folder.");
-        }
-        if !self.textures.contains_key(key) {
-            let path_str = String::from("./textures/") + path;
-            
-            self.add_texture(
-                key.to_string(),
-                match image::open(&path_str) {
-                    Ok(img) => img.to_rgba8(),
-                    Err(_) => panic!("Error opening texture file {}", path),
-                },
-            );
         }
     }
 
     pub fn add_obj(&mut self, obj: &mut Obj) {
         // let mut obj = Obj::new();
         let path = obj.filepath().clone();
-        let texture_path = obj.texturepath().clone();
         let result = obj.parse_file(path.clone());
-        let mut texture = Texture::Value(Vec3::from_value(1.0), TextureType::Float);
 
         match result {
             Ok(_) => {
                 let len = obj.faces.len();
-
-                if texture_path != "" && fs::File::open(texture_path.clone()).is_ok() {
-                    self.add_texture(texture_path.clone(), image::open(texture_path.clone()).unwrap().to_rgba8());
-                    texture = Texture::Texture(texture_path.clone(), TextureType::Color);
-                } else if texture_path != "" {
-                    println!("Texture file not found: {}", texture_path);
-                }
 
                 for i in 0..len {
                     let face = &obj.faces[i];
@@ -175,10 +147,7 @@ impl Scene {
                     }        
 
                     for k in 0..obj.triangle_count()[i] {
-                        let mut material = Diffuse::default();
-                        material.set_color(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
-                        material.set_opacity(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
-                        material.set_color(texture.clone());
+                        let material = obj.material.clone();
                         let (a, b, c) = (vertices[0], vertices[k + 1], vertices[k + 2]);
                         let (a_uv, b_uv, c_uv) = (textures[0].xy(), textures[k + 1].xy(), textures[k + 2].xy());
 
@@ -217,10 +186,10 @@ impl Scene {
 
     pub fn update_bvh(&mut self) {
         let aabbs = self.all_aabb();
-        println!("AABB count : {}", aabbs.len());
         let biggest_aabb = Aabb::from_aabbs(&aabbs);
         let mut node = bvh::node::Node::new(&biggest_aabb);
         node.build_tree(self);
+
         self.non_bvh_elements_index.clear();
         self.non_bvh_composed_elements_index.clear();
         let mut nb_elements = 0;

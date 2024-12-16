@@ -10,10 +10,7 @@ use crate::{
             misc::{ElemType, Property, Value},
             Displayable
         }
-    },
-    ANTIALIASING, DISPLACEMENT, MAX_DEPTH, MAX_ITERATIONS,
-    PLANE_DISPLACED_DISTANCE, PLANE_DISPLACEMENT_STEP,
-    SPHERE_DISPLACED_DISTANCE, SPHERE_DISPLACEMENT_STEP, VIEW_MODE
+    }, ANTIALIASING, DISPLACEMENT, MAX_DEPTH, MAX_ITERATIONS, PLANE_DISPLACED_DISTANCE, PLANE_DISPLACEMENT_STEP, SKYBOX_TEXTURE, SPHERE_DISPLACED_DISTANCE, SPHERE_DISPLACEMENT_STEP, VIEW_MODE
 };
 
 #[derive(Debug, Clone)]
@@ -29,6 +26,7 @@ pub struct Settings {
     pub reflections: bool,
     pub indirect: bool,
     pub iterations: usize,
+    pub skybox_texture: String,
     pub depth: usize,
     pub anti_alisaing: f64,
     pub displacement: bool,
@@ -57,6 +55,7 @@ impl Settings {
             indirect: true,
             iterations: MAX_ITERATIONS,
             displacement: DISPLACEMENT,
+            skybox_texture: SKYBOX_TEXTURE.to_string(),
             plane_displaced_distance: PLANE_DISPLACED_DISTANCE,
             plane_displacement_step: PLANE_DISPLACEMENT_STEP,
             sphere_displaced_distance: SPHERE_DISPLACED_DISTANCE,
@@ -79,6 +78,24 @@ impl Displayable for Settings {
                     if let Value::Unsigned(value) = value {
                         scene.write().unwrap().settings_mut().iterations = value as usize;
                         scene.write().unwrap().set_dirty(true);
+                    }
+                }),
+                Box::new(|_, _, _| Ok(())),
+                settings,
+            )),
+            settings,
+        ));
+        category.elems.push(UIElement::new(
+            "Skybox texture",
+            "skybox",
+            ElemType::Property(Property::new(
+                Value::Text(self.skybox_texture.to_string()),
+                Box::new(|_, value: Value, scene, _ui| {
+                    if let Value::Text(value) = value {
+                        let mut scene = scene.write().unwrap();
+                        scene.load_texture(&value);
+                        scene.settings_mut().skybox_texture = value;
+                        scene.set_dirty(true);
                     }
                 }),
                 Box::new(|_, _, _| Ok(())),

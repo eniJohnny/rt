@@ -74,9 +74,9 @@ impl Helix {
             let sphere1 = Sphere::new(origin, current_dir, sphere_radius);
             let sphere2 = Sphere::new(origin + current_dir * link_length, current_dir, sphere_radius);
 
-            let link_element = Element::new(Box::new(link), material.copy());
-            let sphere1_element = Element::new(Box::new(sphere1), sphere_material.copy());
-            let sphere2_element = Element::new(Box::new(sphere2), sphere_material.copy());
+            let link_element = Element::new(Box::new(link), material.clone());
+            let sphere1_element = Element::new(Box::new(sphere1), sphere_material.clone());
+            let sphere2_element = Element::new(Box::new(sphere2), sphere_material.clone());
 
             elements.push(link_element);
             elements.push(sphere1_element);

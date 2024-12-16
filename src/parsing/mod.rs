@@ -6,29 +6,18 @@ use std::{
     ops::Add
 };
 use crate::{
-    model::{
+    error, model::{
         materials::{
             color::Color,
 		    diffuse::Diffuse,
 		    material::Material,
 		    texture::{Texture, TextureType}
-        },
-		objects::{
-            light::{AmbientLight, AnyLight, ParallelLight, PointLight},
-            camera::Camera
-        },
-		shapes::{ 
-            cone::Cone, cylinder::Cylinder, plane::Plane,
-            sphere::Sphere, rectangle::Rectangle, triangle::Triangle,
-            ComposedShape, helix::Helix, torusphere::Torusphere,
-            brick::Brick, nagone::Nagone, mobius::Mobius, ellipse::Ellipse,
-            cube::Cube, cubehole::Cubehole, hyperboloid::Hyperboloid, any::Any
-        },
-		maths::vec3::Vec3,
-		scene::Scene,
-        ComposedElement, Element
-    },
-    error, AABB_OPACITY
+        }, maths::vec3::Vec3, objects::{
+            camera::Camera, light::{AmbientLight, AnyLight, ParallelLight, PointLight}
+        }, scene::Scene, shapes::{ 
+            any::Any, brick::Brick, cone::Cone, cube::Cube, cubehole::Cubehole, cylinder::Cylinder, ellipse::Ellipse, helix::Helix, hyperboloid::Hyperboloid, mobius::Mobius, nagone::Nagone, plane::Plane, rectangle::Rectangle, sphere::Sphere, torusphere::Torusphere, triangle::Triangle, ComposedShape
+        }, ComposedElement, Element
+    }, AABB_OPACITY
 };
 
 pub mod obj;
@@ -52,7 +41,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let shape = Box::new(Sphere::new(pos, dir, radius));
 
                 let material = get_material(&object, color);
-                scene.add_textures(&material);
+                scene.load_material_textures(&material);
                 let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
                 aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
                 
@@ -67,7 +56,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
 
                 let shape = Box::new(Plane::new(pos, dir));
                 let material = get_material(&object, color);
-                scene.add_textures(&material);
+                scene.load_material_textures(&material);
                 let element = Element::new(shape, material);
                 scene.add_element(element)
             }
@@ -81,7 +70,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let shape = Box::new(Cylinder::new(pos, dir, radius, height));
 
                 let material = get_material(&object, color);
-                scene.add_textures(&material);
+                scene.load_material_textures(&material);
                 let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
                 aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
 
@@ -101,7 +90,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let material = get_material(&object, color);
                 let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
                 aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
-                scene.add_textures(&material);
+                scene.load_material_textures(&material);
 
                 let element = Element::new(shape, material);
                 scene.add_element(element);
@@ -118,7 +107,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
                 aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
                 
-                scene.add_textures(&material);
+                scene.load_material_textures(&material);
 
                 let element = Element::new(shape, material);
 
@@ -138,7 +127,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
                 aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
                 
-                scene.add_textures(&material);
+                scene.load_material_textures(&material);
 
                 let element = Element::new(shape, material);
 
@@ -261,7 +250,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let shape = Box::new(Ellipse::new(pos, dir, u, v));
 
                 let material = get_material(&object, color);
-                scene.add_textures(&material);
+                scene.load_material_textures(&material);
                 let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));
                 aabb_material.set_opacity(Texture::Value(Vec3::from_value(AABB_OPACITY), TextureType::Float));
                 
@@ -278,7 +267,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let shape = Box::new(Cube::new(pos, dir, width));
 
                 let material = get_material(&object, color);
-                scene.add_textures(&material);
+                scene.load_material_textures(&material);
                 
                 let element = Element::new(shape, material);
 
@@ -293,7 +282,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let shape = Box::new(Cubehole::new(pos, dir, width));
 
                 let material = get_material(&object, color);
-                scene.add_textures(&material);
+                scene.load_material_textures(&material);
                 
                 let element = Element::new(shape, material);
 
@@ -307,7 +296,7 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let shape = Box::new(Hyperboloid::new(pos, z_shift));
 
                 let material = get_material(&object, color);
-                scene.add_textures(&material);
+                scene.load_material_textures(&material);
 
                 let element = Element::new(shape, material);
 
@@ -320,16 +309,17 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let shape = Box::new(Any::new(equation));
 
                 let material = get_material(&object, color);
-                scene.add_textures(&material);
+                scene.load_material_textures(&material);
 
                 let element = Element::new(shape, material);
 
                 scene.add_element(element);
             }
             "obj" => {
-                let mut obj = Obj::new();
+                let color = get_color(&object);
+                let material = get_material(&object, color);
+                let mut obj = Obj::new(material.clone());
                 let file = get_string_value(&object, "file");
-                let texturefile = get_string_value(&object, "texture");
                 let pos = get_coordinates_value(&object, "pos");
                 let scale = get_float_value(&object, "scale");
                 let dir = get_coordinates_value(&object, "dir");
@@ -338,7 +328,6 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 obj.set_dir(dir);
                 obj.set_scale(scale);
                 obj.set_filepath(file);
-                obj.set_texturepath(texturefile);
 
                 scene.add_obj(&mut obj);
             }
@@ -403,7 +392,7 @@ fn parse_json(scene_file: String) -> Vec<HashMap<String, String>> {
 }
 
 fn get_color(object: &HashMap<String, String>) -> Option<Color> {
-    if object.get("color").is_some() {
+    if !object.contains_key("color") || !object.contains_key("color_r") || !object.contains_key("color_g") || !object.contains_key("color_b"){
         return None;
     }
     // Testing if the color is in the format [r, g, b]
@@ -479,7 +468,7 @@ fn get_material(
                 Vec3::new(color.r(), color.g(), color.b()),
                 TextureType::Color,
             ),
-            None => panic!("Color must be provided for non-textured materials"),
+            None => Texture::Texture("default.jpg".to_string(), TextureType::Color),
         },
     };
     let refraction = match refraction_string.parse::<f64>() {
@@ -500,22 +489,11 @@ fn get_material(
 }
 
 fn get_float_value(object: &HashMap<String, String>, key: &str) -> f64 {
-    // Testing if the intensity is a float
-    if object[key].parse::<f64>().is_err() {
-        error(&(key.to_owned() + " must be a float."));
-    }
+    let str_value = object.get(key).expect(&format!("{}  was not found", key));
 
-    object[key]
-        .parse::<f64>()
-        .expect(&("Error parsing ".to_owned() + key))
+    return str_value.parse::<f64>().expect(&format!("{}  doesn't have a correct float value.", key));
 }
 
 fn get_string_value(object: &HashMap<String, String>, key: &str) -> String {
-    if object[key].parse::<String>().is_err() {
-        error(&(key.to_owned() + " must be a string."));
-    }
-
-    object[key]
-        .parse::<String>()
-        .expect(&("Error parsing ".to_owned() + key))
+    return object.get(key).expect(&format!("{}  was not found", key)).to_string();
 }
