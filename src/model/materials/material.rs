@@ -1,4 +1,4 @@
-use super::texture::Texture;
+use super::{diffuse::Diffuse, texture::Texture};
 use crate::model::maths::vec3::Vec3;
 use std::fmt::Debug;
 
@@ -31,4 +31,7 @@ pub trait Material: Debug + Sync + Send {
     fn set_opacity(&mut self, opacity: Texture);
 	fn set_displacement(&mut self, displacement: Texture);
     fn set_refraction(&mut self, refraction: f64);
+    fn clone(&self) -> Box<dyn Material + Send +Sync> {
+        Box::new(Diffuse::new(self.color().clone(), self.metalness().clone(), self.roughness().clone(), self.emissive().clone(), self.transparency().clone(), self.norm().clone(), self.opacity().clone(), self.displacement().clone(), self.refraction().clone()))
+    }
 }

@@ -68,14 +68,14 @@ impl Nagone {
 
         for i in 0..angles {
             let sphere = Sphere::new(pos + origins_dirs[i] * radius, dir_y, sphere_radius);
-            elements.push(Element::new(Box::new(sphere), material.copy()));
+            elements.push(Element::new(Box::new(sphere), material.clone()));
 
             let next_i = (i + 1) % angles;
             let cylinder_dir = ((pos + origins_dirs[next_i] * radius) - (pos + origins_dirs[i] * radius)).normalize();
             let cylinder_height = ((pos + origins_dirs[next_i] * radius) - (pos + origins_dirs[i] * radius)).length();
 
             let cylinder = Cylinder::new(pos + origins_dirs[i] * radius, cylinder_dir, cylinder_radius, cylinder_height);
-            elements.push(Element::new(Box::new(cylinder), material.copy()));
+            elements.push(Element::new(Box::new(cylinder), material.clone()));
         }
 
         Nagone {

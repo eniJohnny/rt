@@ -35,13 +35,15 @@ pub fn fresnel_reflect_ratio(n1: f64, n2: f64, norm: &Vec3, ray: &Vec3, reflecti
 pub fn global_lighting_from_hit(scene: &Scene, hit: &mut Hit, ray: &Ray) -> Color {
     if ray.debug {
         println!(
-            "Metal : {}, Roughness: {}, Color: {}, Norm: {}, Emissive: {}, Opacity: {}",
+            "Metal : {}, Roughness: {}, Color: {}, Norm: {}, Emissive: {}, Opacity: {}, Refraction index: {}, Transparancy {}",
             hit.metalness(),
             hit.roughness(),
             hit.color(),
             hit.norm(),
             hit.emissive(),
             hit.opacity(),
+			hit.element().material().refraction(),
+			hit.transparency()
         );
     }
     if hit.emissive() > f64::EPSILON {
@@ -120,7 +122,7 @@ fn get_indirect_light_color(scene: &Scene, hit: &Hit, ray: &Ray) -> Color
 			indirect_dir = hit.norm().clone();
 		}
 		indirect_dir = indirect_dir.normalize();
-		let mut indirect_ray = Ray::new(hit.pos().clone(), indirect_dir, ray.get_depth() + 1);
+		let mut indirect_ray = Ray::new(hit.pos().clone() + 0.01 * indirect_dir, indirect_dir, ray.get_depth() + 1);
 		indirect_ray.debug = ray.debug;
 		light_color = get_lighting_from_ray(scene, &indirect_ray) * hit.color();
 	}
@@ -166,9 +168,6 @@ fn get_refracted_light_color(scene: &Scene, hit: &Hit, ray: &Ray, n1: f64, n2: f
 	let mut refract_color = Color::new(0., 0., 0.);
 	let refraction_result = refract_dir(&ray.get_dir(), normal, n1, n2, hit.roughness());
 	if let Some(refracted_ray) = refraction_result {
-		if ray.debug {
-			println!("refract_dir {} {} {}", refracted_ray.x(), refracted_ray.y(), refracted_ray.z());
-		}
 		let refract_ray = Ray::new(hit.pos().clone() - normal * 0.01, refracted_ray.clone(), ray.get_depth());
 		refract_color = get_lighting_from_ray(scene, &refract_ray);
 	}
@@ -182,33 +181,23 @@ pub fn get_parent<'a>(mut t_s: Vec<(&Element, Vec<f64>)>, closest_dist: f64) -> 
 	}
     let mut closest: Option<(&Element, f64)> = None;
 	for (elem, t) in t_s {
-		if t.len() > 0
-		{
-			if t.len() % 2 == 0
-			{
+		if t.len() > 0 {
+			if t.len() % 2 == 0 {
 				let mut nb_t_positives = 0;
-				for dist in &t
-				{
-					if dist > &0.
-					{
+				for dist in &t {
+					if dist > &0.{
 						nb_t_positives += 1;
 					}
 				}
-				if nb_t_positives % 2 != 0
-				{
-					for dist in t
-					{
-						if &dist > &0.
-						{
-							if let Some((_, closest_dist)) = closest
-							{
-								if &dist < &closest_dist
-								{
+				if nb_t_positives % 2 != 0 {
+					for dist in t {
+						if &dist > &0. {
+							if let Some((_, closest_dist)) = closest {
+								if &dist < &closest_dist {
 									closest = Some((elem, dist));
 								}
 							}
-							else
-							{
+							else {
 								closest = Some((elem, dist));
 							}
 						}

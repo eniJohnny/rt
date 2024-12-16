@@ -62,7 +62,7 @@ impl Torusphere {
 
         for i in 0..steps {
             let sphere = Sphere::new(pos + sph_vec[i] * radius, dir_y, sphere_radius);
-            let element = Element::new(Box::new(sphere), material.copy());
+            let element = Element::new(Box::new(sphere), material.clone());
             elements.push(element);
         }
 
