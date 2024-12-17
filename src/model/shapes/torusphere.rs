@@ -2,11 +2,9 @@ use super::{sphere::Sphere, ComposedShape};
 use std::f64::consts::PI;
 use crate::{
     model::{
-        materials::{
-            diffuse::Diffuse,
-            material::Material,
-            texture::{Texture, TextureType}
-        }, maths::vec3::Vec3, ComposedElement, Element
+        materials::
+            material::Material
+        , maths::vec3::Vec3, ComposedElement, Element
     },
     ui::{
         prefabs::vector_ui::get_vector_ui,
@@ -22,24 +20,33 @@ pub struct Torusphere {
     pub dir: Vec3,
     pub radius: f64,
     pub steps: usize,
-    pub sphere_radius: f64,
-    pub sphere_color: Vec3,
-    pub material: Box<dyn Material + Send +Sync>,
-    pub elements: Vec<Element>,
+    pub sphere_radius: f64
 }
 
 impl ComposedShape for Torusphere {
-    fn material(&self) -> &Box<dyn Material + Send +Sync> {
-        return &self.material;
-    }
-    fn material_mut(&mut self) -> &mut Box<dyn Material + Send +Sync> {
-        return &mut self.material;
-    }
-    fn elements(&self) -> &Vec<Element> {
-        return &self.elements();
-    }
-    fn elements_as_mut(&mut self) -> &mut Vec<Element> {
-        return &mut self.elements;
+    fn generate_elements(&self, material: Box<dyn Material + Send +Sync>) -> Vec<Element> {
+        let mut sph_vec = vec![];
+        let dir_y = self.dir.clone().normalize();
+        let dir_x;
+        if self.dir == Vec3::new(0.0, 1.0, 0.0) {
+            dir_x =  Vec3::new(1.0, 0.0, 0.0);
+        } else {
+            dir_x =  Vec3::new(0.0, 1.0, 0.0);
+        }
+
+        for i in 1..self.steps + 1 {
+            // let factor = (i as i32 - steps as i32 / 2) as f64 * 2.0;
+            let factor = (i * 2) as f64;
+            sph_vec.push((PI * factor / self.steps as f64).sin() * dir_y + (PI * factor / self.steps as f64).cos() * dir_x);
+        }
+
+        let mut elements = vec![];
+        for i in 0..self.steps {
+            let sphere = Sphere::new(self.pos + sph_vec[i] * self.radius, self.dir.normalize(), self.sphere_radius);
+            let element = Element::new(Box::new(sphere), material.clone());
+            elements.push(element);
+        }
+        elements
     }
     fn as_torusphere(&self) -> Option<&self::Torusphere> {
         return Some(self);
@@ -62,7 +69,6 @@ impl ComposedShape for Torusphere {
                 if let Some(torusphere) = elem.composed_shape_mut().as_torusphere_mut() {
                     if let Value::Float(value) = value {
                         torusphere.pos.set_x(value);
-                        elem.update();
                     }
                 }
             }),
@@ -72,7 +78,6 @@ impl ComposedShape for Torusphere {
                 if let Some(torusphere) = elem.composed_shape_mut().as_torusphere_mut() {
                     if let Value::Float(value) = value {
                         torusphere.pos.set_y(value);
-                        elem.update();
                     }
                 }
             }),
@@ -82,7 +87,6 @@ impl ComposedShape for Torusphere {
                 if let Some(torusphere) = elem.composed_shape_mut().as_torusphere_mut() {
                     if let Value::Float(value) = value {
                         torusphere.pos.set_z(value);
-                        elem.update();
                     }
                 }
             }),
@@ -146,19 +150,13 @@ impl ComposedShape for Torusphere {
                 ElemType::Property(Property::new(
                     Value::Unsigned(torusphere.steps as u32), 
                     Box::new(move |_, value, scene, _: &mut UI| {
-                        let next_id = scene.read().unwrap().get_next_element_id();
-                        let mut id_increment = 0;
                         let mut scene = scene.write().unwrap();
                         let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                         if let Some(torusphere) = elem.composed_shape_mut().as_torusphere_mut() {
                             if let Value::Unsigned(value) = value {
-                                let m = torusphere.elements().len() as u32;
-                                torusphere.set_steps(value as usize, next_id);
-                                let n = torusphere.elements().len() as u32;
-                                id_increment = next_id + n - m;
+                                torusphere.set_steps(value as usize);
                             }
                         }
-                        scene.set_next_element_id(id_increment);
                         scene.set_dirty(true);
                     }),
                     Box::new(|_, _, _| Ok(())),
@@ -187,54 +185,18 @@ impl ComposedShape for Torusphere {
         }
         category
     }
-
-    fn update(&mut self) {
-        self.update(0);
-    }
-
-    fn update_material(&mut self) {
-        self.update_material();
-    }
 }
 
 impl Torusphere {
-    pub fn new(pos: Vec3, dir: Vec3, radius: f64, steps: usize, color: Vec3) -> Torusphere {
-        let mut sph_vec: Vec<Vec3> = Vec::new();
-        let mut elements: Vec<Element> = Vec::new();
-        let mut material: Box<Diffuse> = Diffuse::default();
-        material.set_color(Texture::Value(color, TextureType::Color));
-        material.set_opacity(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
-
+    pub fn new(pos: Vec3, dir: Vec3, radius: f64, steps: usize) -> Torusphere {
         let sphere_radius = 0.2 * radius;
-        let dir_y = dir.normalize();
-        let dir_x;
-        if dir == Vec3::new(0.0, 1.0, 0.0) {
-            dir_x =  Vec3::new(1.0, 0.0, 0.0);
-        } else {
-            dir_x =  Vec3::new(0.0, 1.0, 0.0);
-        }
-
-        for i in 1..steps + 1 {
-            // let factor = (i as i32 - steps as i32 / 2) as f64 * 2.0;
-            let factor = (i * 2) as f64;
-            sph_vec.push((PI * factor / steps as f64).sin() * dir_y + (PI * factor / steps as f64).cos() * dir_x);
-        }
-
-        for i in 0..steps {
-            let sphere = Sphere::new(pos + sph_vec[i] * radius, dir_y, sphere_radius);
-            let element = Element::new(Box::new(sphere), material.clone());
-            elements.push(element);
-        }
 
         Torusphere {
             pos,
             dir,
             radius,
             steps,
-            sphere_radius,
-            sphere_color: color,
-            material,
-            elements: elements
+            sphere_radius
         }
     }
 
@@ -244,74 +206,21 @@ impl Torusphere {
     pub fn radius(&self) -> f64 { self.radius }
     pub fn steps(&self) -> usize { self.steps }
     pub fn sphere_radius(&self) -> f64 { self.sphere_radius }
-    pub fn color(&self) -> &Vec3 { &self.sphere_color }
-    pub fn material(&self) -> &Box<dyn Material + Send +Sync> { &self.material }
-    pub fn material_mut(&mut self) -> &mut Box<dyn Material + Send +Sync> { &mut self.material }
-    pub fn elements(&self) -> &Vec<Element> { &self.elements }
 
     // Setters
     pub fn set_pos(&mut self, pos: Vec3) {
         self.pos = pos;
-        self.update(0);
     }
     pub fn set_dir(&mut self, dir: Vec3) {
         self.dir = dir;
-        self.update(0);
     }
     pub fn set_radius(&mut self, radius: f64) {
         self.radius = radius;
-        self.update(0);
     }
-    pub fn set_color(&mut self, color: Vec3) {
-        self.sphere_color = color;
-        self.material.set_color(Texture::Value(color, TextureType::Color));
-        self.update(0);
-    }
-    pub fn set_steps(&mut self, steps: usize, next_id: u32) {
+    pub fn set_steps(&mut self, steps: usize) {
         self.steps = steps;
-        self.update(next_id);
     }
     pub fn set_sphere_radius(&mut self, sphere_radius: f64) {
         self.sphere_radius = sphere_radius;
-        self.update(0);
-    }
-
-    // Methods
-    pub fn update(&mut self, next_id: u32) {
-        let mut next_id = next_id;
-        let mut elem_ids: Vec<u32> = Vec::new();
-        let composed_id = self.id();
-
-        for elem in self.elements() {
-            elem_ids.push(elem.id());
-        }
-
-        let pos = self.pos;
-        let dir = self.dir;
-        let radius = self.radius;
-        let color = self.sphere_color;
-        let steps = self.steps;
-
-        *self = Torusphere::new(pos, dir, radius, steps, color);
-
-        for (i, elem) in self.elements.iter_mut().enumerate() {
-            if i < elem_ids.len() {
-                elem.set_id(elem_ids[i]);
-            } else {
-                elem.set_id(next_id);
-                next_id += 1;
-            }
-
-            if let Some(composed_id) = composed_id {
-                elem.set_composed_id(composed_id);
-            }
-        }
-    }
-
-    pub fn update_material(&mut self) {
-        let material = self.material.clone();
-        for elem in self.elements_as_mut() {
-            elem.set_material(material.clone());
-        }
     }
 }

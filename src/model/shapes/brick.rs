@@ -1,37 +1,22 @@
+use std::sync::{Arc, RwLock};
+
 use super::{rectangle::Rectangle, ComposedShape};
 use crate::{model::{
     materials::{
         diffuse::Diffuse,
         material::Material,
         texture::{Texture, TextureType}
-    },
-    maths::vec3::Vec3,
-    Element
-}, ui::{prefabs::vector_ui::get_vector_ui, uielement::{Category, UIElement}, utils::misc::{ElemType, Value}}};
+    }, maths::vec3::Vec3, scene::Scene, ComposedElement, Element
+}, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Value}}};
 
 #[derive(Debug)]
 pub struct Brick {
     pub pos: Vec3,
     pub dir: Vec3,
-    pub dimensions: Vec3,
-    pub color: Vec3,
-    pub material: Box<dyn Material + Send +Sync>,
-    pub elements: Vec<Element>,
+    pub dimensions: Vec3
 }
 
 impl ComposedShape for Brick {
-    fn material(&self) -> &Box<dyn Material + Send +Sync> {
-        return &self.material;
-    }
-    fn material_mut(&mut self) -> &mut Box<dyn Material + Send +Sync> {
-        return &mut self.material;
-    }
-    fn elements(&self) -> &Vec<Element> {
-        return &self.elements();
-    }
-    fn elements_as_mut(&mut self) -> &mut Vec<Element> {
-        return &mut self.elements;
-    }
     fn as_brick(&self) -> Option<&self::Brick> {
         return Some(self);
     }
@@ -39,7 +24,72 @@ impl ComposedShape for Brick {
         return Some(self);
     }
 
-    fn get_ui(&self, element: &crate::model::ComposedElement, ui: &mut crate::ui::ui::UI, _scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
+    fn generate_elements(&self, material: Box<dyn Material + Send +Sync>) -> Vec<Element> {
+        let mut elements = vec![];
+
+        let h = *self.dimensions.x();
+        let w = *self.dimensions.y();
+        let l = *self.dimensions.z();
+
+        let dir_h = self.dir.clone().normalize();
+        let dir_w;
+        if dir_h == Vec3::new(0.0, 1.0, 0.0) {
+            dir_w = dir_h.cross(&Vec3::new(0.0, 0.0, 1.0)).normalize();
+        } else {
+            dir_w = dir_h.cross(&Vec3::new(0.0, 1.0, 0.0)).normalize();
+        }
+        let dir_l = dir_h.cross(&-dir_w).normalize();
+
+
+        // Create the 6 rectangles of the brick in this order:
+        // TOP, BOTTOM, FRONT, BACK, LEFT, RIGHT
+
+        // The positions of the 6 rectangles (center)
+        let rectangle_positions = [
+            self.pos.clone() + dir_h.clone() * h / 2.,
+            self.pos.clone() - dir_h.clone() * h / 2.,
+            self.pos.clone() + dir_l.clone() * l / 2.,
+            self.pos.clone() - dir_l.clone() * l / 2.,
+            self.pos.clone() + dir_w.clone() * w / 2.,
+            self.pos.clone() - dir_w.clone() * w / 2.,
+        ];
+
+        // The directions of the 6 rectangles (length, width)
+        let rectangle_dirs = [
+            (dir_l, dir_w),
+            (dir_l, dir_w),
+            (dir_w, dir_h),
+            (dir_w, dir_h),
+            (dir_l, dir_h),
+            (dir_l, dir_h),
+        ];
+
+        // The dimensions of the 6 rectangles (length, width)
+        let rectangle_dims = [
+            (l, w),
+            (l, w),
+            (w, h),
+            (w, h),
+            (l, h),
+            (l, h),
+        ];
+
+        // Create the 6 rectangles and add them to the elements vector
+        for i in 0..rectangle_positions.len() {
+            let rectangle = Rectangle::new(
+                rectangle_positions[i],
+                rectangle_dims[i].0,
+                rectangle_dims[i].1,
+                rectangle_dirs[i].0,
+                rectangle_dirs[i].1,
+            );
+
+            elements.push(Element::new(Box::new(rectangle), material.clone()));
+        }
+        elements
+    }
+
+    fn get_ui(&self, element: &ComposedElement, ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
         let mut category = UIElement::new("Brick", "brick", ElemType::Category(Category::default()), ui.uisettings());
 
         if let Some(brick) = self.as_brick() {
@@ -53,7 +103,6 @@ impl ComposedShape for Brick {
                 if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
                     if let Value::Float(value) = value {
                         brick.pos.set_x(value);
-                        elem.update();
                     }
                 }
             }),
@@ -63,7 +112,6 @@ impl ComposedShape for Brick {
                 if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
                     if let Value::Float(value) = value {
                         brick.pos.set_y(value);
-                        elem.update();
                     }
                 }
             }),
@@ -73,7 +121,6 @@ impl ComposedShape for Brick {
                 if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
                     if let Value::Float(value) = value {
                         brick.pos.set_z(value);
-                        elem.update();
                     }
                 }
             }),
@@ -118,7 +165,6 @@ impl ComposedShape for Brick {
                 if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
                     if let Value::Float(value) = value {
                         brick.dimensions.set_x(value);
-                        elem.update();
                     }
                 }
             }),
@@ -128,7 +174,6 @@ impl ComposedShape for Brick {
                 if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
                     if let Value::Float(value) = value {
                         brick.dimensions.set_y(value);
-                        elem.update();
                     }
                 }
             }),
@@ -138,7 +183,6 @@ impl ComposedShape for Brick {
                 if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
                     if let Value::Float(value) = value {
                         brick.dimensions.set_z(value);
-                        elem.update();
                     }
                 }
             }),
@@ -146,14 +190,6 @@ impl ComposedShape for Brick {
         }
 
         return category;
-    }
-
-    fn update(&mut self) {
-        self.update();
-    }
-
-    fn update_material(&mut self) {
-        self.update_material();
     }
 }
 
@@ -168,12 +204,6 @@ impl Brick {
     pub fn dimensions(&self) -> &Vec3 {
         &self.dimensions
     }
-    pub fn elements(&self) -> &Vec<Element> {
-        &self.elements
-    }
-    pub fn color(&self) -> &Vec3 {
-        &self.color
-    }
 
     // Mutators
     pub fn set_pos(&mut self, pos: Vec3) {
@@ -185,114 +215,17 @@ impl Brick {
     pub fn set_dimensions(&mut self, dimensions: Vec3) {
         self.dimensions = dimensions;
     }
-    pub fn set_elements(&mut self, elements: Vec<Element>) {
-        self.elements = elements;
-    }
-    pub fn set_color(&mut self, color: Vec3) {
-        self.color = color;
-    }
 
     // Constructor
-    pub fn new(pos: Vec3, dir: Vec3, dimensions: Vec3, color: Vec3) -> Brick {
+    pub fn new(pos: Vec3, dir: Vec3, dimensions: Vec3) -> Brick {
         let mut elements: Vec<Element> = Vec::new();
-        let mut material: Box<Diffuse> = Diffuse::default();
-        material.set_color(Texture::Value(color, TextureType::Color));
-        material.set_opacity(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
-
-        let h = *dimensions.x();
-        let w = *dimensions.y();
-        let l = *dimensions.z();
-
-        let dir_h = dir.clone().normalize();
-        let dir_w;
-        if dir_h == Vec3::new(0.0, 1.0, 0.0) {
-            dir_w = dir_h.cross(&Vec3::new(0.0, 0.0, 1.0)).normalize();
-        } else {
-            dir_w = dir_h.cross(&Vec3::new(0.0, 1.0, 0.0)).normalize();
-        }
-        let dir_l = dir_h.cross(&-dir_w).normalize();
-
-
-        // Create the 6 rectangles of the brick in this order:
-        // TOP, BOTTOM, FRONT, BACK, LEFT, RIGHT
-
-        // The positions of the 6 rectangles (center)
-        let rectangle_positions = [
-            pos.clone() + dir_h.clone() * h / 2.,
-            pos.clone() - dir_h.clone() * h / 2.,
-            pos.clone() + dir_l.clone() * l / 2.,
-            pos.clone() - dir_l.clone() * l / 2.,
-            pos.clone() + dir_w.clone() * w / 2.,
-            pos.clone() - dir_w.clone() * w / 2.,
-        ];
-
-        // The directions of the 6 rectangles (length, width)
-        let rectangle_dirs = [
-            (dir_l, dir_w),
-            (dir_l, dir_w),
-            (dir_w, dir_h),
-            (dir_w, dir_h),
-            (dir_l, dir_h),
-            (dir_l, dir_h),
-        ];
-
-        // The dimensions of the 6 rectangles (length, width)
-        let rectangle_dims = [
-            (l, w),
-            (l, w),
-            (w, h),
-            (w, h),
-            (l, h),
-            (l, h),
-        ];
-
-        // Create the 6 rectangles and add them to the elements vector
-        for i in 0..rectangle_positions.len() {
-            let rectangle = Rectangle::new(
-                rectangle_positions[i],
-                rectangle_dims[i].0,
-                rectangle_dims[i].1,
-                rectangle_dirs[i].0,
-                rectangle_dirs[i].1,
-            );
-
-            material.set_color(Texture::Value(color, TextureType::Color));
-            elements.push(Element::new(Box::new(rectangle), material.clone()));
-        }
 
         // Create and return the brick
         Brick {
             pos,
             dir,
-            dimensions,
-            color,
-            material,
-            elements,
+            dimensions
         }
     }
 
-    pub fn update(&mut self) {
-        let mut elem_ids: Vec<u32> = Vec::new();
-        let composed_id = self.id();
-
-        for elem in self.elements() {
-            elem_ids.push(elem.id());
-        }
-
-        *self = Brick::new(self.pos.clone(), self.dir.clone(), self.dimensions.clone(), self.color.clone());
-
-        for (i, elem) in self.elements.iter_mut().enumerate() {
-            elem.set_id(elem_ids[i]);
-            if let Some(composed_id) = composed_id {
-                elem.set_composed_id(composed_id);
-            }
-        }
-    }
-
-    pub fn update_material(&mut self) {
-        let material = self.material.clone();
-        for elem in self.elements_as_mut() {
-            elem.set_material(material.clone());
-        }
-    }
 }

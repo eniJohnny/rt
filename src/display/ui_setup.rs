@@ -42,7 +42,10 @@ pub fn setup_ui(scene: &Arc<RwLock<Scene>>) -> UI {
 
 pub fn setup_element_ui(element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene>>) {
     ui.destroy_box(ELEMENT);
-    let name = "Element".to_string() + &element.id().to_string();
+    let name = match element.composed_id() {
+        Some(composed_id) => "ComposedElement".to_string() + &composed_id.to_string(),
+        None => "Element".to_string() + &element.id().to_string()
+    };
     let mut elem_box = UIBox::new(ELEMENT, BoxPosition::CenterRight(10), ui.uisettings().gui_width, ui.uisettings());
     let mut category = UIElement::new(&name, &name, ElemType::Category(Category::default()), ui.uisettings());
 
@@ -59,10 +62,16 @@ pub fn setup_element_ui(element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene
     if !is_composed {
         category.add_element(element.shape().get_ui(element, ui, scene));
     }
+    let composed_id = element.composed_id().clone();
     category.add_element(get_material_ui(element, ui, scene));
     elem_box.add_elements(vec![category]);
-    elem_box.set_edit_bar(ui.uisettings(), Some(Box::new(|_, scene, _| {
-        scene.write().unwrap().set_dirty(true);
+    elem_box.set_edit_bar(ui.uisettings(), Some(Box::new(move |_, scene, _| {
+        let mut scene_write = scene.write().unwrap();
+        if let Some(composed_id) = composed_id {
+            scene_write.update_composed_element_material(composed_id);
+            scene_write.update_composed_element_shape(composed_id);
+        }
+        scene_write.set_dirty(true);
     })));
     ui.add_box(elem_box);
 }

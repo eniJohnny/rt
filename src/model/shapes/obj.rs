@@ -19,29 +19,59 @@ pub struct Obj {
     pub faces: Vec<Vec<Vec3>>,
     pub triangle_count: Vec<usize>,
     pub params_number: usize,
-	pub filepath: String,
-    pub material: Box<dyn Send + Sync + Material>,
-    pub elements: Vec<Element>,
+	pub filepath: String
 }
 
 impl ComposedShape for Obj {
-    fn material(&self) -> &Box<dyn Send + Sync + Material> {
-        return &self.material
-    }
-    fn material_mut(&mut self) -> &mut Box<dyn Send + Sync + Material> {
-        return &mut self.material;
-    }
-    fn elements(&self) -> &Vec<Element> {
-        return &self.elements();
-    }
-    fn elements_as_mut(&mut self) -> &mut Vec<Element> {
-        return &mut self.elements;
-    }
     fn as_obj(&self) -> Option<&self::Obj> {
         return Some(self);
     }
     fn as_obj_mut(&mut self) -> Option<&mut self::Obj> {
         return Some(self);
+    }
+
+    fn generate_elements(&self, material: Box<dyn Material + Send +Sync>) -> Vec<Element> {
+        let mut elements = vec![];
+
+        let len = self.faces.len();
+
+        for i in 0..len {
+            let face = self.faces[i].clone();
+            let mut vertices: Vec<Vec3> = vec![];
+            let mut normals: Vec<Vec3> = vec![];
+            let mut textures: Vec<Vec3> = vec![];
+            let modulo = self.params_number();
+
+            for j in 0..face.len() {
+                match j % modulo {
+                    0 => {
+                        let vec = face[j].clone() * self.scale() + self.pos();
+                        vertices.push(self.rotated_vertex(*vec.x(), *vec.y(), *vec.z()));
+                    },
+                    1 => textures.push(face[j]),
+                    2 => {
+                        normals.push(self.rotated_vertex(*face[j].x(), *face[j].y(), *face[j].z()))
+                    },
+                    _ => {}
+                }
+            }
+
+            // println!("{}", i);
+            for k in 0..self.triangle_count()[i] {
+                let (a, b, c) = (vertices[0], vertices[k + 1], vertices[k + 2]);
+                let (a_uv, b_uv, c_uv) = (textures[0].xy(), textures[k + 1].xy(), textures[k + 2].xy());
+
+                let mut triangle = Triangle::new(a, b, c);
+                triangle.set_is_obj(true);
+                triangle.set_a_uv(a_uv);
+                triangle.set_b_uv(b_uv);
+                triangle.set_c_uv(c_uv);
+
+                let elem = Element::new(Box::new(triangle), material.clone());
+                elements.push(elem);
+            }
+        }
+        elements
     }
 
     fn get_ui(&self, element: &crate::model::ComposedElement, ui: &mut crate::ui::ui::UI, _scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
@@ -59,7 +89,6 @@ impl ComposedShape for Obj {
                     if let Value::Float(value) = value {
                         let newpos = Vec3::new(value, *obj.pos.y(), *obj.pos.z());
                         obj.set_pos(newpos);
-                        // elem.update();
                     }
                 }
             }),
@@ -70,7 +99,6 @@ impl ComposedShape for Obj {
                     if let Value::Float(value) = value {
                         let newpos = Vec3::new(*obj.pos.x(), value, *obj.pos.z());
                         obj.set_pos(newpos);
-                        // elem.update();
                     }
                 }
             }),
@@ -81,7 +109,6 @@ impl ComposedShape for Obj {
                     if let Value::Float(value) = value {
                         let newpos = Vec3::new(*obj.pos.x(), *obj.pos.y(), value);
                         obj.set_pos(newpos);
-                        elem.update();
                     }
                 }
             }),
@@ -113,7 +140,6 @@ impl ComposedShape for Obj {
                 if let Some(obj) = elem.composed_shape_mut().as_obj_mut() {
                     if let Value::Float(value) = value {
                         obj.dir.set_z(value);
-                        elem.update();
                     }
                 }
             }),
@@ -131,7 +157,6 @@ impl ComposedShape for Obj {
                         if let Some(obj) = elem.composed_shape_mut().as_obj_mut() {
                             if let Value::Float(value) = value {
                                 obj.set_scale(value);
-                                elem.update();
                             }
                         }
                         scene.set_dirty(true);
@@ -142,14 +167,6 @@ impl ComposedShape for Obj {
         }
 
         return category;
-    }
-
-    fn update(&mut self) {
-        self.update(0);
-    }
-
-    fn update_material(&mut self) {
-        self.update_material();
     }
 }
 
@@ -164,20 +181,8 @@ impl Obj {
     pub fn scale(&self) -> f64 {
         self.scale
     }
-    pub fn elements(&self) -> &Vec<Element> {
-        &self.elements
-    }
-    pub fn elements_mut(&mut self) -> &mut Vec<Element> {
-        &mut self.elements
-    }
     pub fn filepath(&self) -> &String {
         &self.filepath
-    }
-    pub fn material(&self) -> &Box<dyn Send + Sync + Material> {
-        &self.material
-    }
-    pub fn material_mut(&mut self) -> &mut Box<dyn Send + Sync + Material> {
-        &mut self.material
     }
     pub fn triangle_count(&self) -> &Vec<usize> {
         &self.triangle_count
@@ -211,14 +216,8 @@ impl Obj {
     pub fn set_scale(&mut self, scale: f64) {
         self.scale = scale;
     }
-    pub fn set_elements(&mut self, elements: Vec<Element>) {
-        self.elements = elements;
-    }
     pub fn set_filepath(&mut self, filepath: String) {
         self.filepath = filepath;
-    }
-    pub fn set_material(&mut self, material: Box<dyn Send + Sync + Material>) {
-        self.material = material;
     }
     pub fn set_params_number(&mut self) {
         self.params_number = 1 + (self.textures.len() > 0) as usize + (self.normals.len() > 0) as usize;
@@ -239,12 +238,9 @@ impl Obj {
     pub fn add_face(&mut self, face: Vec<Vec3>) {
         self.faces.push(face);
     }
-    pub fn add_element(&mut self, element: Element) {
-        self.elements.push(element);
-    }
 
     // Constructor
-    pub fn new(pos: Vec3, dir: Vec3, rotation: f64, scale: f64, filepath: String, material: Box<dyn Send + Sync + Material>) -> Obj {
+    pub fn new(pos: Vec3, dir: Vec3, rotation: f64, scale: f64, filepath: String) -> Obj {
         Obj {
             vertices: Vec::new(),
             normals: Vec::new(),
@@ -256,13 +252,11 @@ impl Obj {
             dir,
             rotation,
             scale,
-            filepath,
-            material,
-			elements: Vec::new(),
+            filepath
         }
     }
 
-    pub fn rotated_vertex(&mut self, x: f64, y: f64, z: f64) -> Vec3 {
+    pub fn rotated_vertex(&self, x: f64, y: f64, z: f64) -> Vec3 {
         let point_pos = Vec3::new(x, y, z) - self.pos();
         let default_dir = Vec3::new(0.0, 1.0, 0.0);
 
@@ -371,81 +365,5 @@ impl Obj {
         }
         self.set_params_number();
         return Ok(());
-    }
-
-    pub fn update(&mut self, next_id: u32) {
-        let mut next_id = next_id;
-        let mut elem_ids: Vec<u32> = Vec::new();
-        let composed_id = self.id();
-
-        for elem in self.elements() {
-            elem_ids.push(elem.id());
-        }
-
-        self.update_logic();
-
-        for (i, elem) in self.elements.iter_mut().enumerate() {
-            if i < elem_ids.len() {
-                elem.set_id(elem_ids[i]);
-            } else {
-                elem.set_id(next_id);
-                next_id += 1;
-            }
-
-            if let Some(composed_id) = composed_id {
-                elem.set_composed_id(composed_id);
-            }
-        }
-    }
-
-    pub fn update_material(&mut self) {
-        let material = self.material.clone();
-        for elem in self.elements_as_mut() {
-            elem.set_material(material.clone());
-        }
-    }
-
-    pub fn update_logic(&mut self) {
-        self.elements.clear();
-
-        let len = self.faces.len();
-
-        for i in 0..len {
-            let face = self.faces[i].clone();
-            let mut vertices: Vec<Vec3> = vec![];
-            let mut normals: Vec<Vec3> = vec![];
-            let mut textures: Vec<Vec3> = vec![];
-            let modulo = self.params_number();
-
-            for j in 0..face.len() {
-                match j % modulo {
-                    0 => {
-                        let vec = face[j].clone() * self.scale() + self.pos();
-                        vertices.push(self.rotated_vertex(*vec.x(), *vec.y(), *vec.z()));
-                    },
-                    1 => textures.push(face[j]),
-                    2 => {
-                        normals.push(self.rotated_vertex(*face[j].x(), *face[j].y(), *face[j].z()))
-                    },
-                    _ => {}
-                }
-            }
-
-            // println!("{}", i);
-            for k in 0..self.triangle_count()[i] {
-                let material = self.material.clone();
-                let (a, b, c) = (vertices[0], vertices[k + 1], vertices[k + 2]);
-                let (a_uv, b_uv, c_uv) = (textures[0].xy(), textures[k + 1].xy(), textures[k + 2].xy());
-
-                let mut triangle = Triangle::new(a, b, c);
-                triangle.set_is_obj(true);
-                triangle.set_a_uv(a_uv);
-                triangle.set_b_uv(b_uv);
-                triangle.set_c_uv(c_uv);
-
-                let elem = Element::new(Box::new(triangle), material);
-                self.add_element(elem);
-            }
-        }
     }
 }

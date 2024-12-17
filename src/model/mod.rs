@@ -1,4 +1,5 @@
 use materials::material::Material;
+use scene::Scene;
 use shapes::{Shape, ComposedShape};
 
 pub mod materials;
@@ -9,10 +10,10 @@ pub mod scene;
 
 #[derive(Debug)]
 pub struct Element {
-    id: u32,
+    id: usize,
     material: Box<dyn Material + Send +Sync>,
     shape: Box<dyn Sync + Shape>,
-    composed_id: Option<u32>
+    composed_id: Option<usize>
 }
 
 impl Element {
@@ -40,11 +41,11 @@ impl Element {
         self.shape.as_mut()
     }
 
-    pub fn id(&self) -> u32 {
+    pub fn id(&self) -> usize {
         self.id
     }
 
-    pub fn composed_id(&self) -> Option<u32> {
+    pub fn composed_id(&self) -> Option<usize> {
         self.composed_id
     }
 
@@ -56,11 +57,11 @@ impl Element {
         self.shape = shape;
     }
 
-    pub fn set_id(&mut self, id: u32) {
+    pub fn set_id(&mut self, id: usize) {
         self.id = id;
     }
 
-    pub fn set_composed_id(&mut self, id: u32) {
+    pub fn set_composed_id(&mut self, id: usize) {
         self.composed_id = Some(id);
     }
 }
@@ -68,15 +69,29 @@ impl Element {
 #[derive(Debug)]
 pub struct ComposedElement {
     composed_shape: Box<dyn Sync + ComposedShape>,
-    id: u32,
+    elements_index: Vec<usize>,
+    material: Box<dyn Material + Send +Sync>,
+    id: usize,
 }
 
 impl ComposedElement {
-    pub fn new(composed_shape: Box<dyn Sync + ComposedShape>) -> Self {
+    pub fn new(composed_shape: Box<dyn Sync + ComposedShape>, material: Box<dyn Material + Send +Sync>) -> Self {
         Self {
             composed_shape,
+            elements_index: vec![],
+            material,
             id: 0
         }
+    }
+
+    fn elements_index(&self) -> &Vec<usize> {
+        &self.elements_index
+    }
+    fn elements_index_mut(&mut self) -> &mut Vec<usize> {
+        &mut self.elements_index
+    }
+    fn set_elements_index(&mut self, elements_index: Vec<usize>) {
+        self.elements_index = elements_index;
     }
 
     pub fn composed_shape(&self) -> &Box<dyn Sync + ComposedShape> {
@@ -88,18 +103,18 @@ impl ComposedElement {
     }
 
     pub fn material(&self) -> &Box<dyn Material + Send +Sync> {
-        self.composed_shape().material()
+        &self.material
     }
 
-    pub fn set_id(&mut self, id: u32) {
+    pub fn material_mut(&mut self) -> &mut Box<dyn Material + Send +Sync> {
+        &mut self.material
+    }
+
+    pub fn set_id(&mut self, id: usize) {
         self.id = id;
     }
 
-    pub fn id(&self) -> u32 {
+    pub fn id(&self) -> usize {
         self.id
-    }
-
-    pub fn update(&mut self) {
-        self.composed_shape_mut().update();
     }
 }

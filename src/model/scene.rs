@@ -1,5 +1,5 @@
-use std::{collections::HashMap, fs};
-use image::RgbaImage;
+use std::{collections::HashMap, ops::SubAssign};
+
 use crate::{
     bvh::{self},
     model::objects::light::AmbientLight,
@@ -30,8 +30,8 @@ pub struct Scene {
     textures: HashMap<String, image::RgbaImage>,
     dirty: bool,
     bvh: Option<bvh::node::Node>,
-    next_element_id: u32,
-    next_composed_element_id: u32
+    next_element_id: usize,
+    next_composed_element_id: usize
 }
 
 impl Scene {
@@ -61,15 +61,79 @@ impl Scene {
     }
 
     pub fn add_composed_element(&mut self, mut composed_element: ComposedElement) {
-        for element in composed_element.composed_shape_mut().elements_as_mut() {
+        composed_element.set_id(self.next_composed_element_id);
+        let elements = composed_element.composed_shape().generate_elements(composed_element.material.clone());
+        let mut elements_index = composed_element.elements_index_mut().clone();
+        elements_index.clear();
+        for mut element in elements {
+            element.set_composed_id(composed_element.id());
             element.set_id(self.next_element_id);
-            element.set_composed_id(self.next_composed_element_id);
+            elements_index.push(self.next_element_id);
+            self.elements.push(element);
             self.next_element_id += 1;
         }
-
-        composed_element.set_id(self. next_composed_element_id);
+        composed_element.set_elements_index(elements_index);
         self.composed_elements.push(composed_element);
         self.next_composed_element_id += 1;
+    }
+
+    pub fn update_composed_element_shape(&mut self, composed_id: usize) {
+        let composed_element = &mut self.composed_elements[composed_id];
+        let mut elements_index = composed_element.elements_index_mut().clone();
+        let old_nb_elem = elements_index.len();
+        let material = composed_element.material.clone();
+        let mut new_elements = composed_element.composed_shape().generate_elements(material);
+        let new_nb_elem = new_elements.len();
+
+        for i in 0..old_nb_elem.min(new_nb_elem) {
+            let mut element = new_elements.remove(0);
+            element.set_composed_id(composed_id);
+            element.set_id(self.next_element_id);
+            self.elements[i] = element;
+        }
+        if old_nb_elem > new_nb_elem {
+            elements_index.truncate(new_nb_elem);
+        }
+        for _ in old_nb_elem..new_nb_elem {
+            let mut element = new_elements.remove(old_nb_elem);
+            element.set_composed_id(composed_id);
+            element.set_id(self.next_element_id);
+            elements_index.push(self.next_element_id);
+            self.next_element_id += 1;
+        }
+        composed_element.set_elements_index(elements_index);
+
+
+        for i in new_nb_elem..old_nb_elem {
+            self.remove_element(i);
+        }
+    }
+
+    pub fn update_composed_element_material(&mut self, composed_id: usize) {
+        if let Some(composed_element) = self.composed_elements.get(composed_id) {
+            let material = (*composed_element.material()).clone();
+
+            for index in composed_element.elements_index() {
+                let element = &mut self.elements[*index];
+                element.set_material(material.clone());
+            }
+        }
+    }
+
+    pub fn remove_element(&mut self, index_to_remove: usize) {
+        for i in (index_to_remove + 1)..self.elements.len() {
+            let mut element = &mut self.elements[i];
+            element.id = i - 1;
+        }
+        for composed_element in &mut self.composed_elements {
+            let elements_index = composed_element.elements_index_mut();
+            for index in elements_index {
+                if *index > index_to_remove {
+                    index.sub_assign(1);
+                }
+            }
+        }
+        self.next_element_id -= 1;
     }
 
     pub fn add_camera(&mut self, camera: Camera) {
@@ -77,9 +141,7 @@ impl Scene {
     }
 
     pub fn add_light(&mut self, mut light: AnyLight) {
-        light.set_id(self.next_element_id);
         self.lights.push(light);
-        self.next_element_id += 1;
     }
 
     pub fn add_ambient_light(&mut self, ambient_light: AmbientLight) {
@@ -132,68 +194,6 @@ impl Scene {
             }
         }
     }
-
-    // pub fn add_obj(&mut self, obj: &mut Obj) {
-    //     // let mut obj = Obj::new();
-    //     let path = obj.filepath().clone();
-    //     let texture_path = obj.texturepath().clone();
-    //     let result = obj.parse_file(path.clone());
-    //     let mut texture = Texture::Value(Vec3::from_value(1.0), TextureType::Float);
-
-    //     match result {
-    //         Ok(_) => {
-    //             let len = obj.faces.len();
-
-    //             if texture_path != "" && fs::File::open(texture_path.clone()).is_ok() {
-    //                 self.add_texture(texture_path.clone(), image::open(texture_path.clone()).unwrap().to_rgba8());
-    //                 texture = Texture::Texture(texture_path.clone(), TextureType::Color);
-    //             } else if texture_path != "" {
-    //                 println!("Texture file not found: {}", texture_path);
-    //             }
-
-    //             for i in 0..len {
-    //                 let face = &obj.faces[i];
-    //                 let mut vertices: Vec<Vec3> = vec![];
-    //                 let mut normals: Vec<Vec3> = vec![];
-    //                 let mut textures: Vec<Vec3> = vec![];
-    //                 let modulo = obj.params_number();
-        
-    //                 for j in 0..face.len() {
-    //                     match j % modulo {
-    //                         0 => vertices.push(face[j]),
-    //                         1 => textures.push(face[j]),
-    //                         2 => normals.push(face[j]),
-    //                         _ => {}
-    //                     }
-    //                 }        
-
-                    // for k in 0..obj.triangle_count()[i] {
-                    //     let mut material = Diffuse::default();
-                    //     material.set_color(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
-                    //     material.set_opacity(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
-                    //     material.set_color(texture.clone());
-                    //     let (a, b, c) = (vertices[0], vertices[k + 1], vertices[k + 2]);
-                    //     let (a_uv, b_uv, c_uv) = (textures[0].xy(), textures[k + 1].xy(), textures[k + 2].xy());
-
-    //                     let mut triangle = Triangle::new(a, b, c);
-    //                     triangle.set_is_obj(true);
-    //                     triangle.set_a_uv(a_uv);
-    //                     triangle.set_b_uv(b_uv);
-    //                     triangle.set_c_uv(c_uv);
-
-    //                     let elem = Element::new(Box::new(triangle), material);
-    //                     // TODO: Add the element to a composed element
-    //                     // self.add_element(elem);
-    //                     obj.add_element(elem);
-    //                 }
-
-    //             }
-    //         }
-    //         Err(e) => {
-    //             println!("Error: {:?}", e);
-    //         }
-    //     }
-    // }
     
     pub fn add_wireframes(&mut self) {
         let aabbs = self.all_aabb();
@@ -217,7 +217,7 @@ impl Scene {
         node.build_tree(self);
 
         self.non_bvh_elements_index.clear();
-        self.non_bvh_composed_elements_index.clear();
+        // self.non_bvh_composed_elements_index.clear();
         let mut nb_elements = 0;
         for element in &self.elements {
             if element.shape().aabb().is_none() {
@@ -225,13 +225,13 @@ impl Scene {
             }
             nb_elements += 1;
         }
-        let mut nb_elements = 0;
-        for composed_element in &self.composed_elements {
-            if composed_element.composed_shape().elements().iter().all(|element| element.shape().aabb().is_none()) {
-                self.non_bvh_composed_elements_index.push(nb_elements);
-            }
-            nb_elements += 1;
-        }
+        // let mut nb_elements = 0;
+        // for composed_element in &self.composed_elements {
+        //     if composed_element.composed_shape().elements().iter().all(|element| element.shape().aabb().is_none()) {
+        //         self.non_bvh_composed_elements_index.push(nb_elements);
+        //     }
+        //     nb_elements += 1;
+        // }
 
         self.bvh = Some(node);
     }
@@ -253,7 +253,7 @@ impl Scene {
         &mut self.composed_elements
     }
 
-    pub fn element_by_id(&self, id: u32) -> Option<&Element> {
+    pub fn element_by_id(&self, id: usize) -> Option<&Element> {
         for element in &self.elements {
             if element.id == id {
                 return Some(element);
@@ -261,7 +261,7 @@ impl Scene {
         }
         None
     }
-    pub fn element_mut_by_id(&mut self, id: u32) -> Option<&mut Element> {
+    pub fn element_mut_by_id(&mut self, id: usize) -> Option<&mut Element> {
         for element in &mut self.elements {
             if element.id == id {
                 return Some(element);
@@ -270,7 +270,7 @@ impl Scene {
         None
     }
 
-    pub fn composed_element_by_element_id(&self, id: u32) -> Option<&ComposedElement> {
+    pub fn composed_element_by_element_id(&self, id: usize) -> Option<&ComposedElement> {
         if let Some(element) = self.element_by_id(id) {
             if let Some(composed_id) = element.composed_id() {
                 return self.composed_element_by_id(composed_id);
@@ -279,7 +279,7 @@ impl Scene {
         None
     }
 
-    pub fn composed_element_mut_by_element_id(&mut self, id:u32) -> Option<&mut ComposedElement> {
+    pub fn composed_element_mut_by_element_id(&mut self, id:usize) -> Option<&mut ComposedElement> {
         if let Some(element) = self.element_by_id(id) {
             if let Some(composed_id) = element.composed_id() {
                 return self.composed_element_mut_by_id(composed_id);
@@ -288,7 +288,7 @@ impl Scene {
         None
     }
 
-    pub fn composed_element_by_id(&self, id: u32) -> Option<&ComposedElement> {
+    pub fn composed_element_by_id(&self, id: usize) -> Option<&ComposedElement> {
         for element in &self.composed_elements {
             if element.id == id {
                 return Some(element);
@@ -296,7 +296,7 @@ impl Scene {
         }
         None
     }
-    pub fn composed_element_mut_by_id(&mut self, id: u32) -> Option<&mut ComposedElement> {
+    pub fn composed_element_mut_by_id(&mut self, id: usize) -> Option<&mut ComposedElement> {
         for element in &mut self.composed_elements {
             if element.id == id {
                 return Some(element);
@@ -363,19 +363,6 @@ impl Scene {
         &self.non_bvh_elements_index
     }
 
-    pub fn test_all_elements(&self) -> Vec<&crate::model::Element> {
-        self.elements
-            .iter()
-            .collect()
-    }
-
-    pub fn get_next_element_id(&self) -> u32 {
-        self.next_element_id
-    }
-    pub fn get_next_composed_element_id(&self) -> u32 {
-        self.next_composed_element_id
-    }
-
     // Mutators
 
     pub fn set_elements(&mut self, elements: Vec<Element>) {
@@ -398,15 +385,8 @@ impl Scene {
         self.bvh = bvh;
     }
 
-    pub fn set_next_element_id(&mut self, id: u32) {
-        self.next_element_id = id;
-    }
-    pub fn set_next_composed_element_id(&mut self, id: u32) {
-        self.next_composed_element_id = id;
-    }
-
     // TESTING - GET COMPOSED ELEMENTS UI
-    pub fn is_composed_element(&self, id: u32) -> Option<u32> {
-        self.composed_elements().iter().find(|composed_element| composed_element.composed_shape().elements().iter().any(|element| element.id() == id)).map(|composed_element| composed_element.id())
-    }
+    // pub fn is_composed_element(&self, id: u32) -> Option<u32> {
+    //     self.composed_elements().iter().find(|composed_element| composed_element.composed_shape().elements().iter().any(|element| element.id() == id)).map(|composed_element| composed_element.id())
+    // }
 }

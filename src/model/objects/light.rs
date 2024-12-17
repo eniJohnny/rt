@@ -34,7 +34,7 @@ impl AmbientLight {
 
 #[derive(Debug)]
 pub struct AnyLight {
-    id: u32,
+    id: usize,
     light: Box<dyn Light + Sync + Send>
 }
 
@@ -46,7 +46,7 @@ impl AnyLight {
         }
     }
 
-    pub fn id(&self) -> u32 {
+    pub fn id(&self) -> usize {
         self.id
     }
     pub fn light(&self) -> &Box<dyn Light + Sync + Send> {
@@ -56,7 +56,7 @@ impl AnyLight {
         &mut self.light
     }
 
-    pub fn set_id(&mut self, id: u32) {
+    pub fn set_id(&mut self, id: usize) {
         self.id = id;
     }
 }

@@ -178,38 +178,42 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let dir = get_coordinates_value(&object, "dir");
                 let radius = get_float_value(&object, "radius");
                 let steps = get_float_value(&object, "steps") as usize;
-                let color = match get_color(&object) {
-                    Some(color) => Vec3::new(color.r(), color.g(), color.b()),
-                    None => panic!("Color must be provided for toruspheres"),
-                };
+                let color = get_color(&object);
 
-                let torusphere = Torusphere::new(pos, dir, radius, steps, color);
+                let material = get_material(&object, color);
+                scene.load_material_textures(&material);
+
+                let torusphere = Torusphere::new(pos, dir, radius, steps);
                 let composed_shape = Box::new(torusphere) as Box<dyn ComposedShape + Sync + Send>;
-                let composed_element = ComposedElement::new(composed_shape);
+                let composed_element = ComposedElement::new(composed_shape, material);
                 scene.add_composed_element(composed_element);
             }
             "helix" => {
                 let pos = get_coordinates_value(&object, "pos");
                 let dir = get_coordinates_value(&object, "dir");
                 let height = get_float_value(&object, "height");
+                let color = get_color(&object);
+
+                let material = get_material(&object, color);
+                scene.load_material_textures(&material);
 
                 let helix = Helix::new(pos, dir, height);
                 let composed_shape = Box::new(helix) as Box<dyn ComposedShape + Sync + Send>;
-                let composed_element = ComposedElement::new(composed_shape);
+                let composed_element = ComposedElement::new(composed_shape, material);
                 scene.add_composed_element(composed_element);
             }
             "brick" => {
                 let pos = get_coordinates_value(&object, "pos");
                 let dir = get_coordinates_value(&object, "dir");
                 let dimensions = get_coordinates_value(&object, "dimensions");
-                let color = match get_color(&object) {
-                    Some(color) => Vec3::new(color.r(), color.g(), color.b()),
-                    None => panic!("Color must be provided for bricks"),
-                };
+                let color = get_color(&object);
 
-                let brick = Brick::new(pos, dir, dimensions, color);
+                let material = get_material(&object, color);
+                scene.load_material_textures(&material);
+
+                let brick = Brick::new(pos, dir, dimensions);
                 let composed_shape = Box::new(brick) as Box<dyn ComposedShape + Sync + Send>;
-                let composed_element = ComposedElement::new(composed_shape);
+                let composed_element = ComposedElement::new(composed_shape, material);
                 scene.add_composed_element(composed_element);
             }
             "nagone" => {
@@ -217,28 +221,28 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let dir = get_coordinates_value(&object, "dir");
                 let radius = get_float_value(&object, "radius");
                 let angles = get_float_value(&object, "angles") as usize;
-                let color = match get_color(&object) {
-                    Some(color) => Vec3::new(color.r(), color.g(), color.b()),
-                    None => panic!("Color must be provided for nagones"),
-                };
+                let color = get_color(&object);
 
-                let nagone = Nagone::new(pos, dir, radius, angles, color);
+                let material = get_material(&object, color);
+                scene.load_material_textures(&material);
+
+                let nagone = Nagone::new(pos, dir, radius, angles);
                 let composed_shape = Box::new(nagone) as Box<dyn ComposedShape + Sync + Send>;
-                let composed_element = ComposedElement::new(composed_shape);
+                let composed_element = ComposedElement::new(composed_shape, material);
                 scene.add_composed_element(composed_element);
             }
             "mobius" => {
                 let pos = get_coordinates_value(&object, "pos");
                 let radius = get_float_value(&object, "radius");
                 let half_width = get_float_value(&object, "half_width");
-                let color = match get_color(&object) {
-                    Some(color) => Vec3::new(color.r(), color.g(), color.b()),
-                    None => panic!("Color must be provided for mobius"),
-                };
+                let color = get_color(&object);
 
-                let mobius = Mobius::new(pos, radius, half_width, color);
+                let material = get_material(&object, color);
+                scene.load_material_textures(&material);
+
+                let mobius = Mobius::new(pos, radius, half_width);
                 let composed_shape = Box::new(mobius) as Box<dyn ComposedShape + Sync + Send>;
-                let composed_element = ComposedElement::new(composed_shape);
+                let composed_element = ComposedElement::new(composed_shape, material);
                 scene.add_composed_element(composed_element);
             }
             "ellipse" => {
@@ -327,19 +331,15 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let material = get_material(&object, color);
                 scene.load_material_textures(&material);
 
-                println!("File {}", file);
-
-                let mut obj = Obj::new(pos, dir, rotation, scale, file, material);
+                let mut obj = Obj::new(pos, dir, rotation, scale, file);
 
                 let result = obj.parse_file();
                 if result.is_err() {
                     error(&result.err().unwrap().to_string());
                 }
 
-                obj.update_logic();
-
                 let composed_shape = Box::new(obj);
-                let composed_element = ComposedElement::new(composed_shape);
+                let composed_element = ComposedElement::new(composed_shape, material);
                 scene.add_composed_element(composed_element);
                 println!("Composed elements : {}", scene.composed_elements().len());
             }

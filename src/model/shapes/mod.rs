@@ -102,10 +102,7 @@ pub trait Shape: Debug + Sync + Send {
 }
 
 pub trait ComposedShape: Debug + Sync + Send {
-    fn material(&self) -> &Box<dyn Material + Send +Sync>;
-    fn material_mut(&mut self) -> &mut Box<dyn Material + Send +Sync>;
-    fn elements(&self) -> &Vec<Element>;
-    fn elements_as_mut(&mut self) -> &mut Vec<Element>;
+    fn generate_elements(&self, material: Box<dyn Material + Send +Sync>) -> Vec<Element>;
 
     fn as_torusphere(&self) -> Option<&torusphere::Torusphere> { None }
     fn as_helix(&self) -> Option<&helix::Helix> { None }
@@ -122,7 +119,4 @@ pub trait ComposedShape: Debug + Sync + Send {
     fn as_obj_mut(&mut self) -> Option<&mut obj::Obj> { None }
 
     fn get_ui(&self, element: &ComposedElement, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement;
-    fn id(&self) -> Option<u32> {self.elements()[0].composed_id() }
-    fn update(&mut self);
-    fn update_material(&mut self);
 }
