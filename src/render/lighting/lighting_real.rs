@@ -135,7 +135,7 @@ fn get_reflected_light_color(scene: &Scene, hit: &Hit, ray: &Ray) -> Color
 	let dir = (reflect_dir(ray.get_dir(), hit.norm()) + random_unit_vector() * hit.roughness() * hit.roughness())
 		.normalize();
 	if dir.dot(hit.norm()) > f64::EPSILON {
-		let reflect_ray = Ray::new(hit.pos().clone(), dir, ray.get_depth() + 1);
+		let reflect_ray = Ray::new(hit.pos().clone() + dir * 0.01, dir, ray.get_depth() + 1);
 		reflect_color = get_lighting_from_ray(scene, &reflect_ray);
 	} else {
 		reflect_color = Color::new(0., 0., 0.);

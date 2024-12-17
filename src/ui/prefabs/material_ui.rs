@@ -17,18 +17,15 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
     //Color
     material_category.add_element(get_texture_ui("Color", element.material().color(), Box::new(move |texture, scene| {
         let mut scene_write = scene.write().unwrap();
-        let mut texture_to_load = "".to_string();
         if let Texture::Texture(file, _) = &texture {
-            texture_to_load = file.to_string();
+            scene_write.load_texture(file);
         }
         if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
             element.material_mut().set_color(texture);
-            scene_write.update_composed_element_material(id_element);
         }
         else if let Some(element) = scene_write.element_mut_by_id(id_element) {
             element.material_mut().set_color(texture);
         }
-        scene_write.load_texture(&texture_to_load);
     }), ui.uisettings(), true, false, Some(0.), Some(1.), None));
 
     //Displacement
@@ -36,7 +33,6 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
         let mut scene_write = scene.write().unwrap();
         if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
             element.material_mut().set_displacement(texture);
-            scene_write.update_composed_element_material(id_element);
         } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
             element.material_mut().set_displacement(texture);
         }
@@ -47,7 +43,6 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
         let mut scene_write = scene.write().unwrap();
         if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
             element.material_mut().set_norm(texture);
-            scene_write.update_composed_element_material(id_element);
         } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
             element.material_mut().set_norm(texture);
         }
@@ -59,7 +54,6 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
         let mut scene_write = scene.write().unwrap();
         if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
             element.material_mut().set_metalness(texture);
-            scene_write.update_composed_element_material(id_element);
         } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
             element.material_mut().set_metalness(texture);
         }
@@ -73,7 +67,6 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
             if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
                 if let Value::Float(float_value) = value {
                     element.material_mut().set_refraction(float_value);
-                    scene_write.update_composed_element_material(id_element);
                 }
             } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
                 if let Value::Float(float_value) = value {
@@ -98,7 +91,6 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
         let mut scene_write = scene.write().unwrap();
         if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
             element.material_mut().set_transparency(texture);
-            scene_write.update_composed_element_material(id_element);
         } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
             element.material_mut().set_transparency(texture);
         }
@@ -110,7 +102,6 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
         let mut scene_write = scene.write().unwrap();
         if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
             element.material_mut().set_roughness(texture);
-            scene_write.update_composed_element_material(id_element);
         } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
             element.material_mut().set_roughness(texture);
         }
@@ -122,7 +113,6 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
         let mut scene_write = scene.write().unwrap();
         if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
             element.material_mut().set_emissive(texture);
-            scene_write.update_composed_element_material(id_element);
         } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
             element.material_mut().set_emissive(texture);
         }
@@ -133,7 +123,6 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
         let mut scene_write = scene.write().unwrap();
         if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
             element.material_mut().set_opacity(texture);
-            scene_write.update_composed_element_material(id_element);
         } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
             element.material_mut().set_opacity(texture);
         }

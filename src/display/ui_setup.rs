@@ -70,6 +70,7 @@ pub fn setup_element_ui(element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene
         if let Some(composed_id) = composed_id {
             scene_write.update_composed_element_material(composed_id);
             scene_write.update_composed_element_shape(composed_id);
+            scene_write.update_bvh();
         }
         scene_write.set_dirty(true);
     })));

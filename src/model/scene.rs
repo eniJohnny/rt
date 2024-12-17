@@ -89,7 +89,7 @@ impl Scene {
             let mut element = new_elements.remove(0);
             element.set_composed_id(composed_id);
             element.set_id(self.next_element_id);
-            self.elements[i] = element;
+            self.elements[elements_index[i]] = element;
         }
         if old_nb_elem > new_nb_elem {
             elements_index.truncate(new_nb_elem);
@@ -99,6 +99,7 @@ impl Scene {
             element.set_composed_id(composed_id);
             element.set_id(self.next_element_id);
             elements_index.push(self.next_element_id);
+            self.elements.push(element);
             self.next_element_id += 1;
         }
         composed_element.set_elements_index(elements_index);
@@ -157,7 +158,10 @@ impl Scene {
     }
 
     pub fn load_texture(&mut self, path: &str) {
-        if path == "" || path.contains("..") {
+        if path == "" {
+            return;
+        }
+        if path.contains("..") {
             panic!("Textures should only be stored in the textures folder.");
         }
         if !self.textures.contains_key(path) {
@@ -217,7 +221,6 @@ impl Scene {
         node.build_tree(self);
 
         self.non_bvh_elements_index.clear();
-        // self.non_bvh_composed_elements_index.clear();
         let mut nb_elements = 0;
         for element in &self.elements {
             if element.shape().aabb().is_none() {
@@ -225,13 +228,6 @@ impl Scene {
             }
             nb_elements += 1;
         }
-        // let mut nb_elements = 0;
-        // for composed_element in &self.composed_elements {
-        //     if composed_element.composed_shape().elements().iter().all(|element| element.shape().aabb().is_none()) {
-        //         self.non_bvh_composed_elements_index.push(nb_elements);
-        //     }
-        //     nb_elements += 1;
-        // }
 
         self.bvh = Some(node);
     }
