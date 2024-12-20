@@ -1,9 +1,9 @@
 use std::fmt::Debug;
-use crate::model::{
+use crate::{model::{
     materials::color::Color,
     maths::{hit::Hit, ray::Ray, vec3::Vec3},
     scene::Scene
-};
+}, BOUNCE_OFFSET};
 
 #[derive(Debug)]
 pub struct AmbientLight {
@@ -133,7 +133,7 @@ impl Light for PointLight {
 
     fn is_shadowed(&self, scene: &Scene, hit: &Hit) -> bool {
         let to_light = (self.pos() - hit.pos()).normalize();
-        let shadow_ray = Ray::new(hit.pos() + hit.norm() * 0.001, to_light, 0);
+        let shadow_ray = Ray::new(hit.pos() + hit.norm() * BOUNCE_OFFSET, to_light, 0);
         for element in scene.elements() {
             if let Some(t) = element.shape().intersect(&shadow_ray) {
                 if t[0] < (self.pos() - hit.pos()).length() {
@@ -201,7 +201,7 @@ impl Light for ParallelLight {
     }
 
     fn is_shadowed(&self, scene: &Scene, hit: &Hit) -> bool {
-        let shadow_ray = Ray::new(hit.pos() + hit.norm() * 0.001, -self.dir(), 0);
+        let shadow_ray = Ray::new(hit.pos() + hit.norm() * BOUNCE_OFFSET, -self.dir(), 0);
         for element in scene.elements() {
             if let Some(t) = element.shape().intersect(&shadow_ray) {
                 if t[0] > 0. {
@@ -293,7 +293,7 @@ impl Light for SpotLight {
 
     fn is_shadowed(&self, scene: &Scene, hit: &Hit) -> bool {
         let to_light = (self.pos() - hit.pos()).normalize();
-        let shadow_ray = Ray::new(hit.pos() + hit.norm() * 0.001, to_light, 0);
+        let shadow_ray = Ray::new(hit.pos() + hit.norm() * BOUNCE_OFFSET, to_light, 0);
         for element in scene.elements() {
             if let Some(t) = element.shape().intersect(&shadow_ray) {
                 if t[0] < (self.pos() - hit.pos()).length() {

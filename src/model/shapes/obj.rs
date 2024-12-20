@@ -1,10 +1,9 @@
-use std::{f64::consts::PI, fs::File, io::{BufRead, BufReader}};
+use std::{f64::consts::PI, fs::File, io::{BufRead, BufReader}, sync::{Arc, RwLock}};
 
-use super::{triangle::Triangle, ComposedShape};
+use super::{triangle::Triangle, composed_shape::ComposedShape};
 use crate::{model::{
-    materials::{
-        material::Material, texture::{Texture, TextureType}
-    }, maths::vec3::Vec3, Element
+    composed_element::ComposedElement, element::Element, materials::
+        material::Material, maths::vec3::Vec3, scene::Scene
 }, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}};
 
 #[derive(Debug)]
@@ -59,13 +58,15 @@ impl ComposedShape for Obj {
             // println!("{}", i);
             for k in 0..self.triangle_count()[i] {
                 let (a, b, c) = (vertices[0], vertices[k + 1], vertices[k + 2]);
-                let (a_uv, b_uv, c_uv) = (textures[0].xy(), textures[k + 1].xy(), textures[k + 2].xy());
-
                 let mut triangle = Triangle::new(a, b, c);
                 triangle.set_is_obj(true);
-                triangle.set_a_uv(a_uv);
-                triangle.set_b_uv(b_uv);
-                triangle.set_c_uv(c_uv);
+
+                if textures.len() > k + 2 {
+                    let (a_uv, b_uv, c_uv) = (textures[0].xy(), textures[k + 1].xy(), textures[k + 2].xy());
+                    triangle.set_a_uv(a_uv);
+                    triangle.set_b_uv(b_uv);
+                    triangle.set_c_uv(c_uv);
+                }
 
                 let elem = Element::new(Box::new(triangle), material.clone());
                 elements.push(elem);
@@ -74,7 +75,7 @@ impl ComposedShape for Obj {
         elements
     }
 
-    fn get_ui(&self, element: &crate::model::ComposedElement, ui: &mut crate::ui::ui::UI, _scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
+    fn get_ui(&self, element: &ComposedElement, ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
         let mut category = UIElement::new("Obj", "obj", ElemType::Category(Category::default()), ui.uisettings());
 
         if let Some(obj) = self.as_obj() {

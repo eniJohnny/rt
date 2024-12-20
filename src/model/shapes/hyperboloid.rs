@@ -1,12 +1,12 @@
-use super::Shape;
+use std::sync::{Arc, RwLock};
+
+use super::shape::Shape;
 use crate::{
     model::{
-        materials::material::Projection,
-        maths::{hit::Hit, ray::Ray, vec3::Vec3}
+        element::Element, materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene
     },
     ui::{
-        uielement::{Category, UIElement},
-        utils::misc::ElemType
+        ui::UI, uielement::{Category, UIElement}, utils::misc::ElemType
     }
 };
 
@@ -90,7 +90,7 @@ impl Shape for Hyperboloid {
         projection
     }
 
-    fn norm(&self, hit_position: &Vec3, _ray_dir: &Vec3) -> Vec3 {
+    fn norm(&self, hit_position: &Vec3) -> Vec3 {
         let (x, y, z) = (*hit_position.x(), *hit_position.y(), *hit_position.z());
 
         Vec3::new(-2.0 * x, -2.0 * y, 2.0 * z).normalize()
@@ -106,13 +106,13 @@ impl Shape for Hyperboloid {
         self.intersect(ray)
     }
 
-    fn intersect_displacement(&self, ray: &Ray, _element: &crate::model::Element, _scene: &crate::model::scene::Scene) -> Option<Vec<f64>> {
+    fn intersect_displacement(&self, ray: &Ray, _element: &Element, _scene: &Scene) -> Option<Vec<f64>> {
         self.intersect(ray)
     }
 
-    fn get_ui(&self, _element: &crate::model::Element, ui: &mut crate::ui::ui::UI, _scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
-        UIElement::new("Hyperboloid", "hyperboloid", ElemType::Category(Category::default()), ui.uisettings())
-    }
+    fn get_ui(&self, _element: &Element, _ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
+		UIElement::new("Not implemented", "notimplemented", ElemType::Category(Category::default()), _ui.uisettings())
+	}
 
 }
 

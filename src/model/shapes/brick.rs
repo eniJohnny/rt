@@ -1,12 +1,10 @@
 use std::sync::{Arc, RwLock};
 
-use super::{rectangle::Rectangle, ComposedShape};
+use super::{rectangle::Rectangle, composed_shape::ComposedShape};
 use crate::{model::{
-    materials::{
-        diffuse::Diffuse,
-        material::Material,
-        texture::{Texture, TextureType}
-    }, maths::vec3::Vec3, scene::Scene, ComposedElement, Element
+    materials::
+        material::Material
+    , maths::vec3::Vec3, scene::Scene, composed_element::ComposedElement, element::Element
 }, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Value}}};
 
 #[derive(Debug)]
@@ -218,9 +216,6 @@ impl Brick {
 
     // Constructor
     pub fn new(pos: Vec3, dir: Vec3, dimensions: Vec3) -> Brick {
-        let mut elements: Vec<Element> = Vec::new();
-
-        // Create and return the brick
         Brick {
             pos,
             dir,

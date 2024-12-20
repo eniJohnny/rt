@@ -4,14 +4,14 @@ use crate::{
         materials::{
             color::Color,
             texture::{Texture, TextureType}
-        }, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene, shapes::Shape, Element
+        }, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene, shapes::shape::Shape, element::Element
     },
     ANTIALIASING, FILTER, SCREEN_HEIGHT, SCREEN_WIDTH, USING_BVH
 };
 use super::{
     lighting::{
         lighting_real::global_lighting_from_hit,
-        simple::simple_lighting_from_hit
+        lighting_simple::simple_lighting_from_hit
     },
     settings::ViewMode,
     skysphere::get_skysphere_color
@@ -93,23 +93,22 @@ pub fn get_closest_hit_from_elements_with_index<'a>(scene: &'a Scene, ray: &Ray,
         	t = element.shape().intersect(ray);
         }
         if let Some(t) = &t {
-            if t.len() % 2 == 0 {
-                t_list.push((element, t.clone()));
-            }
+            // if ray.debug {
+            //     println!("Hit element {} at dist {}", element.id(), t[0]);
+            // }
+            t_list.push((element, t.clone()));
             for dist in t {
-                if dist > &0.0 {
-                    if closest.is_none() || dist < closest.clone().unwrap().dist() {
-                        let new_hit = Hit::new(
-                            element,
-                            *dist,
-                            ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
-                            ray.get_dir(),
-                            scene.textures(),
-							t.clone(),
-                        );
-                        if new_hit.opacity() > 0.5 {
-                            closest = Some(new_hit);
-                        }
+                if closest.is_none() || dist > &0. && (closest.clone().unwrap().dist() < &0. || dist < closest.clone().unwrap().dist()) {
+                    let new_hit = Hit::new(
+                        element,
+                        *dist,
+                        ray.get_pos() + ray.get_dir() * (dist - f64::EPSILON),
+                        ray.get_dir(),
+                        scene.textures(),
+                        t.clone(),
+                    );
+                    if new_hit.opacity() > 0.5 {
+                        closest = Some(new_hit);
                     }
                 }
             }
@@ -126,11 +125,13 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     let mut closest: Option<Hit> = None;
     
     if USING_BVH {
+        // We first check every element that is not supported by the BVH (i.e. infinite shapes that cannot be contained in an AABB)
         closest = get_closest_hit_from_elements_with_index(scene, ray, closest, scene.elements(), scene.non_bvh_elements());
+        // We then do a BVH traversal to check for intersections
         if let Some(root_node) = scene.bvh() {
             if let Some(hit) = recursive_traversal(ray, root_node, scene, closest.clone(), root_node.aabb().intersect(ray).unwrap_or(vec![]), 1) {
                 if let Some(previous) = &closest {
-                    if hit.dist() < previous.dist() {
+                    if hit.dist() > &0. && (hit.dist() < previous.dist() || previous.dist() < &0.) {
                         closest = Some(hit);
                     }
                 } else {
@@ -147,10 +148,14 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
     match closest {
         None => None,
         Some(mut hit) => {
-            // For optimization purposes, every texture that doesn't need to be mapped to check for the intersection is mapped once we have the final one.
-            // Unfortunately, some properties like the norm, the opacity and such need to be processed for every possible intersection beforehand
-            hit.map_textures(scene.textures());
-            Some(hit)
+            if hit.dist() > &0. {
+                // For optimization purposes, every texture that doesn't need to be mapped to check for the intersection is mapped once we have the final one.
+                // Unfortunately, some properties like the norm, the opacity and such need to be processed for every possible intersection beforehand
+                hit.map_textures(scene.textures());
+                Some(hit)
+            } else {
+                None
+            }
         }
     }
 }

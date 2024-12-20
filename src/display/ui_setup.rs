@@ -1,7 +1,7 @@
 use std::sync::{Arc, RwLock};
 use image::Rgba;
 use crate::{
-    model::{scene::Scene, ComposedElement, Element},
+    model::{scene::Scene, element::Element},
     render::render_threads::start_render_threads,
     ui::{
         prefabs::material_ui::get_material_ui,
@@ -16,10 +16,6 @@ use crate::{
 pub fn setup_uisettings(ui: &mut UI, _scene: &Arc<RwLock<Scene>>) {
     let mut settings_box = UIBox::new(UISETTINGS, BoxPosition::CenterLeft(10), ui.uisettings().gui_width, ui.uisettings());
     settings_box.add_elements(ui.uisettings().get_fields("UI settings", ui.uisettings()));
-    // settings_box.add_elements(get_texture_ui("Color", scene.read().unwrap().elements()[0].material().color(), Box::new(
-    //     |value: Texture, scene: &Arc<RwLock<Scene>>| {
-    //         scene.write().unwrap().elements_as_mut()[0].material_mut().set_color(value);
-    // }), ui.uisettings()));
     settings_box.set_edit_bar(ui.uisettings(), None);
 
     ui.add_box(settings_box);
@@ -70,8 +66,9 @@ pub fn setup_element_ui(element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene
         if let Some(composed_id) = composed_id {
             scene_write.update_composed_element_material(composed_id);
             scene_write.update_composed_element_shape(composed_id);
-            scene_write.update_bvh();
+            scene_write.determine_full_bvh_traversal();
         }
+        scene_write.update_bvh();
         scene_write.set_dirty(true);
     })));
     ui.add_box(elem_box);

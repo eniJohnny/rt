@@ -1,7 +1,7 @@
 use super::texture_ui::get_texture_ui;
 use std::sync::{Arc, RwLock};
 use crate::{
-    model::{materials::texture::Texture, maths::vec3::Vec3, scene::Scene, Element},
+    model::{materials::texture::Texture, maths::vec3::Vec3, scene::Scene, element::Element},
     ui::{
         ui::UI,
         uielement::{Category, UIElement},

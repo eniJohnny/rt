@@ -14,7 +14,7 @@ use super::{
     maths::vec3::Vec3,
     objects::{camera::Camera, light::AnyLight},
     shapes::{self, aabb::Aabb},
-    ComposedElement, Element
+    composed_element::ComposedElement, element::Element
 };
 
 #[derive(Debug)]
@@ -62,7 +62,7 @@ impl Scene {
 
     pub fn add_composed_element(&mut self, mut composed_element: ComposedElement) {
         composed_element.set_id(self.next_composed_element_id);
-        let elements = composed_element.composed_shape().generate_elements(composed_element.material.clone());
+        let elements = composed_element.composed_shape().generate_elements((*composed_element.material()).clone());
         let mut elements_index = composed_element.elements_index_mut().clone();
         elements_index.clear();
         for mut element in elements {
@@ -81,14 +81,14 @@ impl Scene {
         let composed_element = &mut self.composed_elements[composed_id];
         let mut elements_index = composed_element.elements_index_mut().clone();
         let old_nb_elem = elements_index.len();
-        let material = composed_element.material.clone();
+        let material = (*composed_element.material()).clone();
         let mut new_elements = composed_element.composed_shape().generate_elements(material);
         let new_nb_elem = new_elements.len();
 
         for i in 0..old_nb_elem.min(new_nb_elem) {
             let mut element = new_elements.remove(0);
             element.set_composed_id(composed_id);
-            element.set_id(self.next_element_id);
+            element.set_id(elements_index[i]);
             self.elements[elements_index[i]] = element;
         }
         if old_nb_elem > new_nb_elem {
@@ -123,8 +123,8 @@ impl Scene {
 
     pub fn remove_element(&mut self, index_to_remove: usize) {
         for i in (index_to_remove + 1)..self.elements.len() {
-            let mut element = &mut self.elements[i];
-            element.id = i - 1;
+            let element = &mut self.elements[i];
+            element.set_id(i - 1);
         }
         for composed_element in &mut self.composed_elements {
             let elements_index = composed_element.elements_index_mut();
@@ -141,7 +141,7 @@ impl Scene {
         self.camera = camera;
     }
 
-    pub fn add_light(&mut self, mut light: AnyLight) {
+    pub fn add_light(&mut self, light: AnyLight) {
         self.lights.push(light);
     }
 
@@ -198,6 +198,25 @@ impl Scene {
             }
         }
     }
+
+    /**
+     * If we have a single composed objects with refraction enabled, we need to do a full bvh traversal to get every intersection.
+     * This is to ensure that we have the good refraction indices, otherwise the bvh will stop at the first found intersection, and we
+     * might not now if we are inside or outside an object.
+     */
+    pub fn determine_full_bvh_traversal(&mut self) {
+        let mut has_transparent_composed_objects = false;
+        for composed_element in &self.composed_elements {
+            match composed_element.material().transparency() {
+                Texture::Texture(_, _) => has_transparent_composed_objects = true,
+                Texture::Value(vector_value, _) => has_transparent_composed_objects = vector_value.to_value() > f64::EPSILON
+            }
+            if has_transparent_composed_objects {
+                break;
+            }
+        }
+        self.settings.bvh_full_traversal = has_transparent_composed_objects;
+    }
     
     pub fn add_wireframes(&mut self) {
         let aabbs = self.all_aabb();
@@ -251,7 +270,7 @@ impl Scene {
 
     pub fn element_by_id(&self, id: usize) -> Option<&Element> {
         for element in &self.elements {
-            if element.id == id {
+            if element.id() == id {
                 return Some(element);
             }
         }
@@ -259,7 +278,7 @@ impl Scene {
     }
     pub fn element_mut_by_id(&mut self, id: usize) -> Option<&mut Element> {
         for element in &mut self.elements {
-            if element.id == id {
+            if element.id() == id {
                 return Some(element);
             }
         }
@@ -286,7 +305,7 @@ impl Scene {
 
     pub fn composed_element_by_id(&self, id: usize) -> Option<&ComposedElement> {
         for element in &self.composed_elements {
-            if element.id == id {
+            if element.id() == id {
                 return Some(element);
             }
         }
@@ -294,7 +313,7 @@ impl Scene {
     }
     pub fn composed_element_mut_by_id(&mut self, id: usize) -> Option<&mut ComposedElement> {
         for element in &mut self.composed_elements {
-            if element.id == id {
+            if element.id() == id {
                 return Some(element);
             }
         }
@@ -339,7 +358,7 @@ impl Scene {
     pub fn all_aabb(&self) -> Vec<&crate::model::shapes::aabb::Aabb> {
         self.elements
             .iter()
-            .filter_map(|element| element.shape().as_aabb().or_else(|| element.shape.aabb()) )
+            .filter_map(|element| element.shape().as_aabb().or_else(|| element.shape().aabb()) )
             .collect()
     }
 
@@ -380,9 +399,4 @@ impl Scene {
     pub fn set_bvh(&mut self, bvh: Option<bvh::node::Node>) {
         self.bvh = bvh;
     }
-
-    // TESTING - GET COMPOSED ELEMENTS UI
-    // pub fn is_composed_element(&self, id: u32) -> Option<u32> {
-    //     self.composed_elements().iter().find(|composed_element| composed_element.composed_shape().elements().iter().any(|element| element.id() == id)).map(|composed_element| composed_element.id())
-    // }
 }

@@ -1,10 +1,10 @@
-use super::{sphere::Sphere, ComposedShape};
+use super::{sphere::Sphere, composed_shape::ComposedShape};
 use std::f64::consts::PI;
 use crate::{
     model::{
         materials::
             material::Material
-        , maths::vec3::Vec3, ComposedElement, Element
+        , maths::vec3::Vec3, composed_element::ComposedElement, element::Element
     },
     ui::{
         prefabs::vector_ui::get_vector_ui,

@@ -1,4 +1,4 @@
-use super::Shape;
+use super::shape::Shape;
 use std::{
     sync::{Arc, RwLock},
     vec
@@ -9,7 +9,7 @@ use crate::{
         maths::{hit::Hit, ray::Ray, vec3::Vec3},
         scene::Scene,
         shapes::plane::Plane,
-        Element
+        element::Element
     },
     ui::{
         prefabs::vector_ui::get_vector_ui,
@@ -153,13 +153,13 @@ impl Shape for Cone {
         projection
     }
 
-    fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {
+    fn norm(&self, hit_position: &Vec3) -> Vec3 {
         let pc = hit_position - &self.pos;
         let coef = pc.dot(&self.dir) / pc.dot(&pc);
         let projection = &pc * coef;
 
         if pc.dot(&self.dir) == self.height {
-            return self.plane.norm(hit_position, ray_dir);
+            return self.plane.norm(hit_position);
         }
 
         return ((&self.pos + &projection) - (&self.pos + &self.dir * &self.height)).normalize();

@@ -1,16 +1,17 @@
+use core::f64;
 use std::f64::EPSILON;
 
 use rand::Rng;
 use crate::{
     model::{
-        materials::color::Color, maths::{
+        element::Element, materials::color::Color, maths::{
             hit::Hit,
             ray::Ray,
             vec3::Vec3,
             vec_utils::{random_unit_vector, reflect_dir}
-        }, scene::Scene, Element
+        }, scene::Scene
     },
-    render::raycasting::get_lighting_from_ray
+    render::raycasting::get_lighting_from_ray, BOUNCE_OFFSET
 };
 pub fn fresnel_reflect_ratio(n1: f64, n2: f64, norm: &Vec3, ray: &Vec3, reflectivity: f64) -> f64 {
     // Schlick aproximation
@@ -30,6 +31,74 @@ pub fn fresnel_reflect_ratio(n1: f64, n2: f64, norm: &Vec3, ray: &Vec3, reflecti
     let ret = r0 + (1.0 - r0) * x.powf(5.);
     // adjust reflect multiplier for object reflectivity
     reflectivity * ret
+}
+
+pub fn get_refraction_indices(hit: &mut Hit, ray: &Ray) -> (f64, f64) {
+	let mut t_s = hit.t_list().clone();
+	let mut t_final: Vec<(&Element, Vec<f64>)> = vec![];
+	for (elem, mut t) in t_s.clone() {
+		// if ray.debug {
+		// 	println!("Checking composed id for elem {}", elem.id());
+		// }
+		if let Some(composed_id) = elem.composed_id() {
+			// if ray.debug {
+			// 	println!("Checking for other intersects for {}", composed_id);
+			// }
+			let mut first = false;
+			for (elem2, t2) in &mut t_s {
+				if let Some(composed_id2) = elem2.composed_id() {
+					// if ray.debug {
+					// 	println!("Composed found {} for elem {}", composed_id2, elem2.id());
+					// }
+					if composed_id == composed_id2{
+						if elem2.id() == elem.id() {
+							// if ray.debug {
+							// 	println!("First");
+							// }
+							first = true;
+						} else {
+							// if ray.debug {
+							// 	println!("Not same element");
+							// }
+							if !first {
+								// if ray.debug {
+								// 	println!("Not first");
+								// }
+								break;
+							}
+							// if ray.debug {
+							// 	println!("Appending hits");
+							// }
+							t.append(t2);
+						}
+					}
+				}
+			}
+			if first {
+				t_final.push((elem, t));
+			}
+		} else {
+			t_final.push((elem, t));
+		}
+	}
+	// if ray.debug {
+	// 	println!("Current parent");
+	// }
+	let current_parent_index = if let Some(parent) = get_parent_debug(t_final.clone(), hit.dist() - BOUNCE_OFFSET, ray.debug) {
+		parent.material().refraction()
+	} else {
+		1.0
+	};
+	// if ray.debug {
+	// 	println!("Next parent");
+	// }
+	let next_parent_index = if let Some(parent) = get_parent_debug(t_final, hit.dist() + BOUNCE_OFFSET, ray.debug) {
+		parent.material().refraction()
+	} else {
+		1.0
+	};
+	(current_parent_index, next_parent_index)
+
 }
 
 pub fn global_lighting_from_hit(scene: &Scene, hit: &mut Hit, ray: &Ray) -> Color {
@@ -57,35 +126,11 @@ pub fn global_lighting_from_hit(scene: &Scene, hit: &mut Hit, ray: &Ray) -> Colo
 	let mut current_refraction_index = 1.;
 	let mut next_refraction_index = 1.;
 	if hit.transparency() > EPSILON {
-		let is_inside;
-		
-		if hit.all_dist().len() % 2 == 0 {
-			let mut nb_dist_positif = 0;
-			for dist in hit.all_dist() {
-				if dist > &0. {
-					nb_dist_positif += 1;
-				}
-			}
-			is_inside = nb_dist_positif % 2 != 0;
-		} else {
-			is_inside = false;
-		} 
-		let parent_element_index = if let Some(parent) = get_parent(hit.t_list().clone(), *hit.dist()) {
-			parent.material().refraction()
-		} else {
-			1.0
-		};
-		if is_inside {
-			current_refraction_index = hit.element().material().refraction();
-			next_refraction_index = parent_element_index;
-			hit.set_norm(-hit.norm().clone());
-			
-		} else {
-			current_refraction_index = parent_element_index;
-			next_refraction_index = hit.element().material().refraction();
+		(current_refraction_index, next_refraction_index) = get_refraction_indices(hit, ray);
+		if ray.debug {
+			println!("Current {}, next {}", current_refraction_index, next_refraction_index);
 		}
 	}
-	
 
 	let fresnel_factor = fresnel_reflect_ratio(current_refraction_index, next_refraction_index, &hit.norm(), ray.get_dir(), 1.0 - hit.roughness());
 	
@@ -93,10 +138,11 @@ pub fn global_lighting_from_hit(scene: &Scene, hit: &mut Hit, ray: &Ray) -> Colo
 	let absorbed = 1.0 - hit.metalness() - reflected;
     let rand = rand::thread_rng().gen_range(0.0..1.0);
     if rand > absorbed && scene.settings().reflections {
-		// Reflected Light
         if rand > absorbed + hit.metalness() {
+			// Normal reflection
             light_color += get_reflected_light_color(scene, hit, ray);
         } else {
+			// Metal reflection
             light_color += get_reflected_light_color(scene, hit, ray) * hit.color();
         }
     } else {
@@ -122,7 +168,7 @@ fn get_indirect_light_color(scene: &Scene, hit: &Hit, ray: &Ray) -> Color
 			indirect_dir = hit.norm().clone();
 		}
 		indirect_dir = indirect_dir.normalize();
-		let mut indirect_ray = Ray::new(hit.pos().clone() + 0.01 * indirect_dir, indirect_dir, ray.get_depth() + 1);
+		let mut indirect_ray = Ray::new(hit.pos().clone() + hit.norm() * BOUNCE_OFFSET, indirect_dir, ray.get_depth() + 1);
 		indirect_ray.debug = ray.debug;
 		light_color = get_lighting_from_ray(scene, &indirect_ray) * hit.color();
 	}
@@ -135,7 +181,7 @@ fn get_reflected_light_color(scene: &Scene, hit: &Hit, ray: &Ray) -> Color
 	let dir = (reflect_dir(ray.get_dir(), hit.norm()) + random_unit_vector() * hit.roughness() * hit.roughness())
 		.normalize();
 	if dir.dot(hit.norm()) > f64::EPSILON {
-		let reflect_ray = Ray::new(hit.pos().clone() + dir * 0.01, dir, ray.get_depth() + 1);
+		let reflect_ray = Ray::new(hit.pos().clone() + hit.norm() * BOUNCE_OFFSET, dir, ray.get_depth() + 1);
 		reflect_color = get_lighting_from_ray(scene, &reflect_ray);
 	} else {
 		reflect_color = Color::new(0., 0., 0.);
@@ -168,20 +214,37 @@ fn get_refracted_light_color(scene: &Scene, hit: &Hit, ray: &Ray, n1: f64, n2: f
 	let mut refract_color = Color::new(0., 0., 0.);
 	let refraction_result = refract_dir(&ray.get_dir(), normal, n1, n2, hit.roughness());
 	if let Some(refracted_ray) = refraction_result {
-		let refract_ray = Ray::new(hit.pos().clone() - normal * 0.01, refracted_ray.clone(), ray.get_depth());
+		let mut refract_ray = Ray::new(hit.pos().clone() - normal * BOUNCE_OFFSET, refracted_ray.clone(), ray.get_depth() + 1);
+		refract_ray.debug = ray.debug;
 		refract_color = get_lighting_from_ray(scene, &refract_ray);
 	}
 	refract_color
 }
-pub fn get_parent<'a>(mut t_s: Vec<(&Element, Vec<f64>)>, closest_dist: f64) -> Option<&Element> {
+
+pub fn get_parent<'a>(t_s: Vec<(&Element, Vec<f64>)>, closest_dist: f64) -> Option<&Element> {
+	get_parent_debug(t_s, closest_dist, false)
+}
+
+pub fn get_parent_debug<'a>(mut t_s: Vec<(&Element, Vec<f64>)>, closest_dist: f64, debug: bool) -> Option<&Element> {
 	for (_, t) in t_s.iter_mut() {
 		for dist in t.iter_mut() {
 			*dist -= closest_dist;
 		}
 	}
     let mut closest: Option<(&Element, f64)> = None;
+	// if debug {
+	// 	println!("Get parent");
+	// }
+
 	for (elem, t) in t_s {
-		if t.len() > 0 {
+		if debug {
+			// print!("For element {}, nb_hit {} : ", elem.id(), t.len());
+			// for dist in &t {
+			// 	print!("{} ", dist);
+			// }
+			// println!();
+		}
+		if t.len() > 1 {
 			if t.len() % 2 == 0 {
 				let mut nb_t_positives = 0;
 				for dist in &t {
@@ -194,10 +257,16 @@ pub fn get_parent<'a>(mut t_s: Vec<(&Element, Vec<f64>)>, closest_dist: f64) -> 
 						if &dist > &0. {
 							if let Some((_, closest_dist)) = closest {
 								if &dist < &closest_dist {
+									// if debug {
+									// 	println!("Closest is {} at dist {}", elem.id(), dist);
+									// }
 									closest = Some((elem, dist));
 								}
 							}
 							else {
+								// if debug {
+								// 	println!("Closest is {} at dist {}", elem.id(), dist);
+								// }
 								closest = Some((elem, dist));
 							}
 						}

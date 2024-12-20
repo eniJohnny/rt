@@ -1,11 +1,9 @@
-use super::{cylinder::Cylinder, sphere::{self, Sphere}, ComposedShape};
-use std::f64::consts::PI;
+use super::{cylinder::Cylinder, sphere::Sphere, composed_shape::ComposedShape};
+use std::{f64::consts::PI, sync::{Arc, RwLock}};
 use crate::{model::{
-    materials::{
-        diffuse::Diffuse, material::Material, texture::{Texture, TextureType}
-    },
-    maths::vec3::Vec3,
-    Element
+    composed_element::ComposedElement, element::Element, materials::{
+        material::Material, texture::Texture
+    }, maths::vec3::Vec3, scene::Scene
 }, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}};
 
 #[derive(Debug)]
@@ -29,9 +27,10 @@ impl ComposedShape for Helix {
         
         let link_color = material.color().clone();
         let sphere_color = match &link_color {
-            Texture::Texture(texture, teture_type) => link_color,
+            Texture::Texture(_, _) => link_color,
             Texture::Value(value, texture_type) => Texture::Value(Vec3::from_value(1.) - value, texture_type.clone())
         };
+        sphere_material.set_color(sphere_color);
 
         // Elements
         let steps = 20;
@@ -68,7 +67,7 @@ impl ComposedShape for Helix {
         elements
     }
 
-    fn get_ui(&self, element: &crate::model::ComposedElement, ui: &mut crate::ui::ui::UI, _scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
+    fn get_ui(&self, element: &ComposedElement, ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
         let mut category = UIElement::new("Helix", "helix", ElemType::Category(Category::default()), ui.uisettings());
 
         if let Some(helix) = self.as_helix() {
@@ -184,13 +183,4 @@ impl Helix {
     pub fn set_height(&mut self, radius: f64) {
         self.height = radius;
     }
-}
-
-fn get_opposite_color(color: Texture) -> Texture {
-    let white = Vec3::new(1.0, 1.0, 1.0);
-    let color = color.clone().to_string();
-    let color: Vec<&str> = color.trim_matches(['(', ')']).split(", ").collect();
-    let color = Vec3::new(color[0].parse::<f64>().unwrap(), color[1].parse::<f64>().unwrap(), color[2].parse::<f64>().unwrap());
-
-    Texture::Value(white - color, TextureType::Color)
 }

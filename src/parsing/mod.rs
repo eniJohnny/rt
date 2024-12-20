@@ -1,13 +1,9 @@
-// use obj::Obj;
 use std::{
     collections::HashMap,
     f64::consts::PI,
     io::Write,
     ops::Add
 };
-
-use chrono::format;
-
 use crate::{
     error, model::{
         materials::{
@@ -18,8 +14,8 @@ use crate::{
         }, maths::vec3::Vec3, objects::{
             camera::Camera, light::{AmbientLight, AnyLight, ParallelLight, PointLight}
         }, scene::Scene, shapes::{ 
-            any::Any, brick::Brick, cone::Cone, cube::Cube, cubehole::Cubehole, cylinder::Cylinder, ellipse::Ellipse, helix::Helix, hyperboloid::Hyperboloid, mobius::Mobius, nagone::Nagone, obj::Obj, plane::Plane, rectangle::Rectangle, sphere::Sphere, torusphere::Torusphere, triangle::Triangle, ComposedShape
-        }, ComposedElement, Element
+            any::Any, brick::Brick, cone::Cone, cube::Cube, cubehole::Cubehole, cylinder::Cylinder, ellipse::Ellipse, helix::Helix, hyperboloid::Hyperboloid, mobius::Mobius, nagone::Nagone, obj::Obj, plane::Plane, rectangle::Rectangle, sphere::Sphere, torusphere::Torusphere, triangle::Triangle, composed_shape::ComposedShape
+        }, composed_element::ComposedElement, element::Element
     }, AABB_OPACITY
 };
 
@@ -341,7 +337,6 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let composed_shape = Box::new(obj);
                 let composed_element = ComposedElement::new(composed_shape, material);
                 scene.add_composed_element(composed_element);
-                println!("Composed elements : {}", scene.composed_elements().len());
             }
             _ => {}
         }
@@ -404,7 +399,7 @@ fn parse_json(scene_file: String) -> Vec<HashMap<String, String>> {
 }
 
 fn get_color(object: &HashMap<String, String>) -> Option<Color> {
-    if !object.contains_key("color") || !object.contains_key("color_r") || !object.contains_key("color_g") || !object.contains_key("color_b"){
+    if !object.contains_key("color_r") || !object.contains_key("color_g") || !object.contains_key("color_b"){
         return None;
     }
     // Testing if the color is in the format [r, g, b]

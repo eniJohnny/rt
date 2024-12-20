@@ -1,10 +1,11 @@
-use super::{aabb::Aabb,Shape};
+use std::sync::{Arc, RwLock};
+
+use super::{aabb::Aabb,shape::Shape};
 use nalgebra::Matrix3;
 use crate::{
     error, model::{
-        materials::material::Projection,
-        maths::{hit::Hit, ray::Ray, vec3::Vec3}
-    }, ui::{uielement::{Category, UIElement}, utils::misc::ElemType}
+        element::Element, materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene
+    }, ui::{ui::UI, uielement::{Category, UIElement}, utils::misc::ElemType}
 };
 
 #[derive(Debug)]
@@ -25,14 +26,6 @@ impl Shape for Cube {
     }
 
     fn intersect(&self, r: &Ray) -> Option<Vec<f64>> {
-        // let (x_min, x_max, y_min, y_max, z_min, z_max) = (
-        //     *self.pos.x() - self.width / 2.0, *self.pos.x() + self.width / 2.0,
-        //     *self.pos.y() - self.width / 2.0, *self.pos.y() + self.width / 2.0,
-        //     *self.pos.z() - self.width / 2.0, *self.pos.z() + self.width / 2.0
-        // );
-
-        // let axis_aligned_cube = Aabb::new(x_min, x_max, y_min, y_max, z_min, z_max);
-
         let axis_aligned_cube = self.axis_aligned_cube.clone();
         let rotation = self.rotation;
         let pos = matrix3_vec3_mult(rotation.transpose(), *r.get_pos());
@@ -42,7 +35,6 @@ impl Shape for Cube {
         ray.set_pos(pos);
         ray.set_dir(dir);
         let hit = axis_aligned_cube.intersect(&ray);
-        
         
         hit
     }
@@ -90,12 +82,11 @@ impl Shape for Cube {
         Projection { u, v, i, j, k }
     }
 
-    fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {
+    fn norm(&self, hit_position: &Vec3) -> Vec3 {
         let axis_aligned_cube = self.axis_aligned_cube.clone();
         let rotation = self.rotation;
         let pos = matrix3_vec3_mult(rotation.transpose(), *hit_position);
-        let dir = matrix3_vec3_mult(rotation.transpose(), *ray_dir);
-        let norm = axis_aligned_cube.norm(&pos, &dir);
+        let norm = axis_aligned_cube.norm(&pos);
         
         matrix3_vec3_mult(rotation, norm)
     }
@@ -112,11 +103,11 @@ impl Shape for Cube {
         self.intersect(ray)
     }
 
-    fn intersect_displacement(&self, ray: &Ray, _element: &crate::model::Element, _scene: &crate::model::scene::Scene) -> Option<Vec<f64>> {
+    fn intersect_displacement(&self, ray: &Ray, _element: &Element, _scene: &Scene) -> Option<Vec<f64>> {
         self.intersect(ray)
     }
 
-    fn get_ui(&self, _element: &crate::model::Element, _ui: &mut crate::ui::ui::UI, _scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
+    fn get_ui(&self, _element: &Element, _ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
 		UIElement::new("Not implemented", "notimplemented", ElemType::Category(Category::default()), _ui.uisettings())
 	}
 }

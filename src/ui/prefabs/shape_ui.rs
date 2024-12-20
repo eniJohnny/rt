@@ -1,6 +1,6 @@
 use std::sync::{Arc, RwLock};
 use crate::{
-    model::{scene::Scene, Element},
+    model::{scene::Scene, element::Element},
     ui::{ui::UI, uielement::UIElement}
 };
 

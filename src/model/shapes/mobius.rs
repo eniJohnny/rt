@@ -1,13 +1,8 @@
-use super::{triangle::Triangle, ComposedShape};
-use std::f64::consts::PI;
+use super::{triangle::Triangle, composed_shape::ComposedShape};
+use std::{f64::consts::PI, sync::{Arc, RwLock}};
 use crate::{model::{
-    materials::{
-        diffuse::Diffuse,
-        material::Material,
-        texture::{Texture, TextureType}
-    },
-    maths::vec3::Vec3,
-    Element
+    composed_element::ComposedElement, element::Element, materials::
+        material::Material, maths::vec3::Vec3, scene::Scene
 }, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}};
 
 #[derive(Debug)]
@@ -59,7 +54,7 @@ impl ComposedShape for Mobius {
         vec![]
     }
 
-    fn get_ui(&self, element: &crate::model::ComposedElement, ui: &mut crate::ui::ui::UI, _scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
+    fn get_ui(&self, element: &ComposedElement, ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
         let mut category = UIElement::new("Mobius", "mobius", ElemType::Category(Category::default()), ui.uisettings());
 
         if let Some(mobius) = self.as_mobius() {

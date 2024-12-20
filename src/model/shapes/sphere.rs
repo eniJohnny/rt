@@ -1,4 +1,4 @@
-use super::Shape;
+use super::shape::Shape;
 use std::f64::consts::PI;
 use std::sync::{Arc, RwLock};
 use crate::{
@@ -6,7 +6,7 @@ use crate::{
         materials::material::Projection,
         maths::{hit::Hit, ray::Ray, vec3::Vec3},
         scene::Scene,
-        Element
+        element::Element
     },
     ui::{
         prefabs::vector_ui::get_vector_ui,
@@ -118,8 +118,9 @@ impl Shape for Sphere {
         projection
     }
 
-    fn norm(&self, hit_position: &Vec3, _ray_dir: &Vec3) -> Vec3 {
-        (hit_position - self.pos()).normalize()
+    fn norm(&self, hit_position: &Vec3) -> Vec3 {
+        let norm = (hit_position - self.pos()).normalize();
+        norm
     }
 
     fn as_sphere(&self) -> Option<&Sphere> {
@@ -302,7 +303,7 @@ mod tests {
     use crate::model::maths::ray::Ray;
     use crate::model::maths::vec3::Vec3;
     use crate::model::shapes::sphere::Sphere;
-    use crate::model::shapes::Shape;
+    use crate::model::shapes::shape::Shape;
 
     #[test]
     fn test_intersect() {

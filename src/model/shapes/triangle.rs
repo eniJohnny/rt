@@ -1,11 +1,11 @@
-use super::{aabb::Aabb, plane::Plane, Shape};
+use super::{aabb::Aabb, plane::Plane, shape::Shape};
 use std::sync::{Arc, RwLock};
 use crate::{
     model::{
         materials::material::Projection,
 		maths::{hit::Hit, ray::Ray, vec2::Vec2, vec3::Vec3},
 		scene::Scene,
-		Element
+		element::Element
     },
     ui::{
         prefabs::vector_ui::get_vector_ui,
@@ -93,8 +93,8 @@ impl Shape for Triangle {
             return projection;
         }
     }
-    fn norm(&self, hit: &Vec3, ray_dir: &Vec3) -> Vec3 {
-        self.plane.norm(hit, ray_dir)
+    fn norm(&self, hit: &Vec3) -> Vec3 {
+        self.plane.norm(hit)
     }
     fn pos(&self) -> &Vec3 { &self.a }
     fn as_triangle(&self) -> Option<&Triangle> { Some(self) }

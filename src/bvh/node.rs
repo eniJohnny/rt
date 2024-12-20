@@ -47,11 +47,11 @@ impl Node {
     }
 
     fn build_node(&mut self, scene: &Scene, depth: usize) {
-        println!("Initial children {}", self.elements.len());
-        let (node_a, mut node_b) = self.split_node(scene, depth);
-        println!("Depth {}, parent {}, a {}, b {}", depth, self.elements().len(), node_a.clone().map(|node| node.elements().len()).unwrap_or(0), node_b.clone().map(|node| node.elements().len()).unwrap_or(0));
+        // println!("Initial children {}", self.elements.len());
+        let (node_a, node_b) = self.split_node(scene, depth);
+        // println!("Depth {}, parent {}, a {}, b {}", depth, self.elements().len(), node_a.clone().map(|node| node.elements().len()).unwrap_or(0), node_b.clone().map(|node| node.elements().len()).unwrap_or(0));
         if node_a.is_none() && node_b.is_none() {
-            println!("Ended with depth {} and children elements {}", depth, self.elements().len());
+            // println!("Ended with depth {} and children elements {}", depth, self.elements().len());
             self.set_is_leaf(true);
         }
         if let Some(mut node_a) = node_a {
@@ -64,7 +64,7 @@ impl Node {
         }
     }
 
-    pub fn split_node(&mut self, scene: &Scene, depth: usize) -> (Option<Node>, Option<Node>) {
+    pub fn split_node(&mut self, scene: &Scene, _depth: usize) -> (Option<Node>, Option<Node>) {
         let t_vec = get_t_vec(AABB_STEPS_NB);
 
         let mut best_configuration: Option<(f64, (Node, Node, Vec<usize>))> = None;
@@ -81,14 +81,6 @@ impl Node {
                     }
                 }
                 let aabb2_children = aabb2_tmp.get_children_and_shrink(scene, &elements_left);
-
-                // if (aabb1_children.len() + aabb2_children.len() > self.elements().len()) {
-                //     println!("parent {}, a {}, b {}", self.elements().len(), aabb1_children.len(), aabb2_children.len());
-                //     println!("parent x[{}, {}], y[{}, {}], z[{}, {}]", self.aabb().x_min(), self.aabb().x_max(), self.aabb().y_min(), self.aabb().y_max(), self.aabb().z_min(), self.aabb().z_max());
-                //     println!("aabb1 x[{}, {}], y[{}, {}], z[{}, {}]", aabb1_tmp.x_min(), aabb1_tmp.x_max(), aabb1_tmp.y_min(), aabb1_tmp.y_max(), aabb1_tmp.z_min(), aabb1_tmp.z_max());
-                //     println!("aabb2 x[{}, {}], y[{}, {}], z[{}, {}]", aabb2_tmp.x_min(), aabb2_tmp.x_max(), aabb2_tmp.y_min(), aabb2_tmp.y_max(), aabb2_tmp.z_min(), aabb2_tmp.z_max());
-                    
-                // }
 
                 let mut node_a = Node::new(&aabb1_tmp);
                 let mut node_b = Node::new(&aabb2_tmp);
