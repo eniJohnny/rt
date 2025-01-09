@@ -35,6 +35,7 @@ pub struct Settings {
     pub sphere_displaced_distance: f64,
     pub sphere_displacement_step: f64,
     pub view_mode: ViewMode,
+    pub bvh_full_traversal: bool
 }
 
 impl Settings {
@@ -62,6 +63,7 @@ impl Settings {
             sphere_displacement_step: SPHERE_DISPLACEMENT_STEP,
             depth: MAX_DEPTH,
             anti_alisaing: ANTIALIASING,
+            bvh_full_traversal: false
         }
     }
 }

@@ -1,0 +1,375 @@
+[
+    {
+        "type": "rectangle",
+        "pos": [0, -4.85, 0],
+        "dir_l": [1, 0, 0],
+        "dir_w": [0, 0, 1],
+        "length": 100,
+        "width": 100,
+        "color": [255, 255, 255],
+        "roughness": 0.4
+    },
+
+    {
+        "type": "rectangle",
+        "pos": [0, 10, -8],
+        "dir_l": [1, 0, 0],
+        "dir_w": [0, 0, 1],
+        "length": 30,
+        "width": 30,
+        "color": [255, 255, 255],
+        "emissive": 4
+    },
+    {
+        "type": "camera",
+        "pos": [0.0, 0.0, -25],
+        "dir": [0, 0, 1],
+        "fov": 75
+    },
+    {
+        "type": "obj",
+        "pos": [-7, -2.65, -5],
+        "scale": 14,
+        "dir": [0, 1, 0],
+        "rotation": 180,
+        "file": "obj/rook.obj",
+        "color": [50, 50, 50],
+        "metalness": 0.5
+    },
+    {
+        "type": "obj",
+        "pos": [-5, -2.79, -5],
+        "scale": 1.5,
+        "dir": [0, 1, 0],
+        "rotation": 180,
+        "file": "obj/knight.obj",
+        "color": [50, 50, 50],
+        "metalness": 0.5
+    },
+    {
+        "type": "obj",
+        "pos": [-3, -2.01, -5],
+        "scale": 15,
+        "dir": [0, 1, 0],
+        "rotation": 180,
+        "file": "obj/bishop.obj",
+        "color": [50, 50, 50],
+        "metalness": 0.5
+    },
+    {
+        "type": "obj",
+        "pos": [-1, -1.05, -5],
+        "scale": 13,
+        "dir": [0, 1, 0],
+        "rotation": 180,
+        "file": "obj/king.obj",
+        "color": [50, 50, 50],
+        "metalness": 0.5
+    },
+    {
+        "type": "obj",
+        "pos": [1, -1.13, -5],
+        "scale": 14,
+        "dir": [0, 1, 0],
+        "rotation": 180,
+        "file": "obj/queen.obj",
+        "color": [50, 50, 50],
+        "metalness": 0.5
+    },
+    {
+        "type": "obj",
+        "pos": [3, -2.01, -5],
+        "scale": 15,
+        "dir": [0, 1, 0],
+        "rotation": 180,
+        "file": "obj/bishop.obj",
+        "color": [50, 50, 50],
+        "metalness": 0.5
+    },
+    {
+        "type": "obj",
+        "pos": [5, -2.79, -5],
+        "scale": 1.5,
+        "dir": [0, 1, 0],
+        "rotation": 180,
+        "file": "obj/knight.obj",
+        "color": [50, 50, 50],
+        "metalness": 0.5
+    },
+    {
+        "type": "obj",
+        "pos": [7, -2.65, -5],
+        "scale": 14,
+        "dir": [0, 1, 0],
+        "rotation": 180,
+        "file": "obj/rook.obj",
+        "color": [50, 50, 50],
+        "metalness": 0.5
+    },
+    {
+        "type": "obj",
+        "pos": [-7, -2.5, -7],
+        "scale": 4,
+        "dir": [0, 1, 0],
+        "rotation": 180,
+        "file": "obj/pawn.obj",
+        "color": [50, 50, 50],
+        "metalness": 0.5
+    },
+    {
+        "type": "obj",
+        "pos": [-5, -2.5, -7],
+        "scale": 4,
+        "dir": [0, 1, 0],
+        "rotation": 180,
+        "file": "obj/pawn.obj",
+        "color": [50, 50, 50],
+        "metalness": 0.5
+    },
+    {
+        "type": "obj",
+        "pos": [-3, -2.5, -7],
+        "scale": 4,
+        "dir": [0, 1, 0],
+        "rotation": 180,
+        "file": "obj/pawn.obj",
+        "color": [50, 50, 50],
+        "metalness": 0.5
+    },
+    {
+        "type": "obj",
+        "pos": [-1, -2.5, -7],
+        "scale": 4,
+        "dir": [0, 1, 0],
+        "rotation": 180,
+        "file": "obj/pawn.obj",
+        "color": [50, 50, 50],
+        "metalness": 0.5
+    },
+    {
+        "type": "obj",
+        "pos": [1, -2.5, -7],
+        "scale": 4,
+        "dir": [0, 1, 0],
+        "rotation": 180,
+        "file": "obj/pawn.obj",
+        "color": [50, 50, 50],
+        "metalness": 0.5
+    },
+    {
+        "type": "obj",
+        "pos": [3, -2.5, -7],
+        "scale": 4,
+        "dir": [0, 1, 0],
+        "rotation": 180,
+        "file": "obj/pawn.obj",
+        "color": [50, 50, 50],
+        "metalness": 0.5
+    },
+    {
+        "type": "obj",
+        "pos": [5, -2.5, -7],
+        "scale": 4,
+        "dir": [0, 1, 0],
+        "rotation": 180,
+        "file": "obj/pawn.obj",
+        "color": [50, 50, 50],
+        "metalness": 0.5
+    },
+    {
+        "type": "obj",
+        "pos": [7, -2.5, -7],
+        "scale": 4,
+        "dir": [0, 1, 0],
+        "rotation": 180,
+        "file": "obj/pawn.obj",
+        "color": [50, 50, 50],
+        "metalness": 0.5
+    },
+    {
+        "type": "obj",
+        "pos": [0, -3.85, -12],
+        "scale": 0.44,
+        "dir": [0, 0, 1],
+        "rotation": 180,
+        "file": "obj/chessboard.obj",
+        "color": "chessboard.jpg",
+        "roughness": 1.0
+    },
+    {
+        "type": "obj",
+        "pos": [-7, -2.65, -19],
+        "scale": 14,
+        "dir": [0, 1, 0],
+        "file": "obj/rook.obj",
+        "color": [255, 255, 255],
+        "transparency": 0.7,
+        "refraction": 1.52,
+        "roughness": 0.1
+    },
+    {
+        "type": "obj",
+        "pos": [-5, -2.79, -19],
+        "scale": 1.5,
+        "dir": [0, 1, 0],
+        "file": "obj/knight.obj",
+        "color": [255, 255, 255],
+        "transparency": 0.7,
+        "refraction": 1.52,
+        "roughness": 0.1
+    },
+    {
+        "type": "obj",
+        "pos": [-3, -2.01, -19],
+        "scale": 15,
+        "dir": [0, 1, 0],
+        "file": "obj/bishop.obj",
+        "color": [255, 255, 255],
+        "transparency": 0.7,
+        "refraction": 1.52,
+        "roughness": 0.1
+    },
+    {
+        "type": "obj",
+        "pos": [-1, -1.05, -19],
+        "scale": 13,
+        "dir": [0, 1, 0],
+        "file": "obj/king.obj",
+        "color": [255, 255, 255],
+        "transparency": 0.7,
+        "refraction": 1.52,
+        "roughness": 0.1
+    },
+    {
+        "type": "obj",
+        "pos": [1, -1.13, -19],
+        "scale": 14,
+        "dir": [0, 1, 0],
+        "file": "obj/queen.obj",
+        "color": [255, 255, 255],
+        "transparency": 0.7,
+        "refraction": 1.52,
+        "roughness": 0.1
+    },
+    {
+        "type": "obj",
+        "pos": [3, -2.01, -19],
+        "scale": 15,
+        "dir": [0, 1, 0],
+        "file": "obj/bishop.obj",
+        "color": [255, 255, 255],
+        "transparency": 0.7,
+        "refraction": 1.52,
+        "roughness": 0.1
+    },
+    {
+        "type": "obj",
+        "pos": [5, -2.79, -19],
+        "scale": 1.5,
+        "dir": [0, 1, 0],
+        "file": "obj/knight.obj",
+        "color": [255, 255, 255],
+        "transparency": 0.7,
+        "refraction": 1.52,
+        "roughness": 0.1
+    },
+    {
+        "type": "obj",
+        "pos": [7, -2.65, -19],
+        "scale": 14,
+        "dir": [0, 1, 0],
+        "file": "obj/rook.obj",
+        "color": [255, 255, 255],
+        "transparency": 0.7,
+        "refraction": 1.52,
+        "roughness": 0.1
+    },
+    {
+        "type": "obj",
+        "pos": [-7, -2.5, -17],
+        "scale": 4,
+        "dir": [0, 1, 0],
+        "file": "obj/pawn.obj",
+        "color": [255, 255, 255],
+        "transparency": 0.7,
+        "refraction": 1.52,
+        "roughness": 0.1
+    },
+    {
+        "type": "obj",
+        "pos": [-5, -2.5, -17],
+        "scale": 4,
+        "dir": [0, 1, 0],
+        "file": "obj/pawn.obj",
+        "color": [255, 255, 255],
+        "transparency": 0.7,
+        "refraction": 1.52,
+        "roughness": 0.1
+    },
+    {
+        "type": "obj",
+        "pos": [-3, -2.5, -17],
+        "scale": 4,
+        "dir": [0, 1, 0],
+        "file": "obj/pawn.obj",
+        "color": [255, 255, 255],
+        "transparency": 0.7,
+        "refraction": 1.52,
+        "roughness": 0.1
+    },
+    {
+        "type": "obj",
+        "pos": [-1, -2.5, -17],
+        "scale": 4,
+        "dir": [0, 1, 0],
+        "file": "obj/pawn.obj",
+        "color": [255, 255, 255],
+        "transparency": 0.7,
+        "refraction": 1.52,
+        "roughness": 0.1
+    },
+    {
+        "type": "obj",
+        "pos": [1, -2.5, -17],
+        "scale": 4,
+        "dir": [0, 1, 0],
+        "file": "obj/pawn.obj",
+        "color": [255, 255, 255],
+        "transparency": 0.7,
+        "refraction": 1.52,
+        "roughness": 0.1
+    },
+    {
+        "type": "obj",
+        "pos": [3, -2.5, -17],
+        "scale": 4,
+        "dir": [0, 1, 0],
+        "file": "obj/pawn.obj",
+        "color": [255, 255, 255],
+        "transparency": 0.7,
+        "refraction": 1.52,
+        "roughness": 0.1
+    },
+    {
+        "type": "obj",
+        "pos": [5, -2.5, -17],
+        "scale": 4,
+        "dir": [0, 1, 0],
+        "file": "obj/pawn.obj",
+        "color": [255, 255, 255],
+        "transparency": 0.7,
+        "refraction": 1.52,
+        "roughness": 0.1
+    },
+    {
+        "type": "obj",
+        "pos": [7, -2.5, -17],
+        "scale": 4,
+        "dir": [0, 1, 0],
+        "file": "obj/pawn.obj",
+        "color": [255, 255, 255],
+        "transparency": 0.7,
+        "refraction": 1.52,
+        "roughness": 0.1
+    }
+]

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use image::RgbaImage;
 use crate::model::{
     materials::{color::Color, material::Projection, texture::Texture},
-    Element,
+    element::Element,
 };
 
 #[derive(Debug, Clone)]
@@ -38,10 +38,14 @@ impl<'a> Hit<'a> {
         textures: &HashMap<String, RgbaImage>,
         all_dist: Vec<f64>
     ) -> Self {
+        let mut norm = element.shape().norm(&pos);
+        if norm.dot(ray_dir) > 0. {
+            norm = -norm;
+        }
         let mut hit = Hit {
             element,
             dist,
-            norm: element.shape().norm(&pos, &ray_dir),
+            norm,
             pos,
             projection: None,
             color: Color::new(0., 0., 0.),
@@ -67,6 +71,10 @@ impl<'a> Hit<'a> {
 
     pub fn t_list(&self) -> &Vec<(&'a Element, Vec<f64>)> {
         &self.t_list
+    }
+
+    pub fn t_list_mut(&mut self) -> &mut Vec<(&'a Element, Vec<f64>)> {
+        &mut self.t_list
     }
 
     pub fn element(&self) -> &'a Element {

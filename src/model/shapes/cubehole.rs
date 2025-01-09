@@ -1,9 +1,10 @@
-use super::{aabb::Aabb, ellipse::Ellipse, cylinder::Cylinder, Shape};
+use std::sync::{Arc, RwLock};
+
+use super::{aabb::Aabb, ellipse::Ellipse, cylinder::Cylinder, shape::Shape};
 use nalgebra::Matrix3;
-use crate::model::{
-    materials::material::Projection,
-    maths::{hit::Hit, ray::Ray, vec3::Vec3}
-};
+use crate::{model::{
+    element::Element, materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene
+}, ui::{ui::UI, uielement::{Category, UIElement}, utils::misc::ElemType}};
 
 #[derive(Debug)]
 pub struct Cubehole {
@@ -105,15 +106,14 @@ impl Shape for Cubehole {
         Projection { u, v, i, j, k }
     }
 
-    fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {
+    fn norm(&self, hit_position: &Vec3) -> Vec3 {
         let axis_aligned_cube = self.axis_aligned_cube.clone();
         let rotation = self.rotation;
         let pos = matrix3_vec3_mult(rotation.transpose(), *hit_position);
-        let dir = matrix3_vec3_mult(rotation.transpose(), *ray_dir);
-        let mut norm = axis_aligned_cube.norm(&pos, &dir);
+        let mut norm = axis_aligned_cube.norm(&pos);
 
         if norm == Vec3::new(0.0, 0.0, 0.0) {
-            norm = -self.cylinder.norm(hit_position, ray_dir)
+            norm = -self.cylinder.norm(hit_position)
         } else {
             norm = matrix3_vec3_mult(rotation.transpose(), norm)
         }
@@ -133,13 +133,13 @@ impl Shape for Cubehole {
         self.intersect(ray)
     }
 
-    fn intersect_displacement(&self, ray: &Ray, _element: &crate::model::Element, _scene: &crate::model::scene::Scene) -> Option<Vec<f64>> {
+    fn intersect_displacement(&self, ray: &Ray, _element: &Element, _scene: &Scene) -> Option<Vec<f64>> {
         self.intersect(ray)
     }
 
-    fn get_ui(&self, _element: &crate::model::Element, _ui: &mut crate::ui::ui::UI, _scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
-        todo!()
-    }
+    fn get_ui(&self, _element: &Element, _ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
+		UIElement::new("Not implemented", "notimplemented", ElemType::Category(Category::default()), _ui.uisettings())
+	}
 }
 
 impl Cubehole {

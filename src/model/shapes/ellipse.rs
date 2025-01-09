@@ -1,9 +1,10 @@
-use super::Shape;
+use std::sync::{Arc, RwLock};
+
+use super::shape::Shape;
 use nalgebra::Matrix3;
-use crate::model::{
-    materials::material::Projection,
-    maths::{hit::Hit, ray::Ray, vec3::Vec3}
-};
+use crate::{model::{
+    element::Element, materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene
+}, ui::{ui::UI, uielement::{Category, UIElement}, utils::misc::ElemType}};
 
 #[derive(Debug)]
 pub struct Ellipse {
@@ -52,8 +53,8 @@ impl Shape for Ellipse {
         self.plane.projection(hit)
     }
 
-    fn norm(&self, hit_position: &Vec3, ray_dir: &Vec3) -> Vec3 {
-        self.plane.norm(hit_position, ray_dir)
+    fn norm(&self, hit_position: &Vec3) -> Vec3 {
+        self.plane.norm(hit_position)
     }
 
     fn as_ellipse(&self) -> Option<&Ellipse> {
@@ -72,13 +73,13 @@ impl Shape for Ellipse {
         self.intersect(ray)
     }
 
-    fn intersect_displacement(&self, ray: &Ray, _element: &crate::model::Element, _scene: &crate::model::scene::Scene) -> Option<Vec<f64>> {
+    fn intersect_displacement(&self, ray: &Ray, _element: &Element, _scene: &Scene) -> Option<Vec<f64>> {
         self.intersect(ray)
     }
 
-    fn get_ui(&self, _element: &crate::model::Element, _ui: &mut crate::ui::ui::UI, _scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
-        todo!()
-    }
+    fn get_ui(&self, _element: &Element, _ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
+		UIElement::new("Not implemented", "notimplemented", ElemType::Category(Category::default()), _ui.uisettings())
+	}
 }
 
 impl Ellipse {

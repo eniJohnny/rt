@@ -103,12 +103,12 @@ impl Vec3 {
         Vec3::new(self.x.abs(), self.y.abs(), self.z.abs())
     }
 
-    pub fn max(&self) -> f64 {
-        self.x.max(self.y).max(self.z)
+    pub fn min(&self, other: Vec3) -> Vec3 {
+        Vec3::new(self.x.min(other.x), self.y.min(other.y), self.z.min(other.z))
     }
 
-    pub fn min(&self) -> f64 {
-        self.x.min(self.y).min(self.z)
+    pub fn max(&self, other: Vec3) -> Vec3 {
+        Vec3::new(self.x.max(other.x), self.y.max(other.y), self.z.max(other.z))
     }
 }
 

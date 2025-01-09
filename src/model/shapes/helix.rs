@@ -1,74 +1,56 @@
-use super::{sphere::Sphere, cylinder::Cylinder, ComposedShape};
-use std::f64::consts::PI;
-use crate::model::{
-    materials::{
-        diffuse::Diffuse,
-        material::Material,
-        texture::{Texture, TextureType}
-    },
-    maths::vec3::Vec3,
-    Element
-};
+use super::{cylinder::Cylinder, sphere::Sphere, composed_shape::ComposedShape};
+use std::{f64::consts::PI, sync::{Arc, RwLock}};
+use crate::{model::{
+    composed_element::ComposedElement, element::Element, materials::{
+        material::Material, texture::Texture
+    }, maths::vec3::Vec3, scene::Scene
+}, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}};
 
 #[derive(Debug)]
 pub struct Helix {
     pub pos: Vec3,
     pub dir: Vec3,
-    pub height: f64,
-    pub material: Box<dyn Material>,
-    pub sphere_material: Box<dyn Material>,
-    pub elements: Vec<Element>,
+    pub height: f64
 }
 
 impl ComposedShape for Helix {
-    fn material(&self) -> &dyn Material {
-        return self.material.as_ref();
-    }
-    fn elements(&self) -> &Vec<Element> {
-        return &self.elements();
-    }
-    fn elements_as_mut(&mut self) -> &mut Vec<Element> {
-        return &mut self.elements;
-    }
     fn as_helix(&self) -> Option<&self::Helix> {
         return Some(self);
     }
-}
+    fn as_helix_mut(&mut self) -> Option<&mut self::Helix> {
+        return Some(self);
+    }
 
-impl Helix {
-    pub fn new(pos: Vec3, dir: Vec3, height: f64) -> Helix {
+    fn generate_elements(&self, material: Box<dyn Material + Send +Sync>) -> Vec<Element> {
         let mut elements: Vec<Element> = Vec::new();
-        let mut material: Box<Diffuse> = Diffuse::default();
-        let mut sphere_material: Box<Diffuse> = Diffuse::default();
-        let link_color = Texture::Value(Vec3::from_value(1.0), TextureType::Color);
-        let sphere_color = Texture::Value(Vec3::new(1.0, 0.0,0.0), TextureType::Color);
-
-        // Materials
-        material.set_color(link_color);
+        let mut sphere_material = material.clone();
+        
+        let link_color = material.color().clone();
+        let sphere_color = match &link_color {
+            Texture::Texture(_, _) => link_color,
+            Texture::Value(value, texture_type) => Texture::Value(Vec3::from_value(1.) - value, texture_type.clone())
+        };
         sphere_material.set_color(sphere_color);
-        material.set_opacity(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
-        sphere_material.set_opacity(Texture::Value(Vec3::from_value(1.0), TextureType::Float));
 
         // Elements
         let steps = 20;
-        let link_length = 0.3 * height;
-        let link_radius = 0.25 * height / steps as f64;
+        let link_length = 0.3 * self.height;
+        let link_radius = 0.25 * self.height / steps as f64;
         let sphere_radius = 2.0 * link_radius;
 
         let cross_vector;
-        if dir == Vec3::new(0.0, 1.0, 0.0) {
-            cross_vector = dir.cross(&Vec3::new(1.0, 0.0, 0.0));
+        if self.dir == Vec3::new(0.0, 1.0, 0.0) {
+            cross_vector = self.dir.cross(&Vec3::new(1.0, 0.0, 0.0));
         } else {
-            cross_vector = dir.cross(&Vec3::new(0.0, 1.0, 0.0));
+            cross_vector = self.dir.cross(&Vec3::new(0.0, 1.0, 0.0));
         }
 
-        let pos = pos - dir * height / 2.0;
         let rotation_ratio = 2.0 * PI / steps as f64;
 
         for i in 1..steps + 1 {
-            let current_dir = cross_vector.rotate_from_axis_angle(i as f64 * rotation_ratio, &dir);
-            let mut origin = pos - current_dir * link_length / 2.0;
-            origin = origin + dir * height / steps as f64 * i as f64;
+            let current_dir = cross_vector.rotate_from_axis_angle(i as f64 * rotation_ratio, &self.dir);
+            let mut origin = self.pos - current_dir * link_length / 2.0;
+            origin = origin + self.dir * self.height / steps as f64 * i as f64;
 
             let link = Cylinder::new(origin, current_dir, link_radius, link_length);
             let sphere1 = Sphere::new(origin, current_dir, sphere_radius);
@@ -82,49 +64,123 @@ impl Helix {
             elements.push(sphere1_element);
             elements.push(sphere2_element);
         }
-        
+        elements
+    }
 
-        // Composed shape
-        let helix = Helix {
-            pos: pos,
-            dir: dir,
-            height: height,
-            material: material,
-            sphere_material: sphere_material,
-            elements: elements,
-        };
-        
-        return helix;
+    fn get_ui(&self, element: &ComposedElement, ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
+        let mut category = UIElement::new("Helix", "helix", ElemType::Category(Category::default()), ui.uisettings());
+
+        if let Some(helix) = self.as_helix() {
+            let id = element.id();
+
+            // pos
+            category.add_element(get_vector_ui(helix.pos.clone(), "Position", "pos", &ui.uisettings_mut(),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
+                    if let Value::Float(value) = value {
+                        helix.pos.set_x(value);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
+                    if let Value::Float(value) = value {
+                        helix.pos.set_y(value);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
+                    if let Value::Float(value) = value {
+                        helix.pos.set_z(value);
+                    }
+                }
+            }),
+            false, None, None));
+
+            // dir
+            category.add_element(get_vector_ui(helix.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
+                    if let Value::Float(value) = value {
+                        helix.dir.set_x(value);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
+                    if let Value::Float(value) = value {
+                        helix.dir.set_y(value);
+                    }
+                }
+            }),
+            Box::new(move |_, value, scene, _| {
+                let mut scene = scene.write().unwrap();
+                let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
+                    if let Value::Float(value) = value {
+                        helix.dir.set_z(value);
+                    }
+                }
+            }),
+            false, None, None));
+
+            // height
+            category.add_element(UIElement::new(
+                "Height",
+                "height", 
+                ElemType::Property(Property::new(
+                    Value::Float(helix.height), 
+                    Box::new(move |_, value, scene, _: &mut UI| {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
+                        if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
+                            if let Value::Float(value) = value {
+                                helix.set_height(value);
+                            }
+                        }
+                        scene.set_dirty(true);
+                    }),
+                    Box::new(|_, _, _| Ok(())),
+                    ui.uisettings())),
+                ui.uisettings()));
+        }
+        category
+    }
+}
+
+impl Helix {
+    pub fn new(pos: Vec3, dir: Vec3, height: f64) -> Helix {
+        Helix {
+            pos: pos - dir * height / 2.0,
+            dir,
+            height
+        }
     }
 
     // Accessors
     pub fn pos(&self) -> &Vec3 { &self.pos }
     pub fn dir(&self) -> &Vec3 { &self.dir }
     pub fn height(&self) -> f64 { self.height }
-    pub fn material(&self) -> &dyn Material { self.material.as_ref() }
-    pub fn sphere_material(&self) -> &dyn Material { self.sphere_material.as_ref() }
-    pub fn elements(&self) -> &Vec<Element> { &self.elements }
 
     // Setters
     pub fn set_pos(&mut self, pos: Vec3) {
         self.pos = pos;
-        self.update();
     }
     pub fn set_dir(&mut self, dir: Vec3) {
         self.dir = dir;
-        self.update();
     }
     pub fn set_height(&mut self, radius: f64) {
         self.height = radius;
-        self.update();
-    }
-
-    // Methods
-    pub fn update(&mut self) {
-        let pos = self.pos;
-        let dir = self.dir;
-        let height = self.height;
-
-        *self = Helix::new(pos, dir, height);
     }
 }

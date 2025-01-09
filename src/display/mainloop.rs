@@ -17,10 +17,7 @@ use crate::{
     SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32,
 };
 
-pub fn start_scene(scene: Scene) {
-    let scene = scene;
-
-    // Set up window and event loop (can't move them elsewhere because of the borrow checker)
+pub fn start_scene(mut scene: Scene) {
     let event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new()
         .with_inner_size(PhysicalSize::new(SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32))
@@ -29,12 +26,12 @@ pub fn start_scene(scene: Scene) {
         .build(&event_loop)
         .unwrap();
 
-    // Set up pixels object
     let pixels = {
         let texture = pixels::SurfaceTexture::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32, &window);
         Pixels::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32, texture).unwrap()
     };
 
+    scene.determine_full_bvh_traversal();
     let scene = Arc::new(RwLock::new(scene));
 
     main_loop(event_loop, scene, pixels);
@@ -48,7 +45,6 @@ pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixel
 
     event_loop
         .run(move |event, flow| {
-            // sleep(Duration::from_millis(10));
             flow.set_control_flow(ControlFlow::WaitUntil(
                 Instant::now() + Duration::from_millis(20),
             ));
