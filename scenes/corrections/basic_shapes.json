@@ -1,0 +1,45 @@
+[
+    {
+        "type": "plane",
+        "pos": [0, 0, 5],
+        "dir": [0, 0, 1],
+        "color": [1, 1, 1]
+    },
+    {
+        "type": "sphere",
+        "pos": [-3, -3, 0],
+        "dir": [0, 1, 0],
+        "radius": 2.0,
+        "color": [255, 0, 0]
+    },
+    {
+        "type": "sphere",
+        "pos": [3, 3, 0],
+        "dir": [0, 1, 0],
+        "radius": 2.0,
+        "color": [0, 0, 255]
+    },
+    {
+        "type": "cylinder",
+        "pos": [3, -5, 0],
+        "dir": [0, 1, 0],
+        "radius": 1.5,
+        "height": 4.0,
+        "color": [255, 255, 0]
+
+    },
+    {
+        "type": "cone",
+        "pos": [-3, 5, 0],
+        "dir": [0, -1, 0],
+        "radius": 2.0,
+        "height": 4.0,
+        "color": [0, 255, 255]
+    },
+    {
+        "type": "camera",
+        "pos": [0.0, 0.0, -15.0],
+        "dir": [0, 0, 1],
+        "fov": 75
+    }
+]

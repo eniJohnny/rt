@@ -11,8 +11,8 @@ pub mod render;
 pub mod bvh;
 
 const USING_BVH: bool = true;
-const SCENE_FOLDER: &str = "scenes";
-const SCENE: &str = "plane";
+const SCENE_FOLDER: &str = "scenes/corrections";
+const SCENE: &str = "basic_shapes";
 const SKYBOX_TEXTURE: &str = "skybox_night.jpg";
 
 /************* Camera **************/
@@ -78,10 +78,6 @@ pub fn run() {
         if DISPLAY_WIREFRAME {
             scene.add_wireframes();
         }
-        // if OBJ {
-        //     scene.add_obj(String::from("obj/cat.obj"));
-        //     println!("Number of triangles: {}", scene.elements().len());
-        // }
         scene.update_bvh();
         start_scene(scene);
     }

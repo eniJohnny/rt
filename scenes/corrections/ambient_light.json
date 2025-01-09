@@ -1,0 +1,17 @@
+[
+    {
+        "type": "sphere",
+        "pos": [0, 0, 0],
+        "dir": [0, 1, 0],
+        "radius": 5.0,
+        "color": [0, 0, 0],
+		"transparency": 1.0,
+		"refraction": 1.52
+    },
+    {
+        "type": "camera",
+        "pos": [0.0, 0.0, -17.0],
+        "dir": [0, 0, 1],
+        "fov": 75
+    }
+]

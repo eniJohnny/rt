@@ -392,7 +392,8 @@ fn parse_json(scene_file: String) -> Vec<HashMap<String, String>> {
 }
 
 fn get_color(object: &HashMap<String, String>) -> Option<Color> {
-    if !object.contains_key("color") || !object.contains_key("color_r") || !object.contains_key("color_g") || !object.contains_key("color_b"){
+    // if !object.contains_key("color") || !object.contains_key("color_r") || !object.contains_key("color_g") || !object.contains_key("color_b"){
+    if !object.contains_key("color") && !(object.contains_key("color_r") && object.contains_key("color_g") && object.contains_key("color_b")){
         return None;
     }
     // Testing if the color is in the format [r, g, b]
