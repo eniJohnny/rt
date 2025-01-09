@@ -1,10 +1,12 @@
-use super::Shape;
+use std::sync::{Arc, RwLock};
+
 use eqsolver::single_variable::FDNewton;
 use meval::{self, eval_str_with_context};
-use crate::model::{
-    materials::material::Projection,
-    maths::{hit::Hit, ray::Ray, vec3::Vec3}
-};
+use crate::{model::{
+    element::Element, materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene
+}, ui::{ui::UI, uielement::UIElement}};
+
+use super::shape::Shape;
 
 #[derive(Debug)]
 pub struct Any {
@@ -86,7 +88,7 @@ impl Shape for Any {
         projection
     }
 
-    fn norm(&self, hit_position: &Vec3, _ray_dir: &Vec3) -> Vec3 {
+    fn norm(&self, hit_position: &Vec3) -> Vec3 {
         let f = |x: f64, y: f64, z: f64| -> f64 {
             let mut ctx = meval::Context::new();
             ctx.var("x", x)
@@ -112,11 +114,11 @@ impl Shape for Any {
         self.intersect(ray)
     }
 
-    fn intersect_displacement(&self, ray: &Ray, _element: &crate::model::Element,_scene: &crate::model::scene::Scene) -> Option<Vec<f64>> {
+    fn intersect_displacement(&self, ray: &Ray, _element: &Element,_scene: &Scene) -> Option<Vec<f64>> {
         self.intersect(ray)
     }
 
-    fn get_ui(&self, _element: &crate::model::Element, _ui: &mut crate::ui::ui::UI, _scene: &std::sync::Arc<std::sync::RwLock<crate::model::scene::Scene>>) -> crate::ui::uielement::UIElement {
+    fn get_ui(&self, _element: &Element, _ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
         todo!()
     }
 }

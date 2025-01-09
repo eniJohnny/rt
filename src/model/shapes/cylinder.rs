@@ -1,4 +1,5 @@
-use super::Shape;
+use super::aabb::Aabb;
+use super::shape::Shape;
 use core::panic;
 use std::f64::consts::PI;
 use std::sync::{Arc, RwLock};
@@ -8,7 +9,7 @@ use crate::{
         maths::{hit::Hit, ray::Ray, vec3::Vec3},
         scene::Scene,
         shapes::plane::Plane,
-        Element
+        element::Element
     },
     ui::{
         prefabs::vector_ui::get_vector_ui,
@@ -55,8 +56,9 @@ impl Shape for Cylinder {
         } else if delta == 0.0 {
             t.push(-b / (2.0 * a));
         }
-
+        let mut plane_intersect = false;
         if let Some(t3) = self.plane[0].intersect(r) {
+            plane_intersect = true;
             let t3 = t3[0];
             let t4 = self.plane[1]
                 .intersect(r)
@@ -69,7 +71,11 @@ impl Shape for Cylinder {
                 return Some(t);
             }
             2 => {
-                return None;
+                if !plane_intersect {
+                    return Some(t);
+                } else {
+                    return None;
+                }
             }
             3 => {
                 // On ne touche que la tranche du cylindre, on n'intersecte que si le t cylindre est entre les deux plans (inclusif)
@@ -81,7 +87,7 @@ impl Shape for Cylinder {
             4 => {
                 // 99.9% des cas, le classico
                 if !(t[2] > t[1] || t[3] < t[0]) {
-                    t.sort_unstable_by(|a, b| {
+                    t.sort_by(|a, b| {
                         a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal)
                     });
                     t.remove(0);
@@ -144,16 +150,16 @@ impl Shape for Cylinder {
         projection
     }
 
-    fn norm(&self, hit: &Vec3, ray_dir: &Vec3) -> Vec3 {
+    fn norm(&self, hit: &Vec3) -> Vec3 {
         let pc = hit - &self.pos;
         let coef = pc.dot(&self.dir);
         let projection = &self.dir * coef;
 
         let norm;
         if coef > -0.000001 && coef < 0.000001 {
-            norm = self.plane[0].norm(hit, ray_dir);
+            norm = self.plane[0].norm(hit);
         } else if coef > self.height - 0.000001 && coef < self.height + 0.000001 {
-            norm = self.plane[1].norm(hit, ray_dir);
+            norm = self.plane[1].norm(hit);
         } else {
             norm = (pc - &projection).normalize();
         }
@@ -170,7 +176,7 @@ impl Shape for Cylinder {
         &self.pos
     }
 
-    fn aabb(&self) -> Option<&super::aabb::Aabb> {
+    fn aabb(&self) -> Option<&Aabb> {
         Some(&self.aabb)
     }
 
@@ -319,19 +325,12 @@ impl Cylinder {
         self.aabb = Cylinder::compute_aabb(self.pos.clone(), self.dir.clone(), self.height, self.radius);
     }
 
-    pub fn compute_aabb(pos:Vec3, dir: Vec3, height: f64, radius: f64) -> super::aabb::Aabb {
-        let offset_x = dir.x() * height / 2.0 + radius * (1.0 - dir.x() * dir.x()).sqrt();
-        let offset_y = dir.y() * height / 2.0 + radius * (1.0 - dir.y() * dir.y()).sqrt();
-        let offset_z = dir.z() * height / 2.0 + radius * (1.0 - dir.z() * dir.z()).sqrt();
-        let center = pos + dir * height / 2.0;
-        
-        super::aabb::Aabb::new(
-            center.x() - offset_x,
-            center.x() + offset_x,
-            center.y() - offset_y,
-            center.y() + offset_y,
-            center.z() - offset_z,
-            center.z() + offset_z,
-        )
+    pub fn compute_aabb(pos:Vec3, dir: Vec3, height: f64, radius: f64) -> Aabb {
+        let a = pos;
+        let b = a + dir * height;
+        let tmp = Vec3::new(radius, radius, radius);
+        let min = a.min(b) - tmp;
+        let max = a.max(b) + tmp;
+        Aabb::new(*min.x(), *max.x(), *min.y(), *max.y(), *min.z(), *max.z())
     }
 }

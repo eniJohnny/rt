@@ -1,11 +1,11 @@
-use super::Shape;
+use super::{aabb::Aabb, shape::Shape};
 use std::sync::{Arc, RwLock};
 use crate::{
     model::{
         materials::material::Projection,
         maths::{hit::Hit, ray::Ray, vec3::Vec3},
         scene::Scene,
-        Element
+        element::Element
     },
     ui::{
         ui::UI,
@@ -45,7 +45,7 @@ impl Wireframe {
         }
     }
 
-    pub fn from_aabb(aabb: &super::Aabb) -> Wireframe {
+    pub fn from_aabb(aabb: &Aabb) -> Wireframe {
         let x_min = aabb.x_min();
         let x_max = aabb.x_max();
         let y_min = aabb.y_min();
@@ -255,7 +255,7 @@ impl Shape for Wireframe {
         proj
     }
 
-    fn norm(&self, hit_position: &Vec3, _ray_dir: &Vec3) -> Vec3 {
+    fn norm(&self, hit_position: &Vec3) -> Vec3 {
         let x = *hit_position.x();
         let y = *hit_position.y();
         let z = *hit_position.z();
@@ -273,23 +273,7 @@ impl Shape for Wireframe {
         } else if (z - self.z_max()).abs() < ERROR_MARGIN {
             return Vec3::new(0.0, 0.0, 1.0);
         } else {
-            // DEBUG - print all the diffs
-            // let xmin_diff = (x - self.x_min()).abs();
-            // let xmax_diff = (x - self.x_max()).abs();
-            // let ymin_diff = (y - self.y_min()).abs();
-            // let ymax_diff = (y - self.y_max()).abs();
-            // let zmin_diff = (z - self.z_min()).abs();
-            // let zmax_diff = (z - self.z_max()).abs();
-            // println!("----------------------------------------------------");
-            // println!("xmin_diff: {} - {}", xmin_diff, xmin_diff < ERROR_MARGIN);
-            // println!("xmax_diff: {} - {}", xmax_diff, xmax_diff < ERROR_MARGIN);
-            // println!("ymin_diff: {} - {}", ymin_diff, ymin_diff < ERROR_MARGIN);
-            // println!("ymax_diff: {} - {}", ymax_diff, ymax_diff < ERROR_MARGIN);
-            // println!("zmin_diff: {} - {}", zmin_diff, zmin_diff < ERROR_MARGIN);
-            // println!("zmax_diff: {} - {}", zmax_diff, zmax_diff < ERROR_MARGIN);
-            // println!("----------------------------------------------------");
-
-            panic!("Error: hit_position is not on the AABB.\nThe problem certainly comes from the error margin.\nYou can use the debug print right above this message (src/model/shapes/wireframe.rs:151 atm) to see why it didn't trigger.\nAdjust ERROR_MARGIN (src/lib.rs) if needed.");
+            panic!("Error: hit_position is not on the AABB.\n");
         }
     }
 

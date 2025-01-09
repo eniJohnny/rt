@@ -1,2 +1,2 @@
 pub mod lighting_real;
-pub mod simple;
+pub mod lighting_simple;

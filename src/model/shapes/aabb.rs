@@ -1,4 +1,4 @@
-use super::Shape;
+use super::shape::Shape;
 use core::f64;
 use std::sync::{Arc, RwLock};
 use crate::{
@@ -6,7 +6,7 @@ use crate::{
         materials::material::Projection,
         maths::{hit::Hit, ray::Ray, vec3::Vec3},
         scene::Scene,
-        Element
+        element::Element
     }, ui::{
         ui::UI,
         uielement::UIElement,
@@ -346,7 +346,7 @@ impl Shape for Aabb {
         Projection::default()
     }
 
-    fn norm(&self, hit_position: &Vec3, _ray_dir: &Vec3) -> Vec3 {
+    fn norm(&self, hit_position: &Vec3) -> Vec3 {
         let x = *hit_position.x();
         let y = *hit_position.y();
         let z = *hit_position.z();

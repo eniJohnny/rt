@@ -1,11 +1,11 @@
-use super::Shape;
+use super::shape::Shape;
 use std::sync::{Arc, RwLock};
 use crate::{
     model::{
         materials::material::Projection,
         maths::{hit::Hit, ray::Ray, vec3::Vec3},
         scene::Scene,
-        Element
+        element::Element
     },
     render::raycasting::get_sorted_hit_from_t,
     ui::{
@@ -125,12 +125,7 @@ impl Shape for Plane {
         projection
     }
 
-    fn norm(&self, _hit_pos: &Vec3, ray_dir: &Vec3) -> Vec3 {
-        // On doit aussi prendre on compte quand on tape de l'autre cote du plane
-        // TODO: C'est sûr ça ??
-        if ray_dir.dot(&self.dir) > 0. {
-            return -self.dir.clone();
-        }
+    fn norm(&self, _hit_pos: &Vec3) -> Vec3 {
         self.dir.clone()
     }
     fn as_plane(&self) -> Option<&Plane> {
@@ -239,7 +234,7 @@ impl Plane {
 mod tests {
     use crate::model::maths::ray::Ray;
     use crate::model::maths::vec3::Vec3;
-    use crate::model::shapes::Shape;
+    use crate::model::shapes::shape::Shape;
 
     #[test]
     fn test_plane_intersect1() {

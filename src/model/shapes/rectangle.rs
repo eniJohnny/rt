@@ -1,10 +1,10 @@
-use super::{Shape, aabb::Aabb, plane::Plane, triangle::Triangle};
+use super::{shape::Shape, aabb::Aabb, plane::Plane, triangle::Triangle};
 use std::sync::{Arc, RwLock};
 use crate::model::{
     materials::material::Projection,
     maths::{hit::Hit, ray::Ray, vec3::Vec3},
     scene::Scene,
-    Element
+    element::Element
 };
 use crate::ui::{
     prefabs::vector_ui::get_vector_ui,
@@ -62,8 +62,8 @@ impl Shape for Rectangle {
     fn projection(&self, hit: &Hit) -> Projection {
         self.plane.projection(hit)
     }
-    fn norm(&self, hit: &Vec3, ray_dir: &Vec3) -> Vec3 {
-        self.plane.norm(hit, ray_dir)
+    fn norm(&self, hit: &Vec3) -> Vec3 {
+        self.plane.norm(hit)
     }
     fn pos(&self) -> &Vec3 { &self.pos }
     fn as_rectangle(&self) -> Option<&Rectangle> { Some(self) }
@@ -83,6 +83,7 @@ impl Shape for Rectangle {
                             rectangle.pos.set_x(value);
                         }
                     }
+                    scene.set_dirty(true);
                 }),
                 Box::new(move |_, value, scene, _| {
                     let mut scene = scene.write().unwrap();
@@ -92,6 +93,7 @@ impl Shape for Rectangle {
                             rectangle.pos.set_y(value);
                         }
                     }
+                    scene.set_dirty(true);
                 }),
                 Box::new(move |_, value, scene, _| {
                     let mut scene = scene.write().unwrap();
@@ -101,8 +103,9 @@ impl Shape for Rectangle {
                             rectangle.pos.set_z(value);
                         }
                     }
+                    scene.set_dirty(true);
                 }),
-                true, None, None));
+                false, None, None));
             category.add_element(get_vector_ui(rectangle.dir_l.clone(), "Direction 1", "dir", &ui.uisettings_mut(),
                 Box::new(move |_, value, scene, _ui| {
                     let mut scene = scene.write().unwrap();
@@ -112,6 +115,7 @@ impl Shape for Rectangle {
                             rectangle.dir_l.set_x(value);
                         }
                     }
+                    scene.set_dirty(true);
                 }),
                 Box::new(move |_, value, scene, _| {
                     let mut scene = scene.write().unwrap();
@@ -121,6 +125,7 @@ impl Shape for Rectangle {
                             rectangle.dir_l.set_y(value);
                         }
                     }
+                    scene.set_dirty(true);
                 }),
                 Box::new(move |_, value, scene, _| {
                     let mut scene = scene.write().unwrap();
@@ -128,11 +133,13 @@ impl Shape for Rectangle {
                     if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
                         if let Value::Float(value) = value {
                             rectangle.dir_l.set_z(value);
+                            rectangle.dir_l = rectangle.dir_l.normalize();
                         }
                     }
+                    scene.set_dirty(true);
                 }),
-                true, Some(-1.), Some(1.)));
-                category.add_element(get_vector_ui(rectangle.dir_l.clone(), "Direction 2", "dir2", &ui.uisettings_mut(),
+                false, Some(-1.), Some(1.)));
+                category.add_element(get_vector_ui(rectangle.dir_w.clone(), "Direction 2", "dir2", &ui.uisettings_mut(),
                 Box::new(move |_, value, scene, _ui| {
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
@@ -141,6 +148,7 @@ impl Shape for Rectangle {
                             rectangle.dir_w.set_x(value);
                         }
                     }
+                    scene.set_dirty(true);
                 }),
                 Box::new(move |_, value, scene, _| {
                     let mut scene = scene.write().unwrap();
@@ -150,6 +158,7 @@ impl Shape for Rectangle {
                             rectangle.dir_w.set_y(value);
                         }
                     }
+                    scene.set_dirty(true);
                 }),
                 Box::new(move |_, value, scene, _| {
                     let mut scene = scene.write().unwrap();
@@ -157,10 +166,12 @@ impl Shape for Rectangle {
                     if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
                         if let Value::Float(value) = value {
                             rectangle.dir_w.set_z(value);
+                            rectangle.dir_w = rectangle.dir_w.normalize();
                         }
                     }
+                    scene.set_dirty(true);
                 }),
-                true, Some(-1.), Some(1.)));
+                false, Some(-1.), Some(1.)));
             category.add_element(UIElement::new(
                 "Width",
                 "width", 
@@ -174,6 +185,7 @@ impl Shape for Rectangle {
                                 rectangle.set_width(value);
                             }
                         }
+                        scene.set_dirty(true);
                     }),
                     Box::new(|_, _, _| Ok(())),
                     ui.uisettings())),
@@ -192,6 +204,7 @@ impl Shape for Rectangle {
                                 rectangle.set_length(value);
                             }
                         }
+                        scene.set_dirty(true);
                     }),
                     Box::new(|_, _, _| Ok(())),
                     ui.uisettings())),
@@ -214,31 +227,42 @@ impl Rectangle {
     // Mutators
     pub fn set_pos(&mut self, pos: Vec3) {
         self.pos = pos;
-        self.update_aabb();
+        self.compute_rectangle();
     }
 
     pub fn set_length(&mut self, length: f64) {
         self.length = length;
-        self.update_aabb();
+        self.compute_rectangle();
     }
 
     pub fn set_width(&mut self, width: f64) {
         self.width = width;
-        self.update_aabb();
+        self.compute_rectangle();
     }
 
     pub fn set_dir_l(&mut self, dir_l: Vec3) {
         self.dir_l = dir_l;
-        self.update_aabb();
+        self.compute_rectangle();
     }
 
     pub fn set_dir_w(&mut self, dir_w: Vec3) {
         self.dir_w = dir_w;
-        self.update_aabb();
+        self.compute_rectangle();
     }
 
     pub fn set_aabb(&mut self, aabb: Aabb) {
         self.aabb = aabb;
+    }
+
+    pub fn compute_rectangle(&mut self) {
+        let l_gap = (&self.dir_l.clone().normalize() * self.length) / 2.;
+        let w_gap = (&self.dir_w.clone().normalize() * self.width) / 2.;
+        self.a = self.pos.clone() + &l_gap + &w_gap;
+        self.b= self.pos.clone() - &l_gap + &w_gap;
+        self.c= self.pos.clone() + &l_gap - &w_gap;
+        self.d= self.pos.clone() - &l_gap - &w_gap;
+        self.plane = Plane::new(self.a.clone(), self.dir_l.clone().cross(&self.dir_w).normalize());
+        self.aabb = self::Rectangle::compute_aabb(&self.a, &self.d);
     }
 
     // Constructor
@@ -253,10 +277,6 @@ impl Rectangle {
         let aabb = self::Rectangle::compute_aabb(&a, &d);
 
         Rectangle { pos, length, width, dir_l, dir_w, a, b, c, d, plane, aabb }
-    }
-
-    fn update_aabb(&mut self) {
-        self.set_aabb(self::Rectangle::compute_aabb(&self.a, &self.d));
     }
 
     pub fn compute_aabb(a: &Vec3, d: &Vec3) -> super::aabb::Aabb {
