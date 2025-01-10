@@ -12,7 +12,7 @@ pub mod bvh;
 
 const USING_BVH: bool = true;
 const SCENE_FOLDER: &str = "scenes";
-const SCENE: &str = "plane_empty";
+const SCENE: &str = "ellipse";
 const SKYBOX_TEXTURE: &str = "skybox_night.jpg";
 
 /************* Camera **************/

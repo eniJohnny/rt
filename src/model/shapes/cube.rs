@@ -5,7 +5,7 @@ use nalgebra::Matrix3;
 use crate::{
     error, model::{
         element::Element, materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene
-    }, ui::{ui::UI, uielement::{Category, UIElement}, utils::misc::ElemType}
+    }, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}
 };
 
 #[derive(Debug)]
@@ -94,6 +94,10 @@ impl Shape for Cube {
     fn as_cube(&self) -> Option<&Cube> {
         Some(self)
     }
+
+    fn as_cube_mut(&mut self) -> Option<&mut Cube> {
+        Some(self)
+    }
     
     fn pos(&self) -> &Vec3 {
         &self.pos
@@ -107,9 +111,93 @@ impl Shape for Cube {
         self.intersect(ray)
     }
 
-    fn get_ui(&self, _element: &Element, _ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
-		UIElement::new("Not implemented", "notimplemented", ElemType::Category(Category::default()), _ui.uisettings())
-	}
+    fn get_ui(&self, element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
+        let mut category = UIElement::new("Cube", "cube", ElemType::Category(Category::default()), ui.uisettings());
+
+        if let Some(cube) = element.shape().as_cube() {
+            let id = element.id().clone();
+            category.add_element(get_vector_ui(cube.pos.clone(), "Position", "pos", &ui.uisettings_mut(), 
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cube) = elem.shape_mut().as_cube_mut() {
+                        if let Value::Float(value) = value {
+                            cube.pos.set_x(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cube) = elem.shape_mut().as_cube_mut() {
+                        if let Value::Float(value) = value {
+                            cube.pos.set_y(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cube) = elem.shape_mut().as_cube_mut() {
+                        if let Value::Float(value) = value {
+                            cube.pos.set_z(value);
+                        }
+                    }
+                }),
+                false, None, None));
+            category.add_element(get_vector_ui(cube.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
+                Box::new(move |_, value, scene, _ui| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cube) = elem.shape_mut().as_cube_mut() {
+                        if let Value::Float(value) = value {
+                            cube.dir.set_x(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cube) = elem.shape_mut().as_cube_mut() {
+                        if let Value::Float(value) = value {
+                            cube.dir.set_y(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, ui| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cube) = elem.shape_mut().as_cube_mut() {
+                        if let Value::Float(value) = value {
+                            cube.dir.set_z(value);
+                            cube.set_dir(cube.dir.normalize());
+                            ui.set_dirty();
+                        }
+                    }
+                }),
+                false, Some(-1.), Some(1.)));
+
+            category.add_element(UIElement::new(
+                "Width",
+                "width", 
+                ElemType::Property(Property::new(
+                    Value::Float(cube.width), 
+                    Box::new(move |_, value, scene, _: &mut UI| {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(cube) = elem.shape_mut().as_cube_mut() {
+                            if let Value::Float(value) = value {
+                                cube.set_width(value);
+                            }
+                        }
+                        scene.set_dirty(true);
+                    }),
+                    Box::new(|_, _, _| Ok(())),
+                    ui.uisettings())),
+                ui.uisettings()));
+        }
+        category
+    }
 }
 
 impl Cube {
@@ -125,23 +213,11 @@ impl Cube {
 
     // Mutators
     pub fn set_pos(&mut self, pos: Vec3) { self.pos = pos; }
-    pub fn set_dir(&mut self, dir: Vec3) {
-        self.dir = dir;
-        let (mut alpha, mut beta, mut gamma) = (0., 0., 0.);
-
-        if dir != Vec3::new(0.0, 1.0, 0.0) && dir != Vec3::new(0.0, -1.0, 0.0)
-        && dir != Vec3::new(0.0, 0.0, 1.0) && dir != Vec3::new(0.0, 0.0, -1.0) 
-        && dir != Vec3::new(1.0, 0.0, 0.0) && dir != Vec3::new(-1.0, 0.0, 0.0) {
-            (alpha, beta, gamma) = (*get_angles(&dir).x(), *get_angles(&dir).y(), *get_angles(&dir).z());
-        }
-
-        self.set_alpha(alpha);
-        self.set_beta(beta);
-        self.set_gamma(gamma);
-        self.set_rotation(rotation_z(gamma) * rotation_y(beta) * rotation_x(alpha));
-        self.set_axis_aligned_cube(to_aabb(self.pos, self.width));
+    pub fn set_dir(&mut self, dir: Vec3) { self.dir = dir; }
+    pub fn set_width(&mut self, width: f64) {
+        self.width = width;
+        self.update();
     }
-    pub fn set_width(&mut self, width: f64) { self.width = width; }
     pub fn set_alpha(&mut self, alpha: f64) { self.alpha = alpha; }
     pub fn set_beta(&mut self, beta: f64) { self.beta = beta; }
     pub fn set_gamma(&mut self, gamma: f64) { self.gamma = gamma; }
@@ -177,6 +253,23 @@ impl Cube {
             rotation: self.rotation,
             axis_aligned_cube: self.axis_aligned_cube.clone()
         }
+    }
+
+    pub fn update(&mut self) {
+        let (mut alpha, mut beta, mut gamma) = (0., 0., 0.);
+        let dir = self.dir.clone();
+
+        if dir != Vec3::new(0.0, 1.0, 0.0) && dir != Vec3::new(0.0, -1.0, 0.0)
+        && dir != Vec3::new(0.0, 0.0, 1.0) && dir != Vec3::new(0.0, 0.0, -1.0) 
+        && dir != Vec3::new(1.0, 0.0, 0.0) && dir != Vec3::new(-1.0, 0.0, 0.0) {
+            (alpha, beta, gamma) = (*get_angles(&dir).x(), *get_angles(&dir).y(), *get_angles(&dir).z());
+        }
+
+        self.set_alpha(alpha);
+        self.set_beta(beta);
+        self.set_gamma(gamma);
+        self.set_rotation(rotation_z(gamma) * rotation_y(beta) * rotation_x(alpha));
+        self.set_axis_aligned_cube(to_aabb(self.pos, self.width));
     }
 }
 

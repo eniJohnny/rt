@@ -4,7 +4,7 @@ use super::shape::Shape;
 use nalgebra::Matrix3;
 use crate::{model::{
     element::Element, materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene
-}, ui::{ui::UI, uielement::{Category, UIElement}, utils::misc::ElemType}};
+}, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}};
 
 #[derive(Debug)]
 pub struct Ellipse {
@@ -61,6 +61,10 @@ impl Shape for Ellipse {
         Some(self)
     }
 
+    fn as_ellipse_mut(&mut self) -> Option<&mut Ellipse> {
+        Some(self)
+    }
+
     fn pos(&self) -> &Vec3 {
         &self.pos
     }
@@ -77,9 +81,112 @@ impl Shape for Ellipse {
         self.intersect(ray)
     }
 
-    fn get_ui(&self, _element: &Element, _ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
-		UIElement::new("Not implemented", "notimplemented", ElemType::Category(Category::default()), _ui.uisettings())
-	}
+    fn get_ui(&self, element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
+        let mut category = UIElement::new("Ellipse", "ellipse", ElemType::Category(Category::default()), ui.uisettings());
+
+        if let Some(ellipse) = element.shape().as_ellipse() {
+            let id = element.id().clone();
+            category.add_element(get_vector_ui(ellipse.pos.clone(), "Position", "pos", &ui.uisettings_mut(), 
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
+                        if let Value::Float(value) = value {
+                            ellipse.pos.set_x(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
+                        if let Value::Float(value) = value {
+                            ellipse.pos.set_y(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
+                        if let Value::Float(value) = value {
+                            ellipse.pos.set_z(value);
+                        }
+                    }
+                }),
+                false, None, None));
+            category.add_element(get_vector_ui(ellipse.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
+                Box::new(move |_, value, scene, _ui| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
+                        if let Value::Float(value) = value {
+                            ellipse.dir.set_x(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
+                        if let Value::Float(value) = value {
+                            ellipse.dir.set_y(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, ui| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
+                        if let Value::Float(value) = value {
+                            ellipse.dir.set_z(value);
+                            ellipse.set_dir(ellipse.dir.normalize());
+                            ui.set_dirty();
+                        }
+                    }
+                }),
+                false, Some(-1.), Some(1.)));
+
+                category.add_element(UIElement::new(
+                    "Major Half Length",
+                    "major_half_len", 
+                    ElemType::Property(Property::new(
+                        Value::Float(ellipse.major_half_len), 
+                        Box::new(move |_, value, scene, _: &mut UI| {
+                            let mut scene = scene.write().unwrap();
+                            let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                            if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
+                                if let Value::Float(value) = value {
+                                    ellipse.set_major_half_len(value);
+                                }
+                            }
+                            scene.set_dirty(true);
+                        }),
+                        Box::new(|_, _, _| Ok(())),
+                        ui.uisettings())),
+                    ui.uisettings()));
+
+                    category.add_element(UIElement::new(
+                        "Minor Half Length",
+                        "minor_half_len", 
+                        ElemType::Property(Property::new(
+                            Value::Float(ellipse.minor_half_len), 
+                            Box::new(move |_, value, scene, _: &mut UI| {
+                                let mut scene = scene.write().unwrap();
+                                let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                                if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
+                                    if let Value::Float(value) = value {
+                                        ellipse.set_minor_half_len(value);
+                                    }
+                                }
+                                scene.set_dirty(true);
+                            }),
+                            Box::new(|_, _, _| Ok(())),
+                            ui.uisettings())),
+                        ui.uisettings()));
+        }
+        category
+    }
 }
 
 impl Ellipse {
@@ -118,25 +225,25 @@ impl Ellipse {
     // Mutators
     pub fn set_pos(&mut self, pos: Vec3) {
         self.pos = pos;
-        self.update_ellipse();
+        // self.update_ellipse();
     }
     pub fn set_dir(&mut self, dir: Vec3) {
         self.dir = dir;
-        self.update_ellipse();
+        // self.update_ellipse();
     }
     pub fn set_major_axis(&mut self, major_axis: Vec3) {
         self.major_axis = major_axis
     }
     pub fn set_major_half_len(&mut self, major_half_len: f64) {
         self.major_half_len = major_half_len;
-        self.update_ellipse();
+        // self.update_ellipse();
     }
     pub fn set_minor_axis(&mut self, minor_axis: Vec3) {
         self.minor_axis = minor_axis
     }
     pub fn set_minor_half_len(&mut self, minor_half_len: f64) {
         self.minor_half_len = minor_half_len;
-        self.update_ellipse();
+        self.update();
     }
     pub fn set_alpha(&mut self, alpha: f64) {
         self.alpha = alpha
@@ -194,22 +301,28 @@ impl Ellipse {
         }
     }
 
-    fn update_ellipse(&mut self) {
+    fn update(&mut self) {
+        let pos = self.pos.clone();
+        let dir = self.dir.clone();
+        let (major_half_len, minor_half_len) = if self.major_half_len > self.minor_half_len { (self.major_half_len, self.minor_half_len) } else { (self.minor_half_len, self.major_half_len) };
+        
+        let plane = super::plane::Plane::new(pos.clone(), dir.clone());
+        let aabb = Ellipse::compute_aabb(&pos, &dir, minor_half_len, major_half_len);
         let axis: Vec3;
 
-        if self.dir == Vec3::new(0.0, 1.0, 0.0) {
+        if dir == Vec3::new(0.0, 1.0, 0.0) {
             axis = Vec3::new(0.0, 0.0, 1.0);
         } else {
             axis = Vec3::new(0.0, 1.0, 0.0);
         }
 
-        self.major_axis = self.dir.clone().normalize();
-        self.minor_axis = self.major_axis.cross(&axis).normalize();
-        let angles = Ellipse::get_angles(&self.dir);
-        self.alpha = *angles.x();
-        self.beta = *angles.y();
-        self.gamma = *angles.z();
-        self.update_aabb();
+        // let major_axis = dir.clone().normalize();
+        // let minor_axis = major_axis.cross(&axis).normalize();
+        let major_axis = dir.cross(&axis).normalize();
+        let minor_axis = major_axis.cross(&dir).normalize();
+
+        let angles = Ellipse::get_angles(&dir);
+        *self = self::Ellipse { pos, dir, major_axis, major_half_len, minor_axis, minor_half_len, alpha: *angles.x(), beta: *angles.y(), gamma: *angles.z(), plane, aabb };
     }
 
     fn update_aabb(&mut self) {

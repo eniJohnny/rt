@@ -6,7 +6,7 @@
         "fov": 75
     },
     {
-        "type": "cube",
+        "type": "cubehole",
         "pos": [0, 0, 0],
         "dir": [0, 0, 1],
         "width": 3,

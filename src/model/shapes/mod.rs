@@ -5,6 +5,7 @@ pub mod sphere;
 pub mod rectangle;
 pub mod triangle;
 pub mod brick;
+pub mod torus;
 pub mod aabb;
 pub mod wireframe;
 pub mod torusphere;
