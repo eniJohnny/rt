@@ -136,14 +136,19 @@ impl Light for PointLight {
         let shadow_ray = Ray::new(hit.pos() + hit.norm() * BOUNCE_OFFSET, to_light, 0);
         for element in scene.elements() {
             if let Some(t) = element.shape().intersect(&shadow_ray) {
-                if t[0] < (self.pos() - hit.pos()).length() {
-                    return true;
+                for t in t {
+                    if t > 0. {
+                        if t < (self.pos() - hit.pos()).length() {
+                            return true;
+                        }
+                        return false;
+                    }
                 }
             }
         }
         false
     }
-
+                    
     fn as_pointlight(&self) -> Option<&PointLight> {
         Some(self)
     }
@@ -204,8 +209,10 @@ impl Light for ParallelLight {
         let shadow_ray = Ray::new(hit.pos() + hit.norm() * BOUNCE_OFFSET, -self.dir(), 0);
         for element in scene.elements() {
             if let Some(t) = element.shape().intersect(&shadow_ray) {
-                if t[0] > 0. {
-                    return true;
+                for t in t {
+                    if t > 0. {
+                        return true;
+                    }
                 }
             }
         }
@@ -296,8 +303,13 @@ impl Light for SpotLight {
         let shadow_ray = Ray::new(hit.pos() + hit.norm() * BOUNCE_OFFSET, to_light, 0);
         for element in scene.elements() {
             if let Some(t) = element.shape().intersect(&shadow_ray) {
-                if t[0] < (self.pos() - hit.pos()).length() {
-                    return true;
+                for t in t {
+                    if t > 0. {
+                        if t < (self.pos() - hit.pos()).length() {
+                            return true;
+                        }
+                        return false;
+                    }
                 }
             }
         }

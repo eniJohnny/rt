@@ -168,7 +168,7 @@ pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
                 return Color::new(1., 1., 1.);
             }
             if let ViewMode::Simple(ambient, light) = &scene.settings().view_mode {
-                simple_lighting_from_hit(&hit, ambient, light)
+                simple_lighting_from_hit(scene, &hit, ambient, light, ray)
             } else {
                 global_lighting_from_hit(scene, &mut hit, ray)
             }
