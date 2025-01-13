@@ -1,0 +1,270 @@
+[
+	{
+		"type": "skybox",
+		"color": "./skybox_night.jpg"
+	},
+	{
+		"type": "camera",
+		"pos": [0, 3, 50],
+		"dir": [0, 0, -1],
+		"fov": 70
+	},
+	// floor
+	{
+		"type": "rectangle",
+		"pos": [0, 0, 0],
+		"length": 30,
+		"width": 100,
+		"dir_l": [1, 0, 0],
+		"dir_w": [0, 0, 1],
+		"color": [255, 255, 255]
+	},
+	// walls
+	{
+		"type": "rectangle",
+		"pos": [-15, 15, 0],
+		"length": 30,
+		"width": 100,
+		"dir_l": [0, -1, 0],
+		"dir_w": [0, 0, -1],
+		"color": [255, 75, 75],
+		"emissive": 2.0
+	},
+	{
+		"type": "rectangle",
+		"pos": [15, 15, 0],
+		"length": 30,
+		"width": 100,
+		"dir_l": [0, -1, 0],
+		"dir_w": [0, 0, -1],
+		"color": [75, 75, 255],
+		"emissive": 2.0
+	},
+	//pair of cube
+	{
+		"type": "cube",
+		"pos": [-10, 1, 0],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [255, 0, 0]
+	},
+	{
+		"type": "cube",
+		"pos": [10, 1, 0],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [255, 0, 0]
+	},
+	//
+	{
+		"type": "cube",
+		"pos": [-10, 1, 5],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [255, 0, 0]
+	},
+	{
+		"type": "cube",
+		"pos": [10, 1, 5],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [255, 0, 0]
+	},
+	
+	{
+		"type": "cube",
+		"pos": [-10, 1, 10],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [255, 0, 0]
+	},
+	{
+		"type": "cube",
+		"pos": [10, 1, 10],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [255, 0, 0]
+	},
+	
+	{
+		"type": "cube",
+		"pos": [-10, 1, 15],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [255, 0, 0]
+	},
+	{
+		"type": "cube",
+		"pos": [10, 1, 15],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [255, 0, 0]
+	},
+	
+	{
+		"type": "cube",
+		"pos": [-10, 1, 20],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [255, 0, 0]
+	},
+	{
+		"type": "cube",
+		"pos": [10, 1, 20],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [255, 0, 0]
+	},
+	
+	{
+		"type": "cube",
+		"pos": [-10, 1, 25],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [255, 0, 0]
+	},
+	{
+		"type": "cube",
+		"pos": [10, 1, 25],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [255, 0, 0]
+	},
+	
+	{
+		"type": "cube",
+		"pos": [-10, 1, 30],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [255, 0, 0]
+	},
+	{
+		"type": "cube",
+		"pos": [10, 1, 30],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [255, 0, 0]
+	},
+	
+	{
+		"type": "cube",
+		"pos": [-10, 1, 35],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [255, 0, 0]
+	},
+	{
+		"type": "cube",
+		"pos": [10, 1, 35],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [255, 0, 0]
+	},
+	
+	{
+		"type": "cube",
+		"pos": [-10, 1, 40],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [255, 0, 0]
+	},
+	{
+		"type": "cube",
+		"pos": [10, 1, 40],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [255, 0, 0]
+	},
+	
+
+
+
+	
+	{
+		"type": "cube",
+		"pos": [-10, 1, 45],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [150, 255, 50]
+	},
+	{
+		"type": "brick",
+		"pos": [-10, 3, 45],
+		"dir": [0, 1, 0],
+		"dimensions": [2, 2, 2],
+		"color": [255, 255, 255],
+		"refraction": 1.0,
+		"transparency": 0.9,
+		"roughness": 0.0
+	},
+	{
+		"type": "sphere",
+		"pos": [-10, 3, 45],
+		"dir": [0, 0, 1],
+		"radius": 0.8,
+		"color": [255, 255, 255]
+	},
+	{
+		"type": "sphere",
+		"pos": [-0, 3, 45],
+		"dir": [0, 0, 1],
+		"radius": 0.8,
+		"color": [255, 255, 255],
+		"refraction": 1.52,
+		"transparency": 0.9,
+		"roughness": 0.0
+	},
+	{
+		"type": "obj",
+		"file": "./obj/sphere_text.obj",
+		"pos": [-9.02, 1, 44.2],
+		"dir": [0.01, 1, 0.01],
+		"color": [255, 255, 180],
+		"rotation": -90,
+		"scale": 0.6,
+		"emissive": 1.0
+	},
+
+	{
+		"type": "cube",
+		"pos": [10, 1, 45],
+		"dir": [0, 1, 0],
+		"width": 2,
+		"color": [255, 0, 0]
+	},
+	{
+		"type": "cylinder",
+		"pos": [10, 4, 45],
+		"dir": [0, 1, 0],
+		"radius": 1,
+		"height": 1,
+		"color": [0,255,0],
+		"roughness": 1.0,
+		"metalness": 0
+	},
+	{
+		"type": "spot",
+		"pos": [10, 6, 45],
+		"dir": [-1, -1, -1],
+		"color": [255, 255, 255],
+		"intensity": 100,
+		"fov": 30
+	},
+	// {
+	// 	"type": "light",
+	// 	"pos": [10, 10, 45],
+	// 	"color": [255, 255, 255],
+	// 	"intensity": 10
+	// },
+	// {
+	// 	"type": "parallel",
+	// 	"dir": [-1, -1, -1],
+	// 	"color": [255, 0, 0],
+	// 	"intensity": 10
+	// }
+	{
+		"type": "ambient",
+		"color": [255, 255, 255],
+		"intensity": 0.1
+	}
+]

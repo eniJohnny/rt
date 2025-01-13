@@ -15,6 +15,7 @@ use crate::{
 #[derive(Debug, Clone)]
 pub enum ViewMode {
     Simple(Color, ParallelLight),
+    Phong,
     Norm,
     HighDef,
     BVH,
@@ -114,6 +115,16 @@ impl Displayable for Settings {
             )),
             settings,
         ));
+        category.elems.push(get_texture_ui("Skybox", &Texture::Value(Vec3::new(0.2, 0.2, 0.2), TextureType::Color), Box::new(
+            |value, scene| {
+                let mut scene = scene.write().unwrap();
+                if let Texture::Texture(path, _) = &value {
+                    scene.load_texture(&path);
+                }
+                scene.set_skybox(value);
+                scene.set_dirty(true);
+            },
+        ), settings, true, false, None, None, None));
         category.elems.push(UIElement::new(
             "Ray depth",
             "depth",
@@ -314,35 +325,58 @@ impl Displayable for Settings {
             "Simple",
             "simple",
             ElemType::Button(Some(Box::new(|_, context, _| {
-                    let scene = match context.active_scene {
-                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
-                        None => return,
-                    };
-                scene.write().unwrap().settings_mut().view_mode = ViewMode::Simple(
-                    Color::new(0.2, 0.2, 0.2),
-                    ParallelLight::new(Vec3::new(0.5, -0.5, 0.5), 1., Color::new(1., 1., 1.)),
-                );
-                scene.write().unwrap().set_dirty(true);
+                if let Some(scene) = context.get_active_scene() {
+                    scene.write().unwrap().settings_mut().view_mode = ViewMode::Simple(
+                        Color::new(0.2, 0.2, 0.2),
+                        ParallelLight::new(Vec3::new(0.5, -0.5, 0.5), 1., Color::new(1., 1., 1.)),
+                    );
+                    scene.write().unwrap().set_dirty(true);
+                }
             }))),
             settings,
         );
         let mut gi = UIElement::new(
-            "Global Illumination",
+            "Global",
             "gi",
             ElemType::Button(Some(Box::new(|_, context, _| {
-                    let scene = match context.active_scene {
-                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
-                        None => return,
-                    };
-                scene.write().unwrap().settings_mut().view_mode = ViewMode::HighDef;
-                scene.write().unwrap().set_dirty(true);
+                if let Some(scene) = context.get_active_scene() {
+                    scene.write().unwrap().settings_mut().view_mode = ViewMode::HighDef;
+                    scene.write().unwrap().set_dirty(true);
+                }
             }))),
             settings,
         );
+        let mut norm = UIElement::new(
+            "Normals",
+            "norm",
+            ElemType::Button(Some(Box::new(|_, context, _ui| {
+                if let Some(scene) = context.get_active_scene() {
+                    scene.write().unwrap().settings_mut().view_mode = ViewMode::Norm;
+                    scene.write().unwrap().set_dirty(true);
+                }
+            }))),
+            settings,
+        );
+        let mut phong = UIElement::new(
+            "Phong",
+            "phong",
+            ElemType::Button(Some(Box::new(|_, context, _ui| {
+                if let Some(scene) = context.get_active_scene() {
+                    scene.write().unwrap().settings_mut().view_mode = ViewMode::Phong;
+                    scene.write().unwrap().set_dirty(true);
+                }
+            }))),
+            settings,
+        );
+
+        norm.style_mut().fill_width = true;
         gi.style_mut().fill_width = true;
         simple.style_mut().fill_width = true;
-        view_mode_radio.add_element(gi);
+        phong.style_mut().fill_width = true;
         view_mode_radio.add_element(simple);
+        view_mode_radio.add_element(phong);
+        view_mode_radio.add_element(norm);
+        view_mode_radio.add_element(gi);
 
         let mut filter_radio = UIElement::new("", "filter", ElemType::Row(vec![]), settings);
         let mut no_filter = UIElement::new(
@@ -415,7 +449,6 @@ impl Displayable for Settings {
         filter_radio.add_element(cartoon_filter);
         filter_radio.add_element(grayscale_filter);
         filter_radio.add_element(anaglyph_filter);
-
         let mut category = UIElement::new(
             name,
             "settings",

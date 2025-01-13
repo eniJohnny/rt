@@ -9,8 +9,7 @@ use crate::{
 };
 use super::{
     lighting::{
-        lighting_real::global_lighting_from_hit,
-        lighting_simple::simple_lighting_from_hit
+        lighting_phong::phong_lighting_from_hit, lighting_real::global_lighting_from_hit, lighting_simple::simple_lighting_from_hit, lightning_norm::norm_lighting_from_hit
     },
     settings::ViewMode,
     skybox::get_skybox_color
@@ -167,11 +166,18 @@ pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
             if hit.element().shape().as_wireframe().is_some() {
                 return Color::new(1., 1., 1.);
             }
-            if let ViewMode::Simple(ambient, light) = &scene.settings().view_mode {
-                simple_lighting_from_hit(scene, &hit, ambient, light, ray)
-            } else {
-                global_lighting_from_hit(scene, &mut hit, ray)
-            }
+			match &scene.settings().view_mode {
+				ViewMode::Simple(ambient, light) => {
+					simple_lighting_from_hit(&hit, ambient, light)
+				}
+				ViewMode::Norm => {
+					norm_lighting_from_hit(&hit)
+				},
+				ViewMode::Phong => {
+					phong_lighting_from_hit(scene, &hit, ray)
+				},
+				_ => global_lighting_from_hit(scene, &mut hit, ray)
+			}
         },
         None => {
             get_skybox_color(scene, ray)
