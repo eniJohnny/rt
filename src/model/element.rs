@@ -18,12 +18,12 @@ impl Element {
         }
     }
 
-    pub fn material(&self) -> &dyn Material {
-        self.material.as_ref()
+    pub fn material(&self) -> &Box<dyn Material + Send +Sync> {
+        &self.material
     }
 
-    pub fn material_mut(&mut self)-> &mut dyn Material {
-        self.material.as_mut()
+    pub fn material_mut(&mut self)-> &mut Box<dyn Material + Send +Sync> {
+        &mut self.material
     }
 
     pub fn shape(&self) -> &dyn Shape {
