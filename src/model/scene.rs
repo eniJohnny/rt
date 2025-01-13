@@ -1,20 +1,14 @@
 use std::{collections::HashMap, ops::SubAssign};
 
 use crate::{
-    bvh::{self},
-    model::objects::light::AmbientLight,
-    render::settings::Settings
+    bvh::{self}, model::objects::light::AmbientLight, render::settings::Settings
 };
 use super::{
-    materials::{
+    composed_element::ComposedElement, element::Element, materials::{
         diffuse::Diffuse,
         material::Material,
         texture::{Texture, TextureType}
-    },
-    maths::vec3::Vec3,
-    objects::{camera::Camera, light::AnyLight},
-    shapes::{self, aabb::Aabb},
-    composed_element::ComposedElement, element::Element
+    }, maths::vec3::Vec3, objects::{camera::Camera, light::AnyLight}, shapes::{self, aabb::Aabb}
 };
 
 #[derive(Debug)]
@@ -78,36 +72,69 @@ impl Scene {
     }
 
     pub fn update_composed_element_shape(&mut self, composed_id: usize) {
-        let composed_element = &mut self.composed_elements[composed_id];
-        let mut elements_index = composed_element.elements_index_mut().clone();
-        let old_nb_elem = elements_index.len();
-        let material = (*composed_element.material()).clone();
-        let mut new_elements = composed_element.composed_shape().generate_elements(material);
+        let material = (*self.composed_elements[composed_id].material()).clone();
+        let mut new_elements = self.composed_elements[composed_id].composed_shape().generate_elements(material);
         let new_nb_elem = new_elements.len();
+        let mut composed_ids: Vec<usize> = vec![];
+        let ids = self.composed_elements[composed_id].elements_index().clone();
 
-        for i in 0..old_nb_elem.min(new_nb_elem) {
+        // Remove old elements
+        for id in ids {
+            for element in &self.elements {
+                if element.id() == id {
+                    let index = self.elements.iter().position(|e| e.id() == id).unwrap();
+                    self.elements.remove(index);
+                    break;
+                }
+            }
+        }
+
+        // Defrag (remove gaps so that they are all consecutive) the ids
+        self.defrag_next_element_id();
+
+        // Add new elements with new ids
+        for _ in 0..new_nb_elem {
+            // Compute next element id (first available id)
+            self.compute_next_element_id();
+
+            let id = self.next_element_id;
             let mut element = new_elements.remove(0);
             element.set_composed_id(composed_id);
-            element.set_id(elements_index[i]);
-            self.elements[elements_index[i]] = element;
-        }
-        if old_nb_elem > new_nb_elem {
-            elements_index.truncate(new_nb_elem);
-        }
-        for _ in old_nb_elem..new_nb_elem {
-            let mut element = new_elements.remove(old_nb_elem);
-            element.set_composed_id(composed_id);
-            element.set_id(self.next_element_id);
-            elements_index.push(self.next_element_id);
+            element.set_id(id);
+            composed_ids.push(id);
             self.elements.push(element);
-            self.next_element_id += 1;
         }
-        composed_element.set_elements_index(elements_index);
 
+        // Update composed element with new ids
+        self.composed_elements[composed_id].set_elements_index(composed_ids);
+    }
 
-        for i in new_nb_elem..old_nb_elem {
-            self.remove_element(i);
+    pub fn defrag_next_element_id(&mut self) {
+        let mut prev_id = 0;
+        for i in 0..self.elements.len() {
+            let expected_id = (prev_id + 1) * (i != 0) as usize;
+            if self.elements[i].id() != expected_id {
+                if let Some(composed_id) = self.elements[i].composed_id() {
+                    let composed_element = &mut self.composed_elements[composed_id];
+                    let elements_index = composed_element.elements_index_mut();
+                    for index in elements_index {
+                        if *index == self.elements[i].id() {
+                            *index = expected_id;
+                        }
+                    }
+                }
+                self.elements[i].set_id(expected_id);
+            }
+            prev_id = expected_id;
         }
+    }
+    pub fn compute_next_element_id(&mut self) {
+        let ids = self.elements.iter().map(|e| e.id()).collect::<Vec<usize>>();
+        let mut id = 0;
+        while ids.contains(&id) {
+            id += 1;
+        }
+        self.next_element_id = id;
     }
 
     pub fn update_composed_element_material(&mut self, composed_id: usize) {
