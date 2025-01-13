@@ -14,6 +14,7 @@ use super::{
 #[derive(Debug)]
 pub struct Scene {
     elements: Vec<Element>,
+    skybox: Texture,
     non_bvh_elements_index: Vec<usize>,
     non_bvh_composed_elements_index: Vec<usize>,
     composed_elements: Vec<ComposedElement>,
@@ -33,6 +34,7 @@ impl Scene {
     pub fn new() -> Self {
         Self {
             elements: Vec::new(),
+            skybox: Texture::Value(Vec3::new(0.2, 0.6, 0.6), TextureType::Color),
             non_bvh_elements_index: Vec::new(),
             non_bvh_composed_elements_index: Vec::new(),
             composed_elements: Vec::new(),
@@ -216,7 +218,7 @@ impl Scene {
             material.norm(),
             material.emissive(),
             material.opacity(),
-			material.displacement(),
+            material.displacement(),
         ];
         for texture in textures.iter() {
             match texture {
@@ -361,6 +363,10 @@ impl Scene {
         None
     }
     
+    pub fn skybox(&self) -> &Texture {
+        &self.skybox
+    }
+
     pub fn camera(&self) -> &Camera {
         &self.camera
     }
@@ -428,6 +434,10 @@ impl Scene {
     }
 
     // Mutators
+
+    pub fn set_skybox(&mut self, skybox: Texture) {
+        self.skybox = skybox
+    }
 
     pub fn set_elements(&mut self, elements: Vec<Element>) {
         self.elements = elements;

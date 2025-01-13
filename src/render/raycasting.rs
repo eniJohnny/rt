@@ -13,7 +13,7 @@ use super::{
         lighting_simple::simple_lighting_from_hit
     },
     settings::ViewMode,
-    skysphere::get_skysphere_color
+    skybox::get_skybox_color
 };
 
 pub fn get_ray_debug(scene: &Scene, x: usize, y: usize, debug: bool) -> Ray {
@@ -174,7 +174,7 @@ pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
             }
         },
         None => {
-            get_skysphere_color(scene, ray)
+            get_skybox_color(scene, ray)
         },
     };
 }

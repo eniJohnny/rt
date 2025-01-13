@@ -1,22 +1,26 @@
 use std::f64::consts::PI;
+use crate::model::{materials::{color::Color, material::Projection, texture::{self, Texture}}, maths::{ray::Ray, vec3::Vec3}, scene::Scene, shapes::{shape::Shape, sphere::{self, Sphere}}};
 
-use crate::model::{materials::{color::Color, material::Projection, texture}, maths::{ray::Ray, vec3::Vec3}, scene::Scene, shapes::{sphere::{self, Sphere}, shape::Shape}};
-
-
-pub fn get_skysphere_color(scene: &Scene, ray: &Ray) -> Color {
-    let sphere = sphere::Sphere::new(Vec3::new(0., 0., 0.), Vec3::new(0., 1., 0.), 1.);
-    let hit_norm = sphere.norm(ray.get_dir());
-    let projection = skysphere_projection(&hit_norm, &sphere);
-    if let Some(img) = scene.get_texture(&scene.settings().skybox_texture) {
-        let color = texture::Texture::get(&projection, &img);
-
-        &color * &color
-    } else {
-        return Color::new(0., 0., 0.);
+pub fn get_skybox_color(scene: &Scene, ray: &Ray) -> Color {
+    match scene.skybox() {
+        Texture::Texture(file, _) => {
+            let sphere = sphere::Sphere::new(Vec3::new(0., 0., 0.), Vec3::new(0., 1., 0.), 1.);
+            let hit_norm = sphere.norm(ray.get_dir());
+            let projection = skybox_projection(&hit_norm, &sphere);
+            if let Some(img) = scene.get_texture(file) {
+                let color = texture::Texture::get(&projection, &img);
+                &color * &color
+            } else {
+                Color::new(0., 0., 0.)
+            }
+        }
+        Texture::Value(vector, _) => {
+            Color::from_vec3(vector)
+        }
     }
 }
 
-fn skysphere_projection(hit_norm: &Vec3, sphere: &Sphere) -> Projection {
+fn skybox_projection(hit_norm: &Vec3, sphere: &Sphere) -> Projection {
     let mut projection: Projection = Projection::default();
 
     let constant_axis: Vec3;
