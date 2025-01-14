@@ -68,6 +68,7 @@ const UI_REFRESH_TIME: u32 = 1000;
 
 /*********** UI default references *********/
 const SETTINGS: &str = "settings";
+const SCENE_SETTINGS: &str = "scene_settings";
 const TOOLBAR: &str = "toolbar";
 const SCENE_TOOLBAR: &str = "scene_toolbar";
 const ELEMENT: &str = "element";

@@ -14,7 +14,6 @@ pub fn parse_json_file(path: &String) -> Result<JsonValue, String> {
     match read_to_string(path) {
         Ok(mut content) => {
             remove_json_comments(&mut content);
-            print!("{}\n", &content);
             parse_json_content(&content)
         }
         Err(err) => {

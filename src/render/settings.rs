@@ -1,12 +1,10 @@
 use crate::{
     display::{anaglyph::Coloring, filters::ColorFilter}, model::{
-        materials::color::Color,
+        materials::{color::Color, texture::{Texture, TextureType}},
         maths::vec3::Vec3,
         objects::light::ParallelLight,
     }, ui::{
-        uielement::{Category, UIElement},
-        uisettings::UISettings,
-        utils::{
+        prefabs::{texture_ui::get_texture_ui, vector_ui::get_vector_ui}, uielement::{Category, UIElement}, uisettings::UISettings, utils::{
             misc::{ElemType, Property, Value}, ui_utils::UIContext, Displayable
         }
     }, ANAGLYPH_OFFSET_X, ANAGLYPH_OFFSET_Y, ANTIALIASING, DISPLACEMENT, MAX_DEPTH, MAX_ITERATIONS, PLANE_DISPLACED_DISTANCE, PLANE_DISPLACEMENT_STEP, SKYBOX_TEXTURE, SPHERE_DISPLACED_DISTANCE, SPHERE_DISPLACEMENT_STEP, VIEW_MODE
@@ -93,29 +91,13 @@ impl Displayable for Settings {
             )),
             settings,
         ));
-        category.elems.push(UIElement::new(
-            "Skybox texture",
-            "skybox",
-            ElemType::Property(Property::new(
-                Value::Text(self.skybox_texture.to_string()),
-                Box::new(|_, value: Value, context, _| {
-                    let scene = match context.active_scene {
-                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
-                        None => return,
-                    };
-                    if let Value::Text(value) = value {
-                        let mut scene = scene.write().unwrap();
-                        scene.load_texture(&value);
-                        scene.settings_mut().skybox_texture = value;
-                        scene.set_dirty(true);
-                    }
-                }),
-                Box::new(|_, _, _| Ok(())),
-                settings,
-            )),
-            settings,
-        ));
-        category.elems.push(get_texture_ui("Skybox", &Texture::Value(Vec3::new(0.2, 0.2, 0.2), TextureType::Color), Box::new(
+		let mut ambient_category = UIElement::new("Ambient light", "ambient", ElemType::Category(Category::default()), settings);
+		ambient_category.add_element(get_vector_ui(Vec3::new(0., 0., 0.), "Color", "ambient.color", settings, 
+		Box::new(move |_, value, scene, _| {}), 
+		Box::new(move |_, value, scene, _| {}), 
+		Box::new(move |_, value, scene, _| {}), true, None, None));
+		category.elems.push(ambient_category);
+		category.elems.push(get_texture_ui("Skybox", &Texture::Value(Vec3::new(0.2, 0.2, 0.2), TextureType::Color), Box::new(
             |value, scene| {
                 let mut scene = scene.write().unwrap();
                 if let Texture::Texture(path, _) = &value {

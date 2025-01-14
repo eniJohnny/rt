@@ -328,6 +328,15 @@ impl Scene {
         None
     }
 
+    pub fn light_mut_by_id(&mut self, id: usize) -> Option<&mut AnyLight> {
+        for light in &mut self.lights {
+            if light.id() == id {
+                return Some(light);
+            }
+        }
+        None
+    }
+
     pub fn composed_element_by_element_id(&self, id: usize) -> Option<&ComposedElement> {
         if let Some(element) = self.element_by_id(id) {
             if let Some(composed_id) = element.composed_id() {

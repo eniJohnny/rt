@@ -62,7 +62,7 @@ pub fn get_spot(json_spot: &HashMap<String, JsonValue>) -> Result<AnyLight, Stri
     let pos = get_vec3(json_spot, "pos", None, None, None)?;
     let dir = get_vec3(json_spot, "dir", None, None, None)?.normalize();
     let intensity = get_number(json_spot, "intensity", Some(0.), None, None)?;
-    let fov = get_number(json_spot, "fov", Some(0.), Some(360.), None)? * PI / 180.;
+    let fov = get_number(json_spot, "fov", Some(0.), Some(360.), None)?;
     let color = get_color(json_spot, "color")?;
     Ok(AnyLight::new(Box::new(SpotLight::new(pos, dir, intensity, color, fov))))
 }
