@@ -1,8 +1,7 @@
 use crate::{
     display::{anaglyph::Coloring, filters::ColorFilter}, model::{
         materials::{color::Color, texture::{Texture, TextureType}},
-        maths::vec3::Vec3,
-        objects::light::ParallelLight,
+        maths::vec3::Vec3, objects::lights::parallel_light::ParallelLight,
     }, ui::{
         prefabs::{texture_ui::get_texture_ui, vector_ui::get_vector_ui}, uielement::{Category, UIElement}, uisettings::UISettings, utils::{
             misc::{ElemType, Property, Value}, ui_utils::UIContext, Displayable

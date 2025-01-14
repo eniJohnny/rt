@@ -1,5 +1,5 @@
 use std::{collections::HashMap, f64::consts::PI};
-use crate::model::{composed_element::ComposedElement, element::Element, materials::{diffuse::Diffuse, material::Material}, objects::{camera::Camera, light::{AmbientLight, AnyLight, Light, ParallelLight, PointLight, SpotLight}}, shapes::{any::Any, brick::Brick, composed_shape::ComposedShape, cone::Cone, cube::Cube, cubehole::Cubehole, cylinder::Cylinder, ellipse::Ellipse, helix::Helix, hyperboloid::Hyperboloid, mobius::Mobius, nagone::Nagone, obj::Obj, plane::Plane, rectangle::Rectangle, shape::Shape, sphere::Sphere, torus::Torus, torusphere::Torusphere, triangle::Triangle}};
+use crate::model::{composed_element::ComposedElement, element::Element, materials::{diffuse::Diffuse, material::Material}, objects::{camera::Camera, lights::{ambient_light::AmbientLight, light::AnyLight, parallel_light::ParallelLight, point_light::PointLight, spot_light::SpotLight}}, shapes::{any::Any, brick::Brick, composed_shape::ComposedShape, cone::Cone, cube::Cube, cubehole::Cubehole, cylinder::Cylinder, ellipse::Ellipse, helix::Helix, hyperboloid::Hyperboloid, mobius::Mobius, nagone::Nagone, obj::Obj, plane::Plane, rectangle::Rectangle, sphere::Sphere, torusphere::Torusphere, triangle::Triangle}};
 use super::{
     basic::{
         get_color, get_color_texture, get_displacement_texture, get_normal_texture, get_number, get_opacity_texture, get_string, get_vec1_texture, get_vec3
@@ -18,11 +18,14 @@ pub fn get_material(json_object: &HashMap<String, JsonValue>) -> Result<Box<dyn 
     let displacement = get_displacement_texture(json_object)?;
     let refraction = get_number(json_object, "refraction", Some(1.), None, Some(1.))?;
     
+	let emissive_intensity = get_number(json_object, "emissive_intensity", Some(0.), None, Some(1.))?;
+
     Ok(Box::new(Diffuse::new(
         color,
         metalness,
         roughness,
         emissive,
+		emissive_intensity,
         transparency,
         norm_variation,
         opacity,

@@ -205,8 +205,6 @@ fn refract_dir(incoming: &Vec3, normal: &Vec3, n1: f64, n2: f64, roughness: f64,
 		dbg!(n, normal_coef, cos, k);
 	}
 	let refracted = n * incoming + normal_coef * normal;
-	return Some(refracted.normalize());
-
 	let with_roughness = refracted.clone() + random_unit_vector() * roughness * roughness;
 	if with_roughness.length() < 0.01 {
 		return Some(refracted.normalize());

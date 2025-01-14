@@ -1,14 +1,20 @@
 use std::{collections::HashMap, ops::SubAssign};
 
 use crate::{
-    bvh::{self}, model::objects::light::AmbientLight, render::settings::Settings
+    bvh::{self},
+    model::objects::lights::ambient_light::AmbientLight,
+    render::settings::Settings
 };
 use super::{
     composed_element::ComposedElement, element::Element, materials::{
         diffuse::Diffuse,
         material::Material,
         texture::{Texture, TextureType}
-    }, maths::vec3::Vec3, objects::{camera::Camera, light::AnyLight}, shapes::{self, aabb::Aabb}
+    },
+    maths::vec3::Vec3,
+    objects::{camera::Camera, lights::light::AnyLight},
+    shapes::{self, aabb::Aabb},
+    composed_element::ComposedElement, element::Element
 };
 
 #[derive(Debug)]
@@ -27,7 +33,8 @@ pub struct Scene {
     bvh: Option<bvh::node::Node>,
     next_element_id: usize,
     next_composed_element_id: usize,
-    paused: bool
+	next_light_id: usize,
+    paused: bool,
 }
 
 impl Scene {
@@ -47,7 +54,8 @@ impl Scene {
             paused: false,
             bvh: None,
             next_element_id: 0,
-            next_composed_element_id: 0
+            next_composed_element_id: 0,
+			next_light_id: 0,
         }
     }
 
@@ -172,8 +180,10 @@ impl Scene {
         self.camera = camera;
     }
 
-    pub fn add_light(&mut self, light: AnyLight) {
+    pub fn add_light(&mut self, mut light: AnyLight) {
+		light.set_id(self.next_light_id);
         self.lights.push(light);
+		self.next_light_id += 1;
     }
 
     pub fn add_ambient_light(&mut self, ambient_light: AmbientLight) {

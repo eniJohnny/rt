@@ -5,266 +5,332 @@
 	},
 	{
 		"type": "camera",
-		"pos": [0, 3, 50],
+		"pos": [0, 3.5, 6.4],
 		"dir": [0, 0, -1],
 		"fov": 70
 	},
-	// floor
-	{
-		"type": "rectangle",
-		"pos": [0, 0, 0],
-		"length": 30,
-		"width": 100,
-		"dir_l": [1, 0, 0],
-		"dir_w": [0, 0, 1],
-		"color": [255, 255, 255]
-	},
-	// walls
-	{
-		"type": "rectangle",
-		"pos": [-15, 15, 0],
-		"length": 30,
-		"width": 100,
-		"dir_l": [0, -1, 0],
-		"dir_w": [0, 0, -1],
-		"color": [255, 75, 75],
-		"emissive": 2.0
-	},
-	{
-		"type": "rectangle",
-		"pos": [15, 15, 0],
-		"length": 30,
-		"width": 100,
-		"dir_l": [0, -1, 0],
-		"dir_w": [0, 0, -1],
-		"color": [75, 75, 255],
-		"emissive": 2.0
-	},
-	//pair of cube
-	{
-		"type": "cube",
-		"pos": [-10, 1, 0],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [255, 0, 0]
-	},
-	{
-		"type": "cube",
-		"pos": [10, 1, 0],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [255, 0, 0]
-	},
-	//
-	{
-		"type": "cube",
-		"pos": [-10, 1, 5],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [255, 0, 0]
-	},
-	{
-		"type": "cube",
-		"pos": [10, 1, 5],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [255, 0, 0]
-	},
-	
-	{
-		"type": "cube",
-		"pos": [-10, 1, 10],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [255, 0, 0]
-	},
-	{
-		"type": "cube",
-		"pos": [10, 1, 10],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [255, 0, 0]
-	},
-	
-	{
-		"type": "cube",
-		"pos": [-10, 1, 15],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [255, 0, 0]
-	},
-	{
-		"type": "cube",
-		"pos": [10, 1, 15],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [255, 0, 0]
-	},
-	
-	{
-		"type": "cube",
-		"pos": [-10, 1, 20],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [255, 0, 0]
-	},
-	{
-		"type": "cube",
-		"pos": [10, 1, 20],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [255, 0, 0]
-	},
-	
-	{
-		"type": "cube",
-		"pos": [-10, 1, 25],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [255, 0, 0]
-	},
-	{
-		"type": "cube",
-		"pos": [10, 1, 25],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [255, 0, 0]
-	},
-	
-	{
-		"type": "cube",
-		"pos": [-10, 1, 30],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [255, 0, 0]
-	},
-	{
-		"type": "cube",
-		"pos": [10, 1, 30],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [255, 0, 0]
-	},
-	
-	{
-		"type": "cube",
-		"pos": [-10, 1, 35],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [255, 0, 0]
-	},
-	{
-		"type": "cube",
-		"pos": [10, 1, 35],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [255, 0, 0]
-	},
-	
-	{
-		"type": "cube",
-		"pos": [-10, 1, 40],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [255, 0, 0]
-	},
-	{
-		"type": "cube",
-		"pos": [10, 1, 40],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [255, 0, 0]
-	},
-	
-
-
-
-	
-	{
-		"type": "cube",
-		"pos": [-10, 1, 45],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [150, 255, 50]
-	},
-	{
-		"type": "brick",
-		"pos": [-10, 3, 45],
-		"dir": [0, 1, 0],
-		"dimensions": [2, 2, 2],
-		"color": [255, 255, 255],
-		"refraction": 1.0,
-		"transparency": 0.9,
-		"roughness": 0.0
-	},
-	{
-		"type": "sphere",
-		"pos": [-10, 3, 45],
-		"dir": [0, 0, 1],
-		"radius": 0.8,
-		"color": [255, 255, 255]
-	},
-	{
-		"type": "sphere",
-		"pos": [-0, 3, 45],
-		"dir": [0, 0, 1],
-		"radius": 0.8,
-		"color": [255, 255, 255],
-		"refraction": 1.52,
-		"transparency": 0.9,
-		"roughness": 0.0
-	},
-	{
-		"type": "obj",
-		"file": "./obj/sphere_text.obj",
-		"pos": [-9.02, 1, 44.2],
-		"dir": [0.01, 1, 0.01],
-		"color": [255, 255, 180],
-		"rotation": -90,
-		"scale": 0.6,
-		"emissive": 1.0
-	},
-
-	{
-		"type": "cube",
-		"pos": [10, 1, 45],
-		"dir": [0, 1, 0],
-		"width": 2,
-		"color": [255, 0, 0]
-	},
-	{
-		"type": "cylinder",
-		"pos": [10, 4, 45],
-		"dir": [0, 1, 0],
-		"radius": 1,
-		"height": 1,
-		"color": [0,255,0],
-		"roughness": 1.0,
-		"metalness": 0
-	},
-	{
-		"type": "spot",
-		"pos": [10, 6, 45],
-		"dir": [-1, -1, -1],
-		"color": [255, 255, 255],
-		"intensity": 100,
-		"fov": 45
-	},
-	// {
-	// 	"type": "light",
-	// 	"pos": [10, 10, 45],
-	// 	"color": [255, 255, 255],
-	// 	"intensity": 10
-	// },
-	// {
-	// 	"type": "parallel",
-	// 	"dir": [-1, -1, -1],
-	// 	"color": [255, 0, 0],
-	// 	"intensity": 10
-	// }
 	{
 		"type": "ambient",
 		"color": [255, 255, 255],
 		"intensity": 0.1
-	}
+	},
+
+	// room
+	[
+		// roof
+		{
+			"type": "rectangle",
+			"pos": [0, 8, 0],
+			"length": 13,
+			"width": 13,
+			"dir_l": [1, 0, 0],
+			"dir_w": [0, 0, 1],
+			"emissive": 1.0,
+			"color": [255, 255, 255]
+		},
+		// floor
+		{
+			"type": "rectangle",
+			"pos": [0, 0, 0],
+			"length": 13,
+			"width": 13,
+			"dir_l": [1, 0, 0],
+			"dir_w": [0, 0, 1],
+			"color": "./Wood084A/Wood084A_Color.jpg",
+			"roughness": "./Wood084A/Wood084A_Roughness.jpg",
+			"normal": "./Wood084A/Wood084A_Normal.jpg"
+		},
+		// walls x
+		{
+			"type": "rectangle",
+			"pos": [-6.5, 4, 0],
+			"length": 8,
+			"width": 13,
+			"dir_l": [0, 1, 0],
+			"dir_w": [0, 0, 1],
+			"color": "./WallPaint/WallPaint_Color.jpg",
+			"roughness": "./WallPaint/WallPaint_Roughness.jpg",
+			"normal": "./WallPaint/WallPaint_Normal.jpg"
+		},
+		{
+			"type": "rectangle",
+			"pos": [6.5, 4, 0],
+			"length": 8,
+			"width": 13,
+			"dir_l": [0, 1, 0],
+			"dir_w": [0, 0, 1],
+			"color": "./WallPaint/WallPaint_Color.jpg",
+			"roughness": "./WallPaint/WallPaint_Roughness.jpg",
+			"normal": "./WallPaint/WallPaint_Normal.jpg"
+		},
+		// walls z
+		{
+			"type": "rectangle",
+			"pos": [0, 4, -6.5],
+			"length": 8,
+			"width": 13,
+			"dir_l": [0, 1, 0],
+			"dir_w": [-1, 0, 0],
+			"color": "./WallPaint/WallPaint_Color.jpg",
+			"roughness": "./WallPaint/WallPaint_Roughness.jpg",
+			"normal": "./WallPaint/WallPaint_Normal.jpg"
+		},
+		// {
+		// 	"type": "rectangle",
+		// 	"pos": [0, 6.5, 6.5],
+		// 	"length": 13,
+		// 	"width": 13,
+		// 	"dir_l": [0, -1, 0],
+		// 	"dir_w": [-1, 0, 0],
+		// 	"color": [75, 75, 255],
+		// 	"emissive": 2.0
+		// }
+	],
+
+	// sphere
+	[
+		// base
+		{
+			"type": "cube",
+			"pos": [4.5, 0.95, -4.5],
+			"dir": [0, 1, 0],
+			"width": 1.9,
+			"color": [255, 150, 0],
+			"metalness": 1.0,
+			"roughness": 0.0
+		},
+		{
+			"type": "spot",
+			"pos": [4.5, 6, -4.5],
+			"dir": [0, -1, 0],
+			"color": [255, 255, 255],
+			"intensity": 100,
+			"fov": 45
+		},
+		// glass
+		{
+			"type": "cube",
+			"pos": [4.5, 2.9, -4.5],
+			"dir": [0, 1, 0],
+			"width": 2,
+			"color": [255, 255, 255],
+			"refraction": 1.52,
+			"transparency": 0.9,
+			"roughness": 0.0
+		},
+		{
+			"type": "cube",
+			"pos": [4.5, 2.9, -4.5],
+			"dir": [0, 1, 0],
+			"width": 1.9,
+			"color": [255, 255, 255],
+			"refraction": 1.0,
+			"transparency": 1.0,
+			"roughness": 0.0
+		},
+		// element
+		{
+			"type": "sphere",
+			"pos": [4.5, 2.9, -4.5],
+			"dir": [0, 0, 1],
+			"radius": 0.8,
+			"color": [255, 0, 0]
+		},
+		{
+			"type": "obj",
+			"file": "./obj/text/sphere.obj",
+			"pos": [4.5, 1, -3.5],
+			"dir": [0.01, 1, 0.01],
+			"color": [255, 255, 180],
+			"scale": 0.5,
+			"rotation": 180,
+			"emissive": 1.0
+		},
+	],
+
+	// cube
+	[
+		// base
+		{
+			"type": "cube",
+			"pos": [1.5, 0.95, -4.5],
+			"dir": [0, 1, 0],
+			"width": 1.9,
+			"color": [255, 150, 0],
+			"metalness": 1.0,
+			"roughness": 0.0
+		},
+		{
+			"type": "spot",
+			"pos": [1.5, 6, -4.5],
+			"dir": [0, -1, 0],
+			"color": [255, 255, 255],
+			"intensity": 100,
+			"fov": 45
+		},
+		//glass
+		{
+			"type": "cube",
+			"pos": [1.5, 2.9, -4.5],
+			"dir": [0, 1, 0],
+			"width": 2,
+			"color": [255, 255, 255],
+			"refraction": 1.52,
+			"transparency": 0.9,
+			"roughness": 0.0
+		},
+		{
+			"type": "cube",
+			"pos": [1.5, 2.9, -4.5],
+			"dir": [0, 1, 0],
+			"width": 1.9,
+			"color": [255, 255, 255],
+			"refraction": 1.0,
+			"transparency": 1.0,
+			"roughness": 0.0
+		},
+		// element
+		{
+			"type": "cube",
+			"pos": [1.5, 2.9, -4.5],
+			"dir": [0, 1, 0],
+			"width": 1.4,
+			"color": [0, 255, 0]
+		},
+		{
+			"type": "obj",
+			"file": "./obj/text/cube.obj",
+			"pos": [1.5, 1, -3.5],
+			"dir": [0.01, 1, 0.01],
+			"color": [255, 255, 180],
+			"scale": 0.5,
+			"rotation": 180,
+			"emissive": 1.0
+		}
+	],
+
+	// cone
+	[
+		// base
+		{
+			"type": "cube",
+			"pos": [-1.5, 0.95, -4.5],
+			"dir": [0, 1, 0],
+			"width": 1.9,
+			"color": [255, 150, 0],
+			"metalness": 1.0,
+			"roughness": 0.0
+		},
+		{
+			"type": "spot",
+			"pos": [-1.5, 6, -4.5],
+			"dir": [0, -1, 0],
+			"color": [255, 255, 255],
+			"intensity": 100,
+			"fov": 45
+		},
+		// glass
+		{
+			"type": "cube",
+			"pos": [-1.5, 2.9, -4.5],
+			"dir": [0, 1, 0],
+			"width": 2,
+			"color": [255, 255, 255],
+			"refraction": 1.52,
+			"transparency": 0.9,
+			"roughness": 0.0
+		},
+		{
+			"type": "cube",
+			"pos": [-1.5, 2.9, -4.5],
+			"dir": [0, 1, 0],
+			"width": 1.9,
+			"color": [255, 255, 255],
+			"refraction": 1.0,
+			"transparency": 1.0,
+			"roughness": 0.0
+		},
+		// element
+		{
+			"type": "cone",
+			"pos": [-1.5, 3.6, -4.5],
+			"dir": [0, -1, 0],
+			"radius": 0.8,
+			"height": 1.4,
+			"color": [0, 0, 255]
+		},
+		{
+			"type": "obj",
+			"file": "./obj/text/cone.obj",
+			"pos": [-1.5, 1, -3.5],
+			"dir": [0.01, 1, 0.01],
+			"color": [255, 255, 180],
+			"scale": 0.5,
+			"rotation": 180,
+			"emissive": 1.0
+		}
+	],
+
+	// cylinder
+	[
+		// base
+		{
+			"type": "cube",
+			"pos": [-4.5, 0.95, -4.5],
+			"dir": [0, 1, 0],
+			"width": 1.9,
+			"color": [255, 150, 0],
+			"metalness": 1.0,
+			"roughness": 0.0
+		},
+		{
+			"type": "spot",
+			"pos": [-4.5, 6, -4.5],
+			"dir": [0, -1, 0],
+			"color": [255, 255, 255],
+			"intensity": 100,
+			"fov": 45
+		},
+		// glass
+		{
+			"type": "cube",
+			"pos": [-4.5, 2.9, -4.5],
+			"dir": [0, 1, 0],
+			"width": 2,
+			"color": [255, 255, 255],
+			"refraction": 1.52,
+			"transparency": 0.9,
+			"roughness": 0.0
+		},
+		{
+			"type": "cube",
+			"pos": [-4.5, 2.9, -4.5],
+			"dir": [0, 1, 0],
+			"width": 1.9,
+			"color": [255, 255, 255],
+			"refraction": 1.0,
+			"transparency": 1.0,
+			"roughness": 0.0
+		},
+		// element
+		{
+			"type": "cylinder",
+			"pos": [-4.5, 2.2, -4.5],
+			"dir": [0, 1, 0],
+			"radius": 0.8,
+			"height": 1.4,
+			"color": [255, 0, 255]
+		},
+		{
+			"type": "obj",
+			"file": "./obj/text/cylinder.obj",
+			"pos": [-4.5, 1, -3.5],
+			"dir": [0.01, 1, 0.01],
+			"color": [255, 255, 180],
+			"scale": 0.5,
+			"rotation": 180,
+			"emissive": 1.0
+		}
+
+	]
 ]

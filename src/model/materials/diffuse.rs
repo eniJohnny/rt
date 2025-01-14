@@ -12,8 +12,9 @@ pub struct Diffuse {
     transparency: Texture,
     norm_variation: Texture,
     emissive: Texture,
+    emissive_intensity: f64,
     opacity: Texture,
-	displacement: Texture,
+    displacement: Texture,
     refraction: f64,
 }
 
@@ -23,10 +24,11 @@ impl Diffuse {
         metalness: Texture,
         roughness: Texture,
         emissive: Texture,
+        emissive_intensity: f64,
         transparency: Texture,
         norm_variation: Texture,
         opacity: Texture,
-		displacement: Texture,
+        displacement: Texture,
         refraction: f64,
     ) -> Self {
         Self {
@@ -34,10 +36,11 @@ impl Diffuse {
             metalness,
             roughness,
             emissive,
+            emissive_intensity,
             transparency,
             norm_variation,
             opacity,
-			displacement,
+            displacement,
             refraction,
         }
     }
@@ -48,11 +51,12 @@ impl Diffuse {
             Texture::Value(Vec3::from_value(0.), TextureType::Float),
             Texture::Value(Vec3::from_value(0.5), TextureType::Float),
             Texture::Value(Vec3::from_value(0.), TextureType::Float),
+            1.,
             Texture::Value(Vec3::from_value(1.), TextureType::Float),
             Texture::Value(Vec3::from_value(1.), TextureType::Float),
             Texture::Value(Vec3::new(0.5, 0.5, 1.0), TextureType::Vector),
             Texture::Value(Vec3::from_value(1.), TextureType::Float),
-			0.,
+            0.,
         ))
     }
 }
@@ -109,6 +113,14 @@ impl Material for Diffuse {
         self.emissive = emissive;
     }
 
+    fn emissive_intensity(&self) -> f64 {
+        self.emissive_intensity
+    }
+
+    fn set_emissive_intensity(&mut self, emissive_intensity: f64) {
+        self.emissive_intensity = emissive_intensity;
+    }
+
     fn opacity(&self) -> &Texture {
         &self.opacity
     }
@@ -116,10 +128,10 @@ impl Material for Diffuse {
         self.opacity = opacity;
     }
 
-	fn displacement(&self) -> &Texture {
-		&self.displacement
-	}
-	fn set_displacement(&mut self, displacement: Texture) {
-		self.displacement = displacement;
-	}
+    fn displacement(&self) -> &Texture {
+        &self.displacement
+    }
+    fn set_displacement(&mut self, displacement: Texture) {
+        self.displacement = displacement;
+    }
 }

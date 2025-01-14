@@ -1,2 +1,2 @@
-pub mod light;
 pub mod camera;
+pub mod lights;

@@ -18,6 +18,7 @@ pub trait Material: Debug + Sync + Send {
     fn transparency(&self) -> &Texture;
     fn roughness(&self) -> &Texture;
     fn emissive(&self) -> &Texture;
+    fn emissive_intensity(&self) -> f64;
     fn opacity(&self) -> &Texture;
 	fn displacement(&self) -> &Texture;
     fn refraction(&self) -> f64;
@@ -28,10 +29,11 @@ pub trait Material: Debug + Sync + Send {
     fn set_transparency(&mut self, transparency: Texture);
     fn set_roughness(&mut self, roughness: Texture);
     fn set_emissive(&mut self, emissive: Texture);
+    fn set_emissive_intensity(&mut self, emissive: f64);
     fn set_opacity(&mut self, opacity: Texture);
 	fn set_displacement(&mut self, displacement: Texture);
     fn set_refraction(&mut self, refraction: f64);
     fn clone(&self) -> Box<dyn Material + Send +Sync> {
-        Box::new(Diffuse::new(self.color().clone(), self.metalness().clone(), self.roughness().clone(), self.emissive().clone(), self.transparency().clone(), self.norm().clone(), self.opacity().clone(), self.displacement().clone(), self.refraction().clone()))
+        Box::new(Diffuse::new(self.color().clone(), self.metalness().clone(), self.roughness().clone(), self.emissive().clone(), self.emissive_intensity(), self.transparency().clone(), self.norm().clone(), self.opacity().clone(), self.displacement().clone(), self.refraction().clone()))
     }
 }
