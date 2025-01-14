@@ -327,7 +327,7 @@ impl Shape for Aabb {
         let tmin = get_tmin(tmin_x, tmax_x, tmin_y, tmax_y, tmin_z, tmax_z);
         let tmax = get_tmax(tmin_x, tmax_x, tmin_y, tmax_y, tmin_z, tmax_z);
 
-        if tmin < tmax {
+        if tmin <= tmax {
             return Some(Vec::from([tmin, tmax]));
         }
 
