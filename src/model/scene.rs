@@ -259,6 +259,18 @@ impl Scene {
         }
         self.elements.append(&mut new_elements);
     }
+    
+    pub fn remove_wireframes(&mut self) {
+        let mut to_remove = vec![];
+        for (i, element) in self.elements.iter().enumerate() {
+            if element.shape().as_wireframe().is_some() {
+                to_remove.push(i);
+            }
+        }
+        for i in to_remove.iter().rev() {
+            self.elements.remove(*i);
+        }
+    }
 
     pub fn update_bvh(&mut self) {
         let aabbs = self.all_aabb();

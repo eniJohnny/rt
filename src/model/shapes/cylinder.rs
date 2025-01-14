@@ -295,19 +295,19 @@ impl Cylinder {
     // Mutators
     pub fn set_pos(&mut self, pos: Vec3) { 
         self.pos = pos;
-        self.update_aabb();
+        self.update_cylinder();
     }
     pub fn set_dir(&mut self, dir: Vec3) {
         self.dir = dir;
-        self.update_aabb();
+        self.update_cylinder();
     }
     pub fn set_radius(&mut self, radius: f64) {
         self.radius = radius;
-        self.update_aabb();
+        self.update_cylinder();
     }
     pub fn set_height(&mut self, height: f64) {
         self.height = height;
-        self.update_aabb();
+        self.update_cylinder();
     }
     pub fn set_aabb(&mut self, aabb: super::aabb::Aabb) {
         self.aabb = aabb;
@@ -321,8 +321,11 @@ impl Cylinder {
         self::Cylinder { pos, dir, radius, height, plane: [plane1, plane2], aabb }
     }
 
-    fn update_aabb(&mut self) {
-        self.aabb = Cylinder::compute_aabb(self.pos.clone(), self.dir.clone(), self.height, self.radius);
+    fn update_cylinder(&mut self) {
+        let plane1 = Plane::new(self.pos.clone(), -self.dir.clone());
+        let plane2 = Plane::new(self.pos.clone() + self.dir.clone() * self.height, self.dir.clone());
+        let aabb = Cylinder::compute_aabb(self.pos.clone(), self.dir.clone(), self.height, self.radius);
+        *self = self::Cylinder { pos: self.pos.clone(), dir: self.dir.clone(), radius: self.radius, height: self.height, plane: [plane1, plane2], aabb };
     }
 
     pub fn compute_aabb(pos:Vec3, dir: Vec3, height: f64, radius: f64) -> Aabb {
