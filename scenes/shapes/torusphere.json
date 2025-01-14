@@ -1,11 +1,11 @@
 [
     {
-        "type": "nagone",
+        "type": "torusphere",
         "pos": [0, 0, 0],
-        "dir": [0, 1, 0],
-        "radius": 3.0,
-        "angles": 12,
-        "color": [0, 255, 255]
+        "dir": [0, 0, 1],
+        "radius": 5.0,
+        "steps": 24,
+        "color": [255, 255, 255]
     },
     {
         "type": "camera",

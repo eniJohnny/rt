@@ -6,10 +6,11 @@
         "fov": 75
     },
     {
-        "type": "cube",
+        "type": "cylinder",
         "pos": [0, 0, 0],
         "dir": [0, 0, 1],
-        "width": 3,
-        "color": [255, 0, 255]
+        "radius": 2.0,
+        "height": 4.0,
+        "color": [255, 255, 255]
     }
 ]
