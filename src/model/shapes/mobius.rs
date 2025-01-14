@@ -51,7 +51,7 @@ impl ComposedShape for Mobius {
 
             v += step;
         }
-        vec![]
+        elements
     }
 
     fn get_ui(&self, element: &ComposedElement, ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {

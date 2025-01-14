@@ -20,3 +20,5 @@ pub mod hyperboloid;
 pub mod obj;
 pub mod shape;
 pub mod composed_shape;
+
+pub mod utils;

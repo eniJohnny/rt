@@ -1,6 +1,6 @@
 use std::sync::{Arc, RwLock};
 
-use super::shape::Shape;
+use super::{shape::Shape, utils::get_cross_axis};
 use nalgebra::Matrix3;
 use crate::{model::{
     element::Element, materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene
@@ -333,16 +333,9 @@ impl Ellipse {
     }
 
     pub fn compute_aabb(pos: &Vec3, dir: &Vec3, minor_half_len: f64, major_half_len: f64) -> super::aabb::Aabb {
-        let axis: Vec3;
-
-        if dir == &Vec3::new(0.0, 1.0, 0.0) || dir == &Vec3::new(0.0, -1.0, 0.0) {
-            axis = Vec3::new(0.0, 0.0, 1.0);
-        } else {
-            axis = Vec3::new(0.0, 1.0, 0.0);
-        }
-
-        let major_axis = dir.clone().normalize();
-        let minor_axis = major_axis.cross(&axis).normalize();
+        let axis = get_cross_axis(dir);
+        let major_axis = dir.cross(&axis).normalize();
+        let minor_axis = major_axis.cross(&dir).normalize();
 
         let top = pos + major_axis * major_half_len;
         let right = pos + minor_axis * minor_half_len;
@@ -352,7 +345,7 @@ impl Ellipse {
         let min = get_min(&top, &right, &bottom, &left);
         let max = get_max(&top, &right, &bottom, &left);
 
-        super::aabb::Aabb::new(*min.x(), *min.y(), *min.z(), *max.x(), *max.y(), *max.z())
+        super::aabb::Aabb::new(*min.x(), *max.x(), *min.y(), *max.y(), *min.z(), *max.z())
     }
 
     pub fn get_angles(dir: &Vec3) -> Vec3 {
