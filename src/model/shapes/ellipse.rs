@@ -263,16 +263,8 @@ impl Ellipse {
         let plane = super::plane::Plane::new(pos.clone(), dir.clone());
         let (major_half_len, minor_half_len) = if u > v { (u, v) } else { (v, u) };
         let aabb = Ellipse::compute_aabb(&pos, &dir, minor_half_len, major_half_len);
-        let axis: Vec3;
+        let axis = get_cross_axis(&dir);
 
-        if dir == Vec3::new(0.0, 1.0, 0.0) {
-            axis = Vec3::new(0.0, 0.0, 1.0);
-        } else {
-            axis = Vec3::new(0.0, 1.0, 0.0);
-        }
-
-        // let major_axis = dir.clone().normalize();
-        // let minor_axis = major_axis.cross(&axis).normalize();
         let major_axis = dir.cross(&axis).normalize();
         let minor_axis = major_axis.cross(&dir).normalize();
 
@@ -308,28 +300,13 @@ impl Ellipse {
         
         let plane = super::plane::Plane::new(pos.clone(), dir.clone());
         let aabb = Ellipse::compute_aabb(&pos, &dir, minor_half_len, major_half_len);
-        let axis: Vec3;
+        let axis = get_cross_axis(&dir);
 
-        if dir == Vec3::new(0.0, 1.0, 0.0) {
-            axis = Vec3::new(0.0, 0.0, 1.0);
-        } else {
-            axis = Vec3::new(0.0, 1.0, 0.0);
-        }
-
-        // let major_axis = dir.clone().normalize();
-        // let minor_axis = major_axis.cross(&axis).normalize();
         let major_axis = dir.cross(&axis).normalize();
         let minor_axis = major_axis.cross(&dir).normalize();
 
         let angles = Ellipse::get_angles(&dir);
         *self = self::Ellipse { pos, dir, major_axis, major_half_len, minor_axis, minor_half_len, alpha: *angles.x(), beta: *angles.y(), gamma: *angles.z(), plane, aabb };
-    }
-
-    fn update_aabb(&mut self) {
-        let pos = self.pos.clone();
-        let dir = self.dir.clone();
-
-        self.aabb = Ellipse::compute_aabb(&pos, &dir, self.minor_half_len, self.major_half_len);
     }
 
     pub fn compute_aabb(pos: &Vec3, dir: &Vec3, minor_half_len: f64, major_half_len: f64) -> super::aabb::Aabb {

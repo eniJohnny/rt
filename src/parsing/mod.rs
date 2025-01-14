@@ -6,7 +6,7 @@ use std::{
 };
 use crate::{
     error, model::{
-        composed_element::ComposedElement, element::{self, Element}, materials::{
+        composed_element::ComposedElement, element::Element, materials::{
             color::Color,
 		    diffuse::Diffuse,
 		    material::Material,

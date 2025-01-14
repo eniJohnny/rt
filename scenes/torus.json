@@ -2,7 +2,7 @@
     {
         "type": "torus",
         "pos": [0, 0, 0],
-        "dir": [0, 1, 0],
+        "dir": [0, 0, 1],
         "radius": 3.0,
         "half_width": 0.5,
         "color": [255, 0, 255]

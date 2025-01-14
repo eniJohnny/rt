@@ -194,7 +194,7 @@ impl Shape for Cubehole {
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, ui| {
+                Box::new(move |_, value, scene, _| {
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {

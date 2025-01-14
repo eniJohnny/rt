@@ -3,8 +3,6 @@ use std::sync::{Arc, RwLock};
 use super::shape::Shape;
 use crate::model::element::Element;
 use crate::model::materials::material::Projection;
-use crate::model::maths::{hit, ray};
-use crate::model::maths::vec2::Vec2;
 use crate::model::maths::{hit::Hit, ray::Ray, vec3::Vec3};
 use crate::model::scene::Scene;
 use crate::ui::prefabs::vector_ui::get_vector_ui;
@@ -25,7 +23,7 @@ pub struct Torus {
 unsafe impl Send for Torus {}
 
 impl Shape for Torus {
-    fn distance(&self, vec: &Vec3) -> f64 {
+    fn distance(&self, _vec: &Vec3) -> f64 {
         unimplemented!()
     }
 
@@ -61,29 +59,29 @@ impl Shape for Torus {
             E = d² – 4R²c
         */
 
-        let C = self.pos;
-        let Ax = self.dir;
-        let R = self.radius;
+        let pos = self.pos;
+        let ax = self.dir;
+        let big_r = self.radius;
         let r = self.radius2;
-        let P0 = ray.get_pos();
-        let P1 = ray.get_dir();      
+        let p0 = ray.get_pos();
+        let p1 = ray.get_dir();      
 
-        let Q = P0 - C;
-        let u = Ax.dot(&Q);
-        let v = Ax.dot(&P1);
+        let q = p0 - pos;
+        let u = ax.dot(&q);
+        let v = ax.dot(&p1);
 
         let a = 1.0 - v.powi(2);
-        let b = 2.0 * (Q.dot(&P1) - u * v);
-        let c = Q.dot(&Q) - u.powi(2);
-        let d = Q.dot(&Q) + R.powi(2) - r.powi(2);
+        let b = 2.0 * (q.dot(&p1) - u * v);
+        let c = q.dot(&q) - u.powi(2);
+        let d = q.dot(&q) + big_r.powi(2) - r.powi(2);
 
-        let A = 1.0;
-        let B = 4.0 * Q.dot(&P1);
-        let C = 2.0 * d + B.powi(2) * 0.25 - 4.0 * R.powi(2) * a;
-        let D = B * d - 4.0 * R.powi(2) * b;
-        let E = d.powi(2) - 4.0 * R.powi(2) * c;
+        let big_a = 1.0;
+        let big_b = 4.0 * q.dot(&p1);
+        let big_c = 2.0 * d + big_b.powi(2) * 0.25 - 4.0 * big_r.powi(2) * a;
+        let big_d = big_b * d - 4.0 * big_r.powi(2) * b;
+        let big_e = d.powi(2) - 4.0 * big_r.powi(2) * c;
 
-        let roots = find_roots_quartic(A, B, C, D, E);
+        let roots = find_roots_quartic(big_a, big_b, big_c, big_d, big_e);
 
         return match roots {
             Roots::No(_)=> None,
@@ -125,20 +123,24 @@ impl Shape for Torus {
     }
 
     fn norm(&self, hit_position: &Vec3) -> Vec3 {
-        let P = hit_position;
-        let C = self.pos;
-        let A = self.dir;
-        let R = self.radius;
+        let p = hit_position;
+        let c = self.pos;
+        let a = self.dir;
+        let r = self.radius;
 
-        let y = (P - C).dot(&A);
-        let D = (P - C) - A * y;
-        let X = D * (1.0 / D.dot(&D).sqrt()) * R;
+        let y = (p - c).dot(&a);
+        let d = (p - c) - a * y;
+        let x = d * (1.0 / d.dot(&d).sqrt()) * r;
 
-        let N = P - C - X;
-        N.normalize()
+        let n = p - c - x;
+        n.normalize()
     }
 
     fn as_torus(&self) -> Option<&Torus> {
+        Some(self)
+    }
+
+    fn as_torus_mut(&mut self) -> Option<&mut Torus> {
         Some(self)
     }
 
@@ -240,7 +242,7 @@ impl Shape for Torus {
                 ui.uisettings()));
 
             category.add_element(UIElement::new(
-                "Half-witdth",
+                "Half-width",
                 "half_width", 
                 ElemType::Property(Property::new(
                     Value::Float(torus.radius), 
