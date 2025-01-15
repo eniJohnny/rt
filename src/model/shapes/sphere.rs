@@ -100,7 +100,7 @@ impl Shape for Sphere {
     fn projection(&self, hit: &Hit) -> Projection {
 		let mut projection = Projection::default();
         let constant_axis: Vec3;
-        if *hit.norm() == Vec3::new(0., 0., 1.) {
+        if *self.dir() == Vec3::new(0., 0., 1.) || *self.dir() == Vec3::new(0., 0., -1.) {
             constant_axis = Vec3::new(0., 1., 0.);
         } else {
             constant_axis = Vec3::new(0., 0., 1.);
@@ -111,12 +111,20 @@ impl Shape for Sphere {
         let i_component: f64 = hit.norm().dot(&i);
         let j_component: f64 = hit.norm().dot(&j);
         let k_component: f64 = hit.norm().dot(&self.dir);
-        projection.u = 2. * (f64::atan2(i_component, j_component) + PI) / (2. * PI);
-        projection.v = f64::acos(k_component) / PI;
-        projection.i = hit.norm().cross(&self.dir).normalize();
+        projection.u = (f64::atan2(i_component, j_component) + PI) / PI * hit.element().material().u_size() - hit.element().material().u_shift();
+		// projection.u = projection.u - ((projection.u as i32) as f64);
+		if projection.u < 0. {
+			projection.u += 1.;
+		}
+        projection.v = f64::acos(k_component) / PI * hit.element().material().v_size() - hit.element().material().v_shift();
+        projection.v = projection.v - projection.v as i32 as f64;
+		if projection.v < 0. {
+			projection.v += 1.;
+		}
+		projection.i = hit.norm().cross(&self.dir).normalize();
         projection.j = -hit.norm().cross(&projection.i).normalize();
         projection
-    }
+	}
 
     fn norm(&self, hit_position: &Vec3) -> Vec3 {
         let norm = (hit_position - self.pos()).normalize();

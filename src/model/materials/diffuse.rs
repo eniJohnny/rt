@@ -16,6 +16,10 @@ pub struct Diffuse {
     opacity: Texture,
     displacement: Texture,
     refraction: f64,
+    u_size: f64,
+    v_size: f64,
+    u_shift: f64,
+    v_shift: f64,
 }
 
 impl Diffuse {
@@ -30,6 +34,10 @@ impl Diffuse {
         opacity: Texture,
         displacement: Texture,
         refraction: f64,
+        u_size: f64,
+        v_size: f64,
+        u_shift: f64,
+        v_shift: f64,
     ) -> Self {
         Self {
             color,
@@ -42,6 +50,10 @@ impl Diffuse {
             opacity,
             displacement,
             refraction,
+            u_size,
+            v_size,
+            u_shift,
+            v_shift,
         }
     }
 
@@ -56,6 +68,10 @@ impl Diffuse {
             Texture::Value(Vec3::from_value(1.), TextureType::Float),
             Texture::Value(Vec3::new(0.5, 0.5, 1.0), TextureType::Vector),
             Texture::Value(Vec3::from_value(1.), TextureType::Float),
+            0.,
+            1.,
+            1.,
+            0.,
             0.,
         ))
     }
@@ -133,5 +149,33 @@ impl Material for Diffuse {
     }
     fn set_displacement(&mut self, displacement: Texture) {
         self.displacement = displacement;
+    }
+
+    fn u_size(&self) -> f64 {
+        self.u_size
+    }
+    fn set_u_size(&mut self, u_size: f64) {
+        self.u_size = u_size;
+    }
+
+    fn v_size(&self) -> f64 {
+        self.v_size
+    }
+    fn set_v_size(&mut self, v_size: f64) {
+        self.v_size = v_size;
+    }
+
+    fn u_shift(&self) -> f64 {
+        self.u_shift
+    }
+    fn set_u_shift(&mut self, u_shift: f64) {
+        self.u_shift = u_shift;
+    }
+    
+    fn v_shift(&self) -> f64 {
+        self.v_shift
+    }
+    fn set_v_shift(&mut self, v_shift: f64) {
+        self.v_shift = v_shift;
     }
 }

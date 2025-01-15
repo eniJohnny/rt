@@ -12,6 +12,7 @@ use crate::{
 #[derive(Debug, Clone)]
 pub enum ViewMode {
     Simple(Color, ParallelLight),
+    Projection,
     Phong,
     Norm,
     HighDef,
@@ -349,7 +350,18 @@ impl Displayable for Settings {
             }))),
             settings,
         );
-
+        let mut projection = UIElement::new(
+            "Projection",
+            "projection",
+            ElemType::Button(Some(Box::new(|_, context, _ui| {
+                if let Some(scene) = context.get_active_scene() {
+                    scene.write().unwrap().settings_mut().view_mode = ViewMode::Projection;
+                    scene.write().unwrap().set_dirty(true);
+                }
+            }))),
+            settings,
+        );
+        projection.style_mut().fill_width = true;
         norm.style_mut().fill_width = true;
         gi.style_mut().fill_width = true;
         simple.style_mut().fill_width = true;
@@ -357,6 +369,7 @@ impl Displayable for Settings {
         view_mode_radio.add_element(simple);
         view_mode_radio.add_element(phong);
         view_mode_radio.add_element(norm);
+        view_mode_radio.add_element(projection);
         view_mode_radio.add_element(gi);
 
         let mut filter_radio = UIElement::new("", "filter", ElemType::Row(vec![]), settings);

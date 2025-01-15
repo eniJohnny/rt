@@ -90,7 +90,7 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
         }), ui.uisettings())), ui.uisettings());
     material_category.add_element(refraction);
 
-	//Transparency
+    //Transparency
     let transparency = get_texture_ui("Transparency", element.material().transparency(), Box::new(move |texture, scene| {
         let mut scene_write = scene.write().unwrap();
         if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
@@ -122,6 +122,29 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
         }
     }), ui.uisettings(), true, false, Some(0.), None, None));
 
+    //Emissive intensity
+     material_category.add_element(UIElement::new("Emissive intensity", "emissive_intensity", ElemType::Property(Property::new(Value::Float(element.material().emissive_intensity()),
+        Box::new(move |_, value, scene, _| {
+            let mut scene_write = scene.write().unwrap();
+            if let Value::Float(float_value) = value {
+                if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
+                    element.material_mut().set_emissive_intensity(float_value);
+                } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
+                    element.material_mut().set_emissive_intensity(float_value);
+                }
+            }
+        }), Box::new(|value, _, _| {
+            if let Value::Float(float_value) = value {
+                if float_value >= &0. {
+                    Ok(())
+                } else {
+                    Err("Emissive intensity cannot be negative.".to_string())    
+                }
+            } else {
+                Err("Emissive intensity must be a valid float.".to_string())
+            }
+        }), ui.uisettings())), ui.uisettings()));
+
     //Opacity
     material_category.add_element(get_texture_ui("Opacity", element.material().opacity(), Box::new(move |texture, scene| {
         let mut scene_write = scene.write().unwrap();
@@ -131,6 +154,98 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
             element.material_mut().set_opacity(texture);
         }
     }), ui.uisettings(), true, false, Some(0.), Some(1.), None));
+
+    //U size
+    material_category.add_element(UIElement::new("u Size", "u_size", ElemType::Property(Property::new(Value::Float(element.material().u_size()),
+    Box::new(move |_, value, scene, _| {
+        let mut scene_write = scene.write().unwrap();
+        if let Value::Float(float_value) = value {
+            if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
+                element.material_mut().set_u_size(float_value);
+            } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
+                element.material_mut().set_u_size(float_value);
+            }
+        }
+    }), Box::new(|value, _, _| {
+        if let Value::Float(float_value) = value {
+            if float_value >= &0. {
+                Ok(())
+            } else {
+                Err("u Size cannot be negative.".to_string())    
+            }
+        } else {
+            Err("u Size must be a valid float.".to_string())
+        }
+    }), ui.uisettings())), ui.uisettings()));
+
+    //V size
+    material_category.add_element(UIElement::new("v Size", "v_size", ElemType::Property(Property::new(Value::Float(element.material().v_size()),
+    Box::new(move |_, value, scene, _| {
+        let mut scene_write = scene.write().unwrap();
+        if let Value::Float(float_value) = value {
+            if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
+                element.material_mut().set_v_size(float_value);
+            } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
+                element.material_mut().set_v_size(float_value);
+            }
+        }
+    }), Box::new(|value, _, _| {
+        if let Value::Float(float_value) = value {
+            if float_value >= &0. {
+                Ok(())
+            } else {
+                Err("v Size cannot be negative.".to_string())    
+            }
+        } else {
+            Err("v Size must be a valid float.".to_string())
+        }
+    }), ui.uisettings())), ui.uisettings()));
+
+    //U shift
+    material_category.add_element(UIElement::new("u Shift", "u_shift", ElemType::Property(Property::new(Value::Float(element.material().u_shift()),
+    Box::new(move |_, value, scene, _| {
+        let mut scene_write = scene.write().unwrap();
+        if let Value::Float(float_value) = value {
+            if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
+                element.material_mut().set_u_shift(float_value);
+            } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
+                element.material_mut().set_u_shift(float_value);
+            }
+        }
+    }), Box::new(|value, _, _| {
+        if let Value::Float(float_value) = value {
+            if float_value >= &0. {
+                Ok(())
+            } else {
+                Err("u Shift cannot be negative.".to_string())    
+            }
+        } else {
+            Err("u Shift must be a valid float.".to_string())
+        }
+    }), ui.uisettings())), ui.uisettings()));
+
+    //V shift
+    material_category.add_element(UIElement::new("v Shift", "v_shift", ElemType::Property(Property::new(Value::Float(element.material().v_shift()),
+    Box::new(move |_, value, scene, _| {
+        let mut scene_write = scene.write().unwrap();
+        if let Value::Float(float_value) = value {
+            if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
+                element.material_mut().set_v_shift(float_value);
+            } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
+                element.material_mut().set_v_shift(float_value);
+            }
+        }
+    }), Box::new(|value, _, _| {
+        if let Value::Float(float_value) = value {
+            if float_value >= &0. {
+                Ok(())
+            } else {
+                Err("v Shift cannot be negative.".to_string())    
+            }
+        } else {
+            Err("v Shift must be a valid float.".to_string())
+        }
+    }), ui.uisettings())), ui.uisettings()));
 
     material_category
 }

@@ -9,7 +9,7 @@ use crate::{
 };
 use super::{
     lighting::{
-        lighting_phong::phong_lighting_from_hit, lighting_real::global_lighting_from_hit, lighting_simple::simple_lighting_from_hit, lightning_norm::norm_lighting_from_hit
+        lighting_phong::phong_lighting_from_hit, lighting_real::global_lighting_from_hit, lighting_simple::simple_lighting_from_hit, lightning_norm::norm_lighting_from_hit, lightning_projection::projection_lighting_from_hit
     },
     settings::ViewMode,
     skybox::get_skybox_color
@@ -175,6 +175,9 @@ pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
 				},
 				ViewMode::Phong => {
 					phong_lighting_from_hit(scene, &hit, ray)
+				},
+				ViewMode::Projection => {
+					projection_lighting_from_hit(&mut hit)
 				},
 				_ => global_lighting_from_hit(scene, &mut hit, ray)
 			}

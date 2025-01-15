@@ -186,7 +186,7 @@ impl<'a> Hit<'a> {
             .to_value();
     }
 
-    fn projection(&mut self) -> &Projection {
+    pub fn projection(&mut self) -> &Projection {
         let projection = match self.projection.take() {
             None => self.element().shape().projection(self),
             Some(p) => p,

@@ -77,7 +77,7 @@ fn parse_json_content(content: &str) -> Result<JsonValue, String> {
                         }
                     }
                 } else {
-                    return Err(format!("Failed to parse this pair: {}", pair));
+                    return Err("Failed to parse json".to_string());
                 }
             }
         }
@@ -114,7 +114,7 @@ fn parse_json_content(content: &str) -> Result<JsonValue, String> {
         // it's a null
         return Ok(JsonValue::Null)
     }
-    Err(format!("Failed to recognize type: {}", content))
+    Err("Failed to parse json".to_string())
 }
 
 fn split_at_comma(content: &str) -> Vec<String> {

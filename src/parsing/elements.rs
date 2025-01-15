@@ -17,20 +17,27 @@ pub fn get_material(json_object: &HashMap<String, JsonValue>) -> Result<Box<dyn 
     let opacity = get_opacity_texture(json_object)?;
     let displacement = get_displacement_texture(json_object)?;
     let refraction = get_number(json_object, "refraction", Some(1.), None, Some(1.))?;
-    
-	let emissive_intensity = get_number(json_object, "emissive_intensity", Some(0.), None, Some(1.))?;
+    let emissive_intensity = get_number(json_object, "emissive_intensity", Some(0.), None, Some(1.))?;
+    let u_size = get_number(json_object, "u_size", Some(0.), None, Some(1.))?;
+    let v_size = get_number(json_object, "v_size", Some(0.), None, Some(1.))?;
+    let u_shift = get_number(json_object, "u_shift", Some(0.), None, Some(0.))?;
+    let v_shift = get_number(json_object, "v_shift", Some(0.), None, Some(0.))?;
 
     Ok(Box::new(Diffuse::new(
         color,
         metalness,
         roughness,
         emissive,
-		emissive_intensity,
+        emissive_intensity,
         transparency,
         norm_variation,
         opacity,
         displacement,
-        refraction
+        refraction,
+        u_size,
+        v_size,
+        u_shift,
+        v_shift,
     )))
 }
 
@@ -130,8 +137,8 @@ pub fn get_rectangle(json_rectangle: &HashMap<String, JsonValue>) -> Result<Elem
     let pos = get_vec3(&json_rectangle, "pos", None, None, None)?;
     let length = get_number(&json_rectangle, "length", Some(0.), None, None)?;
     let width = get_number(&json_rectangle, "width", Some(0.), None, None)?;
-    let dir_l = get_vec3(&json_rectangle, "dir_l", None, None, None)?;
-    let dir_w = get_vec3(&json_rectangle, "dir_w", None, None, None)?;
+    let dir_l = get_vec3(&json_rectangle, "dir_l", None, None, None)?.normalize();
+    let dir_w = get_vec3(&json_rectangle, "dir_w", None, None, None)?.normalize();
     let one_sided = get_number(&json_rectangle, "one_sided", None, None, Some(0.))?;
 
     let shape = Box::new(Rectangle::new(pos, length, width, dir_l, dir_w, one_sided));
@@ -270,9 +277,9 @@ pub fn get_obj(json_obj: &HashMap<String, JsonValue>) -> Result<ComposedElement,
     let rotation = get_number(&json_obj, "rotation", None, None, Some(0.))?;
     let file = get_string(&json_obj, "file", None)?;
 
-    let mut obj = Obj::new(pos, dir, rotation, scale, file);
+    let mut obj = Obj::new(pos, dir, rotation, scale, file.clone());
     if let Err(err) = obj.parse_file() {
-        return Err(err.to_string());
+        return Err(format!("{}: {}", file, err));
     }
 
     let shape = Box::new(obj);
