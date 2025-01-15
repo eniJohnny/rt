@@ -315,6 +315,7 @@ impl Cylinder {
 
     // Constructor
     pub fn new(pos: Vec3, dir: Vec3, radius: f64, height: f64) -> Cylinder {
+        let dir = dir.normalize();
         let plane1 = Plane::new(pos.clone(), -dir.clone());
         let plane2 = Plane::new(pos.clone() + dir.clone() * height, dir.clone());
         let aabb = Cylinder::compute_aabb(pos.clone(), dir.clone(), height, radius);
@@ -322,6 +323,7 @@ impl Cylinder {
     }
 
     fn update_cylinder(&mut self) {
+        self.dir = self.dir.normalize();
         let plane1 = Plane::new(self.pos.clone(), -self.dir.clone());
         let plane2 = Plane::new(self.pos.clone() + self.dir.clone() * self.height, self.dir.clone());
         let aabb = Cylinder::compute_aabb(self.pos.clone(), self.dir.clone(), self.height, self.radius);
