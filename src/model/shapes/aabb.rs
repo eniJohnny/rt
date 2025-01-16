@@ -44,6 +44,10 @@ impl Aabb {
         }
     }
 
+    pub fn from_min_max(min: Vec3, max: Vec3) -> Aabb {
+        Aabb::new(*min.x(), *max.x(), *min.y(), *max.y(), *min.z(), *max.z())
+    }
+
     // Get the AABB of a list of AABBs
     pub fn from_aabbs(aabbs: &Vec<&Aabb>) -> Aabb {
         let mut x_min = f64::MAX;
