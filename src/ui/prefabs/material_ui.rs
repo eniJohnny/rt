@@ -167,12 +167,8 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
             }
         }
     }), Box::new(|value, _, _| {
-        if let Value::Float(float_value) = value {
-            if float_value >= &0. {
-                Ok(())
-            } else {
-                Err("u Size cannot be negative.".to_string())    
-            }
+        if let Value::Float(_) = value {
+            Ok(())
         } else {
             Err("u Size must be a valid float.".to_string())
         }
@@ -190,12 +186,8 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
             }
         }
     }), Box::new(|value, _, _| {
-        if let Value::Float(float_value) = value {
-            if float_value >= &0. {
-                Ok(())
-            } else {
-                Err("v Size cannot be negative.".to_string())    
-            }
+        if let Value::Float(_) = value {
+            Ok(())
         } else {
             Err("v Size must be a valid float.".to_string())
         }
@@ -213,12 +205,8 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
             }
         }
     }), Box::new(|value, _, _| {
-        if let Value::Float(float_value) = value {
-            if float_value >= &0. {
-                Ok(())
-            } else {
-                Err("u Shift cannot be negative.".to_string())    
-            }
+        if let Value::Float(_) = value {
+            Ok(())
         } else {
             Err("u Shift must be a valid float.".to_string())
         }
@@ -236,12 +224,8 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
             }
         }
     }), Box::new(|value, _, _| {
-        if let Value::Float(float_value) = value {
-            if float_value >= &0. {
-                Ok(())
-            } else {
-                Err("v Shift cannot be negative.".to_string())    
-            }
+        if let Value::Float(_) = value {
+            Ok(())
         } else {
             Err("v Shift must be a valid float.".to_string())
         }

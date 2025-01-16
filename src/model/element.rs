@@ -26,11 +26,11 @@ impl Element {
         &mut self.material
     }
 
-    pub fn shape(&self) -> &dyn Shape {
-        self.shape.as_ref()
+    pub fn shape(&self) -> &Box<dyn Shape + Sync> {
+        &self.shape
     }
-    pub fn shape_mut(&mut self) -> &mut dyn Shape {
-        self.shape.as_mut()
+    pub fn shape_mut(&mut self) -> &mut Box<dyn Shape + Sync> {
+        &mut self.shape
     }
 
     pub fn id(&self) -> usize {

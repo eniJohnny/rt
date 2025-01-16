@@ -112,16 +112,10 @@ impl Shape for Plane {
         projection.j = -self.dir.cross(&projection.i).normalize();
         projection.k = hit.norm().clone();
         let dist = hit.pos() - self.pos();
-        let i_component = dist.dot(&projection.i) / &scale * hit.element().material().u_size() - hit.element().material().u_shift();
-        let j_component = dist.dot(&projection.j) / &scale * hit.element().material().v_size() - hit.element().material().v_shift();
-        projection.u = &i_component - (i_component as i32) as f64;
-        if projection.u < 0. {
-            projection.u += 1.; 
-        }
-        projection.v = &j_component - (j_component as i32) as f64;
-        if projection.v < 0. {
-            projection.v += 1.;
-        }
+        projection.u = dist.dot(&projection.i) / &scale * hit.element().material().u_size() - hit.element().material().u_shift();
+        projection.u = projection.u.rem_euclid(1.);
+        projection.v = dist.dot(&projection.j) / &scale * hit.element().material().v_size() - hit.element().material().v_shift();
+        projection.v = projection.v.rem_euclid(1.);
         projection
     }
 

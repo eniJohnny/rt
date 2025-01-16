@@ -98,13 +98,13 @@ impl Shape for Cone {
         return Some(intersections);
     }
 
-	fn outer_intersect(&self, r: &Ray, _displaced_factor: f64) -> Option<Vec<f64>> {
-		self.intersect(r)
-	}
+    fn outer_intersect(&self, r: &Ray, _displaced_factor: f64) -> Option<Vec<f64>> {
+        self.intersect(r)
+    }
 
     fn intersect_displacement(&self, ray: &Ray, _element: &Element, _scene: &Scene) -> Option<Vec<f64>> {
-		self.intersect(ray)
-	}
+        self.intersect(ray)
+    }
 
     fn projection(&self, hit: &Hit) -> Projection {
         let mut projection: Projection = Projection::default();
@@ -142,6 +142,7 @@ impl Shape for Cone {
         } else {
             projection.u = 1. - (ij_hit.dot(&cylinder_i) + 1.) / 4.;
         }
+        projection.u = (projection.u * hit.element().material().u_size() - hit.element().material().u_shift()).rem_euclid(1.);
         if level > self.height - 0.000001 && level < self.height + 0.000001 {
             // Cap
             projection.v =
@@ -150,6 +151,7 @@ impl Shape for Cone {
             // Cone
             projection.v = point_to_hit.length() / total_height;
         }
+        projection.v = (projection.v * hit.element().material().v_size() - hit.element().material().v_shift()).rem_euclid(1.);
         projection
     }
 

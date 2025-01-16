@@ -18,6 +18,7 @@ pub mod cube;
 pub mod any;
 pub mod hyperboloid;
 pub mod obj;
+pub mod custom_composed;
 pub mod shape;
 pub mod composed_shape;
 

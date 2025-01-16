@@ -18,10 +18,10 @@ pub fn get_material(json_object: &HashMap<String, JsonValue>) -> Result<Box<dyn 
     let displacement = get_displacement_texture(json_object)?;
     let refraction = get_number(json_object, "refraction", Some(1.), None, Some(1.))?;
     let emissive_intensity = get_number(json_object, "emissive_intensity", Some(0.), None, Some(1.))?;
-    let u_size = get_number(json_object, "u_size", Some(0.), None, Some(1.))?;
-    let v_size = get_number(json_object, "v_size", Some(0.), None, Some(1.))?;
-    let u_shift = get_number(json_object, "u_shift", Some(0.), None, Some(0.))?;
-    let v_shift = get_number(json_object, "v_shift", Some(0.), None, Some(0.))?;
+    let u_size = get_number(json_object, "u_size", None, None, Some(1.))?;
+    let v_size = get_number(json_object, "v_size", None, None, Some(1.))?;
+    let u_shift = get_number(json_object, "u_shift", None, None, Some(0.))?;
+    let v_shift = get_number(json_object, "v_shift", None, None, Some(0.))?;
 
     Ok(Box::new(Diffuse::new(
         color,
