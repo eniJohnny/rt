@@ -6,7 +6,7 @@ use std::{
 };
 use crate::{
     error, model::{
-        materials::{
+        composed_element::ComposedElement, element::Element, materials::{
             color::Color,
 		    diffuse::Diffuse,
 		    material::Material,
@@ -14,8 +14,8 @@ use crate::{
         }, maths::vec3::Vec3, objects::{
             camera::Camera, light::{AmbientLight, AnyLight, ParallelLight, PointLight}
         }, scene::Scene, shapes::{ 
-            any::Any, brick::Brick, cone::Cone, cube::Cube, cubehole::Cubehole, cylinder::Cylinder, ellipse::Ellipse, helix::Helix, hyperboloid::Hyperboloid, mobius::Mobius, nagone::Nagone, obj::Obj, plane::Plane, rectangle::Rectangle, sphere::Sphere, torusphere::Torusphere, triangle::Triangle, composed_shape::ComposedShape
-        }, composed_element::ComposedElement, element::Element
+            any::Any, brick::Brick, composed_shape::ComposedShape, cone::Cone, cube::Cube, cubehole::Cubehole, cylinder::Cylinder, ellipse::Ellipse, helix::Helix, hyperboloid::Hyperboloid, mobius::Mobius, nagone::Nagone, obj::Obj, plane::Plane, rectangle::Rectangle, sphere::Sphere, torus::Torus, torusphere::Torusphere, triangle::Triangle
+        }
     }, AABB_OPACITY
 };
 
@@ -168,6 +168,22 @@ pub fn get_scene(scene_file: &String) -> Scene {
 
                 let new_light = AnyLight::new(Box::new(ParallelLight::new(dir, intensity, color)));
                 scene.add_light(new_light);
+            }
+            "torus" => {
+                let pos = get_coordinates_value(&object, "pos");
+                let dir = get_coordinates_value(&object, "dir");
+                let radius = get_float_value(&object, "radius");
+                let half_width = get_float_value(&object, "half_width");
+                let color = get_color(&object);
+
+                let shape = Box::new(Torus::new(pos, dir, radius, half_width));
+
+                let material = get_material(&object, color);
+                scene.load_material_textures(&material);
+
+                let element = Element::new(shape, material);
+
+                scene.add_element(element);
             }
             "torusphere" => {
                 let pos = get_coordinates_value(&object, "pos");

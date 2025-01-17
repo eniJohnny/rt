@@ -1,4 +1,4 @@
-use super::{sphere::Sphere, composed_shape::ComposedShape};
+use super::{composed_shape::ComposedShape, sphere::Sphere, utils::get_cross_axis};
 use std::f64::consts::PI;
 use crate::{
     model::{
@@ -27,12 +27,7 @@ impl ComposedShape for Torusphere {
     fn generate_elements(&self, material: Box<dyn Material + Send +Sync>) -> Vec<Element> {
         let mut sph_vec = vec![];
         let dir_y = self.dir.clone().normalize();
-        let dir_x;
-        if self.dir == Vec3::new(0.0, 1.0, 0.0) {
-            dir_x =  Vec3::new(1.0, 0.0, 0.0);
-        } else {
-            dir_x =  Vec3::new(0.0, 1.0, 0.0);
-        }
+        let dir_x = get_cross_axis(&dir_y);
 
         for i in 1..self.steps + 1 {
             // let factor = (i as i32 - steps as i32 / 2) as f64 * 2.0;

@@ -16,6 +16,7 @@ pixels = "0.13.0"
 nalgebra = "0.33.0"
 eqsolver = "0.2.0"
 meval = "0.2.0"
+roots = "0.0.8"
 
 [profile.dev]
 opt-level = 3

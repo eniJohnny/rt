@@ -1,4 +1,4 @@
-use super::{cylinder::Cylinder, sphere::Sphere, composed_shape::ComposedShape};
+use super::{composed_shape::ComposedShape, cylinder::Cylinder, sphere::Sphere, utils::get_cross_axis};
 use std::{f64::consts::PI, sync::{Arc, RwLock}};
 use crate::{error, model::{
     composed_element::ComposedElement, element::Element, materials::
@@ -25,13 +25,7 @@ impl ComposedShape for Nagone {
         let mut elements: Vec<Element> = Vec::new();
 
         let dir_y = self.dir.normalize();
-        let dir_x;
-
-        if self.dir == Vec3::new(0.0, 1.0, 0.0) {
-            dir_x = Vec3::new(1.0, 0.0, 0.0);
-        } else {
-            dir_x = Vec3::new(0.0, 1.0, 0.0);
-        }
+        let dir_x = get_cross_axis(&dir_y);
 
         let mut origins_dirs: Vec<Vec3> = Vec::new();
         let sphere_radius = self.radius / self.angles as f64 * 1.3;

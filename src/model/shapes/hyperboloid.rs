@@ -100,6 +100,10 @@ impl Shape for Hyperboloid {
         Some(self)
     }
 
+    fn as_hyperboloid_mut(&mut self) -> Option<&mut Hyperboloid> {
+        Some(self)
+    }
+
     fn pos(&self) -> &Vec3 { &self.pos }
 
     fn outer_intersect(&self, ray: &Ray, _displaced_factor: f64) -> Option<Vec<f64>> {
