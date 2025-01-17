@@ -54,7 +54,7 @@ pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<dyn Fn(Texture,
             }
             let mut chk_file = UIElement::new(chk_name, "chk_file", ElemType::Property(
                 Property::new(Value::Bool(as_file), 
-                    Box::new(move |elem, value, scene, ui| {
+                    Box::new(move |elem, value, context, ui| {
                         if let Some(elem) = elem {
                             if let Value::Bool(as_file) = value {
                                 let parent_ref = get_parent_ref(elem.reference.clone());
@@ -63,14 +63,26 @@ pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<dyn Fn(Texture,
                                     let file_element = ui.get_property_mut(&file_element_reference);
                                     if let Some(property) = file_element {
                                         if let Value::Text(file) = &property.value {
+                                            let scene = match context.active_scene {
+                                                Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                                                None => return,
+                                            };
                                             submit(Texture::Texture(file.clone(), texture_type.clone()), scene);
                                         }
                                     }
                                 } else if only_file {
                                     if let Some(default) = only_file_default {
+                                        let scene = match context.active_scene {
+                                            Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                                            None => return,
+                                        };
                                         submit(Texture::from_vector("", default), scene);
                                     }
                                 } else {
+                                    let scene = match context.active_scene {
+                                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                                        None => return,
+                                    };
                                     let value_element_reference = parent_ref + ".as_value";
                                     let value_element = ui.get_element_mut(value_element_reference);
                                     if let Some(elem) = value_element {

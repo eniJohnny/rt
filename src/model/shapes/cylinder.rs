@@ -186,7 +186,11 @@ impl Shape for Cylinder {
         if let Some(cylinder) = element.shape().as_cylinder() {
             let id = element.id().clone();
             category.add_element(get_vector_ui(cylinder.pos.clone(), "Position", "pos", &ui.uisettings_mut(), 
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(cylinder) = elem.shape_mut().as_cylinder_mut() {
@@ -195,7 +199,11 @@ impl Shape for Cylinder {
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(cylinder) = elem.shape_mut().as_cylinder_mut() {
@@ -204,7 +212,11 @@ impl Shape for Cylinder {
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(cylinder) = elem.shape_mut().as_cylinder_mut() {
@@ -215,7 +227,11 @@ impl Shape for Cylinder {
                 }),
                 true, None, None));
             category.add_element(get_vector_ui(cylinder.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
-                Box::new(move |_, value, scene, _ui| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(cylinder) = elem.shape_mut().as_cylinder_mut() {
@@ -224,7 +240,11 @@ impl Shape for Cylinder {
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(cylinder) = elem.shape_mut().as_cylinder_mut() {
@@ -233,7 +253,11 @@ impl Shape for Cylinder {
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(cylinder) = elem.shape_mut().as_cylinder_mut() {
@@ -248,7 +272,11 @@ impl Shape for Cylinder {
                 "radius", 
                 ElemType::Property(Property::new(
                     Value::Float(cylinder.radius), 
-                    Box::new(move |_, value, scene, _| {
+                    Box::new(move |_, value, context, _| {
+                        let scene = match context.active_scene {
+                            Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                            None => return,
+                        };
                         let mut scene = scene.write().unwrap();
                         let elem = scene.element_mut_by_id(id.clone()).unwrap();
                         if let Some(cylinder) = elem.shape_mut().as_cylinder_mut() {
@@ -266,7 +294,11 @@ impl Shape for Cylinder {
                 "height", 
                 ElemType::Property(Property::new(
                     Value::Float(cylinder.height), 
-                    Box::new(move |_, value, scene, _| {
+                    Box::new(move |_, value, context, _| {
+                        let scene = match context.active_scene {
+                            Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                            None => return,
+                        };
                         let mut scene = scene.write().unwrap();
                         let elem = scene.element_mut_by_id(id.clone()).unwrap();
                         if let Some(cylinder) = elem.shape_mut().as_cylinder_mut() {

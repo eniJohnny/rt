@@ -62,7 +62,11 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
 
     //Refraction
     let refraction = UIElement::new("Refraction", "refraction", ElemType::Property(Property::new(Value::Float(element.material().refraction()),
-        Box::new(move |_, value, scene, _| {
+        Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
             let mut scene_write = scene.write().unwrap();
             if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
                 if let Value::Float(float_value) = value {

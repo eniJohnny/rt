@@ -1,13 +1,8 @@
-use crate::{model::scene::Scene, ui::uisettings::UISettings};
-use image::{ImageBuffer, Rgba, RgbaImage};
+use crate::ui::uisettings::UISettings;
 use winit::keyboard::Key;
-use std::{
-    collections::HashMap,
-    sync::{
-        mpsc::{Receiver, Sender},
-        Arc, RwLock,
-    },
-};
+use std::
+    collections::HashMap
+;
 use super::{
     uibox::UIBox,
     uieditbar::UIEditBar,
@@ -30,15 +25,11 @@ pub struct UI {
     mouse_position: (u32, u32),
     inputs: Vec<Key>,
     hitbox_vec: Vec<HitBox>,
-    dirty: bool,
-    context: Option<UIContext>,
+    dirty: bool
 }
 
 impl UI {
-    pub fn default(
-        receiver: Receiver<(ImageBuffer<Rgba<u8>, Vec<u8>>, bool)>,
-        transmitter: Sender<bool>,
-    ) -> Self {
+    pub fn default() -> Self {
         UI {
             box_index: 0,
             boxes: HashMap::new(),
@@ -50,7 +41,6 @@ impl UI {
             inputs: vec![],
             dirty: true,
             hitbox_vec: vec![],
-            context: Some(UIContext::new(receiver, transmitter)),
         }
     }
 
@@ -60,22 +50,6 @@ impl UI {
 
     pub fn uisettings_mut(&mut self) -> &mut UISettings {
         &mut self.uisettings
-    }
-
-    pub fn context(&self) -> Option<&UIContext> {
-        self.context.as_ref()
-    }
-
-    pub fn context_mut(&mut self) -> Option<&mut UIContext> {
-        self.context.as_mut()
-    }
-
-    pub fn take_context(&mut self) -> UIContext {
-        self.context.take().unwrap()
-    }
-
-    pub fn give_back_context(&mut self, context: UIContext) {
-        self.context = Some(context);
     }
 
     pub fn mouse_position(&self) -> (u32, u32) {
@@ -151,6 +125,26 @@ impl UI {
         for uibox in self.boxes.values_mut() {
             if let Some(element) =  uibox.get_element_mut(&reference) {
                 return Some(element);
+            }
+        }
+        None
+    }
+
+    pub fn remove_element_by_reference(&mut self, reference: String) -> Option<UIElement> {
+        for (_, uibox) in &mut self.boxes {
+            let mut index = 0;
+            for element in &mut uibox.elems {
+                if element.reference == reference {
+                    break;
+                }
+                if let Some(element) = element.remove_element_by_reference(&reference) {
+                    return Some(element);
+                }
+                index += 1;
+            }
+            if index != uibox.elems.len() {
+                uibox.elems.remove(index);
+                break;
             }
         }
         None
@@ -271,7 +265,7 @@ impl UI {
         return true;
     }
 
-    pub fn generate_hitboxes(&mut self, scene: &Arc<RwLock<Scene>>) {
+    pub fn generate_hitboxes(&mut self, context: &UIContext) {
         let settings_snapshot = self.uisettings.clone();
         let mut reference_vec = vec![];
         let mut hitbox_vec = vec![];
@@ -285,22 +279,22 @@ impl UI {
             if !uibox.style.visible {
                 continue;
             }
-            hitbox_vec.append(&mut uibox.generate_hitboxes(self, scene, &settings_snapshot));
+            hitbox_vec.append(&mut uibox.generate_hitboxes(self, context, &settings_snapshot));
             self.boxes.insert(reference, uibox);
         }
         self.hitbox_vec = hitbox_vec;
     }
 
-    pub fn draw(&mut self, scene: &Arc<RwLock<Scene>>, img: &mut RgbaImage) {
-        img.fill_with(|| 1);
+    pub fn draw(&mut self, context: &mut UIContext) {
+        context.ui_img.fill_with(|| 1);
         for (_, uibox) in &self.boxes {
             if !uibox.style.visible || uibox.reference == *self.active_box_reference() {
                 continue;
             }
-            uibox.draw(img, self, scene);
+            uibox.draw(self, context);
         }
         if let Some(active_box) = self.active_box() {
-            active_box.draw(img, self, scene);
+            active_box.draw(self, context);
         }
         self.dirty = false;
     }
@@ -310,7 +304,7 @@ impl UI {
     }
 }
 
-pub fn ui_clicked(click: (u32, u32), scene: &Arc<RwLock<Scene>>, ui: &mut UI) -> bool {
+pub fn ui_clicked(click: (u32, u32), context: &mut UIContext, ui: &mut UI) -> bool {
     let hitbox_list = ui.hitbox_vec.split_off(0);
     let mut active_box_ref: String = "".to_string();
     if let Some(active_box) = ui.active_box() {
@@ -330,9 +324,9 @@ pub fn ui_clicked(click: (u32, u32), scene: &Arc<RwLock<Scene>>, ui: &mut UI) ->
                 if let Some(uibox) = uibox {
                     if let Some(_) = uibox.edit_bar {
                         if hitbox.reference.ends_with("btnApply") {
-                            UIEditBar::apply(scene, ui, box_ref);
+                            UIEditBar::apply(context, ui, box_ref);
                         } else if hitbox.reference.ends_with("btnCancel") {
-                            UIEditBar::cancel(scene, ui, box_ref);
+                            UIEditBar::cancel(ui, box_ref);
                         }
                     }
                 }
@@ -341,7 +335,7 @@ pub fn ui_clicked(click: (u32, u32), scene: &Arc<RwLock<Scene>>, ui: &mut UI) ->
                 if let Some((mut elem, parent_ref, index)) =
                     take_element(ui, hitbox.reference.clone())
                 {
-                    elem.clicked(scene, ui);
+                    elem.clicked(context, ui);
                     give_back_element(ui, elem, parent_ref, index);
                     return true;
                 } else {

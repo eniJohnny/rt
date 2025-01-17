@@ -75,6 +75,7 @@ impl ComposedShape for Brick {
                 rectangle_dims[i].1,
                 rectangle_dirs[i].0,
                 rectangle_dirs[i].1,
+                false
             );
 
             elements.push(Element::new(Box::new(rectangle), material.clone()));
@@ -90,7 +91,11 @@ impl ComposedShape for Brick {
 
             // pos
             category.add_element(get_vector_ui(brick.pos.clone(), "Position", "pos", &ui.uisettings_mut(),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
@@ -99,7 +104,11 @@ impl ComposedShape for Brick {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
@@ -108,7 +117,11 @@ impl ComposedShape for Brick {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
@@ -121,7 +134,11 @@ impl ComposedShape for Brick {
 
             // dir
             category.add_element(get_vector_ui(brick.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
@@ -130,7 +147,11 @@ impl ComposedShape for Brick {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
@@ -139,7 +160,11 @@ impl ComposedShape for Brick {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
@@ -152,7 +177,11 @@ impl ComposedShape for Brick {
 
             // dimensions
             category.add_element(get_vector_ui(brick.dimensions.clone(), "Dimensions", "dimensions", &ui.uisettings_mut(),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
@@ -161,7 +190,11 @@ impl ComposedShape for Brick {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
@@ -170,7 +203,11 @@ impl ComposedShape for Brick {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {

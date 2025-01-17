@@ -70,7 +70,11 @@ impl ComposedShape for Helix {
 
             // pos
             category.add_element(get_vector_ui(helix.pos.clone(), "Position", "pos", &ui.uisettings_mut(),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
@@ -79,7 +83,11 @@ impl ComposedShape for Helix {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
@@ -88,7 +96,11 @@ impl ComposedShape for Helix {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
@@ -101,7 +113,11 @@ impl ComposedShape for Helix {
 
             // dir
             category.add_element(get_vector_ui(helix.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
@@ -110,7 +126,11 @@ impl ComposedShape for Helix {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
@@ -119,7 +139,11 @@ impl ComposedShape for Helix {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
@@ -136,7 +160,11 @@ impl ComposedShape for Helix {
                 "height", 
                 ElemType::Property(Property::new(
                     Value::Float(helix.height), 
-                    Box::new(move |_, value, scene, _: &mut UI| {
+                    Box::new(move |_, value, context, _| {
+                        let scene = match context.active_scene {
+                            Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                            None => return,
+                        };
                         let mut scene = scene.write().unwrap();
                         let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                         if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {

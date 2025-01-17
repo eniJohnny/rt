@@ -11,10 +11,17 @@ pub fn draw_element_text(
     style: &Style,
 ) {
     draw_background(img, pos, size, style);
+
+    let mut padding_left = style.padding_left;
+    if style.text_center {
+        let text_width = style.font_size() as u32 / 2 * (text.len() as u32 + 1);
+        let available_width = size.0 - style.padding_left - style.padding_right;
+        padding_left += (available_width - text_width) / 2;
+    }
     
     draw_text(
         img,
-        (pos.0 + style.padding_left, pos.1 + style.padding_top),
+        (pos.0 + padding_left, pos.1 + style.padding_top),
         text,
         style,
     );

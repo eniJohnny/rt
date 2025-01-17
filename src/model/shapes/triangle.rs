@@ -109,7 +109,11 @@ impl Shape for Triangle {
         if let Some(triangle) = element.shape().as_triangle() {
             let id = element.id().clone();
             category.add_element(get_vector_ui(triangle.a.clone(), "Point A", "pA", &ui.uisettings_mut(), 
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.element_mut_by_id(id.clone()).unwrap();
                 if let Some(triangle) = elem.shape_mut().as_triangle_mut() {
@@ -118,7 +122,11 @@ impl Shape for Triangle {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.element_mut_by_id(id.clone()).unwrap();
                 if let Some(triangle) = elem.shape_mut().as_triangle_mut() {
@@ -127,7 +135,11 @@ impl Shape for Triangle {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.element_mut_by_id(id.clone()).unwrap();
                 if let Some(triangle) = elem.shape_mut().as_triangle_mut() {
@@ -138,7 +150,11 @@ impl Shape for Triangle {
             }),
             true, None, None));
             category.add_element(get_vector_ui(triangle.b.clone(), "Point B", "pB", &ui.uisettings_mut(), 
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.element_mut_by_id(id.clone()).unwrap();
                 if let Some(triangle) = elem.shape_mut().as_triangle_mut() {
@@ -147,7 +163,11 @@ impl Shape for Triangle {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.element_mut_by_id(id.clone()).unwrap();
                 if let Some(triangle) = elem.shape_mut().as_triangle_mut() {
@@ -156,7 +176,11 @@ impl Shape for Triangle {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.element_mut_by_id(id.clone()).unwrap();
                 if let Some(triangle) = elem.shape_mut().as_triangle_mut() {
@@ -167,7 +191,11 @@ impl Shape for Triangle {
             }),
             true, Some(-1.), Some(1.)));
             category.add_element(get_vector_ui(triangle.c.clone(), "Point C", "pC", &ui.uisettings_mut(), 
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.element_mut_by_id(id.clone()).unwrap();
                 if let Some(triangle) = elem.shape_mut().as_triangle_mut() {
@@ -176,7 +204,11 @@ impl Shape for Triangle {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.element_mut_by_id(id.clone()).unwrap();
                 if let Some(triangle) = elem.shape_mut().as_triangle_mut() {
@@ -185,7 +217,11 @@ impl Shape for Triangle {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.element_mut_by_id(id.clone()).unwrap();
                 if let Some(triangle) = elem.shape_mut().as_triangle_mut() {

@@ -1,5 +1,8 @@
 pub mod lighting;
 pub mod raycasting;
-pub mod render_threads;
+pub mod worker_threads;
 pub mod skysphere;
 pub mod settings;
+pub mod render_thread;
+pub mod common;
+pub mod tile_queue;

@@ -147,62 +147,74 @@ impl Shape for Cubehole {
         if let Some(cubehole) = element.shape().as_cubehole() {
             let id = element.id().clone();
             category.add_element(get_vector_ui(cubehole.pos.clone(), "Position", "pos", &ui.uisettings_mut(), 
-                Box::new(move |_, value, scene, _| {
-                    let mut scene = scene.write().unwrap();
-                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
-                    if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
-                        if let Value::Float(value) = value {
-                            cubehole.pos.set_x(value);
+                Box::new(move |_, value, context, _| {
+                    if let Some(scene) = context.get_active_scene() {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
+                            if let Value::Float(value) = value {
+                                cubehole.pos.set_x(value);
+                            }
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
-                    let mut scene = scene.write().unwrap();
-                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
-                    if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
-                        if let Value::Float(value) = value {
-                            cubehole.pos.set_y(value);
+                Box::new(move |_, value, context, _| {
+                    if let Some(scene) = context.get_active_scene() {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
+                            if let Value::Float(value) = value {
+                                cubehole.pos.set_y(value);
+                            }
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
-                    let mut scene = scene.write().unwrap();
-                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
-                    if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
-                        if let Value::Float(value) = value {
-                            cubehole.pos.set_z(value);
+                Box::new(move |_, value, context, _| {
+                    if let Some(scene) = context.get_active_scene() {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
+                            if let Value::Float(value) = value {
+                                cubehole.pos.set_z(value);
+                            }
                         }
                     }
                 }),
                 false, None, None));
             category.add_element(get_vector_ui(cubehole.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
-                Box::new(move |_, value, scene, _ui| {
-                    let mut scene = scene.write().unwrap();
-                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
-                    if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
-                        if let Value::Float(value) = value {
-                            cubehole.dir.set_x(value);
+                Box::new(move |_, value, context, _ui| {
+                    if let Some(scene) = context.get_active_scene() {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
+                            if let Value::Float(value) = value {
+                                cubehole.dir.set_x(value);
+                            }
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
-                    let mut scene = scene.write().unwrap();
-                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
-                    if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
-                        if let Value::Float(value) = value {
-                            cubehole.dir.set_y(value);
+                Box::new(move |_, value, context, _| {
+                    if let Some(scene) = context.get_active_scene() {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
+                            if let Value::Float(value) = value {
+                                cubehole.dir.set_y(value);
+                            }
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
-                    let mut scene = scene.write().unwrap();
-                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
-                    if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
-                        if let Value::Float(value) = value {
-                            cubehole.dir.set_z(value);
+                Box::new(move |_, value, context, _| {
+                    if let Some(scene) = context.get_active_scene() {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
+                            if let Value::Float(value) = value {
+                                cubehole.dir.set_z(value);
+                            }
+                            // cubehole.set_dir(cubehole.dir.normalize());
+                            // ui.set_dirty();
                         }
-                        // cubehole.set_dir(cubehole.dir.normalize());
-                        // ui.set_dirty();
                     }
                 }),
                 false, Some(-1.), Some(1.)));
@@ -212,15 +224,17 @@ impl Shape for Cubehole {
                 "width", 
                 ElemType::Property(Property::new(
                     Value::Float(cubehole.width), 
-                    Box::new(move |_, value, scene, _: &mut UI| {
-                        let mut scene = scene.write().unwrap();
-                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
-                        if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
-                            if let Value::Float(value) = value {
-                                cubehole.set_width(value);
+                    Box::new(move |_, value, context, _: &mut UI| {
+                        if let Some(scene) = context.get_active_scene() {
+                            let mut scene = scene.write().unwrap();
+                            let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                            if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
+                                if let Value::Float(value) = value {
+                                    cubehole.set_width(value);
+                                }
                             }
+                            scene.set_dirty(true);
                         }
-                        scene.set_dirty(true);
                     }),
                     Box::new(|_, _, _| Ok(())),
                     ui.uisettings())),

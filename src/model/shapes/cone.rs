@@ -185,7 +185,11 @@ impl Shape for Cone {
         if let Some(cone) = element.shape().as_cone() {
             let id = element.id().clone();
             category.add_element(get_vector_ui(cone.pos.clone(), "Position", "pos", &ui.uisettings_mut(), 
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(cone) = elem.shape_mut().as_cone_mut() {
@@ -194,7 +198,11 @@ impl Shape for Cone {
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(cone) = elem.shape_mut().as_cone_mut() {
@@ -203,7 +211,11 @@ impl Shape for Cone {
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(cone) = elem.shape_mut().as_cone_mut() {
@@ -214,7 +226,11 @@ impl Shape for Cone {
                 }),
                 true, None, None));
             category.add_element(get_vector_ui(cone.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
-                Box::new(move |_, value, scene, _ui| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(cone) = elem.shape_mut().as_cone_mut() {
@@ -223,7 +239,11 @@ impl Shape for Cone {
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(cone) = elem.shape_mut().as_cone_mut() {
@@ -232,7 +252,11 @@ impl Shape for Cone {
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(cone) = elem.shape_mut().as_cone_mut() {
@@ -247,7 +271,11 @@ impl Shape for Cone {
                 "radius", 
                 ElemType::Property(Property::new(
                     Value::Float(cone.radius), 
-                    Box::new(move |_, value, scene, _: &mut UI| {
+                    Box::new(move |_, value, context, _| {
+                        let scene = match context.active_scene {
+                            Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                            None => return,
+                        };
                         let mut scene = scene.write().unwrap();
                         let elem = scene.element_mut_by_id(id.clone()).unwrap();
                         if let Some(cone) = elem.shape_mut().as_cone_mut() {
@@ -265,7 +293,11 @@ impl Shape for Cone {
                 "height", 
                 ElemType::Property(Property::new(
                     Value::Float(cone.height), 
-                    Box::new(move |_, value, scene, _| {
+                    Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                         let mut scene = scene.write().unwrap();
                         let elem = scene.element_mut_by_id(id.clone()).unwrap();
                         if let Some(cone) = elem.shape_mut().as_cone_mut() {

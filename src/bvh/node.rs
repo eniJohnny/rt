@@ -1,4 +1,4 @@
-use crate::{model::{scene::Scene, shapes::aabb::Aabb}, AABB_STEPS_NB};
+use crate::{model::{scene::Scene, shapes::aabb::Aabb}, BVH_SPLIT_STEPS};
 
 #[derive(Debug, Clone)]
 pub struct Node {
@@ -65,7 +65,7 @@ impl Node {
     }
 
     pub fn split_node(&mut self, scene: &Scene, _depth: usize) -> (Option<Node>, Option<Node>) {
-        let t_vec = get_t_vec(AABB_STEPS_NB);
+        let t_vec = get_t_vec(BVH_SPLIT_STEPS);
 
         let mut best_configuration: Option<(f64, (Node, Node, Vec<usize>))> = None;
 
@@ -114,8 +114,8 @@ impl Node {
     }
 
     pub fn try_configuration(&mut self, a: &mut Node, b: &mut Node) -> Option<(f64, Vec<usize>)> {
-        let parent_volume = self.aabb.surface_area();
-        let initial_cost = self.elements.len() as f64 * parent_volume;
+        let parent_surface_area = self.aabb.surface_area();
+        let initial_cost = self.elements.len() as f64 * parent_surface_area;
 
         let mut new_parent_children = vec![];
         for child in self.elements() {
@@ -124,17 +124,17 @@ impl Node {
             }
         }
 
-        let aabb1_volume = a.aabb.surface_area();
-        let aabb2_volume = b.aabb.surface_area();
+        let aabb1_surface_area = a.aabb.surface_area();
+        let aabb2_surface_area = b.aabb.surface_area();
 
 
         if a.elements().len() < 1 {
             return None;
         }
 
-        let c1 = aabb1_volume * a.elements().len() as f64;
-        let c2 = aabb2_volume * b.elements().len() as f64;
-        let cp = parent_volume * new_parent_children.len() as f64;
+        let c1 = aabb1_surface_area * a.elements().len() as f64;
+        let c2 = aabb2_surface_area * b.elements().len() as f64;
+        let cp = parent_surface_area * new_parent_children.len() as f64;
 
         if initial_cost <  (c1 + c2 + cp) {
             return None;

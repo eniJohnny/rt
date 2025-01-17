@@ -21,6 +21,8 @@ pub struct Style {
     pub padding_right: u32,
     pub padding_top: u32,
     pub padding_bot: u32,
+    pub text_center: bool,
+    pub margin: u32
 }
 pub trait Formattable {
     fn base_style(&self, settings: &UISettings) -> Style {
@@ -134,6 +136,14 @@ impl StyleBuilder {
         self.style.font_color = font_color;
         self
     }
+    pub fn text_center(mut self, text_center: bool) -> Self {
+        self.style.text_center = text_center;
+        self
+    }
+    pub fn margin(mut self, margin: u32) -> Self {
+        self.style.margin = margin;
+        self
+    }
     pub fn build(self) -> Style {
         self.style
     }
@@ -173,9 +183,11 @@ impl Style {
             border_left: 0,
             border_right: 0,
             border_color: None,
+            text_center: false,
             visible: true,
             disabled: false,
             fill_width: false,
+            margin: settings.margin
         }
     }
 
