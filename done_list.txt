@@ -1,0 +1,10 @@
+Major :
+    - Reworked the threads to be able de manage multiples scenes at the same time
+    - Instead of just the scene, new struct UIContext is now available everywhere in the UI : it contains every scene opened and a few contextual infos
+
+Minor :
+    - Removed some more unused commented code
+    - Added the filters to the UI
+    - Reorganized lib.rs constants a bit and removed some unused ones
+    - Added one-sided property on rectangles which allows to see through it from one side and not the other
+    - Divided the thread handling into smaller files/fonctions to make it more readable, especially with the new code added

@@ -1,12 +1,11 @@
 use rand::Rng;
 use crate::{
     bvh::traversal::recursive_traversal, model::{
-        materials::{
+        element::Element, materials::{
             color::Color,
             texture::{Texture, TextureType}
-        }, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene, shapes::shape::Shape, element::Element
-    },
-    ANTIALIASING, FILTER, SCREEN_HEIGHT, SCREEN_WIDTH, USING_BVH
+        }, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene, shapes::shape::Shape
+    }, ANTIALIASING, SCREEN_HEIGHT, SCREEN_WIDTH, USING_BVH
 };
 use super::{
     lighting::{
@@ -175,9 +174,6 @@ pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
             }
         },
         None => {
-            if FILTER == "cartoon" {
-                return Color::new(1., 1., 1.);
-            }
             get_skysphere_color(scene, ray)
         },
     };

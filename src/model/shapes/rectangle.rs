@@ -26,6 +26,7 @@ pub struct Rectangle {
     d: Vec3,
     plane: Plane,
     aabb: Aabb,
+    one_sided: bool
 }
 
 impl Shape for Rectangle {
@@ -33,6 +34,9 @@ impl Shape for Rectangle {
         unimplemented!()
     }
     fn intersect(&self, r: &Ray) -> Option<Vec<f64>> {
+        if self.one_sided && r.get_dir().dot(&self.norm(self.pos())) > f64::EPSILON {
+            return None;
+        }
         let intersection: f64;
         match self.plane.intersect(r) {
             Some(intersections) => {
@@ -88,7 +92,11 @@ impl Shape for Rectangle {
         if let Some(rectangle) = element.shape().as_rectangle() {
             let id = element.id().clone();
             category.add_element(get_vector_ui(rectangle.pos.clone(), "Position", "pos", &ui.uisettings_mut(), 
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
@@ -98,7 +106,11 @@ impl Shape for Rectangle {
                     }
                     scene.set_dirty(true);
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
@@ -108,7 +120,11 @@ impl Shape for Rectangle {
                     }
                     scene.set_dirty(true);
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
@@ -120,7 +136,11 @@ impl Shape for Rectangle {
                 }),
                 false, None, None));
             category.add_element(get_vector_ui(rectangle.dir_l.clone(), "Direction 1", "dir", &ui.uisettings_mut(),
-                Box::new(move |_, value, scene, _ui| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
@@ -130,7 +150,11 @@ impl Shape for Rectangle {
                     }
                     scene.set_dirty(true);
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
@@ -140,7 +164,11 @@ impl Shape for Rectangle {
                     }
                     scene.set_dirty(true);
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
@@ -153,7 +181,11 @@ impl Shape for Rectangle {
                 }),
                 false, Some(-1.), Some(1.)));
                 category.add_element(get_vector_ui(rectangle.dir_w.clone(), "Direction 2", "dir2", &ui.uisettings_mut(),
-                Box::new(move |_, value, scene, _ui| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
@@ -163,7 +195,11 @@ impl Shape for Rectangle {
                     }
                     scene.set_dirty(true);
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
@@ -173,7 +209,11 @@ impl Shape for Rectangle {
                     }
                     scene.set_dirty(true);
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
@@ -190,7 +230,11 @@ impl Shape for Rectangle {
                 "width", 
                 ElemType::Property(Property::new(
                     Value::Float(rectangle.width), 
-                    Box::new(move |_, value, scene, _| {
+                    Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                         let mut scene = scene.write().unwrap();
                         let elem = scene.element_mut_by_id(id.clone()).unwrap();
                         if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
@@ -209,7 +253,11 @@ impl Shape for Rectangle {
                 "length", 
                 ElemType::Property(Property::new(
                     Value::Float(rectangle.length), 
-                    Box::new(move |_, value, scene, _| {
+                    Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                         let mut scene = scene.write().unwrap();
                         let elem = scene.element_mut_by_id(id.clone()).unwrap();
                         if let Some(rectangle) = elem.shape_mut().as_rectangle_mut() {
@@ -279,7 +327,7 @@ impl Rectangle {
     }
 
     // Constructor
-    pub fn new(pos: Vec3, length: f64, width: f64, dir_l: Vec3, dir_w: Vec3) -> Rectangle {
+    pub fn new(pos: Vec3, length: f64, width: f64, dir_l: Vec3, dir_w: Vec3, one_sided: bool) -> Rectangle {
         let l_gap = (&dir_l.clone().normalize() * length) / 2.;
         let w_gap = (&dir_w.clone().normalize() * width) / 2.;
         let a = pos.clone() + &l_gap + &w_gap;
@@ -289,7 +337,7 @@ impl Rectangle {
         let plane = Plane::new(a.clone(), dir_l.clone().cross(&dir_w).normalize());
         let aabb = self::Rectangle::compute_aabb(&a, &d);
 
-        Rectangle { pos, length, width, dir_l, dir_w, a, b, c, d, plane, aabb }
+        Rectangle { pos, length, width, dir_l, dir_w, a, b, c, d, plane, aabb, one_sided }
     }
 
     pub fn compute_aabb(a: &Vec3, d: &Vec3) -> super::aabb::Aabb {
@@ -309,8 +357,9 @@ impl Rectangle {
         let length = (a - b).length();
         let width = (a - c).length();
         let plane = Plane::new(a.clone(), dir_l.clone().cross(&dir_w).normalize());
+        let one_sided = false;
 
-        Rectangle { pos, length, width, dir_l, dir_w, a, b, c, d, plane, aabb: Rectangle::compute_aabb(&a, &d) }
+        Rectangle { pos, length, width, dir_l, dir_w, a, b, c, d, plane, aabb: Rectangle::compute_aabb(&a, &d), one_sided }
     }
 
 }
@@ -322,7 +371,7 @@ mod tests {
 
     #[test]
     fn test_rectangle_intersect() {
-        let r = Rectangle::new(Vec3::new(0., 0., 1.), 2., 2., Vec3::new(1., 0., 0.), Vec3::new(0., 1., 0.));
+        let r = Rectangle::new(Vec3::new(0., 0., 1.), 2., 2., Vec3::new(1., 0., 0.), Vec3::new(0., 1., 0.), false);
         let ray = Ray::new(Vec3::new(-0.1, 0., 0.), Vec3::new(0., 0., 1.), 5);
         let intersections = r.intersect(&ray);
         assert_eq!(intersections, Some(vec![1.]));

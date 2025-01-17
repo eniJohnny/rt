@@ -145,7 +145,11 @@ impl Shape for Plane {
         if let Some(plane) = element.shape().as_plane() {
             let id = element.id().clone();
             category.add_element(get_vector_ui(plane.pos.clone(), "Position", "pos", &ui.uisettings_mut(), 
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(plane) = elem.shape_mut().as_plane_mut() {
@@ -154,7 +158,11 @@ impl Shape for Plane {
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(plane) = elem.shape_mut().as_plane_mut() {
@@ -163,7 +171,11 @@ impl Shape for Plane {
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(plane) = elem.shape_mut().as_plane_mut() {
@@ -174,7 +186,11 @@ impl Shape for Plane {
                 }),
                 true, None, None));
             category.add_element(get_vector_ui(plane.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
-                Box::new(move |_, value, scene, _ui| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(plane) = elem.shape_mut().as_plane_mut() {
@@ -183,7 +199,11 @@ impl Shape for Plane {
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(plane) = elem.shape_mut().as_plane_mut() {
@@ -192,7 +212,11 @@ impl Shape for Plane {
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(plane) = elem.shape_mut().as_plane_mut() {

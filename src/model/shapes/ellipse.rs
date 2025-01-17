@@ -84,61 +84,73 @@ impl Shape for Ellipse {
         if let Some(ellipse) = element.shape().as_ellipse() {
             let id = element.id().clone();
             category.add_element(get_vector_ui(ellipse.pos.clone(), "Position", "pos", &ui.uisettings_mut(), 
-                Box::new(move |_, value, scene, _| {
-                    let mut scene = scene.write().unwrap();
-                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
-                    if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
-                        if let Value::Float(value) = value {
-                            ellipse.pos.set_x(value);
+                Box::new(move |_, value, context, _| {
+                    if let Some(scene) = context.get_active_scene() {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
+                            if let Value::Float(value) = value {
+                                ellipse.pos.set_x(value);
+                            }
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
-                    let mut scene = scene.write().unwrap();
-                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
-                    if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
-                        if let Value::Float(value) = value {
-                            ellipse.pos.set_y(value);
+                Box::new(move |_, value, context, _| {
+                    if let Some(scene) = context.get_active_scene() {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
+                            if let Value::Float(value) = value {
+                                ellipse.pos.set_y(value);
+                            }
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
-                    let mut scene = scene.write().unwrap();
-                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
-                    if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
-                        if let Value::Float(value) = value {
-                            ellipse.pos.set_z(value);
+                Box::new(move |_, value, context, _| {
+                    if let Some(scene) = context.get_active_scene() {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
+                            if let Value::Float(value) = value {
+                                ellipse.pos.set_z(value);
+                            }
                         }
                     }
                 }),
                 false, None, None));
             category.add_element(get_vector_ui(ellipse.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
-                Box::new(move |_, value, scene, _ui| {
-                    let mut scene = scene.write().unwrap();
-                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
-                    if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
-                        if let Value::Float(value) = value {
-                            ellipse.dir.set_x(value);
+                Box::new(move |_, value, context, _ui| {
+                    if let Some(scene) = context.get_active_scene() {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
+                            if let Value::Float(value) = value {
+                                ellipse.dir.set_x(value);
+                            }
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
-                    let mut scene = scene.write().unwrap();
-                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
-                    if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
-                        if let Value::Float(value) = value {
-                            ellipse.dir.set_y(value);
+                Box::new(move |_, value, context, _| {
+                    if let Some(scene) = context.get_active_scene() {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
+                            if let Value::Float(value) = value {
+                                ellipse.dir.set_y(value);
+                            }
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, ui| {
-                    let mut scene = scene.write().unwrap();
-                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
-                    if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
-                        if let Value::Float(value) = value {
-                            ellipse.dir.set_z(value);
-                            ellipse.set_dir(ellipse.dir.normalize());
-                            ui.set_dirty();
+                Box::new(move |_, value, context, ui| {
+                    if let Some(scene) = context.get_active_scene() {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
+                            if let Value::Float(value) = value {
+                                ellipse.dir.set_z(value);
+                                ellipse.set_dir(ellipse.dir.normalize());
+                                ui.set_dirty();
+                            }
                         }
                     }
                 }),
@@ -149,15 +161,17 @@ impl Shape for Ellipse {
                     "major_half_len", 
                     ElemType::Property(Property::new(
                         Value::Float(ellipse.major_half_len), 
-                        Box::new(move |_, value, scene, _: &mut UI| {
-                            let mut scene = scene.write().unwrap();
-                            let elem = scene.element_mut_by_id(id.clone()).unwrap();
-                            if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
-                                if let Value::Float(value) = value {
-                                    ellipse.set_major_half_len(value);
+                        Box::new(move |_, value, context, _: &mut UI| {
+                            if let Some(scene) = context.get_active_scene() {
+                                let mut scene = scene.write().unwrap();
+                                let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                                if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
+                                    if let Value::Float(value) = value {
+                                        ellipse.set_major_half_len(value);
+                                    }
                                 }
+                                scene.set_dirty(true);
                             }
-                            scene.set_dirty(true);
                         }),
                         Box::new(|_, _, _| Ok(())),
                         ui.uisettings())),
@@ -168,15 +182,17 @@ impl Shape for Ellipse {
                         "minor_half_len", 
                         ElemType::Property(Property::new(
                             Value::Float(ellipse.minor_half_len), 
-                            Box::new(move |_, value, scene, _: &mut UI| {
-                                let mut scene = scene.write().unwrap();
-                                let elem = scene.element_mut_by_id(id.clone()).unwrap();
-                                if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
-                                    if let Value::Float(value) = value {
-                                        ellipse.set_minor_half_len(value);
+                            Box::new(move |_, value, context, _: &mut UI| {
+                                if let Some(scene) = context.get_active_scene() {
+                                    let mut scene = scene.write().unwrap();
+                                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                                    if let Some(ellipse) = elem.shape_mut().as_ellipse_mut() {
+                                        if let Value::Float(value) = value {
+                                            ellipse.set_minor_half_len(value);
+                                        }
                                     }
+                                    scene.set_dirty(true);
                                 }
-                                scene.set_dirty(true);
                             }),
                             Box::new(|_, _, _| Ok(())),
                             ui.uisettings())),

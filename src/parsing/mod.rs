@@ -116,9 +116,10 @@ pub fn get_scene(scene_file: &String) -> Scene {
                 let width = get_float_value(&object, "width");
                 let dir_l = get_coordinates_value(&object, "dir_l");
                 let dir_w = get_coordinates_value(&object, "dir_w");
+                let one_sided = get_float_value_or(&object, "one_sided", Some(0.));
                 let color = get_color(&object);
 
-                let shape = Box::new(Rectangle::new(pos, length, width, dir_l, dir_w));
+                let shape = Box::new(Rectangle::new(pos, length, width, dir_l, dir_w, one_sided > 0.5));
 
                 let material = get_material(&object, color);
                 let mut aabb_material = get_material(&object, Some(Color::new(255., 255., 255.)));

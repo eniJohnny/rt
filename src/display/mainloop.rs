@@ -13,15 +13,34 @@ use winit::{
     window::WindowBuilder,
 };
 use crate::{
-    model::scene::Scene,
-    SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32,
+    parsing::get_scene, render::render_thread::UIOrder, ui::{ui::UI, ui_setup::scene_ui::{add_scene_to_ui, change_scene}, utils::ui_utils::UIContext}, DISPLAY_WIREFRAME, SCENE_FOLDER, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32, SKYBOX_TEXTURE
 };
 
-pub fn start_scene(mut scene: Scene) {
+pub fn load_scene(scene_path: &str, context: &mut UIContext, ui: &mut UI) {
+    let path = String::from(format!("{}/{}", SCENE_FOLDER, scene_path));
+    let mut scene = get_scene(&path);
+    scene.load_texture(SKYBOX_TEXTURE);
+    
+    if DISPLAY_WIREFRAME {
+        scene.add_wireframes();
+    }
+    scene.update_bvh();
+    scene.determine_full_bvh_traversal();
+    let scene = Arc::new(RwLock::new(scene));
+    context.transmitter.send(UIOrder::NewScene(scene.clone())).unwrap();
+    context.scene_list.insert(context.next_scene_id, scene);
+    context.transmitter.send(UIOrder::AskImage(context.next_scene_id)).unwrap();
+    context.image_asked = true;
+    add_scene_to_ui(ui, context, context.next_scene_id, scene_path);
+    change_scene(context, ui, Some(context.next_scene_id), None);
+    context.next_scene_id += 1;
+}
+
+pub fn start_ui() {
     let event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new()
         .with_inner_size(PhysicalSize::new(SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32))
-        .with_title("Image Viewer")
+        .with_title("RT")
         .with_resizable(false)
         .build(&event_loop)
         .unwrap();
@@ -30,15 +49,11 @@ pub fn start_scene(mut scene: Scene) {
         let texture = pixels::SurfaceTexture::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32, &window);
         Pixels::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32, texture).unwrap()
     };
-
-    scene.determine_full_bvh_traversal();
-    let scene = Arc::new(RwLock::new(scene));
-
-    main_loop(event_loop, scene, pixels);
+    main_loop(event_loop, pixels);
 }
 
-pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixels: Pixels) {
-    let mut ui: crate::ui::ui::UI = setup_ui(&scene);
+pub fn main_loop(event_loop: EventLoop<()>, mut pixels: Pixels) {
+    let (mut ui, mut context) = setup_ui();
     let mut last_draw = Instant::now();
     let mut last_input = Instant::now();
     let mut last_scene_change = Instant::now();
@@ -51,7 +66,7 @@ pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixel
 
             // We redraw if the ui is dirty(needs redraw), or we receive a new image from the render
             if last_draw.elapsed().as_millis() > 20 {
-                redraw_if_necessary(&mut ui, &scene, &mut pixels);
+                redraw_if_necessary(&mut ui, &mut context, &mut pixels);
                 last_draw = Instant::now();
             }
 
@@ -62,7 +77,7 @@ pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixel
             {
                 let inputs = ui.inputs().clone();
                 for input in inputs {
-                    key_held(&scene, &mut ui, flow, input);
+                    key_held(&context, &mut ui, flow, input);
                 }
                 last_input = Instant::now();
             }
@@ -73,24 +88,26 @@ pub fn main_loop(event_loop: EventLoop<()>, scene: Arc<RwLock<Scene>>, mut pixel
             // Also, as to not overload the render, we don't ask for redraws too often, and we prefer to
             // keep the scene dirty for a couple loops.
             if last_scene_change.elapsed().as_millis() > 50 {
-                let context = ui.context().unwrap();
-                if !context.final_img && !context.image_asked {
-                    context.transmitter.send(false).unwrap();
-                    ui.context_mut().unwrap().image_asked = true;
-                }
-                // We overlay the previous context, so the compiler drops it when we stop using it (after the transmitter send). This allows us to borrow it mutable the line after.
-                let context = ui.context().unwrap();
-                if scene.read().unwrap().dirty() {
-                    context.transmitter.send(true).unwrap();
-                    scene.write().unwrap().set_dirty(false);
-                    last_scene_change = Instant::now();
-                    ui.context_mut().unwrap().final_img = false;
+                if let Some(active_scene_index) = context.active_scene {
+                    if !context.final_img && !context.image_asked {
+                        // println!("UI ASK");
+                        context.transmitter.send(UIOrder::AskImage(active_scene_index)).unwrap();
+                        context.image_asked = true;
+                    }
+                    // We overlay the previous context, so the compiler drops it when we stop using it (after the transmitter send). This allows us to borrow it mutable the line after.wrap();
+                    let scene = context.scene_list.get(&active_scene_index).unwrap();
+                    if scene.read().unwrap().dirty() {
+                        context.transmitter.send(UIOrder::SceneChange(active_scene_index)).unwrap();
+                        scene.write().unwrap().set_dirty(false);
+                        last_scene_change = Instant::now();
+                        context.final_img = false;
+                    }
                 }
             }
 
             match event {
                 Event::WindowEvent { event, .. } => {
-                    handle_event(event, &scene, &mut ui, flow);
+                    handle_event(event, &mut context, &mut ui, flow);
                 }
                 _ => {}
             }

@@ -1,12 +1,36 @@
-use crate::{EDGE_THRESHOLD, FILTER};
+use crate::{ANAGLYPH_OFFSET_X, ANAGLYPH_OFFSET_Y, EDGE_THRESHOLD};
 use image::ImageBuffer;
 
-pub fn apply_filter(image: &mut ImageBuffer<image::Rgba<u8>, Vec<u8>>) {
-    match FILTER {
-        "grayscale" => { grayscale(image); }
-        "sepia" => { sepia(image); }
-        "cartoon" => { cartoon(image); }
-        _ => {}
+use super::anaglyph::{self, Coloring};
+
+#[derive(Debug, Copy, Clone)]
+pub enum ColorFilter {
+    None,
+    GrayScale,
+    Sepia,
+    Cartoon,
+    Anaglyph(isize, isize, Coloring)
+}
+
+impl ColorFilter {
+    pub fn from_string(str: &str) -> Self {
+        match str.to_lowercase().as_str() {
+            "grayscale" => ColorFilter::GrayScale,
+            "sepia" => ColorFilter::Sepia,
+            "cartoon" => ColorFilter::Cartoon,
+            "anaglyph" => ColorFilter::Anaglyph(ANAGLYPH_OFFSET_X, ANAGLYPH_OFFSET_Y, Coloring::RedGreen),
+            _ => ColorFilter::None
+        }
+    }
+
+    pub fn apply(&self, img: &mut ImageBuffer<image::Rgba<u8>, Vec<u8>>) {
+        match self {
+            ColorFilter::GrayScale => grayscale(img),
+            ColorFilter::Sepia => sepia(img),
+            ColorFilter::Cartoon => cartoon(img),
+            ColorFilter::None => (),
+            ColorFilter::Anaglyph(offset_x, offset_y, coloring) => anaglyph::create(img, *offset_x, *offset_y, *coloring)
+        }
     }
 }
 

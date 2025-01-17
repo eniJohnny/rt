@@ -1,15 +1,10 @@
-use crate::model::scene::Scene;
-use std::sync::{Arc, RwLock};
 use image::RgbaImage;
+
 use super::{
     ui::UI,
     uisettings::UISettings,
     utils::{
-        draw_utils::{draw_element_text, get_size, split_in_lines},
-        ui_utils::{give_back_element, take_element},
-        misc::FnAny,
-        style::Style,
-        HitBox
+        draw_utils::{draw_element_text, get_size, split_in_lines}, misc::FnAny, style::Style, ui_utils::{give_back_element, take_element, UIContext}, HitBox
     }
 };
 
@@ -26,19 +21,19 @@ pub struct UIEditBar {
 }
 
 impl UIEditBar {
-    pub fn cancel(scene: &Arc<RwLock<Scene>>, ui: &mut UI, reference: String) {
+    pub fn cancel(ui: &mut UI, reference: String) {
         if reference == *ui.active_box_reference() {
             ui.destroy_box(&reference);
         } else {
             let uibox = ui.get_box_mut(&reference);
             if let Some(uibox) = uibox {
                 for elem in &mut uibox.elems {
-                    elem.reset_properties(scene);
+                    elem.reset_properties();
                 }
             }
         }
     }
-    pub fn apply(scene: &Arc<RwLock<Scene>>, ui: &mut UI, reference: String) {
+    pub fn apply(scene: &mut UIContext, ui: &mut UI, reference: String) {
         let mut properties_vec = vec![];
         if ui.validate_properties(reference.clone()) {
             let uibox = ui.get_box(&reference);

@@ -1,3 +1,5 @@
+use ui_utils::UIContext;
+
 use super::{uielement::UIElement, uisettings::UISettings};
 
 pub mod draw_utils;
@@ -30,5 +32,5 @@ impl HitBox {
 }
 
 pub trait Displayable {
-    fn get_fields(&self, name: &str, ui: &UISettings) -> Vec<UIElement>;
+    fn get_fields(&self, name: &str, context: &UIContext, ui: &UISettings) -> Vec<UIElement>;
 }
