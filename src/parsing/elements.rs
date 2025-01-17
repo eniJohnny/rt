@@ -1,5 +1,5 @@
 use std::{collections::HashMap, f64::consts::PI};
-use crate::model::{composed_element::ComposedElement, element::Element, materials::{diffuse::Diffuse, material::Material}, objects::{camera::Camera, lights::{ambient_light::AmbientLight, light::AnyLight, parallel_light::ParallelLight, point_light::PointLight, spot_light::SpotLight}}, shapes::{any::Any, brick::Brick, composed_shape::ComposedShape, cone::Cone, cube::Cube, cubehole::Cubehole, cylinder::Cylinder, ellipse::Ellipse, helix::Helix, hyperboloid::Hyperboloid, mobius::Mobius, nagone::Nagone, obj::Obj, plane::Plane, rectangle::Rectangle, sphere::Sphere, torusphere::Torusphere, triangle::Triangle}};
+use crate::model::{composed_element::ComposedElement, element::Element, materials::{diffuse::Diffuse, material::Material}, objects::{camera::Camera, lights::{ambient_light::AmbientLight, light::AnyLight, parallel_light::ParallelLight, point_light::PointLight, spot_light::SpotLight}}, shapes::{any::Any, brick::Brick, composed_shape::ComposedShape, cone::Cone, cube::Cube, cubehole::Cubehole, cylinder::Cylinder, ellipse::Ellipse, helix::Helix, hyperboloid::Hyperboloid, mobius::Mobius, nagone::Nagone, obj::Obj, plane::Plane, rectangle::Rectangle, sphere::Sphere, torus::Torus, torusphere::Torusphere, triangle::Triangle}};
 use super::{
     basic::{
         get_color, get_color_texture, get_displacement_texture, get_normal_texture, get_number, get_opacity_texture, get_string, get_vec1_texture, get_vec3
@@ -18,8 +18,8 @@ pub fn get_material(json_object: &HashMap<String, JsonValue>) -> Result<Box<dyn 
     let displacement = get_displacement_texture(json_object)?;
     let refraction = get_number(json_object, "refraction", Some(1.), None, Some(1.))?;
     let emissive_intensity = get_number(json_object, "emissive_intensity", Some(0.), None, Some(1.))?;
-    let u_size = get_number(json_object, "u_size", None, None, Some(1.))?;
-    let v_size = get_number(json_object, "v_size", None, None, Some(1.))?;
+    let u_scale = get_number(json_object, "u_scale", None, None, Some(1.))?;
+    let v_scale = get_number(json_object, "v_scale", None, None, Some(1.))?;
     let u_shift = get_number(json_object, "u_shift", None, None, Some(0.))?;
     let v_shift = get_number(json_object, "v_shift", None, None, Some(0.))?;
 
@@ -34,8 +34,8 @@ pub fn get_material(json_object: &HashMap<String, JsonValue>) -> Result<Box<dyn 
         opacity,
         displacement,
         refraction,
-        u_size,
-        v_size,
+        u_scale,
+        v_scale,
         u_shift,
         v_shift,
     )))
@@ -141,7 +141,7 @@ pub fn get_rectangle(json_rectangle: &HashMap<String, JsonValue>) -> Result<Elem
     let dir_w = get_vec3(&json_rectangle, "dir_w", None, None, None)?.normalize();
     let one_sided = get_number(&json_rectangle, "one_sided", None, None, Some(0.))?;
 
-    let shape = Box::new(Rectangle::new(pos, length, width, dir_l, dir_w, one_sided));
+    let shape = Box::new(Rectangle::new(pos, length, width, dir_l, dir_w, one_sided > 0.));
     let material = get_material(&json_rectangle)?;
     let element = Element::new(shape, material);
     Ok(element)
@@ -154,7 +154,7 @@ pub fn get_torus(json_torus: &HashMap<String, JsonValue>) -> Result<Element, Str
     let radius2 = get_number(&json_torus, "radius2", Some(0.), None, None)?;
     let material = get_material(&json_torus)?;
 
-    let shape = Box::new(Torus::new(pos, dir, radius, radius2)) as Box<dyn Shape + Sync + Send>;
+    let shape = Box::new(Torus::new(pos, dir, radius, radius2));
     let element = Element::new(shape, material);
     Ok(element)
 }

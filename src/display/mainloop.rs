@@ -13,12 +13,17 @@ use winit::{
     window::WindowBuilder,
 };
 use crate::{
-    parsing::get_scene, render::render_thread::UIOrder, ui::{ui::UI, ui_setup::scene_ui::{add_scene_to_ui, change_scene}, utils::ui_utils::UIContext}, DISPLAY_WIREFRAME, SCENE_FOLDER, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32, SKYBOX_TEXTURE
+    error, parsing::get_scene, render::render_thread::UIOrder, ui::{ui::UI, ui_setup::scene_ui::{add_scene_to_ui, change_scene}, utils::ui_utils::UIContext}, DISPLAY_WIREFRAME, SCENE_FOLDER, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32, SKYBOX_TEXTURE
 };
 
 pub fn load_scene(scene_path: &str, context: &mut UIContext, ui: &mut UI) {
     let path = String::from(format!("{}/{}", SCENE_FOLDER, scene_path));
-    let mut scene = get_scene(&path);
+    let scene = get_scene(&path);
+    if let Err(err) = scene {
+        error(format!("Error loading scene : {}", err).as_str());
+        return ;
+    }
+    let mut scene = scene.unwrap();
     scene.load_texture(SKYBOX_TEXTURE);
     
     if DISPLAY_WIREFRAME {

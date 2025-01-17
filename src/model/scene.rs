@@ -13,8 +13,7 @@ use super::{
     },
     maths::vec3::Vec3,
     objects::{camera::Camera, lights::light::AnyLight},
-    shapes::{self, aabb::Aabb},
-    composed_element::ComposedElement, element::Element
+    shapes::{self, aabb::Aabb}
 };
 
 #[derive(Debug)]
@@ -427,6 +426,10 @@ impl Scene {
     
     pub fn get_element(&self, index: usize) -> &Element {
         &self.elements[index]
+    }
+
+    pub fn get_light(&self, index: usize) -> &AnyLight {
+        &self.lights[index]
     }
 
     pub fn all_aabb(&self) -> Vec<&crate::model::shapes::aabb::Aabb> {

@@ -74,7 +74,7 @@ fn match_object(scene: &mut Scene, object: HashMap<String, JsonValue>) -> Result
                     scene.add_element(rectangle);
                 }
                 "torus" => {
-                    let torus = get_torus(&json_object)?;
+                    let torus = get_torus(&object)?;
                     scene.load_material_textures(torus.material());
                     scene.add_element(torus);
                 }

@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 use super::{aabb::Aabb,shape::Shape};
 use nalgebra::Matrix3;
 use crate::{
-    error, model::{
+    model::{
         element::Element, materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene
     }, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}
 };
@@ -80,8 +80,8 @@ impl Shape for Cube {
         if v < 0. {
             v += 1.;
         }
-        u = (u * hit.element().material().u_size() - hit.element().material().u_shift()).rem_euclid(1.);
-        v = (v * hit.element().material().v_size() - hit.element().material().v_shift()).rem_euclid(1.);
+        u = (u * hit.element().material().u_scale() - hit.element().material().u_shift()).rem_euclid(1.);
+        v = (v * hit.element().material().v_scale() - hit.element().material().v_shift()).rem_euclid(1.);
         let constant_axis = get_constant_axis(&self.dir, &hit.norm().normalize());
         let i = hit.norm().normalize().cross(&constant_axis).normalize();
         let j = hit.norm().normalize().cross(&i).normalize();

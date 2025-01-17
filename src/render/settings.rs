@@ -93,9 +93,9 @@ impl Displayable for Settings {
         ));
 		let mut ambient_category = UIElement::new("Ambient light", "ambient", ElemType::Category(Category::default()), settings);
 		ambient_category.add_element(get_vector_ui(Vec3::new(0., 0., 0.), "Color", "ambient.color", settings, 
-		Box::new(move |_, value, scene, _| {}), 
-		Box::new(move |_, value, scene, _| {}), 
-		Box::new(move |_, value, scene, _| {}), true, None, None));
+		Box::new(move |_, _, _, _| {}), 
+		Box::new(move |_, _, _, _| {}), 
+		Box::new(move |_, _, _, _| {}), true, None, None));
 		category.elems.push(ambient_category);
 		category.elems.push(get_texture_ui("Skybox", &Texture::Value(Vec3::new(0.2, 0.2, 0.2), TextureType::Color), Box::new(
             |value, scene| {

@@ -129,7 +129,7 @@ impl Shape for Cylinder {
         let ij_hit: Vec3 = (i_component * &i + j_component * &j).normalize();
 
         projection.u = 0.5 + i_component.atan2(j_component) / (2. * PI);
-        projection.u = (projection.u * hit.element().material().u_size() - hit.element().material().u_shift()).rem_euclid(1.);
+        projection.u = (projection.u * hit.element().material().u_scale() - hit.element().material().u_shift()).rem_euclid(1.);
         projection.i = (&ij_hit).cross(self.dir()).normalize();
         projection.k = hit.norm().clone();
 
@@ -148,7 +148,7 @@ impl Shape for Cylinder {
             projection.j = self.dir().clone();
             projection.v = (level + self.radius) / total_height;
         }
-        projection.v = (projection.v * hit.element().material().v_size() - hit.element().material().v_shift()).rem_euclid(1.);
+        projection.v = (projection.v * hit.element().material().v_scale() - hit.element().material().v_shift()).rem_euclid(1.);
         projection
     }
 

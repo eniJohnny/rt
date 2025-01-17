@@ -16,8 +16,8 @@ pub struct Diffuse {
     opacity: Texture,
     displacement: Texture,
     refraction: f64,
-    u_size: f64,
-    v_size: f64,
+    u_scale: f64,
+    v_scale: f64,
     u_shift: f64,
     v_shift: f64,
 }
@@ -34,8 +34,8 @@ impl Diffuse {
         opacity: Texture,
         displacement: Texture,
         refraction: f64,
-        u_size: f64,
-        v_size: f64,
+        u_scale: f64,
+        v_scale: f64,
         u_shift: f64,
         v_shift: f64,
     ) -> Self {
@@ -50,8 +50,8 @@ impl Diffuse {
             opacity,
             displacement,
             refraction,
-            u_size,
-            v_size,
+            u_scale,
+            v_scale,
             u_shift,
             v_shift,
         }
@@ -151,18 +151,18 @@ impl Material for Diffuse {
         self.displacement = displacement;
     }
 
-    fn u_size(&self) -> f64 {
-        self.u_size
+    fn u_scale(&self) -> f64 {
+        self.u_scale
     }
-    fn set_u_size(&mut self, u_size: f64) {
-        self.u_size = u_size;
+    fn set_u_scale(&mut self, u_scale: f64) {
+        self.u_scale = u_scale;
     }
 
-    fn v_size(&self) -> f64 {
-        self.v_size
+    fn v_scale(&self) -> f64 {
+        self.v_scale
     }
-    fn set_v_size(&mut self, v_size: f64) {
-        self.v_size = v_size;
+    fn set_v_scale(&mut self, v_scale: f64) {
+        self.v_scale = v_scale;
     }
 
     fn u_shift(&self) -> f64 {

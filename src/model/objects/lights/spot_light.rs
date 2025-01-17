@@ -1,5 +1,5 @@
 use std::{f64::consts::PI, sync::{Arc, RwLock}};
-use crate::{model::{materials::color::Color, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene}, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}, BOUNCE_OFFSET};
+use crate::{model::{materials::color::Color, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene}, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}, BOUNCE_OFFSET, ELEMENT};
 use super::light::{AnyLight, Light};
 
 #[derive(Debug)]
@@ -112,106 +112,129 @@ impl Light for SpotLight {
         Some(self)
     }
 
-    fn get_ui(&self, light: &AnyLight, ui: &mut UI, scene: &Arc<RwLock<Scene>>) -> UIElement {
+    fn get_ui(&self, light: &AnyLight, ui: &mut UI, _: &Arc<RwLock<Scene>>) -> UIElement {
         let id = light.id().clone();
         let mut category = UIElement::new(format!("Spot light {}", id).as_str(), format!("light{}", id).as_str(), ElemType::Category(Category::collapsed()), ui.uisettings());
+        category.on_click = Some(Box::new(move |_element,_scene, ui| {
+            ui.destroy_box(ELEMENT);
+        }));
         let pos = get_vector_ui(*light.light().as_spot_light().unwrap().pos(), "Position", "pos", ui.uisettings(), 
-        Box::new(move |_, value, scene, _| {
-            let mut scene = scene.write().unwrap();
-            let light = scene.light_mut_by_id(id.clone()).unwrap();
-            if let Some(light) = light.light_mut().as_spot_light_mut() {
-                if let Value::Float(value) = value {
-                    light.pos.set_x(value);
+        Box::new(move |_, value, context, _| {
+            if let Some(scene) = context.get_active_scene() {
+                let mut scene = scene.write().unwrap();
+                let light = scene.light_mut_by_id(id.clone()).unwrap();
+                if let Some(light) = light.light_mut().as_spot_light_mut() {
+                    if let Value::Float(value) = value {
+                        light.pos.set_x(value);
+                    }
                 }
             }
         }),
-        Box::new(move |_, value, scene, _| {
-            let mut scene = scene.write().unwrap();
-            let light = scene.light_mut_by_id(id.clone()).unwrap();
-            if let Some(light) = light.light_mut().as_spot_light_mut() {
-                if let Value::Float(value) = value {
-                    light.pos.set_y(value);
+        Box::new(move |_, value, context, _| {
+            if let Some(scene) = context.get_active_scene() {
+                let mut scene = scene.write().unwrap();
+                let light = scene.light_mut_by_id(id.clone()).unwrap();
+                if let Some(light) = light.light_mut().as_spot_light_mut() {
+                    if let Value::Float(value) = value {
+                        light.pos.set_y(value);
+                    }
                 }
             }
         }),
-        Box::new(move |_, value, scene, _| {
-            let mut scene = scene.write().unwrap();
-            let light = scene.light_mut_by_id(id.clone()).unwrap();
-            if let Some(light) = light.light_mut().as_spot_light_mut() {
-                if let Value::Float(value) = value {
-                    light.pos.set_z(value);
+        Box::new(move |_, value, context, _| {
+            if let Some(scene) = context.get_active_scene() {
+                let mut scene = scene.write().unwrap();
+                let light = scene.light_mut_by_id(id.clone()).unwrap();
+                if let Some(light) = light.light_mut().as_spot_light_mut() {
+                    if let Value::Float(value) = value {
+                        light.pos.set_z(value);
+                    }
                 }
             }
         }), false, None, None);
 
         let dir = get_vector_ui(*light.light().as_spot_light().unwrap().dir(), "Direction", "dir", ui.uisettings(), 
-        Box::new(move |_, value, scene, _| {
-            let mut scene = scene.write().unwrap();
-            let light = scene.light_mut_by_id(id.clone()).unwrap();
-            if let Some(light) = light.light_mut().as_spot_light_mut() {
-                if let Value::Float(value) = value {
-                    light.dir.set_x(value);
-                    light.dir = light.dir.normalize();
+        Box::new(move |_, value, context, _| {
+            if let Some(scene) = context.get_active_scene() {
+                let mut scene = scene.write().unwrap();
+                let light = scene.light_mut_by_id(id.clone()).unwrap();
+                if let Some(light) = light.light_mut().as_spot_light_mut() {
+                    if let Value::Float(value) = value {
+                        light.dir.set_x(value);
+                        light.dir = light.dir.normalize();
+                    }
                 }
             }
         }),
-        Box::new(move |_, value, scene, _| {
-            let mut scene = scene.write().unwrap();
-            let light = scene.light_mut_by_id(id.clone()).unwrap();
-            if let Some(light) = light.light_mut().as_spot_light_mut() {
-                if let Value::Float(value) = value {
-                    light.dir.set_y(value);
-                    light.dir = light.dir.normalize();
+        Box::new(move |_, value, context, _| {
+            if let Some(scene) = context.get_active_scene() {
+                let mut scene = scene.write().unwrap();
+                let light = scene.light_mut_by_id(id.clone()).unwrap();
+                if let Some(light) = light.light_mut().as_spot_light_mut() {
+                    if let Value::Float(value) = value {
+                        light.dir.set_y(value);
+                        light.dir = light.dir.normalize();
+                    }
                 }
             }
         }),
-        Box::new(move |_, value, scene, _| {
-            let mut scene = scene.write().unwrap();
-            let light = scene.light_mut_by_id(id.clone()).unwrap();
-            if let Some(light) = light.light_mut().as_spot_light_mut() {
-                if let Value::Float(value) = value {
-                    light.dir.set_z(value);
-                    light.dir = light.dir.normalize();
+        Box::new(move |_, value, context, _| {
+            if let Some(scene) = context.get_active_scene() {
+                let mut scene = scene.write().unwrap();
+                let light = scene.light_mut_by_id(id.clone()).unwrap();
+                if let Some(light) = light.light_mut().as_spot_light_mut() {
+                    if let Value::Float(value) = value {
+                        light.dir.set_z(value);
+                        light.dir = light.dir.normalize();
+                    }
                 }
             }
         }), false, None, None);
 
         let color = get_vector_ui(light.light().as_spot_light().unwrap().color().to_vec3(), "Color", "color", ui.uisettings(), 
-        Box::new(move |_, value, scene, _| {
-            let mut scene = scene.write().unwrap();
-            let light = scene.light_mut_by_id(id.clone()).unwrap();
-            if let Some(light) = light.light_mut().as_spot_light_mut() {
-                if let Value::Float(value) = value {
-                    light.color = Color::new(value, light.color.g(), light.color.b());
+        Box::new(move |_, value, context, _| {
+            if let Some(scene) = context.get_active_scene() {
+                let mut scene = scene.write().unwrap();
+                let light = scene.light_mut_by_id(id.clone()).unwrap();
+                if let Some(light) = light.light_mut().as_spot_light_mut() {
+                    if let Value::Float(value) = value {
+                        light.color = Color::new(value, light.color.g(), light.color.b());
+                    }
                 }
             }
         }),
-        Box::new(move |_, value, scene, _| {
-            let mut scene = scene.write().unwrap();
-            let light = scene.light_mut_by_id(id.clone()).unwrap();
-            if let Some(light) = light.light_mut().as_spot_light_mut() {
-                if let Value::Float(value) = value {
-                    light.color = Color::new(light.color.r(), value, light.color.b());
+        Box::new(move |_, value, context, _| {
+            if let Some(scene) = context.get_active_scene() {
+                let mut scene = scene.write().unwrap();
+                let light = scene.light_mut_by_id(id.clone()).unwrap();
+                if let Some(light) = light.light_mut().as_spot_light_mut() {
+                    if let Value::Float(value) = value {
+                        light.color = Color::new(light.color.r(), value, light.color.b());
+                    }
                 }
             }
         }),
-        Box::new(move |_, value, scene, _| {
-            let mut scene = scene.write().unwrap();
-            let light = scene.light_mut_by_id(id.clone()).unwrap();
-            if let Some(light) = light.light_mut().as_spot_light_mut() {
-                if let Value::Float(value) = value {
-                    light.color = Color::new(light.color.r(), light.color.g(), value);
+        Box::new(move |_, value, context, _| {
+            if let Some(scene) = context.get_active_scene() {
+                let mut scene = scene.write().unwrap();
+                let light = scene.light_mut_by_id(id.clone()).unwrap();
+                if let Some(light) = light.light_mut().as_spot_light_mut() {
+                    if let Value::Float(value) = value {
+                        light.color = Color::new(light.color.r(), light.color.g(), value);
+                    }
                 }
             }
         }), true, Some(0.), Some(1.));
 
         let fov = UIElement::new("FOV", "fov", ElemType::Property(Property::new(Value::Float(light.light().as_spot_light().unwrap().fov()),
-        Box::new(move |_, value, scene, _| {
-            let mut scene = scene.write().unwrap();
-            let light = scene.light_mut_by_id(id.clone()).unwrap();
-            if let Some(light) = light.light_mut().as_spot_light_mut() {
-                if let Value::Float(value) = value {
-                    light.set_fov(value);
+        Box::new(move |_, value, context, _| {
+            if let Some(scene) = context.get_active_scene() {
+                let mut scene = scene.write().unwrap();
+                let light = scene.light_mut_by_id(id.clone()).unwrap();
+                if let Some(light) = light.light_mut().as_spot_light_mut() {
+                    if let Value::Float(value) = value {
+                        light.set_fov(value);
+                    }
                 }
             }
         }),
@@ -228,12 +251,14 @@ impl Light for SpotLight {
         }), ui.uisettings())), ui.uisettings());
 
         let intensity = UIElement::new("Intensity", "intensity", ElemType::Property(Property::new(Value::Float(light.light().as_spot_light().unwrap().intensity()),
-        Box::new(move |_, value, scene, _| {
-            let mut scene = scene.write().unwrap();
-            let light = scene.light_mut_by_id(id.clone()).unwrap();
-            if let Some(light) = light.light_mut().as_spot_light_mut() {
-                if let Value::Float(value) = value {
-                    light.intensity = value;
+        Box::new(move |_, value, context, _| {
+            if let Some(scene) = context.get_active_scene() {
+                let mut scene = scene.write().unwrap();
+                let light = scene.light_mut_by_id(id.clone()).unwrap();
+                if let Some(light) = light.light_mut().as_spot_light_mut() {
+                    if let Value::Float(value) = value {
+                        light.intensity = value;
+                    }
                 }
             }
         }),

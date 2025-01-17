@@ -45,7 +45,6 @@ const BVH_SPLIT_STEPS: usize = 50;
 
 
 //Debug settings
-const AABB_OPACITY: f64 = 0.0;
 const DISPLAY_WIREFRAME: bool = false;
 const WIREFRAME_THICKNESS: f64 = 0.05;
 
@@ -68,7 +67,7 @@ const UI_REFRESH_TIME: u32 = 1000;
 
 /*********** UI default references *********/
 const SETTINGS: &str = "settings";
-const SCENE_SETTINGS: &str = "scene_settings";
+// const OBJECTS: &str = "objects";
 const TOOLBAR: &str = "toolbar";
 const SCENE_TOOLBAR: &str = "scene_toolbar";
 const ELEMENT: &str = "element";

@@ -142,7 +142,7 @@ impl Shape for Cone {
         } else {
             projection.u = 1. - (ij_hit.dot(&cylinder_i) + 1.) / 4.;
         }
-        projection.u = (projection.u * hit.element().material().u_size() - hit.element().material().u_shift()).rem_euclid(1.);
+        projection.u = (projection.u * hit.element().material().u_scale() - hit.element().material().u_shift()).rem_euclid(1.);
         if level > self.height - 0.000001 && level < self.height + 0.000001 {
             // Cap
             projection.v =
@@ -151,7 +151,7 @@ impl Shape for Cone {
             // Cone
             projection.v = point_to_hit.length() / total_height;
         }
-        projection.v = (projection.v * hit.element().material().v_size() - hit.element().material().v_shift()).rem_euclid(1.);
+        projection.v = (projection.v * hit.element().material().v_scale() - hit.element().material().v_shift()).rem_euclid(1.);
         projection
     }
 
