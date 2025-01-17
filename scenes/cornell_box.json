@@ -1,0 +1,91 @@
+[
+    {
+        "type": "camera",
+        "pos": [0.0, -1, -40],
+        "dir": [0, 0, 1],
+        "fov": 75
+    },
+    {
+        "type": "rectangle",
+        "pos": [-10, 0, 0],
+        "dir_l": [0, 1, 0],
+        "dir_w": [0, 0, 1],
+        "length": 20,
+        "width": 20,
+        "color": [200, 100, 100],
+        "roughness": 1.0
+    },
+    {
+        "type": "rectangle",
+        "pos": [10, 0, 0],
+        "dir_l": [0, 1, 0],
+        "dir_w": [0, 0, 1],
+        "length": 20,
+        "width": 20,
+        "color": [100, 200, 100],
+        "roughness": 1.0
+    },
+
+    {
+        "type": "rectangle",
+        "pos": [0, -10, 0],
+        "dir_l": [1, 0, 0],
+        "dir_w": [0, 0, 1],
+        "length": 20,
+        "width": 20,
+        "color": [255, 255, 255],
+        "roughness": 1.0
+    },
+    {
+        "type": "rectangle",
+        "pos": [0, 10, 0],
+        "dir_l": [1, 0, 0],
+        "dir_w": [0, 0, 1],
+        "length": 20,
+        "width": 20,
+        "color": [255, 255, 255],
+        "roughness": 1.0
+    },
+    {
+        "type": "rectangle",
+        "pos": [0, 9.8, 0],
+        "dir_l": [1, 0, 0],
+        "dir_w": [0, 0, 1],
+        "length": 10,
+        "width": 10,
+        "color": [255, 255, 255],
+        "emissive": 3
+    },
+    {
+        "type": "rectangle",
+        "pos": [0, 0, 10],
+        "dir_l": [1, 0, 0],
+        "dir_w": [0, 1, 0],
+        "length": 20,
+        "width": 20,
+        "color": [255, 255, 255],
+        "roughness": 1.0
+    },
+    {
+        "type": "rectangle",
+        "pos": [0, 0, -10],
+        "dir_l": [1, 0, 0],
+        "dir_w": [0, 1, 0],
+        "length": 20,
+        "width": 20,
+        "one_sided": 1.0,
+        "color": [255, 255, 255],
+        "roughness": 1.0
+    },
+    {
+        "type": "obj",
+        "pos": [0, -5.7, 0],
+        "scale": 6,
+        "dir": [0, 1, 0],
+        "rotation": 120,
+        "file": "obj/knight.obj",
+        "color": [187, 165, 61],
+        "roughness": 0.0,
+        "metalness": 1
+    }
+]

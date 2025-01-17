@@ -1,20 +1,12 @@
-use std::sync::{Arc, RwLock};
-use image::RgbaImage;
 use crate::{
-    model::scene::Scene,
-    ui::uisettings::UISettings,
-    SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32,
+    ui::uisettings::UISettings, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32
 };
 use super::{
     ui::UI,
     uieditbar::UIEditBar,
     uielement::UIElement,
     utils::{
-        draw_utils::{draw_background, get_needed_height, get_size},
-        ui_utils::translate_hitboxes,
-        misc::{ElemType, FnAny, Property},
-        style::Style,
-        HitBox
+        draw_utils::{draw_background, get_needed_height, get_size}, misc::{ElemType, FnAny, Property}, style::Style, ui_utils::{translate_hitboxes, UIContext}, HitBox
     }
 };
 
@@ -46,7 +38,7 @@ impl UIBox {
 
     pub fn add_elements(&mut self, mut elems: Vec<UIElement>) {
         for elem in &mut elems {
-            elem.set_reference(self.reference.clone());
+            elem.update_reference(self.reference.clone());
         }
         self.elems.append(&mut elems);
     }
@@ -129,7 +121,7 @@ impl UIBox {
     pub fn generate_hitboxes(
         &mut self,
         ui: &mut UI,
-        scene: &Arc<RwLock<Scene>>,
+        context: &UIContext,
         settings: &UISettings,
     ) -> Vec<HitBox> {
         let mut edit_bar_hitbox_list = vec![];
@@ -167,7 +159,7 @@ impl UIBox {
                     disabled: matches!(elem.elem_type, ElemType::Row(_)),
                 };
                 elem.hitbox = Some(hitbox.clone());
-                let vec = elem.generate_hitbox(ui, scene, size.1 - fields_height);
+                let vec = elem.generate_hitbox(ui, context, size.1 - fields_height);
                 let needed_height = (hitbox.pos.1 + hitbox.size.1 + settings.margin).max(get_needed_height(&vec));
                 if needed_height >= size.1 {
                     break;
@@ -207,15 +199,15 @@ impl UIBox {
         }
     }
 
-    pub fn draw(&self, img: &mut RgbaImage, ui: &UI, scene: &Arc<RwLock<Scene>>) {
-        draw_background(img, self.absolute_pos, self.size, &self.style);
+    pub fn draw(&self, ui: &UI, context: &mut UIContext) {
+        draw_background(&mut context.ui_img, self.absolute_pos, self.size, &self.style);
         for elem in &self.elems {
             if elem.style.visible {
-                elem.draw(img, ui, scene);
+                elem.draw(ui, context);
             }
         }
         if let Some(edit_bar) = &self.edit_bar {
-            edit_bar.draw(img);
+            edit_bar.draw(&mut context.ui_img);
         }
     }
 }
@@ -235,16 +227,16 @@ pub enum BoxPosition {
 impl BoxPosition {
     pub fn get_pos(&self, size: (u32, u32)) -> (u32, u32) {
         match *self {
-            BoxPosition::TopLeft(offset_x, offset_y) => {
+            BoxPosition::TopLeft(offset_y, offset_x) => {
                 (offset_x, offset_y)
             }
-            BoxPosition::TopRight(offset_x, offset_y) => {
+            BoxPosition::TopRight(offset_y, offset_x) => {
                 (SCREEN_WIDTH_U32 - offset_x - size.0, offset_y)
             }
-            BoxPosition::BotLeft(offset_x, offset_y) => {
+            BoxPosition::BotLeft(offset_y, offset_x) => {
                 (offset_x, SCREEN_HEIGHT_U32 - offset_y - size.1)
             }
-            BoxPosition::BotRight(offset_x, offset_y) => {
+            BoxPosition::BotRight(offset_y, offset_x) => {
                 (SCREEN_WIDTH_U32 - offset_x - size.0, SCREEN_HEIGHT_U32 - offset_y - size.1)
             }
             BoxPosition::Center => {

@@ -1,12 +1,10 @@
 use super::{misc::ElemType, HitBox};
 use image::{ImageBuffer, Rgba, RgbaImage};
 use std::{
-    sync::mpsc::{Receiver, Sender},
-    time::Instant,
+    collections::HashMap, sync::{mpsc::{Receiver, Sender}, Arc, RwLock}, time::Instant
 };
 use crate::{
-    ui::{ui::UI, uielement::UIElement},
-    SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32
+    model::scene::Scene, render::render_thread::UIOrder, ui::{ui::UI, uielement::UIElement}, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32
 };
 
 #[derive(Clone)]
@@ -23,22 +21,26 @@ pub struct UIContext {
     pub ui_img: RgbaImage,
     pub scene_img: RgbaImage,
     pub receiver: Receiver<(ImageBuffer<Rgba<u8>, Vec<u8>>, bool)>,
-    pub transmitter: Sender<bool>,
+    pub transmitter: Sender<UIOrder>,
     pub draw_time_avg: f64,
     pub draw_time_samples: u32,
     pub last_ui_draw: Instant,
     pub final_img: bool,
     pub image_asked: bool,
+    pub active_scene: Option<usize>,
+    pub previous_active_scene: Option<usize>,
+    pub next_scene_id: usize,
+    pub scene_list: HashMap<usize, Arc<RwLock<Scene>>>,
 }
 
 impl UIContext {
     pub fn new(
         receiver: Receiver<(ImageBuffer<Rgba<u8>, Vec<u8>>, bool)>,
-        transmitter: Sender<bool>,
+        transmitter: Sender<UIOrder>,
     ) -> Self {
         Self {
             ui_img: RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32),
-            scene_img: RgbaImage::new(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32),
+            scene_img: RgbaImage::from_pixel(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32, Rgba([100, 100, 100, 255])),
             receiver,
             transmitter,
             draw_time_avg: 0.,
@@ -46,7 +48,20 @@ impl UIContext {
             last_ui_draw: Instant::now(),
             final_img: false,
             image_asked: false,
+            active_scene: None,
+            previous_active_scene: None,
+            next_scene_id: 0,
+            scene_list: HashMap::new()
         }
+    }
+
+    pub fn get_active_scene(&self) -> Option<&Arc<RwLock<Scene>>> {
+        if let Some(id) = self.active_scene {
+            if let Some(scene) = self.scene_list.get(&id) {
+                return Some(scene);
+            }
+        }
+        None
     }
 }
 
@@ -136,8 +151,6 @@ pub fn give_back_element(ui: &mut UI, elem: UIElement, parent_ref: String, index
             } else if let ElemType::Row(elems) = &mut parent.elem_type {
                 elems.insert(index, elem);
             }
-        } else {
-            println!("Could not give back element to {}", parent_ref);
         }
     }
 }

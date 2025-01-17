@@ -1,4 +1,4 @@
-use super::{uielement::UIElement, utils::Displayable};
+use super::{uielement::UIElement, utils::{ui_utils::UIContext, Displayable}};
 use crate::{
     ui::{
         uielement::Category,
@@ -28,14 +28,13 @@ impl UISettings {
             font_size: BASE_FONT_SIZE,
             padding_x: FIELD_PADDING_X,
             padding_y: FIELD_PADDING_Y,
-            // indent_padding: INDENT_PADDING,
             ui_refresh_time: UI_REFRESH_TIME,
         }
     }
 }
 
 impl Displayable for UISettings {
-    fn get_fields(&self, name: &str, settings: &UISettings) -> Vec<UIElement> {
+    fn get_fields(&self, name: &str, _context: &UIContext, settings: &UISettings) -> Vec<UIElement> {
         let mut category = Category {
             collapsed: false,
             elems: vec![],
@@ -89,11 +88,8 @@ impl Displayable for UISettings {
         category.elems.push(UIElement::new(
             "Display time",
             "display_time",
-            ElemType::Stat(Box::new(|_, ui| {
-                if let Some(context) = ui.context() {
-                    return format!("{:.2}", context.draw_time_avg);
-                }
-                "".to_string()
+            ElemType::Stat(Box::new(|context, _| {
+                format!("{:.2}", context.draw_time_avg)
             })),
             settings,
         ));

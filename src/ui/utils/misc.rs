@@ -1,16 +1,13 @@
-use super::style::{Formattable, Style, StyleBuilder};
-use std::sync::{Arc, RwLock};
-use crate::{
-    model::scene::Scene,
-    ui::{
+use super::{style::{Formattable, Style, StyleBuilder}, ui_utils::UIContext};
+use crate::ui::{
         ui::UI,
         uielement::{Category, UIElement},
         uisettings::UISettings
     }
-};
+;
 
-pub type FnSubmitValue = Box<dyn Fn(Option<&UIElement>, Value, &Arc<RwLock<Scene>>, &mut UI)>;
-pub type FnAny = Box<dyn Fn(Option<&mut UIElement>, &Arc<RwLock<Scene>>, &mut UI)>;
+pub type FnSubmitValue = Box<dyn Fn(Option<&UIElement>, Value, &mut UIContext, &mut UI)>;
+pub type FnAny = Box<dyn Fn(Option<&mut UIElement>, &mut UIContext, &mut UI)>;
 pub type FnValidate = Box<dyn Fn(&Value, &UIElement, &UI) -> Result<(), String>>;
 
 #[derive(Debug, Clone)]
@@ -40,7 +37,7 @@ impl Formattable for Value {
 
 pub enum ElemType {
     Text,
-    Stat(Box<dyn Fn(&Scene, &UI) -> String>),
+    Stat(Box<dyn Fn(&UIContext, &UI) -> String>),
     Property(Property),
     Category(Category),
     Button(Option<FnAny>),

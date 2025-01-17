@@ -157,7 +157,8 @@ impl<'a> Hit<'a> {
     fn map_roughness(&mut self, textures: &HashMap<String, RgbaImage>) {
         self.roughness = self
             .map_texture(self.element.material().roughness(), textures, Vec3::from_value(1.))
-            .to_value();
+            .to_value()
+            .powf(2.);
     }
 
     fn map_metalness(&mut self, textures: &HashMap<String, RgbaImage>) {

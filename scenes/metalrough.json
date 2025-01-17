@@ -59,7 +59,7 @@
     },
     {
         "type": "camera",
-        "pos": [0.0, 0.0, -14.9],
+        "pos": [0.0, 0.0, -24.9],
         "dir": [0, 0, 1],
         "fov": 75
     },
@@ -144,13 +144,5 @@
         "metalness": "MetalWalkway007_1K-JPG_Metalness.jpg",
         "opacity": "MetalWalkway007_1K-JPG_Opacity.jpg",
         "displacement": "MetalWalkway007_1K-JPG_Displacement.jpg"
-    },
-    {
-        "type": "obj",
-        "pos": [0, -2, -4],
-        "scale": 1,
-        "dir": [0, 1, 0],
-        "file": "obj/knight.obj",
-        "color": [150, 125, 1]
     }
 ]

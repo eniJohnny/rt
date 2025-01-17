@@ -62,7 +62,11 @@ impl ComposedShape for Mobius {
 
             // pos
             category.add_element(get_vector_ui(mobius.pos.clone(), "Position", "pos", &ui.uisettings_mut(),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
@@ -71,7 +75,11 @@ impl ComposedShape for Mobius {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
@@ -80,7 +88,11 @@ impl ComposedShape for Mobius {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
@@ -97,7 +109,11 @@ impl ComposedShape for Mobius {
                 "radius", 
                 ElemType::Property(Property::new(
                     Value::Float(mobius.radius), 
-                    Box::new(move |_, value, scene, _: &mut UI| {
+                    Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                         let mut scene = scene.write().unwrap();
                         let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                         if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {
@@ -117,7 +133,11 @@ impl ComposedShape for Mobius {
                 "half_width", 
                 ElemType::Property(Property::new(
                     Value::Float(mobius.half_width), 
-                    Box::new(move |_, value, scene, _: &mut UI| {
+                    Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                         let mut scene = scene.write().unwrap();
                         let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                         if let Some(mobius) = elem.composed_shape_mut().as_mobius_mut() {

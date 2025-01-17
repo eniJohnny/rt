@@ -1,26 +1,24 @@
 use super::{display::blend_scene_and_ui, ui_setup::setup_element_ui};
 use chrono::{DateTime, Utc};
-use std::{
-    path::Path,
-    sync::{Arc, RwLock},
-};
+use std::
+    path::Path
+;
 use winit::{
     event::WindowEvent,
     event_loop::EventLoopWindowTarget,
     keyboard::{Key, NamedKey},
 };
 use crate::{
-    model::scene::Scene,
     render::raycasting::{get_closest_hit, get_lighting_from_ray, get_ray_debug},
     ui::{
         ui::{ui_clicked, UI},
-        utils::{misc::Value, ui_utils::Editing},
+        utils::{misc::Value, ui_utils::{Editing, UIContext}},
     }
 };
 
 pub fn handle_event(
     event: WindowEvent,
-    scene: &Arc<RwLock<Scene>>,
+    context: &mut UIContext,
     ui: &mut UI,
     flow: &EventLoopWindowTarget<()>,
 ) {
@@ -31,14 +29,19 @@ pub fn handle_event(
         WindowEvent::MouseInput { state, .. } => {
             if state == winit::event::ElementState::Released {
                 let pos = ui.mouse_position();
-                if !ui_clicked(pos, scene, ui) {
+                if !ui_clicked(pos, context, ui) {
                     if let None = ui.editing() {
-                        let scene_read = scene.read().unwrap();
-                        let mut ray = get_ray_debug(&scene_read, pos.0 as usize, pos.1 as usize, true);
-                        get_lighting_from_ray(&scene_read, &ray);
-                        ray.debug = false;
-                        if let Some(hit) = get_closest_hit(&scene_read, &ray) {
-                            setup_element_ui(hit.element(), ui, scene);
+                        if let Some(scene) = match context.active_scene {
+                            Some(active_scene_index) => Some(context.scene_list.get(&active_scene_index).unwrap()),
+                            None => None,
+                        } {
+                            let scene_read = scene.read().unwrap();
+                            let mut ray = get_ray_debug(&scene_read, pos.0 as usize, pos.1 as usize, true);
+                            get_lighting_from_ray(&scene_read, &ray);
+                            ray.debug = false;
+                            if let Some(hit) = get_closest_hit(&scene_read, &ray) {
+                                setup_element_ui(hit.element(), ui, scene);
+                            }
                         }
                     } else {
                         ui.set_editing(None);
@@ -52,7 +55,7 @@ pub fn handle_event(
                 ui.input_released(event.logical_key);
             } else if event.state == winit::event::ElementState::Pressed {
                 ui.input_pressed(event.logical_key.clone());
-                handle_keyboard_press(scene, ui, flow, event.logical_key);
+                handle_keyboard_press(ui, context, flow, event.logical_key);
             }
         }
         WindowEvent::CloseRequested => {
@@ -63,20 +66,19 @@ pub fn handle_event(
 }
 
 fn handle_keyboard_press(
-    scene: &Arc<RwLock<Scene>>,
     ui: &mut UI,
+    context: &UIContext,
     flow: &EventLoopWindowTarget<()>,
     input: Key,
 ) {
     if let Some(edit) = ui.editing().clone() {
-        key_pressed_editing(scene, ui, flow, &input, edit);
+        key_pressed_editing(ui, flow, &input, edit);
     } else {
-        key_pressed_non_editing(scene, ui, flow, &input);
+        key_pressed_non_editing(ui, context, flow, &input);
     }
 }
 
 fn key_pressed_editing(
-    _: &Arc<RwLock<Scene>>,
     ui: &mut UI,
     _: &EventLoopWindowTarget<()>,
     input: &Key,
@@ -151,7 +153,11 @@ fn key_pressed_editing(
     }
 }
 
-pub fn key_held(scene: &Arc<RwLock<Scene>>, _: &mut UI, _: &EventLoopWindowTarget<()>, input: Key) {
+pub fn key_held(context: &UIContext, _: &mut UI, _: &EventLoopWindowTarget<()>, input: Key) {
+    if context.active_scene.is_none() {
+        return;
+    }
+    let scene = context.scene_list.get(&context.active_scene.unwrap()).unwrap();
     match input {
         Key::Named(NamedKey::ArrowDown) => {
             scene.write().unwrap().camera_mut().look_down();
@@ -206,8 +212,8 @@ pub fn key_held(scene: &Arc<RwLock<Scene>>, _: &mut UI, _: &EventLoopWindowTarge
 }
 
 fn key_pressed_non_editing(
-    _: &Arc<RwLock<Scene>>,
     ui: &mut UI,
+    context: &UIContext,
     flow: &EventLoopWindowTarget<()>,
     input: &Key,
 ) {
@@ -226,7 +232,7 @@ fn key_pressed_non_editing(
                         std::fs::create_dir("screenshots").unwrap();
                     }
                     let path = format!("screenshots/screenshot_{}.png", datestring);
-                    blend_scene_and_ui(ui.context().unwrap(), ui.active_box())
+                    blend_scene_and_ui(context, ui.active_box())
                         .save(path)
                         .unwrap();
                 }

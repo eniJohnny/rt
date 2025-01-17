@@ -1,15 +1,8 @@
-use crate::model::scene::Scene;
-use std::sync::{Arc, RwLock};
-use image::RgbaImage;
 use super::{
     ui::UI,
     uisettings::UISettings,
     utils::{
-        draw_utils::{draw_checkbox, draw_element_text, get_size, split_in_lines},
-        ui_utils::{get_pos, Editing},
-        misc::{ElemType, FnAny, Property, Value},
-        style::{Formattable, Style},
-        HitBox
+        draw_utils::{draw_checkbox, draw_element_text, get_size, split_in_lines}, misc::{ElemType, FnAny, Property, Value}, style::{Formattable, Style}, ui_utils::{get_pos, Editing, UIContext}, HitBox
     }
 };
 
@@ -40,12 +33,75 @@ impl UIElement {
         }
     }
 
+    // pub fn add_element_to_front(&mut self, elem: UIElement) {
+    //     if let ElemType::Category(cat) = &mut self.elem_type {
+    //         let mut new_elems = vec![elem];
+    //         new_elems.append(&mut cat.elems);
+    //         cat.elems = new_elems;
+    //     } else if let ElemType::Row(elems) = &mut self.elem_type {
+    //         let len = elems.len();
+
+    //         elems.push(elem);
+    //     }
+    // }
+
     pub fn add_element(&mut self, elem: UIElement) {
         if let ElemType::Category(cat) = &mut self.elem_type {
             cat.elems.push(elem);
         } else if let ElemType::Row(elems) = &mut self.elem_type {
             elems.push(elem);
         }
+    }
+
+    pub fn nb_elements(&self) -> usize {
+        if let ElemType::Category(cat) = &self.elem_type {
+            return cat.elems.len();
+        } else if let ElemType::Row(elems) = &self.elem_type {
+            return elems.len();
+        }
+        0
+    }
+
+    pub fn remove_element(&mut self, index: usize) -> Option<UIElement> {
+        if let ElemType::Category(cat) = &mut self.elem_type {
+            return Some(cat.elems.remove(index))
+        } else if let ElemType::Row(elems) = &mut self.elem_type {
+            return Some(elems.remove(index))
+        }
+        None
+    }
+
+    pub fn remove_element_by_reference(&mut self, reference: &String) -> Option<UIElement> {
+        if let ElemType::Category(cat) = &mut self.elem_type {
+            let mut index = 0;
+            for elem in &mut cat.elems {
+                if elem.reference == *reference {
+                    break;
+                }
+                if let Some(elem) = elem.remove_element_by_reference(&reference) {
+                    return Some(elem);
+                }
+                index += 1;
+            }
+            if index != cat.elems.len() {
+                return Some(cat.elems.remove(index));
+            }
+        } else if let ElemType::Row(elems) = &mut self.elem_type {
+            let mut index = 0;
+            for elem in elems.iter_mut() {
+                if elem.reference == *reference {
+                    break;
+                }
+                if let Some(elem) = elem.remove_element_by_reference(&reference) {
+                    return Some(elem);
+                }
+                index += 1;
+            }
+            if index != elems.len() {
+                return Some(elems.remove(index));
+            }
+        }
+        None
     }
 
     pub fn set_style(&mut self, format: Style) {
@@ -69,16 +125,16 @@ impl UIElement {
         }
     }
 
-    pub fn set_reference(&mut self, parent_ref: String) {
+    pub fn update_reference(&mut self, parent_ref: String) {
         self.reference = parent_ref + "." + &self.id;
 
         if let ElemType::Category(cat) = &mut self.elem_type {
             for elem in &mut cat.elems {
-                elem.set_reference(self.reference.clone());
+                elem.update_reference(self.reference.clone());
             }
         } else if let ElemType::Row(elems) = &mut self.elem_type {
             for elem in elems {
-                elem.set_reference(self.reference.clone());
+                elem.update_reference(self.reference.clone());
             }
         }
     }
@@ -209,16 +265,16 @@ impl UIElement {
         None
     }
 
-    pub fn reset_properties(&mut self, scene: &Arc<RwLock<Scene>>) {
+    pub fn reset_properties(&mut self) {
         if let ElemType::Category(cat) = &mut self.elem_type {
             for elem in &mut cat.elems {
-                elem.reset_properties(scene);
+                elem.reset_properties();
             }
         } else if let ElemType::Property(prop) = &mut self.elem_type {
             prop.value = prop.initial_value.clone();
         } else if let ElemType::Row(elems) = &mut self.elem_type {
             for elem in elems {
-                elem.reset_properties(scene);
+                elem.reset_properties();
             }
         }
     }
@@ -238,21 +294,21 @@ impl UIElement {
         Ok(())
     }
 
-    pub fn submit_properties(&self, scene: &Arc<RwLock<Scene>>, ui: &mut UI) {
+    pub fn submit_properties(&self, context: &mut UIContext, ui: &mut UI) {
         if let ElemType::Category(cat) = &self.elem_type {
             for elem in &cat.elems {
-                elem.submit_properties(scene, ui);
+                elem.submit_properties(context, ui);
             }
         } else if let ElemType::Property(prop) = &self.elem_type {
-            (prop.fn_submit)(Some(self), prop.value.clone(), scene, ui);
+            (prop.fn_submit)(Some(self), prop.value.clone(), context, ui);
         } else if let ElemType::Row(elems) = &self.elem_type {
             for elem in elems {
-                elem.submit_properties(scene, ui);
+                elem.submit_properties(context, ui);
             }
         }
     }
 
-    pub fn generate_hitbox(&mut self, ui: &UI, scene: &Arc<RwLock<Scene>>, max_height: u32) -> Vec<HitBox> {
+    pub fn generate_hitbox(&mut self, ui: &UI, context: &UIContext, max_height: u32) -> Vec<HitBox> {
         let mut vec = vec![];
         if max_height == 0 {
             return vec;
@@ -265,7 +321,7 @@ impl UIElement {
             match &mut self.elem_type {
                 ElemType::Row(elems) => {
                     let available_width =
-                        (parent_hitbox.size.0 - ui.uisettings().margin * (elems.len() - 1) as u32 - indent) / elems.len() as u32;
+                        (parent_hitbox.size.0 - self.style.margin * (elems.len() - 1) as u32 - indent) / elems.len() as u32;
                     let mut offset_x = indent;
                     for elem in elems {
                         if elem.style.visible {
@@ -282,8 +338,8 @@ impl UIElement {
                                 disabled: matches!(elem.elem_type, ElemType::Row(_)),
                             };
                             elem.hitbox = Some(hitbox.clone());
-                            let hitbox_list = elem.generate_hitbox(ui, scene, max_height);
-                            offset_x += available_width + ui.uisettings().margin;
+                            let hitbox_list = elem.generate_hitbox(ui, context, max_height);
+                            offset_x += available_width + self.style.margin;
                             vec.push(hitbox);
                             for hitbox in hitbox_list {
                                 vec.push(hitbox);
@@ -316,7 +372,7 @@ impl UIElement {
                                     offset_y = max_height;
                                 } else {
                                     elem.hitbox = Some(hitbox.clone());
-                                    let hitbox_list = elem.generate_hitbox(ui, scene, max_height - offset_y);
+                                    let hitbox_list = elem.generate_hitbox(ui, context, max_height - offset_y);
                                     let mut needed_height =
                                         hitbox.pos.1 + hitbox.size.1 - parent_hitbox.pos.1;
                                     if !hitbox.disabled {
@@ -355,7 +411,7 @@ impl UIElement {
                     }
                 }
                 ElemType::Stat(function) => {
-                    self.value = Some(function(&scene.read().unwrap(), ui));
+                    self.value = Some(function(&context, ui));
                 }
                 _ => {}
             }
@@ -380,34 +436,34 @@ impl UIElement {
         }
     }
 
-    pub fn draw(&self, img: &mut RgbaImage, ui: &UI, scene: &Arc<RwLock<Scene>>) {
+    pub fn draw(&self, ui: &UI, context: &mut UIContext) {
         if let Some(hitbox) = &self.hitbox {
             match &self.elem_type {
                 ElemType::Row(elems) => {
                     for elem in elems {
                         if elem.style.visible {
-                            elem.draw(img, ui, scene);
+                            elem.draw(ui, context);
                         }
                     }
                 }
                 ElemType::Button(..) => {
-                    draw_element_text(img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
+                    draw_element_text(&mut context.ui_img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
                 }
                 ElemType::Category(cat) => {
-                    draw_element_text(img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
+                    draw_element_text(&mut context.ui_img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
 
                     if !cat.collapsed {
                         for elem in &cat.elems {
                             if elem.style.visible {
-                                elem.draw(img, ui, scene);
+                                elem.draw(ui, context);
                             }
                         }
                     }
                 }
                 ElemType::Property(property) => {
-                    draw_element_text(img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
+                    draw_element_text(&mut context.ui_img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
                     if let Value::Bool(value) = property.value {
-                        draw_checkbox(img, hitbox.pos, hitbox.size, value, &self.style);
+                        draw_checkbox(&mut context.ui_img, hitbox.pos, hitbox.size, value, &self.style);
                     } else {
                         let format;
                         let value = match &self.value {
@@ -425,7 +481,7 @@ impl UIElement {
                             + format.padding_right;
                         let offset = hitbox.size.0 - value_width;
                         draw_element_text(
-                            img,
+                            &mut context.ui_img,
                             value,
                             (hitbox.pos.0 + offset, hitbox.pos.1),
                             (value_width, hitbox.size.1),
@@ -434,14 +490,14 @@ impl UIElement {
                     }
                 }
                 ElemType::Stat(_) => {
-                    draw_element_text(img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
+                    draw_element_text(&mut context.ui_img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
                     if let Some(value) = &self.value {
                         let value_width = value.len() as u32 * self.style.font_size as u32 / 2
                             + self.style.padding_left
                             + self.style.padding_right;
                         let offset = hitbox.size.0 - value_width;
                         draw_element_text(
-                            img,
+                            &mut context.ui_img,
                             value.clone(),
                             (hitbox.pos.0 + offset, hitbox.pos.1),
                             (value_width, hitbox.size.1),
@@ -457,7 +513,7 @@ impl UIElement {
                     for line in lines {
                         let size = get_size(&line, &self.style, (available_width, hitbox.size.1));
                         draw_element_text(
-                            img,
+                            &mut context.ui_img,
                             line,
                             (hitbox.pos.0, hitbox.pos.1 + height),
                             size,
@@ -470,7 +526,7 @@ impl UIElement {
         }
     }
 
-    pub fn clicked(&mut self, scene: &Arc<RwLock<Scene>>, ui: &mut UI) {
+    pub fn clicked(&mut self, context: &mut UIContext, ui: &mut UI) {
         if !self.style.disabled {
             match &mut self.elem_type {
                 ElemType::Property(property) => {
@@ -496,7 +552,7 @@ impl UIElement {
                 ElemType::Button(fn_click) => {
                     let click = fn_click.take();
                     if let Some(click) = click {
-                        click(Some(self), scene, ui);
+                        click(Some(self), context, ui);
                         self.elem_type = ElemType::Button(Some(click));
                     }
                 }
@@ -504,7 +560,7 @@ impl UIElement {
             }
         }
         if let Some(click) = self.on_click.take() {
-            click(Some(self), scene, ui);
+            click(Some(self), context, ui);
             self.on_click = Some(click);
         }
     }

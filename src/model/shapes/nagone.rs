@@ -58,7 +58,11 @@ impl ComposedShape for Nagone {
 
             // pos
             category.add_element(get_vector_ui(nagone.pos.clone(), "Position", "pos", &ui.uisettings_mut(),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
@@ -67,7 +71,11 @@ impl ComposedShape for Nagone {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
@@ -76,7 +84,11 @@ impl ComposedShape for Nagone {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
@@ -89,7 +101,11 @@ impl ComposedShape for Nagone {
 
             // dir
             category.add_element(get_vector_ui(nagone.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
@@ -98,7 +114,11 @@ impl ComposedShape for Nagone {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
@@ -107,7 +127,11 @@ impl ComposedShape for Nagone {
                     }
                 }
             }),
-            Box::new(move |_, value, scene, _| {
+            Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                 let mut scene = scene.write().unwrap();
                 let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                 if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
@@ -124,7 +148,11 @@ impl ComposedShape for Nagone {
                 "radius", 
                 ElemType::Property(Property::new(
                     Value::Float(nagone.radius), 
-                    Box::new(move |_, value, scene, _: &mut UI| {
+                    Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                         let mut scene = scene.write().unwrap();
                         let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                         if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
@@ -144,7 +172,11 @@ impl ComposedShape for Nagone {
                 "angles", 
                 ElemType::Property(Property::new(
                     Value::Unsigned(nagone.angles as u32), 
-                    Box::new(move |_, value, scene, _: &mut UI| {
+                    Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                         let mut scene = scene.write().unwrap();
                         let elem = scene.composed_element_mut_by_id(id.clone()).unwrap();
                         if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {

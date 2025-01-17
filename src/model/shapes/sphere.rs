@@ -144,7 +144,11 @@ impl Shape for Sphere {
         if let Some(sphere) = element.shape().as_sphere() {
             let id = element.id().clone();
             category.add_element(get_vector_ui(sphere.pos.clone(), "Position", "pos", &ui.uisettings_mut(), 
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(sphere) = elem.shape_mut().as_sphere_mut() {
@@ -153,7 +157,11 @@ impl Shape for Sphere {
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(sphere) = elem.shape_mut().as_sphere_mut() {
@@ -162,7 +170,11 @@ impl Shape for Sphere {
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(sphere) = elem.shape_mut().as_sphere_mut() {
@@ -173,7 +185,11 @@ impl Shape for Sphere {
                 }),
                 false, None, None));
             category.add_element(get_vector_ui(sphere.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
-                Box::new(move |_, value, scene, _ui| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(sphere) = elem.shape_mut().as_sphere_mut() {
@@ -182,7 +198,11 @@ impl Shape for Sphere {
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, _| {
+                Box::new(move |_, value, context, _| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(sphere) = elem.shape_mut().as_sphere_mut() {
@@ -191,7 +211,11 @@ impl Shape for Sphere {
                         }
                     }
                 }),
-                Box::new(move |_, value, scene, ui| {
+                Box::new(move |_, value, context, ui| {
+                    let scene = match context.active_scene {
+                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                        None => return,
+                    };
                     let mut scene = scene.write().unwrap();
                     let elem = scene.element_mut_by_id(id.clone()).unwrap();
                     if let Some(sphere) = elem.shape_mut().as_sphere_mut() {
@@ -209,7 +233,11 @@ impl Shape for Sphere {
                 "radius", 
                 ElemType::Property(Property::new(
                     Value::Float(sphere.radius), 
-                    Box::new(move |_, value, scene, _: &mut UI| {
+                    Box::new(move |_, value, context, _| {
+                        let scene = match context.active_scene {
+                            Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+                            None => return,
+                        };
                         let mut scene = scene.write().unwrap();
                         let elem = scene.element_mut_by_id(id.clone()).unwrap();
                         if let Some(sphere) = elem.shape_mut().as_sphere_mut() {

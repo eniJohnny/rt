@@ -1,7 +1,7 @@
+use std::{fs::read_dir, io::Result};
+
 use image::Rgba;
-use crate::{
-    picker::get_files_in_folder,
-    ui::{
+use crate::ui::{
         uibox::{BoxPosition, UIBox},
         uielement::{Category, UIElement},
         uisettings::UISettings,
@@ -10,8 +10,30 @@ use crate::{
             ui_utils::get_parent_ref,
             style::Style
         }
+    };
+
+
+pub fn get_files_in_folder(path: &str) -> Result<Vec<String>> {
+    let mut files = Vec::new();
+
+    // Read the directory
+    for entry in read_dir(path)? {
+        let entry = entry?;
+        let path = entry.path();
+
+        // Check if the entry is a file and not a directory
+        if path.is_file() {
+            if let Some(filename) = path.file_name() {
+                if let Some(filename_str) = filename.to_str() {
+                    files.push(filename_str.to_string());
+                }
+            }
+        }
     }
-};
+
+    files.sort();
+    Ok(files)
+}
 
 pub fn get_file_box(path: String, box_name: String, submit: FnSubmitValue, settings: &UISettings, initial_value: String) -> UIBox {
     let mut style_selected = Style::text(settings);

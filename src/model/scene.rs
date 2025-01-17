@@ -25,7 +25,8 @@ pub struct Scene {
     dirty: bool,
     bvh: Option<bvh::node::Node>,
     next_element_id: usize,
-    next_composed_element_id: usize
+    next_composed_element_id: usize,
+    paused: bool
 }
 
 impl Scene {
@@ -41,6 +42,7 @@ impl Scene {
             settings: Settings::default(),
             textures: HashMap::new(),
             dirty: true,
+            paused: false,
             bvh: None,
             next_element_id: 0,
             next_composed_element_id: 0
@@ -388,6 +390,14 @@ impl Scene {
 
     pub fn set_dirty(&mut self, dirty: bool) {
         self.dirty = dirty;
+    }
+
+    pub fn paused(&self) -> bool {
+        self.paused
+    }
+    
+    pub fn set_paused(&mut self, paused: bool) {
+        self.paused = paused;
     }
     
     pub fn get_element(&self, index: usize) -> &Element {

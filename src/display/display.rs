@@ -1,19 +1,14 @@
-use super::anaglyph::{self, Coloring};
-use image::RgbaImage;
+use image::{Rgba, RgbaImage};
 use pixels::Pixels;
-use std::{
-    sync::{Arc, RwLock},
-    time::Instant,
-};
+use std::
+    time::Instant
+;
 use crate::{
-    display::filters::apply_filter,
-    model::scene::Scene,
     ui::{
         ui::UI,
         uibox::UIBox,
         utils::{draw_utils::is_inside_box, ui_utils::UIContext},
-    },
-    ANAGLYPH, ANAGLYPH_OFFSET_X, ANAGLYPH_OFFSET_Y, FILTER, FILTERS,
+    }, SCREEN_HEIGHT_U32, SCREEN_WIDTH_U32
 };
 
 
@@ -38,20 +33,17 @@ pub fn blend_scene_and_ui(context: &UIContext, active_box: Option<&UIBox>) -> Rg
     return image;
 }
 
-pub fn redraw_if_necessary(ui: &mut UI, scene: &Arc<RwLock<Scene>>, mut pixels: &mut Pixels) {
+pub fn redraw_if_necessary(ui: &mut UI, context: &mut UIContext, mut pixels: &mut Pixels) {
     if ui.dirty()
-        || ui.context().unwrap().last_ui_draw.elapsed().as_millis()
+        || context.last_ui_draw.elapsed().as_millis()
             > ui.uisettings().ui_refresh_time as u128
     {
-        ui.generate_hitboxes(&scene);
+        ui.generate_hitboxes(&context);
     }
-    let mut context = ui.take_context();
-    let ui_img = &mut context.ui_img;
     let mut redraw = false;
-    if ui.dirty()
-        || context.last_ui_draw.elapsed().as_millis() > ui.uisettings().ui_refresh_time as u128
+    if ui.dirty() || context.last_ui_draw.elapsed().as_millis() > ui.uisettings().ui_refresh_time as u128
     {
-        ui.draw(&scene, ui_img);
+        ui.draw(context);
         redraw = true;
         context.last_ui_draw = Instant::now();
     }
@@ -61,30 +53,24 @@ pub fn redraw_if_necessary(ui: &mut UI, scene: &Arc<RwLock<Scene>>, mut pixels: 
         context.image_asked = false;
         redraw = true;
     }
+    if context.active_scene.is_none() && !context.final_img {
+        context.scene_img = RgbaImage::from_pixel(SCREEN_WIDTH_U32, SCREEN_HEIGHT_U32, Rgba([100, 100, 100, 255])); 
+        context.final_img = true;
+        redraw = true;
+    }
     if redraw {
         let time = Instant::now();
-        if FILTERS.contains(&FILTER) {
-            apply_filter(&mut context.scene_img);
-        }
         let mut img = blend_scene_and_ui(&context, ui.active_box());
         display(&mut pixels, &mut img);
         let nb_samples = context.draw_time_samples as f64;
         context.draw_time_avg = nb_samples * context.draw_time_avg / (nb_samples + 1.)
             + time.elapsed().as_millis() as f64 / (nb_samples + 1.);
-        context.draw_time_samples += 1;
+            context.draw_time_samples += 1;
     }
-    ui.give_back_context(context);
 }
 
 pub fn display(pixels: &mut Pixels, img: &mut RgbaImage) {
-    if ANAGLYPH {
-        // Anaglyph modifier
-        let img2 = anaglyph::create(img, ANAGLYPH_OFFSET_X, ANAGLYPH_OFFSET_Y, Coloring::RedCyan);
-        pixels.frame_mut().copy_from_slice(&img2);
-        pixels.render().unwrap();
-    } else {
-        // No modifiers
-        pixels.frame_mut().copy_from_slice(&img);
-        pixels.render().unwrap();
-    }
+    // No modifiers
+    pixels.frame_mut().copy_from_slice(&img);
+    pixels.render().unwrap();
 }

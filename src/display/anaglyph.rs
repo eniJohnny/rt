@@ -2,6 +2,7 @@ extern crate image;
 use image::{DynamicImage, ImageBuffer, Rgba};
 
 /// The possible Anaglyph colors listed [here](https://en.wikipedia.org/wiki/Anaglyph_3D#Anaglyphic_color_channels).
+#[derive(Debug, Copy, Clone)]
 pub enum Coloring {
     RedGreen,
     RedBlue,
@@ -30,7 +31,7 @@ const DARKBLUE: [f32 ; 4] = [0./255., 0./255., 153./255., 1.];
 /// * `offset_x` - The horizontal difference between the two colors.
 /// * `offset_y` - The vertical difference between the two colors.
 /// * `coloring` - One of the anaglyph [Coloring] couples.
-pub fn create(img: &mut ImageBuffer<Rgba<u8>, Vec<u8>>, offset_x: isize, offset_y: isize, coloring: Coloring) -> Vec<u8> {
+pub fn create(img: &mut ImageBuffer<Rgba<u8>, Vec<u8>>, offset_x: isize, offset_y: isize, coloring: Coloring) {
     let offset_x = offset_x /2; 
     let offset_y = offset_y /2;
     let direction: &str = {
@@ -86,7 +87,7 @@ pub fn create(img: &mut ImageBuffer<Rgba<u8>, Vec<u8>>, offset_x: isize, offset_
     // image::save_buffer(&output_file, &out_buf, out_x as u32, out_y as u32, image::ColorType::Rgb8).unwrap();
     let mut res = DynamicImage::ImageRgba8(ImageBuffer::from_raw(out_x as u32, out_y as u32, out_buf).unwrap());
     res = res.resize_to_fill(in_x as u32, in_y as u32, image::imageops::FilterType::Nearest);
-    res.to_bytes()
+    img.copy_from_slice(&res.to_bytes());
 }
 
 struct Anaglyph {
