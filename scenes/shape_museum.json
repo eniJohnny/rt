@@ -19,9 +19,10 @@
 	],
 
     {
-        "type": "any",
-        "equation": "y = 1",
-        "pos": [255, 255, 255],
+        "type": "cubehole",
+        "pos": [0, 3.5, 0],
+        "dir": [0, 0, 1],
+        "width": 2,
         "color": [255, 255, 255]
     }
 
