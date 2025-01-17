@@ -1,4 +1,4 @@
-use super::{cylinder::Cylinder, sphere::Sphere, composed_shape::ComposedShape};
+use super::{composed_shape::ComposedShape, cylinder::Cylinder, sphere::Sphere, utils::get_cross_axis};
 use std::{f64::consts::PI, sync::{Arc, RwLock}};
 use crate::{model::{
     composed_element::ComposedElement, element::Element, materials::{
@@ -38,12 +38,7 @@ impl ComposedShape for Helix {
         let link_radius = 0.25 * self.height / steps as f64;
         let sphere_radius = 2.0 * link_radius;
 
-        let cross_vector;
-        if self.dir == Vec3::new(0.0, 1.0, 0.0) {
-            cross_vector = self.dir.cross(&Vec3::new(1.0, 0.0, 0.0));
-        } else {
-            cross_vector = self.dir.cross(&Vec3::new(0.0, 1.0, 0.0));
-        }
+        let cross_vector = get_cross_axis(&self.dir);
 
         let rotation_ratio = 2.0 * PI / steps as f64;
 

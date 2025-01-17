@@ -2,7 +2,7 @@ use std::{fmt::Debug, sync::{Arc, RwLock}};
 
 use crate::{model::{element::Element, materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene}, ui::{ui::UI, uielement::UIElement}};
 
-use super::{aabb::Aabb, any::Any, cone::Cone, cube::Cube, cubehole::Cubehole, cylinder::Cylinder, ellipse::Ellipse, hyperboloid::Hyperboloid, obj::Obj, plane::Plane, rectangle::Rectangle, sphere::Sphere, triangle::Triangle, wireframe::Wireframe};
+use super::{aabb::Aabb, any::Any, cone::Cone, cube::Cube, cubehole::Cubehole, cylinder::Cylinder, ellipse::Ellipse, hyperboloid::Hyperboloid, obj::Obj, plane::Plane, rectangle::Rectangle, sphere::Sphere, triangle::Triangle, wireframe::Wireframe, torus::Torus};
 
 pub trait Shape: Debug + Sync + Send {
     fn distance(&self, vec: &Vec3) -> f64;
@@ -27,6 +27,8 @@ pub trait Shape: Debug + Sync + Send {
             return "Plane".to_string();
         } else if self.as_rectangle().is_some() {
             return "Rectangle".to_string();
+        } else if self.as_torus().is_some() {
+            return "Torus".to_string();
         } else if self.as_wireframe().is_some() {
             return "Wireframe".to_string();
         } else if self.as_ellipse().is_some() {
@@ -52,6 +54,7 @@ pub trait Shape: Debug + Sync + Send {
     fn as_cone(&self) -> Option<&Cone> { None }
     fn as_rectangle(&self) -> Option<&Rectangle> { None }
     fn as_triangle(&self) -> Option<&Triangle> { None }
+    fn as_torus(&self) -> Option<&Torus> { None }
     fn as_aabb(&self) -> Option<&Aabb> { None }
     fn as_wireframe(&self) -> Option<&Wireframe> { None }
     fn as_ellipse(&self) -> Option<&Ellipse> { None }
@@ -68,6 +71,7 @@ pub trait Shape: Debug + Sync + Send {
     fn as_cone_mut(&mut self) -> Option<&mut Cone> { None }
     fn as_rectangle_mut(&mut self) -> Option<&mut Rectangle> { None }
     fn as_triangle_mut(&mut self) -> Option<&mut Triangle> { None }
+    fn as_torus_mut(&mut self) -> Option<&mut Torus> { None }
     fn as_aabb_mut(&mut self) -> Option<&mut Aabb> { None }
     fn as_wireframe_mut(&mut self) -> Option<&mut Wireframe> { None }
     fn as_ellipse_mut(&mut self) -> Option<&mut Ellipse> { None }

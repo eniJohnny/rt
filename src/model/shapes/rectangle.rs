@@ -60,7 +60,20 @@ impl Shape for Rectangle {
 	}
 
     fn projection(&self, hit: &Hit) -> Projection {
-        self.plane.projection(hit)
+        // self.plane.projection(hit)
+        let mut projection: Projection = Projection::default();
+
+        let hit_pos = hit.pos();
+        let dist = hit_pos - self.d;
+
+        projection.i = self.dir_w().normalize();
+        projection.j = self.dir_l().normalize();
+        projection.k = self.norm(hit_pos).normalize();
+
+        projection.u = dist.dot(&projection.i) / self.width();
+        projection.v = dist.dot(&projection.j) / self.length();
+
+        projection
     }
     fn norm(&self, hit: &Vec3) -> Vec3 {
         self.plane.norm(hit)

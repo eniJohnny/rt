@@ -4,7 +4,7 @@ use super::{aabb::Aabb, ellipse::Ellipse, cylinder::Cylinder, shape::Shape};
 use nalgebra::Matrix3;
 use crate::{model::{
     element::Element, materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene
-}, ui::{ui::UI, uielement::{Category, UIElement}, utils::misc::ElemType}};
+}, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}};
 
 #[derive(Debug)]
 pub struct Cubehole {
@@ -124,6 +124,10 @@ impl Shape for Cubehole {
     fn as_cubehole(&self) -> Option<&Cubehole> {
         Some(self)
     }
+
+    fn as_cubehole_mut(&mut self) -> Option<&mut Cubehole> {
+        Some(self)
+    }
     
     fn pos(&self) -> &Vec3 {
         &self.pos
@@ -137,9 +141,93 @@ impl Shape for Cubehole {
         self.intersect(ray)
     }
 
-    fn get_ui(&self, _element: &Element, _ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
-		UIElement::new("Not implemented", "notimplemented", ElemType::Category(Category::default()), _ui.uisettings())
-	}
+    fn get_ui(&self, element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
+        let mut category = UIElement::new("Cubehole", "cubehole", ElemType::Category(Category::default()), ui.uisettings());
+
+        if let Some(cubehole) = element.shape().as_cubehole() {
+            let id = element.id().clone();
+            category.add_element(get_vector_ui(cubehole.pos.clone(), "Position", "pos", &ui.uisettings_mut(), 
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
+                        if let Value::Float(value) = value {
+                            cubehole.pos.set_x(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
+                        if let Value::Float(value) = value {
+                            cubehole.pos.set_y(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
+                        if let Value::Float(value) = value {
+                            cubehole.pos.set_z(value);
+                        }
+                    }
+                }),
+                false, None, None));
+            category.add_element(get_vector_ui(cubehole.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
+                Box::new(move |_, value, scene, _ui| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
+                        if let Value::Float(value) = value {
+                            cubehole.dir.set_x(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
+                        if let Value::Float(value) = value {
+                            cubehole.dir.set_y(value);
+                        }
+                    }
+                }),
+                Box::new(move |_, value, scene, _| {
+                    let mut scene = scene.write().unwrap();
+                    let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                    if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
+                        if let Value::Float(value) = value {
+                            cubehole.dir.set_z(value);
+                        }
+                        // cubehole.set_dir(cubehole.dir.normalize());
+                        // ui.set_dirty();
+                    }
+                }),
+                false, Some(-1.), Some(1.)));
+
+            category.add_element(UIElement::new(
+                "Width",
+                "width", 
+                ElemType::Property(Property::new(
+                    Value::Float(cubehole.width), 
+                    Box::new(move |_, value, scene, _: &mut UI| {
+                        let mut scene = scene.write().unwrap();
+                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
+                        if let Some(cubehole) = elem.shape_mut().as_cubehole_mut() {
+                            if let Value::Float(value) = value {
+                                cubehole.set_width(value);
+                            }
+                        }
+                        scene.set_dirty(true);
+                    }),
+                    Box::new(|_, _, _| Ok(())),
+                    ui.uisettings())),
+                ui.uisettings()));
+        }
+        category
+    }
 }
 
 impl Cubehole {
@@ -159,36 +247,39 @@ impl Cubehole {
     // Mutators
     pub fn set_pos(&mut self, pos: Vec3) {
         self.pos = pos;
-        self.set_axis_aligned_cube(to_aabb(self.pos, self.width));
-        self.set_cap1(Ellipse::new(self.pos + self.dir * self.width / 2.0, self.dir, self.width / 4.0, self.width / 4.0));
-        self.set_cap2(Ellipse::new(self.pos - self.dir * self.width / 2.0, self.dir, self.width / 4.0, self.width / 4.0));
-        self.set_cylinder(Cylinder::new(self.pos, self.dir, self.width / 4.0, self.width));
+        // self.update();
+        // self.set_axis_aligned_cube(to_aabb(self.pos, self.width));
+        // self.set_cap1(Ellipse::new(self.pos + self.dir * self.width / 2.0, self.dir, self.width / 4.0, self.width / 4.0));
+        // self.set_cap2(Ellipse::new(self.pos - self.dir * self.width / 2.0, self.dir, self.width / 4.0, self.width / 4.0));
+        // self.set_cylinder(Cylinder::new(self.pos, self.dir, self.width / 4.0, self.width));
     }
     pub fn set_dir(&mut self, dir: Vec3) {
-        self.dir = dir;
-        let (mut alpha, mut beta, mut gamma) = (0., 0., 0.);
+        self.dir = dir.normalize();
+        // self.update();
+        // let (mut alpha, mut beta, mut gamma) = (0., 0., 0.);
 
-        if dir != Vec3::new(0.0, 1.0, 0.0) && dir != Vec3::new(0.0, -1.0, 0.0)
-        && dir != Vec3::new(0.0, 0.0, 1.0) && dir != Vec3::new(0.0, 0.0, -1.0) 
-        && dir != Vec3::new(1.0, 0.0, 0.0) && dir != Vec3::new(-1.0, 0.0, 0.0) {
-            (alpha, beta, gamma) = (*get_angles(&dir).x(), *get_angles(&dir).y(), *get_angles(&dir).z());
-        }
+        // if dir != Vec3::new(0.0, 1.0, 0.0) && dir != Vec3::new(0.0, -1.0, 0.0)
+        // && dir != Vec3::new(0.0, 0.0, 1.0) && dir != Vec3::new(0.0, 0.0, -1.0) 
+        // && dir != Vec3::new(1.0, 0.0, 0.0) && dir != Vec3::new(-1.0, 0.0, 0.0) {
+        //     (alpha, beta, gamma) = (*get_angles(&dir).x(), *get_angles(&dir).y(), *get_angles(&dir).z());
+        // }
 
-        self.set_alpha(alpha);
-        self.set_beta(beta);
-        self.set_gamma(gamma);
-        self.set_rotation(rotation_z(gamma) * rotation_y(beta) * rotation_x(alpha));
-        self.set_axis_aligned_cube(to_aabb(self.pos, self.width));
-        self.set_cap1(Ellipse::new(self.pos + self.dir * self.width / 2.0, self.dir, self.width / 4.0, self.width / 4.0));
-        self.set_cap2(Ellipse::new(self.pos - self.dir * self.width / 2.0, self.dir, self.width / 4.0, self.width / 4.0));
-        self.set_cylinder(Cylinder::new(self.pos, self.dir, self.width / 4.0, self.width));
+        // self.set_alpha(alpha);
+        // self.set_beta(beta);
+        // self.set_gamma(gamma);
+        // self.set_rotation(rotation_z(gamma) * rotation_y(beta) * rotation_x(alpha));
+        // self.set_axis_aligned_cube(to_aabb(self.pos, self.width));
+        // self.set_cap1(Ellipse::new(self.pos + self.dir * self.width / 2.0, self.dir, self.width / 4.0, self.width / 4.0));
+        // self.set_cap2(Ellipse::new(self.pos - self.dir * self.width / 2.0, self.dir, self.width / 4.0, self.width / 4.0));
+        // self.set_cylinder(Cylinder::new(self.pos, self.dir, self.width / 4.0, self.width));
     }
     pub fn set_width(&mut self, width: f64) {
         self.width = width;
-        self.set_axis_aligned_cube(to_aabb(self.pos, self.width));
-        self.set_cap1(Ellipse::new(self.pos + self.dir * self.width / 2.0, self.dir, self.width / 4.0, self.width / 4.0));
-        self.set_cap2(Ellipse::new(self.pos - self.dir * self.width / 2.0, self.dir, self.width / 4.0, self.width / 4.0));
-        self.set_cylinder(Cylinder::new(self.pos, self.dir, self.width / 4.0, self.width));
+        self.update();
+        // self.set_axis_aligned_cube(to_aabb(self.pos, self.width));
+        // self.set_cap1(Ellipse::new(self.pos + self.dir * self.width / 2.0, self.dir, self.width / 4.0, self.width / 4.0));
+        // self.set_cap2(Ellipse::new(self.pos - self.dir * self.width / 2.0, self.dir, self.width / 4.0, self.width / 4.0));
+        // self.set_cylinder(Cylinder::new(self.pos, self.dir, self.width / 4.0, self.width));
     }
     pub fn set_alpha(&mut self, alpha: f64) { self.alpha = alpha; }
     pub fn set_beta(&mut self, beta: f64) { self.beta = beta; }
@@ -238,6 +329,32 @@ impl Cubehole {
             cap2: self.cap2.clone(),
             cylinder: self.cylinder.clone()
         }
+    }
+
+    pub fn update(&mut self) {
+        let (mut alpha, mut beta, mut gamma) = (0., 0., 0.);
+        let dir = self.dir.clone();
+        let pos = self.pos.clone();
+        let width = self.width;
+
+        if dir != Vec3::new(0.0, 1.0, 0.0) && dir != Vec3::new(0.0, -1.0, 0.0)
+        && dir != Vec3::new(0.0, 0.0, 1.0) && dir != Vec3::new(0.0, 0.0, -1.0) 
+        && dir != Vec3::new(1.0, 0.0, 0.0) && dir != Vec3::new(-1.0, 0.0, 0.0) {
+            (alpha, beta, gamma) = (*get_angles(&dir).x(), *get_angles(&dir).y(), *get_angles(&dir).z());
+        }
+
+        let rotation = rotation_z(gamma) * rotation_y(beta) * rotation_x(alpha);
+        let axis_aligned_cube = to_aabb(pos, width);
+        let pos_cap1 = pos + dir * width / 2.0;
+        let pos_cap2 = pos - dir * width / 2.0;
+        let radius_cap = width / 4.0;
+
+        let cap1 = Ellipse::new(pos_cap1, dir, radius_cap, radius_cap);
+        let cap2 = Ellipse::new(pos_cap2, dir, radius_cap, radius_cap);
+
+        let cylinder = Cylinder::new(pos, dir, radius_cap, width);
+
+        *self = self::Cubehole { pos, dir, width, alpha, beta, gamma, rotation, axis_aligned_cube, cap1, cap2, cylinder };
     }
 }
 

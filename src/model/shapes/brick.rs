@@ -1,6 +1,6 @@
 use std::sync::{Arc, RwLock};
 
-use super::{rectangle::Rectangle, composed_shape::ComposedShape};
+use super::{composed_shape::ComposedShape, rectangle::Rectangle, utils::get_cross_axis};
 use crate::{model::{
     materials::
         material::Material
@@ -30,12 +30,7 @@ impl ComposedShape for Brick {
         let l = *self.dimensions.z();
 
         let dir_h = self.dir.clone().normalize();
-        let dir_w;
-        if dir_h == Vec3::new(0.0, 1.0, 0.0) {
-            dir_w = dir_h.cross(&Vec3::new(0.0, 0.0, 1.0)).normalize();
-        } else {
-            dir_w = dir_h.cross(&Vec3::new(0.0, 1.0, 0.0)).normalize();
-        }
+        let dir_w = get_cross_axis(&dir_h);
         let dir_l = dir_h.cross(&-dir_w).normalize();
 
 

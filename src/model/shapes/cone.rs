@@ -1,4 +1,4 @@
-use super::shape::Shape;
+use super::{shape::Shape, utils::get_cross_axis};
 use std::{
     sync::{Arc, RwLock},
     vec
@@ -364,14 +364,7 @@ impl Cone {
 
     pub fn compute_aabb(pos:Vec3, dir: Vec3, height: f64, radius: f64) -> super::aabb::Aabb {
         let dir = dir.normalize();
-
-        let i;
-        if dir == Vec3::new(0.0, 0.0, 1.0) {
-            i = Vec3::new(1.0, 0.0, 0.0);
-        } else {
-            i = dir.cross(&Vec3::new(0.0, 0.0, 1.0)).normalize();
-        }
-
+        let i = get_cross_axis(&dir);
         let j = dir.cross(&i).normalize();
 
         let apex = &pos;

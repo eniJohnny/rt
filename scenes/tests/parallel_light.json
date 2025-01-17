@@ -1,0 +1,20 @@
+[
+    {
+        "type": "camera",
+        "pos": [0, 0, -30],
+        "dir": [0, 0, 1],
+        "fov": 75
+    },
+    {
+        "type": "plane",
+        "pos": [0, 0, 0],
+        "dir": [0, 0, 1],
+        "color": [255, 255, 255]
+    },
+    {
+        "type": "parallel",
+        "color": [0, 0, 255],
+        "intensity": 1.0
+    }
+    
+]

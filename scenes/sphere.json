@@ -43,7 +43,7 @@
         "type": "sphere",
         "pos": [-1, 0, 0],
         "dir": [1, 0, 0],
-        "color": [255, 0, 255],
+        "color": [255, 255, 255],
         "radius": 0.5,
         "roughness": 0.0
     },
