@@ -177,4 +177,3 @@ pub fn get_scene(scene_file: &String) -> Result<Scene, String> {
         }
     }
 }
-}
