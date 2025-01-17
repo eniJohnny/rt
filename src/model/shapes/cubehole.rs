@@ -42,15 +42,31 @@ impl Shape for Cubehole {
 
         let cube_hit = axis_aligned_cube.intersect(&ray);
         if cube_hit.is_none() { return None; }
-        if cap1_hit.is_none() && cap2_hit.is_none() { return cube_hit; }
 
         let cylinder_hit = self.cylinder.intersect(r);
 
+        let c_hit = cylinder_hit.is_some();
+        let c_len = if c_hit { cylinder_hit.as_ref().unwrap().len() } else { 0 };
+        let c_t = if c_hit { cylinder_hit.as_ref().unwrap()[0] } else { 0. };
         let c1_hit = cap1_hit.is_some();
         let c1_t = if c1_hit { cap1_hit.as_ref().unwrap()[0] } else { 0. };
         let c2_hit = cap2_hit.is_some();
         let c2_t = if c2_hit { cap2_hit.as_ref().unwrap()[0] } else { 0. };
         let cube_t = cube_hit.as_ref().unwrap()[0];
+
+        if let Some(c_hit) = cylinder_hit.as_ref() {
+            if c_len == 2 && c_t < 0. && cube_t < 0. {
+                if !c1_hit && !c2_hit {
+                    return Some(vec![c_hit[1]])
+                } else if c1_t > 0. || c2_t > 0. {
+                    return None
+                }
+            } else if c_len == 2 && c_t > 0. && cube_t < 0. {
+                return Some(vec![c_hit[0]])
+            }
+        }
+
+        if cap1_hit.is_none() && cap2_hit.is_none() { return cube_hit; }
 
         if cylinder_hit.is_some()
         && ((c1_hit && !c2_hit && c1_t - cube_t > -1e-6 && c1_t - cube_t < 1e-6)
@@ -309,7 +325,7 @@ impl Cubehole {
         let cap1 = Ellipse::new(pos_cap1, dir, radius_cap, radius_cap);
         let cap2 = Ellipse::new(pos_cap2, dir, radius_cap, radius_cap);
 
-        let cylinder = Cylinder::new(pos, dir, radius_cap, width);
+        let cylinder = Cylinder::new(pos_cap2, dir, radius_cap, width);
 
         self::Cubehole { pos, dir, width, alpha, beta, gamma, rotation, axis_aligned_cube, cap1, cap2, cylinder }
     }
