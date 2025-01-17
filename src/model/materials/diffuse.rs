@@ -12,9 +12,14 @@ pub struct Diffuse {
     transparency: Texture,
     norm_variation: Texture,
     emissive: Texture,
+    emissive_intensity: f64,
     opacity: Texture,
-	displacement: Texture,
+    displacement: Texture,
     refraction: f64,
+    u_scale: f64,
+    v_scale: f64,
+    u_shift: f64,
+    v_shift: f64,
 }
 
 impl Diffuse {
@@ -23,22 +28,32 @@ impl Diffuse {
         metalness: Texture,
         roughness: Texture,
         emissive: Texture,
+        emissive_intensity: f64,
         transparency: Texture,
         norm_variation: Texture,
         opacity: Texture,
-		displacement: Texture,
+        displacement: Texture,
         refraction: f64,
+        u_scale: f64,
+        v_scale: f64,
+        u_shift: f64,
+        v_shift: f64,
     ) -> Self {
         Self {
             color,
             metalness,
             roughness,
             emissive,
+            emissive_intensity,
             transparency,
             norm_variation,
             opacity,
-			displacement,
+            displacement,
             refraction,
+            u_scale,
+            v_scale,
+            u_shift,
+            v_shift,
         }
     }
 
@@ -48,11 +63,16 @@ impl Diffuse {
             Texture::Value(Vec3::from_value(0.), TextureType::Float),
             Texture::Value(Vec3::from_value(0.5), TextureType::Float),
             Texture::Value(Vec3::from_value(0.), TextureType::Float),
+            1.,
             Texture::Value(Vec3::from_value(1.), TextureType::Float),
             Texture::Value(Vec3::from_value(1.), TextureType::Float),
             Texture::Value(Vec3::new(0.5, 0.5, 1.0), TextureType::Vector),
             Texture::Value(Vec3::from_value(1.), TextureType::Float),
-			0.,
+            0.,
+            1.,
+            1.,
+            0.,
+            0.,
         ))
     }
 }
@@ -109,6 +129,14 @@ impl Material for Diffuse {
         self.emissive = emissive;
     }
 
+    fn emissive_intensity(&self) -> f64 {
+        self.emissive_intensity
+    }
+
+    fn set_emissive_intensity(&mut self, emissive_intensity: f64) {
+        self.emissive_intensity = emissive_intensity;
+    }
+
     fn opacity(&self) -> &Texture {
         &self.opacity
     }
@@ -116,10 +144,38 @@ impl Material for Diffuse {
         self.opacity = opacity;
     }
 
-	fn displacement(&self) -> &Texture {
-		&self.displacement
-	}
-	fn set_displacement(&mut self, displacement: Texture) {
-		self.displacement = displacement;
-	}
+    fn displacement(&self) -> &Texture {
+        &self.displacement
+    }
+    fn set_displacement(&mut self, displacement: Texture) {
+        self.displacement = displacement;
+    }
+
+    fn u_scale(&self) -> f64 {
+        self.u_scale
+    }
+    fn set_u_scale(&mut self, u_scale: f64) {
+        self.u_scale = u_scale;
+    }
+
+    fn v_scale(&self) -> f64 {
+        self.v_scale
+    }
+    fn set_v_scale(&mut self, v_scale: f64) {
+        self.v_scale = v_scale;
+    }
+
+    fn u_shift(&self) -> f64 {
+        self.u_shift
+    }
+    fn set_u_shift(&mut self, u_shift: f64) {
+        self.u_shift = u_shift;
+    }
+    
+    fn v_shift(&self) -> f64 {
+        self.v_shift
+    }
+    fn set_v_shift(&mut self, v_shift: f64) {
+        self.v_shift = v_shift;
+    }
 }

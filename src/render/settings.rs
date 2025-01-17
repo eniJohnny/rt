@@ -1,12 +1,9 @@
 use crate::{
     display::{anaglyph::Coloring, filters::ColorFilter}, model::{
-        materials::color::Color,
-        maths::vec3::Vec3,
-        objects::light::ParallelLight,
+        materials::{color::Color, texture::{Texture, TextureType}},
+        maths::vec3::Vec3, objects::lights::parallel_light::ParallelLight,
     }, ui::{
-        uielement::{Category, UIElement},
-        uisettings::UISettings,
-        utils::{
+        prefabs::{texture_ui::get_texture_ui, vector_ui::get_vector_ui}, uielement::{Category, UIElement}, uisettings::UISettings, utils::{
             misc::{ElemType, Property, Value}, ui_utils::UIContext, Displayable
         }
     }, ANAGLYPH_OFFSET_X, ANAGLYPH_OFFSET_Y, ANTIALIASING, DISPLACEMENT, MAX_DEPTH, MAX_ITERATIONS, PLANE_DISPLACED_DISTANCE, PLANE_DISPLACEMENT_STEP, SKYBOX_TEXTURE, SPHERE_DISPLACED_DISTANCE, SPHERE_DISPLACEMENT_STEP, VIEW_MODE
@@ -15,6 +12,8 @@ use crate::{
 #[derive(Debug, Clone)]
 pub enum ViewMode {
     Simple(Color, ParallelLight),
+    Projection,
+    Phong,
     Norm,
     HighDef,
     BVH,
@@ -92,28 +91,22 @@ impl Displayable for Settings {
             )),
             settings,
         ));
-        category.elems.push(UIElement::new(
-            "Skybox texture",
-            "skybox",
-            ElemType::Property(Property::new(
-                Value::Text(self.skybox_texture.to_string()),
-                Box::new(|_, value: Value, context, _| {
-                    let scene = match context.active_scene {
-                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
-                        None => return,
-                    };
-                    if let Value::Text(value) = value {
-                        let mut scene = scene.write().unwrap();
-                        scene.load_texture(&value);
-                        scene.settings_mut().skybox_texture = value;
-                        scene.set_dirty(true);
-                    }
-                }),
-                Box::new(|_, _, _| Ok(())),
-                settings,
-            )),
-            settings,
-        ));
+		let mut ambient_category = UIElement::new("Ambient light", "ambient", ElemType::Category(Category::default()), settings);
+		ambient_category.add_element(get_vector_ui(Vec3::new(0., 0., 0.), "Color", "ambient.color", settings, 
+		Box::new(move |_, _, _, _| {}), 
+		Box::new(move |_, _, _, _| {}), 
+		Box::new(move |_, _, _, _| {}), true, None, None));
+		category.elems.push(ambient_category);
+		category.elems.push(get_texture_ui("Skybox", &Texture::Value(Vec3::new(0.2, 0.2, 0.2), TextureType::Color), Box::new(
+            |value, scene| {
+                let mut scene = scene.write().unwrap();
+                if let Texture::Texture(path, _) = &value {
+                    scene.load_texture(&path);
+                }
+                scene.set_skybox(value);
+                scene.set_dirty(true);
+            },
+        ), settings, true, false, None, None, None));
         category.elems.push(UIElement::new(
             "Ray depth",
             "depth",
@@ -314,35 +307,70 @@ impl Displayable for Settings {
             "Simple",
             "simple",
             ElemType::Button(Some(Box::new(|_, context, _| {
-                    let scene = match context.active_scene {
-                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
-                        None => return,
-                    };
-                scene.write().unwrap().settings_mut().view_mode = ViewMode::Simple(
-                    Color::new(0.2, 0.2, 0.2),
-                    ParallelLight::new(Vec3::new(0.5, -0.5, 0.5), 1., Color::new(1., 1., 1.)),
-                );
-                scene.write().unwrap().set_dirty(true);
+                if let Some(scene) = context.get_active_scene() {
+                    scene.write().unwrap().settings_mut().view_mode = ViewMode::Simple(
+                        Color::new(0.2, 0.2, 0.2),
+                        ParallelLight::new(Vec3::new(0.5, -0.5, 0.5), 1., Color::new(1., 1., 1.)),
+                    );
+                    scene.write().unwrap().set_dirty(true);
+                }
             }))),
             settings,
         );
         let mut gi = UIElement::new(
-            "Global Illumination",
+            "Global",
             "gi",
             ElemType::Button(Some(Box::new(|_, context, _| {
-                    let scene = match context.active_scene {
-                        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
-                        None => return,
-                    };
-                scene.write().unwrap().settings_mut().view_mode = ViewMode::HighDef;
-                scene.write().unwrap().set_dirty(true);
+                if let Some(scene) = context.get_active_scene() {
+                    scene.write().unwrap().settings_mut().view_mode = ViewMode::HighDef;
+                    scene.write().unwrap().set_dirty(true);
+                }
             }))),
             settings,
         );
+        let mut norm = UIElement::new(
+            "Normals",
+            "norm",
+            ElemType::Button(Some(Box::new(|_, context, _ui| {
+                if let Some(scene) = context.get_active_scene() {
+                    scene.write().unwrap().settings_mut().view_mode = ViewMode::Norm;
+                    scene.write().unwrap().set_dirty(true);
+                }
+            }))),
+            settings,
+        );
+        let mut phong = UIElement::new(
+            "Phong",
+            "phong",
+            ElemType::Button(Some(Box::new(|_, context, _ui| {
+                if let Some(scene) = context.get_active_scene() {
+                    scene.write().unwrap().settings_mut().view_mode = ViewMode::Phong;
+                    scene.write().unwrap().set_dirty(true);
+                }
+            }))),
+            settings,
+        );
+        let mut projection = UIElement::new(
+            "Projection",
+            "projection",
+            ElemType::Button(Some(Box::new(|_, context, _ui| {
+                if let Some(scene) = context.get_active_scene() {
+                    scene.write().unwrap().settings_mut().view_mode = ViewMode::Projection;
+                    scene.write().unwrap().set_dirty(true);
+                }
+            }))),
+            settings,
+        );
+        projection.style_mut().fill_width = true;
+        norm.style_mut().fill_width = true;
         gi.style_mut().fill_width = true;
         simple.style_mut().fill_width = true;
-        view_mode_radio.add_element(gi);
+        phong.style_mut().fill_width = true;
         view_mode_radio.add_element(simple);
+        view_mode_radio.add_element(phong);
+        view_mode_radio.add_element(norm);
+        view_mode_radio.add_element(projection);
+        view_mode_radio.add_element(gi);
 
         let mut filter_radio = UIElement::new("", "filter", ElemType::Row(vec![]), settings);
         let mut no_filter = UIElement::new(
@@ -415,7 +443,6 @@ impl Displayable for Settings {
         filter_radio.add_element(cartoon_filter);
         filter_radio.add_element(grayscale_filter);
         filter_radio.add_element(anaglyph_filter);
-
         let mut category = UIElement::new(
             name,
             "settings",

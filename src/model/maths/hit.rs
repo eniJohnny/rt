@@ -169,7 +169,7 @@ impl<'a> Hit<'a> {
     fn map_emissive(&mut self, textures: &HashMap<String, RgbaImage>) {
         self.emissive = self
             .map_texture(self.element.material().emissive(), textures, Vec3::from_value(0.))
-            .to_value();
+            .to_value() * self.element.material().emissive_intensity();
     }
 
     fn map_transparency(&mut self, textures: &HashMap<String, RgbaImage>) {
@@ -185,9 +185,14 @@ impl<'a> Hit<'a> {
             .to_value();
     }
 
-    fn projection(&mut self) -> &Projection {
+    pub fn projection(&mut self) -> &Projection {
         let projection = match self.projection.take() {
-            None => self.element().shape().projection(self),
+            None => {
+                let mut projection = self.element().shape().projection(self);
+                projection.u = (projection.u * self.element().material().u_scale() - self.element().material().u_shift()).rem_euclid(1.);
+                projection.v = (projection.v * self.element().material().v_scale() - self.element().material().v_shift()).rem_euclid(1.);
+                projection
+            },
             Some(p) => p,
         };
         self.projection = Some(projection);

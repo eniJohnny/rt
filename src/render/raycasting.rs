@@ -9,11 +9,10 @@ use crate::{
 };
 use super::{
     lighting::{
-        lighting_real::global_lighting_from_hit,
-        lighting_simple::simple_lighting_from_hit
+        lighting_phong::phong_lighting_from_hit, lighting_real::global_lighting_from_hit, lighting_simple::simple_lighting_from_hit, lighting_norm::norm_lighting_from_hit, lighting_projection::projection_lighting_from_hit
     },
     settings::ViewMode,
-    skysphere::get_skysphere_color
+    skybox::get_skybox_color
 };
 
 pub fn get_ray_debug(scene: &Scene, x: usize, y: usize, debug: bool) -> Ray {
@@ -167,14 +166,24 @@ pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
             if hit.element().shape().as_wireframe().is_some() {
                 return Color::new(1., 1., 1.);
             }
-            if let ViewMode::Simple(ambient, light) = &scene.settings().view_mode {
-                simple_lighting_from_hit(&hit, ambient, light)
-            } else {
-                global_lighting_from_hit(scene, &mut hit, ray)
-            }
+			match &scene.settings().view_mode {
+				ViewMode::Simple(ambient, light) => {
+					simple_lighting_from_hit(&hit, ambient, light)
+				}
+				ViewMode::Norm => {
+					norm_lighting_from_hit(&hit)
+				},
+				ViewMode::Phong => {
+					phong_lighting_from_hit(scene, &hit, ray)
+				},
+				ViewMode::Projection => {
+					projection_lighting_from_hit(&mut hit)
+				},
+				_ => global_lighting_from_hit(scene, &mut hit, ray)
+			}
         },
         None => {
-            get_skysphere_color(scene, ray)
+            get_skybox_color(scene, ray)
         },
     };
 }

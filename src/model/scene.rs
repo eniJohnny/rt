@@ -1,19 +1,25 @@
 use std::{collections::HashMap, ops::SubAssign};
 
 use crate::{
-    bvh::{self}, model::objects::light::AmbientLight, render::settings::Settings
+    bvh::{self},
+    model::objects::lights::ambient_light::AmbientLight,
+    render::settings::Settings
 };
 use super::{
     composed_element::ComposedElement, element::Element, materials::{
         diffuse::Diffuse,
         material::Material,
         texture::{Texture, TextureType}
-    }, maths::vec3::Vec3, objects::{camera::Camera, light::AnyLight}, shapes::{self, aabb::Aabb}
+    },
+    maths::vec3::Vec3,
+    objects::{camera::Camera, lights::light::AnyLight},
+    shapes::{self, aabb::Aabb}
 };
 
 #[derive(Debug)]
 pub struct Scene {
     elements: Vec<Element>,
+    skybox: Texture,
     non_bvh_elements_index: Vec<usize>,
     non_bvh_composed_elements_index: Vec<usize>,
     composed_elements: Vec<ComposedElement>,
@@ -26,13 +32,15 @@ pub struct Scene {
     bvh: Option<bvh::node::Node>,
     next_element_id: usize,
     next_composed_element_id: usize,
-    paused: bool
+	next_light_id: usize,
+    paused: bool,
 }
 
 impl Scene {
     pub fn new() -> Self {
         Self {
             elements: Vec::new(),
+            skybox: Texture::Value(Vec3::new(0.2, 0.6, 0.6), TextureType::Color),
             non_bvh_elements_index: Vec::new(),
             non_bvh_composed_elements_index: Vec::new(),
             composed_elements: Vec::new(),
@@ -45,7 +53,8 @@ impl Scene {
             paused: false,
             bvh: None,
             next_element_id: 0,
-            next_composed_element_id: 0
+            next_composed_element_id: 0,
+			next_light_id: 0,
         }
     }
 
@@ -170,8 +179,10 @@ impl Scene {
         self.camera = camera;
     }
 
-    pub fn add_light(&mut self, light: AnyLight) {
+    pub fn add_light(&mut self, mut light: AnyLight) {
+		light.set_id(self.next_light_id);
         self.lights.push(light);
+		self.next_light_id += 1;
     }
 
     pub fn add_ambient_light(&mut self, ambient_light: AmbientLight) {
@@ -216,7 +227,7 @@ impl Scene {
             material.norm(),
             material.emissive(),
             material.opacity(),
-			material.displacement(),
+            material.displacement(),
         ];
         for texture in textures.iter() {
             match texture {
@@ -326,6 +337,15 @@ impl Scene {
         None
     }
 
+    pub fn light_mut_by_id(&mut self, id: usize) -> Option<&mut AnyLight> {
+        for light in &mut self.lights {
+            if light.id() == id {
+                return Some(light);
+            }
+        }
+        None
+    }
+
     pub fn composed_element_by_element_id(&self, id: usize) -> Option<&ComposedElement> {
         if let Some(element) = self.element_by_id(id) {
             if let Some(composed_id) = element.composed_id() {
@@ -361,6 +381,10 @@ impl Scene {
         None
     }
     
+    pub fn skybox(&self) -> &Texture {
+        &self.skybox
+    }
+
     pub fn camera(&self) -> &Camera {
         &self.camera
     }
@@ -404,6 +428,10 @@ impl Scene {
         &self.elements[index]
     }
 
+    pub fn get_light(&self, index: usize) -> &AnyLight {
+        &self.lights[index]
+    }
+
     pub fn all_aabb(&self) -> Vec<&crate::model::shapes::aabb::Aabb> {
         self.elements
             .iter()
@@ -428,6 +456,10 @@ impl Scene {
     }
 
     // Mutators
+
+    pub fn set_skybox(&mut self, skybox: Texture) {
+        self.skybox = skybox
+    }
 
     pub fn set_elements(&mut self, elements: Vec<Element>) {
         self.elements = elements;

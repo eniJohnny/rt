@@ -27,6 +27,10 @@ impl Color {
         Self { r, g, b }
     }
 
+	pub fn to_vec3(&self) -> Vec3 {
+		Vec3::new(self.r, self.g, self.b)
+	}
+
     pub fn to_rgba(&self) -> Rgba<u8> {
         Rgba([
             (self.r * 255.) as u8,

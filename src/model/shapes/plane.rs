@@ -109,19 +109,11 @@ impl Shape for Plane {
             constant_axis = Vec3::new(0., 1., 0.);
         }
         projection.i = self.dir.cross(&constant_axis).normalize();
-        projection.j = - self.dir.cross(&projection.i).normalize();
+        projection.j = -self.dir.cross(&projection.i).normalize();
         projection.k = hit.norm().clone();
         let dist = hit.pos() - self.pos();
-        let i_component = dist.dot(&projection.i) / &scale;
-        let j_component = - dist.dot(&projection.j) / &scale;
-        projection.u = &i_component - (i_component as i32) as f64;
-        if projection.u < 0. {
-            projection.u += 1.;
-        }
-        projection.v = &j_component - (j_component as i32) as f64;
-        if projection.v < 0. {
-            projection.v += 1.;
-        }
+        projection.u = dist.dot(&projection.i) / &scale;
+        projection.v = dist.dot(&projection.j) / &scale;
         projection
     }
 

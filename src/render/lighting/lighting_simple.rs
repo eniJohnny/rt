@@ -1,7 +1,6 @@
 use crate::model::{
     materials::color::Color,
-    maths::hit::Hit,
-    objects::light::{Light, ParallelLight},
+    maths::hit::Hit, objects::lights::{parallel_light::ParallelLight, light::Light}
 };
 
 pub fn simple_lighting_from_hit(hit: &Hit, ambient: &Color, light: &ParallelLight) -> Color {

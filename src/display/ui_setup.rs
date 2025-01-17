@@ -110,6 +110,39 @@ pub fn setup_element_ui(element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene
     //         }
     // }))), ui.uisettings());
 
+	// let btn_scene_settings = UIElement::new("Scene Settings", SCENE_SETTINGS, ElemType::Button(Some(Box::new(
+	// 	move |elem, scene, ui| {
+    //         if let Some(elem) = elem {
+    //             if let Some(_) = ui.get_box(SCENE_SETTINGS) {
+    //                 ui.destroy_box(SCENE_SETTINGS);
+    //                 elem.set_style(StyleBuilder::from_existing(&elem.style, ui.uisettings())
+    //                     .bg_color(Some(Rgba([200, 200, 200, 255])))
+    //                     .build()
+    //                 );
+    //             } else {
+    //                 for uibox_ref in exclusive_uis.clone() {
+    //                     if let Some(_) = ui.get_box(uibox_ref) {
+    //                         ui.destroy_box(uibox_ref);
+    //                     }
+    //                 }
+	// 				setup_scene_settings(ui, scene);
+	// 				elem.set_style(StyleBuilder::from_existing(&elem.style, ui.uisettings())
+    //                     .bg_color(Some(Rgba([100, 100, 100, 255])))
+    //                     .build()
+    //                 );
+    //             }
+    //             if let Some(uibox) = ui.get_box_mut(TOOLBAR) {
+    //                 let row = uibox.elems.get_mut(0).unwrap();
+    //                 if let ElemType::Row(elems) = &mut row.elem_type {
+    //                     for elem in elems {
+    //                         elem.style_mut().bg_color = Some(Rgba([200, 200, 200, 255]));
+    //                     }
+    //                 }
+    //             }
+	// 		}
+	// 	}
+	// ))), ui.uisettings());
+
 
 //     row.add_element(btn_uisettings);
 //     toolbar_box.add_elements(vec![row]);

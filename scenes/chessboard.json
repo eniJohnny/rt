@@ -186,16 +186,20 @@
         "color": [50, 50, 50],
         "metalness": 0.5
     },
-    {
-        "type": "obj",
-        "pos": [0, -3.85, -12],
-        "scale": 0.44,
-        "dir": [0, 0, 1],
-        "rotation": 180,
-        "file": "obj/chessboard.obj",
-        "color": "chessboard.jpg",
-        "roughness": 1.0
-    },
+	{
+		"type": "skybox",
+		"color": "./skybox_night.jpg"
+	},
+    // {
+    //     "type": "obj",
+    //     "pos": [0, -3.85, -12],
+    //     "scale": 0.44,
+    //     "dir": [0, 0, 1],
+    //     "rotation": 180,
+    //     "file": "obj/chessboard.obj",
+    //     "color": "chessboard.jpg",
+    //     "roughness": 1.0
+    // },
     {
         "type": "obj",
         "pos": [-7, -2.65, -19],
