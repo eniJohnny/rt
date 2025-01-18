@@ -80,8 +80,6 @@ impl Shape for Cube {
         if v < 0. {
             v += 1.;
         }
-        u = (u * hit.element().material().u_scale() - hit.element().material().u_shift()).rem_euclid(1.);
-        v = (v * hit.element().material().v_scale() - hit.element().material().v_shift()).rem_euclid(1.);
         let constant_axis = get_constant_axis(&self.dir, &hit.norm().normalize());
         let i = hit.norm().normalize().cross(&constant_axis).normalize();
         let j = hit.norm().normalize().cross(&i).normalize();

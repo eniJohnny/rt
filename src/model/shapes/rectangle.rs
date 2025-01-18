@@ -73,8 +73,8 @@ impl Shape for Rectangle {
         projection.j = self.dir_l().normalize();
         projection.k = hit.norm().normalize();
 
-        projection.u = (dist.dot(&projection.i) / self.width() * hit.element().material().u_scale() - hit.element().material().u_shift()).rem_euclid(1.);
-        projection.v = (dist.dot(&projection.j) / self.length() * hit.element().material().v_scale() - hit.element().material().v_shift()).rem_euclid(1.);
+        projection.u = dist.dot(&projection.i) / self.width() - 0.5;
+        projection.v = dist.dot(&projection.j) / self.length() - 0.5;
 
         projection
     }

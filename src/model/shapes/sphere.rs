@@ -111,10 +111,8 @@ impl Shape for Sphere {
         let i_component: f64 = hit.norm().dot(&i);
         let j_component: f64 = hit.norm().dot(&j);
         let k_component: f64 = hit.norm().dot(&self.dir);
-        projection.u = (f64::atan2(i_component, j_component) + PI) / (2. * PI) * hit.element().material().u_scale() - hit.element().material().u_shift();
-        projection.u = projection.u.rem_euclid(1.);
-        projection.v = f64::acos(k_component) / PI * hit.element().material().v_scale() - hit.element().material().v_shift();
-        projection.v = projection.v.rem_euclid(1.);
+        projection.u = (f64::atan2(i_component, j_component) + PI) / (2. * PI);
+        projection.v = f64::acos(k_component) / PI;
         projection.i = hit.norm().cross(&self.dir).normalize();
         projection.j = -hit.norm().cross(&projection.i).normalize();
         projection
