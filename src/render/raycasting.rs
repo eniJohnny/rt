@@ -9,7 +9,7 @@ use crate::{
 };
 use super::{
     lighting::{
-        lighting_phong::phong_lighting_from_hit, lighting_real::global_lighting_from_hit, lighting_simple::simple_lighting_from_hit, lightning_norm::norm_lighting_from_hit, lightning_projection::projection_lighting_from_hit
+        lighting_phong::phong_lighting_from_hit, lighting_real::global_lighting_from_hit, lighting_simple::simple_lighting_from_hit, lighting_norm::norm_lighting_from_hit, lighting_projection::projection_lighting_from_hit
     },
     settings::ViewMode,
     skybox::get_skybox_color
