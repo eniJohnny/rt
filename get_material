@@ -1,0 +1,56 @@
+#!/bin/bash
+
+function download_material() {
+	local link=$1
+	local name=$2
+
+	wget $link -O "${name}.zip"
+	unzip "${name}.zip" -d $name
+	rm "$name.zip"
+}
+
+function rename_files() {
+	local name=$(basename $1)
+	local fullname=$2
+	local type=$3
+	local new_type
+
+	if [ $# -eq 4 ]; then
+		new_type=$4
+	else
+		new_type=$3
+	fi
+	mv "${fullname}_${type}.jpg" "${name}_${new_type}.jpg"
+}
+
+function remove_unwanted_files() {
+	ls . | grep -v ".jpg" | xargs -I {} rm -rf {}
+	ls . | grep "-" | xargs -I {} rm -rf {}
+}
+
+if [ $# -eq 0 ]; then
+	echo "Usage: $0 <link>"
+	exit 1
+fi
+
+
+link=$1
+fullname=$(cut -d'=' -f2 <<< $link | cut -d'.' -f1)
+
+if [ $# -eq 2 ]; then
+	name=$2
+else
+	name=$(cut -d'_' -f1 <<< $fullname)
+fi
+
+download_material $link $name
+
+cd $name
+
+rename_files $name $fullname "Color"
+rename_files $name $fullname "NormalGL" "Normal"
+rename_files $name $fullname "Metalness"
+rename_files $name $fullname "Roughness"
+rename_files $name $fullname "Displacement"
+
+remove_unwanted_files

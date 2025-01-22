@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 use super::{aabb::Aabb,shape::Shape};
 use nalgebra::Matrix3;
 use crate::{
-    error, model::{
+    model::{
         element::Element, materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene
     }, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}
 };
@@ -46,24 +46,31 @@ impl Shape for Cube {
 
         let mut u: f64;
         let mut v: f64;
-        if (*pos.z() - axis_aligned_cube.z_min() < 1e-6 && *pos.z() - axis_aligned_cube.z_min() > -1e-6)
-        || (*pos.z() - axis_aligned_cube.z_max() < 1e-6 && *pos.z() - axis_aligned_cube.z_max() > -1e-6) {
-            // Back or Front
+        if *pos.z() - axis_aligned_cube.z_min() < 1e-6 && *pos.z() - axis_aligned_cube.z_min() > -1e-6 {
+            // Back
+            u = 1. - (pos.x() - axis_aligned_cube.x_min()) / (axis_aligned_cube.x_max() - axis_aligned_cube.x_min());
+            v = (pos.y() - axis_aligned_cube.y_min()) / (axis_aligned_cube.y_max() - axis_aligned_cube.y_min());
+        } else if *pos.z() - axis_aligned_cube.z_max() < 1e-6 && *pos.z() - axis_aligned_cube.z_max() > -1e-6 {
+            // Front
             u = (pos.x() - axis_aligned_cube.x_min()) / (axis_aligned_cube.x_max() - axis_aligned_cube.x_min());
             v = (pos.y() - axis_aligned_cube.y_min()) / (axis_aligned_cube.y_max() - axis_aligned_cube.y_min());
-        } else if (*pos.y() - axis_aligned_cube.y_min() < 1e-6 && *pos.y() - axis_aligned_cube.y_min() > -1e-6)
-        || (*pos.y() - axis_aligned_cube.y_max() < 1e-6 && *pos.y() - axis_aligned_cube.y_max() > -1e-6) {
-            // Top or Bottom
+        } else if *pos.y() - axis_aligned_cube.y_min() < 1e-6 && *pos.y() - axis_aligned_cube.y_min() > -1e-6 {
+            // Bottom
+            u = 1. - (pos.x() - axis_aligned_cube.x_min()) / (axis_aligned_cube.x_max() - axis_aligned_cube.x_min());
+            v = (pos.z() - axis_aligned_cube.z_min()) / (axis_aligned_cube.z_max() - axis_aligned_cube.z_min());
+        } else if *pos.y() - axis_aligned_cube.y_max() < 1e-6 && *pos.y() - axis_aligned_cube.y_max() > -1e-6 {
+            // Top
             u = (pos.x() - axis_aligned_cube.x_min()) / (axis_aligned_cube.x_max() - axis_aligned_cube.x_min());
             v = (pos.z() - axis_aligned_cube.z_min()) / (axis_aligned_cube.z_max() - axis_aligned_cube.z_min());
-        } else if (*pos.x() - axis_aligned_cube.x_min() < 1e-6 && *pos.x() - axis_aligned_cube.x_min() > -1e-6)
-        || (*pos.x() - axis_aligned_cube.x_max() < 1e-6 && *pos.x() - axis_aligned_cube.x_max() > -1e-6) {
-            // Left or Right
+        } else if *pos.x() - axis_aligned_cube.x_min() < 1e-6 && *pos.x() - axis_aligned_cube.x_min() > -1e-6 {
+            // Left
+            u = 1. - (pos.z() - axis_aligned_cube.z_min()) / (axis_aligned_cube.z_max() - axis_aligned_cube.z_min());
+            v = (pos.y() - axis_aligned_cube.y_min()) / (axis_aligned_cube.y_max() - axis_aligned_cube.y_min());
+        } else if *pos.x() - axis_aligned_cube.x_max() < 1e-6 && *pos.x() - axis_aligned_cube.x_max() > -1e-6 {
+            // Right
             u = (pos.z() - axis_aligned_cube.z_min()) / (axis_aligned_cube.z_max() - axis_aligned_cube.z_min());
             v = (pos.y() - axis_aligned_cube.y_min()) / (axis_aligned_cube.y_max() - axis_aligned_cube.y_min());
         } else {
-            error("Cube projection error");
-            println!("self.dir: {:?}, hit.norm: {:?}", self.dir, hit.norm());
             u = 0.;
             v = 0.;
         }
@@ -73,12 +80,10 @@ impl Shape for Cube {
         if v < 0. {
             v += 1.;
         }
-        // println!("u: {}, v: {}", u, v);
         let constant_axis = get_constant_axis(&self.dir, &hit.norm().normalize());
         let i = hit.norm().normalize().cross(&constant_axis).normalize();
         let j = hit.norm().normalize().cross(&i).normalize();
         let k = hit.norm().normalize();
-        // println!("Projection: u: {}, v: {}, i: {:?}, j: {:?}, k: {:?}", u, v, i, j, k);
         Projection { u, v, i, j, k }
     }
 

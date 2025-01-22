@@ -29,6 +29,7 @@ impl Shape for Cubehole {
     fn intersect(&self, r: &Ray) -> Option<Vec<f64>> {
         let cap1_hit = self.cap1.intersect(r);
         let cap2_hit = self.cap2.intersect(r);
+
         if cap1_hit.is_some() && cap2_hit.is_some() { return None; }
 
         let axis_aligned_cube = self.axis_aligned_cube.clone();
@@ -323,7 +324,7 @@ impl Cubehole {
         let cap1 = Ellipse::new(pos_cap1, dir, radius_cap, radius_cap);
         let cap2 = Ellipse::new(pos_cap2, dir, radius_cap, radius_cap);
 
-        let cylinder = Cylinder::new(pos, dir, radius_cap, width);
+        let cylinder = Cylinder::new(pos_cap2, dir, radius_cap, width);
 
         self::Cubehole { pos, dir, width, alpha, beta, gamma, rotation, axis_aligned_cube, cap1, cap2, cylinder }
     }

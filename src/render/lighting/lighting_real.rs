@@ -188,20 +188,23 @@ fn get_reflected_light_color(scene: &Scene, hit: &Hit, ray: &Ray) -> Color
 	}
 	reflect_color
 }
-fn refract_dir(incoming: &Vec3, normal: &Vec3, n1: f64, n2: f64, roughness: f64) -> Option<Vec3>
+
+fn refract_dir(incoming: &Vec3, normal: &Vec3, n1: f64, n2: f64, roughness: f64, debug: bool) -> Option<Vec3>
 {
     let n = n1 / n2;
-    let mut cos_i = incoming.dot(&normal);
-	if cos_i > 0. {
-		cos_i = -cos_i;
+    let mut cos: f64 = incoming.dot(&normal);
+	if cos < 0. {
+		cos = -cos;
 	}
-    let sin_t2 = 1.0 - n * n * (1.0 - cos_i * cos_i);
-
-    // Check for total internal reflection
-    if sin_t2 < 0.0 {
-        return None;
-    }
-    let refracted = (incoming + cos_i * normal) * sin_t2 - normal * sin_t2.sqrt();
+	let k = 1.0 - n * n * (1.0 - cos * cos);
+	if k < 0. {
+		return None;
+	}
+	let normal_coef = n * cos - k.sqrt();
+	if debug {
+		dbg!(n, normal_coef, cos, k);
+	}
+	let refracted = n * incoming + normal_coef * normal;
 	let with_roughness = refracted.clone() + random_unit_vector() * roughness * roughness;
 	if with_roughness.length() < 0.01 {
 		return Some(refracted.normalize());
@@ -212,7 +215,7 @@ fn refract_dir(incoming: &Vec3, normal: &Vec3, n1: f64, n2: f64, roughness: f64)
 fn get_refracted_light_color(scene: &Scene, hit: &Hit, ray: &Ray, n1: f64, n2: f64, normal: &Vec3) -> Color
 {
 	let mut refract_color = Color::new(0., 0., 0.);
-	let refraction_result = refract_dir(&ray.get_dir(), normal, n1, n2, hit.roughness());
+	let refraction_result = refract_dir(&ray.get_dir(), normal, n1, n2, hit.roughness(), ray.debug);
 	if let Some(refracted_ray) = refraction_result {
 		let mut refract_ray = Ray::new(hit.pos().clone() - normal * BOUNCE_OFFSET, refracted_ray.clone(), ray.get_depth() + 1);
 		refract_ray.debug = ray.debug;

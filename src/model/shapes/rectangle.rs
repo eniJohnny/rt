@@ -55,27 +55,26 @@ impl Shape for Rectangle {
         None
     }
 
-	fn outer_intersect(&self, r: &Ray, _displaced_factor: f64) -> Option<Vec<f64>> {
-		self.intersect(r)
-	}
+    fn outer_intersect(&self, r: &Ray, _displaced_factor: f64) -> Option<Vec<f64>> {
+        self.intersect(r)
+    }
 
     fn intersect_displacement(&self, ray: &Ray, _element: &Element, _scene: &Scene) -> Option<Vec<f64>> {
-		self.intersect(ray)
-	}
+        self.intersect(ray)
+    }
 
     fn projection(&self, hit: &Hit) -> Projection {
-        // self.plane.projection(hit)
         let mut projection: Projection = Projection::default();
 
         let hit_pos = hit.pos();
-        let dist = hit_pos - self.d;
+        let dist = hit_pos - self.pos();
 
         projection.i = self.dir_w().normalize();
         projection.j = self.dir_l().normalize();
-        projection.k = self.norm(hit_pos).normalize();
+        projection.k = hit.norm().normalize();
 
-        projection.u = dist.dot(&projection.i) / self.width();
-        projection.v = dist.dot(&projection.j) / self.length();
+        projection.u = dist.dot(&projection.i) / self.width() - 0.5;
+        projection.v = dist.dot(&projection.j) / self.length() - 0.5;
 
         projection
     }
