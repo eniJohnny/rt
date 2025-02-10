@@ -1,5 +1,6 @@
 use image::Rgba;
-use crate::{display::{mainloop::load_scene, ui_setup::setup_settings}, render::render_thread::UIOrder, ui::{prefabs::file_ui::get_file_box, ui::UI, uibox::{BoxPosition, UIBox}, uielement::UIElement, uisettings::UISettings, utils::{misc::{ElemType, Value}, style::{Style, StyleBuilder}, ui_utils::UIContext}}, ELEMENT, SCENE_TOOLBAR, SCREEN_WIDTH_U32, SETTINGS, TOOLBAR};
+use crate::{display::{mainloop::load_scene, ui_setup::setup_settings}, render::render_thread::UIOrder, ui::{prefabs::file_ui::get_file_box, ui::UI, uibox::{BoxPosition, UIBox}, uielement::UIElement, uisettings::UISettings, utils::{misc::{ElemType, Value}, style::{Style, StyleBuilder}, ui_utils::UIContext}}, ELEMENT, SCENE_TOOLBAR, SCREEN_WIDTH_U32, SETTINGS, TOOLBAR, SCENE_FOLDER};
+
 
 pub fn change_scene(context: &mut UIContext, ui: &mut UI, render_id: Option<usize>, element: Option<&mut UIElement>) {
     let uisettings = ui.uisettings().clone();
@@ -237,7 +238,7 @@ pub fn setup_scene_toolbar(ui: &mut UI, _context: &UIContext) {
     row.style_mut().margin = 0;
     let mut btn_open_scene = UIElement::new("New scene", "open_scene", ElemType::Button(Some(Box::new(
         move |_, _, ui| {
-            let file_box = get_file_box("./scenes/".to_string(), "open_scene_box".to_string(), Box::new(move |_, value, context, ui| {
+            let file_box = get_file_box(format!("./{}/", SCENE_FOLDER), "open_scene_box".to_string(), Box::new(move |_, value, context, ui| {
                 if let Value::Text(scene_path) = value {
                     load_scene(&scene_path, context, ui);
                 }

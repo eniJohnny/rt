@@ -1,8 +1,62 @@
 [
     {
         "type": "camera",
-        "pos": [0.0, 0.0, -15.0],
+        "pos": [0, 0, -20],
         "dir": [0, 0, 1],
         "fov": 75
+    },
+    {
+        "type": "plane",
+        "pos": [0, 0, 5],
+        "dir": [0, 0, 1],
+        "color": "barreaux_color.jpg",
+        "normal": "barreaux_normal.jpg",
+        "roughness": "barreaux-roughness.jpg",
+        "opacity": "barreaux_opacity.jpg"
+    },
+    {
+        "type": "plane",
+        "pos": [0, 0, 10],
+        "dir": [0, 0, 1],
+        "color": [255, 255, 255]
+    },
+    {
+        "type": "sphere",
+        "pos": [5, 5, 0],
+        "dir": [0, 1, 0],
+        "radius": 2.0,
+        "color": "tiles_color.jpg",
+        "normal": "tiles_normal.jpg",
+        "roughness": "tiles_roughness.jpg"
+    },
+    {
+        "type": "sphere",
+        "pos": [-5, -5, 0],
+        "dir": [0, 1, 0],
+        "radius": 2.0,
+        "color": "tiles_color.jpg",
+        "normal": "tiles_normal.jpg",
+        "roughness": "tiles_roughness.jpg",
+        "transparency": 0.5
+    },
+    {
+        "type": "cone",
+        "pos": [5, -3, 0],
+        "dir": [0, -1, 0],
+        "radius": 2.0,
+        "height": 4.0,
+        "color": "plates_color.jpg",
+        "normal": "plates_normal.jpg",
+        "roughness": "plates_roughness.jpg"
+    },
+    {
+        "type": "cylinder",
+        "pos": [-5, 3, 0],
+        "dir": [0, 1, 0],
+        "radius": 2.0,
+        "height": 4.0,
+        "color": "wood_color.jpg",
+        "normal": "wood_normal.jpg",
+        "roughness": "wood_roughness.jpg"
     }
 ]
