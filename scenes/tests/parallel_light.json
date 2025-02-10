@@ -12,8 +12,16 @@
         "color": [255, 255, 255]
     },
     {
+        "type": "sphere",
+        "pos": [0, 0, -5],
+        "dir": [0, 0, 1],
+        "radius": 5,
+        "color": [255, 255, 255]
+    },
+    {
         "type": "parallel",
-        "color": [0, 0, 255],
+        "color": [255, 0, 0],
+        "dir": [-1, -1, 1],
         "intensity": 1.0
     }
     
