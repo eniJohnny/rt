@@ -1,0 +1,86 @@
+[
+    {
+        "type": "camera",
+        "pos": [0, 0, 0],
+        "dir": [0, 0, 1],
+        "fov": 70
+    },
+    {
+        "type": "rectangle",
+        "pos": [0, -5, 20],
+        "length": 40,
+        "width": 10,
+        "dir_l": [0, 0, 1],
+        "dir_w": [1, 0, 0],
+        "color": [255, 255, 255],
+        "roughness": 1,
+        "metalness": 0
+    },
+    {
+        "type": "rectangle",
+        "pos": [0, 5, 20],
+        "length": 40,
+        "width": 10,
+        "dir_l": [0, 0, 1],
+        "dir_w": [1, 0, 0],
+        "color": [255, 255, 255],
+        "roughness": 1,
+        "metalness": 0
+    },
+    {
+        "type": "rectangle",
+        "pos": [-5, 0, 20],
+        "length": 40,
+        "width": 10,
+        "dir_l": [0, 0, 1],
+        "dir_w": [0, 1, 0],
+        "color": [255, 255, 255],
+        "roughness": 1,
+        "metalness": 0
+    },
+    {
+        "type": "rectangle",
+        "pos": [5, 0, 20],
+        "length": 40,
+        "width": 10,
+        "dir_l": [0, 0, 1],
+        "dir_w": [0, 1, 0],
+        "color": [255, 255, 255],
+        "roughness": 1,
+        "metalness": 0
+    },
+    {
+        "type": "rectangle",
+        "pos": [0, 0, 0],
+        "length": 10,
+        "width": 10,
+        "dir_l": [1, 0, 0],
+        "dir_w": [0, 1, 0],
+        "color": [255, 255, 255],
+        "roughness": 1,
+        "metalness": 0,
+        "emissive": 5
+    },
+    {
+        "type": "rectangle",
+        "pos": [0, 0, 40],
+        "length": 10,
+        "width": 10,
+        "dir_l": [1, 0, 0],
+        "dir_w": [0, 1, 0],
+        "color": [255, 255, 255],
+        "roughness": 1,
+        "metalness": 0
+    },
+    {
+        "type": "brick",
+        "pos": [0, 0, 10],
+        "dir": [1, 0, 0],
+        "dimensions": [10, 10, 1],
+        "color": "cat.jpg",
+        "roughness": 0,
+        "metalness": 0,
+        "refraction": 1.0,
+        "transparency": 0.8
+    }
+]
