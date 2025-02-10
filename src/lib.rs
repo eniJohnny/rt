@@ -58,7 +58,7 @@ const EDGE_THRESHOLD: u32 = 100;
 const MARGIN: usize = 3;
 const GUI_WIDTH: u32 = 600;
 const GUI_HEIGHT: u32 = 600;
-// Available view modes: Simple, HighDef, Norm, BVH
+// Available view modes: Simple, HighDef, Norm, BVH, Phong
 const VIEW_MODE: &str = "Simple";
 const FIELD_PADDING_X: u32 = 10;
 const FIELD_PADDING_Y: u32 = 3;

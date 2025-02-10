@@ -4,5 +4,48 @@
         "pos": [0.0, 0.0, -15.0],
         "dir": [0, 0, 1],
         "fov": 75
+    },
+    {
+        "type": "sphere",
+        "pos": [5, 0, 0],
+        "dir": [0, 0, 1],
+        "radius": 1.0,
+        "color": [255, 0, 0]
+    },
+    {
+        "type": "sphere",
+        "pos": [0, 5, 0],
+        "dir": [0, 0, 1],
+        "radius": 1.0,
+        "color": [0, 255, 0]
+    },
+    {
+        "type": "sphere",
+        "pos": [-5, 0, 0],
+        "dir": [0, 0, 1],
+        "radius": 1.0,
+        "color": [255, 0, 255]
+    },
+    {
+        "type": "sphere",
+        "pos": [0, -5, 0],
+        "dir": [0, 0, 1],
+        "radius": 1.0,
+        "color": [255, 255, 0]
+    },
+    {
+        "type": "sphere",
+        "pos": [0, 0, 0],
+        "dir": [0, 0, 1],
+        "radius": 1.0,
+        "color": [0, 255, 255]
+    },
+    {
+        "type": "plane",
+        "pos": [0, 0, 10],
+        "dir": [0, 0, 1],
+        "color": [255, 255, 255],
+        "roughness": 0,
+        "metalness": 1.0
     }
 ]

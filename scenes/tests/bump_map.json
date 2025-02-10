@@ -4,5 +4,19 @@
         "pos": [0.0, 0.0, -15.0],
         "dir": [0, 0, 1],
         "fov": 75
+    },
+    {
+        "type": "plane",
+        "pos": [0, 0, 0],
+        "dir": [0, 0, 1],
+        "color": [255, 255, 255]
+    },
+    {
+        "type": "sphere",
+        "pos": [0, 0, -5],
+        "dir": [0, 1, 0],
+        "radius": 5,
+        "color": [255, 255, 255],
+        "normal": "Bricks_gray_Normal.jpg"
     }
 ]
