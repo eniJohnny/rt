@@ -43,10 +43,11 @@ impl Settings {
             "Norm" => ViewMode::Norm,
             "HighDef" => ViewMode::HighDef,
             "BVH" => ViewMode::BVH,
+            "Phong" => ViewMode::Phong,
             "Simple" | _ => ViewMode::Simple(
                 Color::new(0.2, 0.2, 0.2),
                 ParallelLight::new(Vec3::new(0.5, -0.5, 0.5), 1., Color::new(1., 1., 1.)),
-            )
+            ),
         };
 
         Self {
