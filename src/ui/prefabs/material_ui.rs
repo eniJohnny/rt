@@ -18,7 +18,7 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
     material_category.add_element(get_texture_ui("Color", element.material().color(), Box::new(move |texture, scene| {
         let mut scene_write = scene.write().unwrap();
         if let Texture::Texture(file, _) = &texture {
-            scene_write.load_texture(file);
+            scene_write.load_texture(file, None);
         }
         if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
             element.material_mut().set_color(texture);

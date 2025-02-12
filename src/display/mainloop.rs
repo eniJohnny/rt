@@ -24,7 +24,7 @@ pub fn load_scene(scene_path: &str, context: &mut UIContext, ui: &mut UI) {
         return ;
     }
     let mut scene = scene.unwrap();
-    scene.load_texture(SKYBOX_TEXTURE);
+    scene.load_texture(SKYBOX_TEXTURE, None);
     
     if DISPLAY_WIREFRAME {
         scene.add_wireframes();

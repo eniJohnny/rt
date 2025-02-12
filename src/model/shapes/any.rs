@@ -35,10 +35,7 @@ impl Shape for Any {
         let mut t_array: Vec<f64> = Vec::new();
         
         match solution.ok() {
-            Some(t) => 
-                if t > 0.0 {
-                    t_array.push(t);
-                },
+            Some(t) => t_array.push(t),
             None => {},
         }
 

@@ -32,7 +32,7 @@ impl Shape for Ellipse {
         let mut t_array: Vec<f64> = Vec::new();
 
         for t in t.unwrap() {
-            if t > 0. && self.is_inside(r.get_pos() + r.get_dir() * t) {
+            if self.is_inside(r.get_pos() + r.get_dir() * t) {
                 t_array.push(t);
             }
         }

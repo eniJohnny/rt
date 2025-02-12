@@ -89,9 +89,7 @@ impl Shape for Torus {
                 let len = roots.as_ref().len();
                 let mut t = Vec::with_capacity(len);
                 for i in 0..len {
-                    if roots.as_ref()[i] > 0.0 {
-                        t.push(roots.as_ref()[i]);
-                    }
+                    t.push(roots.as_ref()[i]);
                 }
                 if t.len() > 0 {
                     return Some(t);
