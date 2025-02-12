@@ -2,7 +2,7 @@ use std::{fmt::Debug, sync::{Arc, RwLock}};
 
 use crate::{model::{element::Element, materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene}, ui::{ui::UI, uielement::UIElement}};
 
-use super::{aabb::Aabb, any::Any, cone::Cone, cube::Cube, cubehole::Cubehole, cylinder::Cylinder, ellipse::Ellipse, hyperboloid::Hyperboloid, obj::Obj, plane::Plane, rectangle::Rectangle, sphere::Sphere, triangle::Triangle, wireframe::Wireframe, torus::Torus};
+use super::{aabb::Aabb, any::Any, capped_cylinder::CappedCylinder, cone::Cone, cube::Cube, cubehole::Cubehole, cylinder::Cylinder, ellipse::Ellipse, hyperboloid::Hyperboloid, obj::Obj, plane::Plane, rectangle::Rectangle, sphere::Sphere, torus::Torus, triangle::Triangle, wireframe::Wireframe};
 
 pub trait Shape: Debug + Sync + Send {
     fn distance(&self, vec: &Vec3) -> f64;
@@ -23,6 +23,8 @@ pub trait Shape: Debug + Sync + Send {
             return "Cone".to_string();
         } else if self.as_cylinder().is_some() {
             return "Cylinder".to_string();
+        } else if self.as_capped_cylinder().is_some() {
+            return "CappedCylinder".to_string();
         } else if self.as_plane().is_some() {
             return "Plane".to_string();
         } else if self.as_rectangle().is_some() {
@@ -51,6 +53,7 @@ pub trait Shape: Debug + Sync + Send {
     fn as_sphere(&self) -> Option<&Sphere> { None }
     fn as_plane(&self) -> Option<&Plane> { None }
     fn as_cylinder(&self) -> Option<&Cylinder> { None }
+    fn as_capped_cylinder(&self) -> Option<&CappedCylinder> { None }
     fn as_cone(&self) -> Option<&Cone> { None }
     fn as_rectangle(&self) -> Option<&Rectangle> { None }
     fn as_triangle(&self) -> Option<&Triangle> { None }
@@ -68,6 +71,7 @@ pub trait Shape: Debug + Sync + Send {
     fn as_sphere_mut(&mut self) -> Option<&mut Sphere> { None }
     fn as_plane_mut(&mut self) -> Option<&mut Plane> { None }
     fn as_cylinder_mut(&mut self) -> Option<&mut Cylinder> { None }
+    fn as_capped_cylinder_mut(&mut self) -> Option<&mut CappedCylinder> { None }
     fn as_cone_mut(&mut self) -> Option<&mut Cone> { None }
     fn as_rectangle_mut(&mut self) -> Option<&mut Rectangle> { None }
     fn as_triangle_mut(&mut self) -> Option<&mut Triangle> { None }

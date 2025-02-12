@@ -1,4 +1,4 @@
-use super::{composed_shape::ComposedShape, cylinder::Cylinder, sphere::Sphere, utils::get_cross_axis};
+use super::{capped_cylinder::CappedCylinder, composed_shape::ComposedShape, sphere::Sphere, utils::get_cross_axis};
 use std::{f64::consts::PI, sync::{Arc, RwLock}};
 use crate::{model::{
     composed_element::ComposedElement, element::Element, materials::{
@@ -47,7 +47,7 @@ impl ComposedShape for Helix {
             let mut origin = self.pos - current_dir * link_length / 2.0;
             origin = origin + self.dir * self.height / steps as f64 * i as f64;
 
-            let link = Cylinder::new(origin, current_dir, link_radius, link_length);
+            let link = CappedCylinder::new(origin, current_dir, link_radius, link_length);
             let sphere1 = Sphere::new(origin, current_dir, sphere_radius);
             let sphere2 = Sphere::new(origin + current_dir * link_length, current_dir, sphere_radius);
 
