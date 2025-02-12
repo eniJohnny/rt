@@ -1,5 +1,5 @@
 use super::{shape::Shape, utils::get_cross_axis};
-use std::{f64::{consts::PI, EPSILON}, sync::{Arc, RwLock}};
+use std::{f64::consts::PI, sync::{Arc, RwLock}};
 use crate::{
     model::{
         materials::material::Projection,
