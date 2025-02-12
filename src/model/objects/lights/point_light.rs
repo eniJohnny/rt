@@ -66,7 +66,6 @@ impl Light for PointLight {
                         if t < (self.pos() - hit.pos()).length() {
                             return true;
                         }
-                        return false;
                     }
                 }
             }
