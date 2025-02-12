@@ -1,5 +1,6 @@
 pub mod cone;
 pub mod cylinder;
+pub mod capped_cylinder;
 pub mod plane;
 pub mod sphere;
 pub mod rectangle;

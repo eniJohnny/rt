@@ -1,4 +1,4 @@
-use super::{composed_shape::ComposedShape, cylinder::Cylinder, sphere::Sphere, utils::get_cross_axis};
+use super::{capped_cylinder::CappedCylinder, composed_shape::ComposedShape, sphere::Sphere, utils::get_cross_axis};
 use std::{f64::consts::PI, sync::{Arc, RwLock}};
 use crate::{error, model::{
     composed_element::ComposedElement, element::Element, materials::
@@ -44,7 +44,7 @@ impl ComposedShape for Nagone {
             let cylinder_dir = ((self.pos + origins_dirs[next_i] * self.radius) - (self.pos + origins_dirs[i] * self.radius)).normalize();
             let cylinder_height = ((self.pos + origins_dirs[next_i] * self.radius) - (self.pos + origins_dirs[i] * self.radius)).length();
 
-            let cylinder = Cylinder::new(self.pos + origins_dirs[i] * self.radius, cylinder_dir, cylinder_radius, cylinder_height);
+            let cylinder = CappedCylinder::new(self.pos + origins_dirs[i] * self.radius, cylinder_dir, cylinder_radius, cylinder_height);
             elements.push(Element::new(Box::new(cylinder), material.clone()));
         }
         elements
