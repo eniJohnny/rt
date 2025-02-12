@@ -1,6 +1,6 @@
 use std::sync::{Arc, RwLock};
 
-use super::{aabb::Aabb, ellipse::Ellipse, cylinder::Cylinder, shape::Shape};
+use super::{aabb::Aabb, ellipse::Ellipse, capped_cylinder::CappedCylinder, shape::Shape};
 use nalgebra::Matrix3;
 use crate::{model::{
     element::Element, materials::material::Projection, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene
@@ -18,7 +18,7 @@ pub struct Cubehole {
     axis_aligned_cube: Aabb,
     cap1: Ellipse,
     cap2: Ellipse,
-    cylinder: Cylinder,
+    cylinder: CappedCylinder,
 }
 
 impl Shape for Cubehole {
@@ -257,7 +257,7 @@ impl Cubehole {
     pub fn axis_aligned_cube(&self) -> Aabb { self.axis_aligned_cube.clone() }
     pub fn cap1(&self) -> Ellipse { self.cap1.clone() }
     pub fn cap2(&self) -> Ellipse { self.cap2.clone() }
-    pub fn cylinder(&self) -> Cylinder { self.cylinder.clone() }
+    pub fn cylinder(&self) -> CappedCylinder { self.cylinder.clone() }
 
     // Mutators
     pub fn set_pos(&mut self, pos: Vec3) {
@@ -303,7 +303,7 @@ impl Cubehole {
     pub fn set_axis_aligned_cube(&mut self, axis_aligned_cube: Aabb) { self.axis_aligned_cube = axis_aligned_cube; }
     pub fn set_cap1(&mut self, cap1: Ellipse) { self.cap1 = cap1; }
     pub fn set_cap2(&mut self, cap2: Ellipse) { self.cap2 = cap2; }
-    pub fn set_cylinder(&mut self, cylinder: Cylinder) { self.cylinder = cylinder; }
+    pub fn set_cylinder(&mut self, cylinder: CappedCylinder) { self.cylinder = cylinder; }
 
     // Constructor
     pub fn new(pos: Vec3, dir: Vec3, width: f64) -> Cubehole {
@@ -324,7 +324,7 @@ impl Cubehole {
         let cap1 = Ellipse::new(pos_cap1, dir, radius_cap, radius_cap);
         let cap2 = Ellipse::new(pos_cap2, dir, radius_cap, radius_cap);
 
-        let cylinder = Cylinder::new(pos_cap2, dir, radius_cap, width);
+        let cylinder = CappedCylinder::new(pos_cap2, dir, radius_cap, width);
 
         self::Cubehole { pos, dir, width, alpha, beta, gamma, rotation, axis_aligned_cube, cap1, cap2, cylinder }
     }
@@ -367,7 +367,7 @@ impl Cubehole {
         let cap1 = Ellipse::new(pos_cap1, dir, radius_cap, radius_cap);
         let cap2 = Ellipse::new(pos_cap2, dir, radius_cap, radius_cap);
 
-        let cylinder = Cylinder::new(pos, dir, radius_cap, width);
+        let cylinder = CappedCylinder::new(pos, dir, radius_cap, width);
 
         *self = self::Cubehole { pos, dir, width, alpha, beta, gamma, rotation, axis_aligned_cube, cap1, cap2, cylinder };
     }

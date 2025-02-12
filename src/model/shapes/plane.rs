@@ -1,4 +1,4 @@
-use super::shape::Shape;
+use super::{shape::Shape, utils::get_cross_axis};
 use std::sync::{Arc, RwLock};
 use crate::{
     model::{
@@ -102,15 +102,11 @@ impl Shape for Plane {
         let mut projection: Projection = Projection::default();
         let scale = 4.;
 
-        let constant_axis: Vec3;
-        if *hit.norm() == Vec3::new(0., 1., 0.) || *hit.norm() == Vec3::new(0., -1., 0.)  {
-            constant_axis = Vec3::new(0., 0., 1.);
-        } else {
-            constant_axis = Vec3::new(0., 1., 0.);
-        }
+        let constant_axis = get_cross_axis(&self.dir);
         projection.i = self.dir.cross(&constant_axis).normalize();
         projection.j = -self.dir.cross(&projection.i).normalize();
         projection.k = hit.norm().clone();
+
         let dist = hit.pos() - self.pos();
         projection.u = dist.dot(&projection.i) / &scale;
         projection.v = dist.dot(&projection.j) / &scale;

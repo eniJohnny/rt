@@ -1,14 +1,10 @@
-use super::aabb::Aabb;
-use super::shape::Shape;
-use core::panic;
-use std::f64::consts::PI;
-use std::sync::{Arc, RwLock};
+use super::{shape::Shape, utils::get_cross_axis};
+use std::{f64::{consts::PI, EPSILON}, sync::{Arc, RwLock}};
 use crate::{
     model::{
         materials::material::Projection,
         maths::{hit::Hit, ray::Ray, vec3::Vec3},
         scene::Scene,
-        shapes::plane::Plane,
         element::Element
     },
     ui::{
@@ -24,80 +20,40 @@ pub struct Cylinder {
     pos: Vec3,
     dir: Vec3,
     radius: f64,
-    height: f64,
-    plane: [Plane; 2],
-    aabb: super::aabb::Aabb,
 }
 
 impl Shape for Cylinder {
     fn distance(&self, _vec: &Vec3) -> f64 {
         unimplemented!()
     }
+
     fn intersect(&self, r: &Ray) -> Option<Vec<f64>> {
-        //d:    direction du rayon
-        //co:   vecteur entre la postion du cylindre et le point d'origine du rayon
-        //v:    vecteur directeur du cylindre
-        //abc:  les coefficients
-        let dv = r.get_dir().cross(&self.dir);
-        let cov = (r.get_pos() - &self.pos).cross(&self.dir);
-        let a = dv.dot(&dv);
-        let b = cov.dot(&dv) * 2.0;
-        let c = cov.dot(&cov) - (self.radius * self.radius);
+        let a = r.get_dir().dot(&r.get_dir()) - (r.get_dir().dot(&self.dir) * r.get_dir().dot(&self.dir));
+        let b = 2. * (r.get_dir().dot(&(r.get_pos() - &self.pos)) - (r.get_dir().dot(&self.dir) * (r.get_pos() - &self.pos).dot(&self.dir)));
+        let c = (r.get_pos() - &self.pos).dot(&(r.get_pos() - &self.pos)) - ((r.get_pos() - &self.pos).dot(&self.dir) * (r.get_pos() - &self.pos).dot(&self.dir)) - self.radius * self.radius;
 
-        let mut delta = b * b - 4.0 * a * c;
+        let delta = b * b - 4. * a * c;
 
-        let mut t = Vec::new();
+        if delta < 0. {
+            return None;
+        }
 
-        if delta > 0.0 {
-            delta = delta.sqrt();
-            let (t1, t2) = ((-b - delta) / (2.0 * a), (-b + delta) / (2.0 * a));
-            t.push(t1.min(t2));
-            t.push(t1.max(t2));
-        } else if delta == 0.0 {
-            t.push(-b / (2.0 * a));
+        let t1 = (-b - delta.sqrt()) / (2. * a);
+        let t2 = (-b + delta.sqrt()) / (2. * a);
+
+        if t1 < 0. && t2 < 0. {
+            return None;
         }
-        let mut plane_intersect = false;
-        if let Some(t3) = self.plane[0].intersect(r) {
-            plane_intersect = true;
-            let t3 = t3[0];
-            let t4 = self.plane[1]
-                .intersect(r)
-                .expect("The cylinder's planes should be parrallel to each other.")[0];
-            t.push(t3.min(t4));
-            t.push(t3.max(t4));
+
+        let mut res = Vec::new();
+        if t1 > -EPSILON {
+            res.push(t1);
         }
-        match t.len() {
-            1 => {
-                return Some(t);
-            }
-            2 => {
-                if !plane_intersect {
-                    return Some(t);
-                } else {
-                    return None;
-                }
-            }
-            3 => {
-                // On ne touche que la tranche du cylindre, on n'intersecte que si le t cylindre est entre les deux plans (inclusif)
-                if t[0] >= t[1] && t[0] <= t[1] {
-                    t.truncate(1);
-                    return Some(t);
-                }
-            }
-            4 => {
-                // 99.9% des cas, le classico
-                if !(t[2] > t[1] || t[3] < t[0]) {
-                    t.sort_by(|a, b| {
-                        a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal)
-                    });
-                    t.remove(0);
-                    t.remove(2);
-                    return Some(t);
-                }
-            }
-            _ => panic!("Should never happen"),
+        if t2 > -EPSILON {
+            res.push(t2);
         }
-        None
+
+        Some(res)
     }
 
     fn outer_intersect(&self, r: &Ray, _displaced_factor: f64) -> Option<Vec<f64>> {
@@ -113,14 +69,8 @@ impl Shape for Cylinder {
 
         let cam_hit = hit.pos() - &self.pos;
         let level = cam_hit.dot(&self.dir);
-        let total_height = self.height + self.radius * 2.0;
 
-        let constant_axis: Vec3;
-        if self.dir == Vec3::new(0., 0., 1.) {
-            constant_axis = Vec3::new(0., 1., 0.);
-        } else {
-            constant_axis = Vec3::new(0., 0., 1.);
-        }
+        let constant_axis = get_cross_axis(&self.dir);
 
         let i = self.dir().cross(&constant_axis).normalize();
         let j = self.dir().cross(&i).normalize();
@@ -133,53 +83,28 @@ impl Shape for Cylinder {
         projection.i = (&ij_hit).cross(self.dir()).normalize();
         projection.k = hit.norm().clone();
 
-        if level > -0.000001 && level < 0.000001 {
-            // Bottom Cap
-            projection.j = ij_hit;
-            projection.v = (hit.pos() - &self.pos).length() / total_height;
-        } else if level > self.height - 0.000001 && level < self.height + 0.000001 {
-            // Top Cap
-            projection.j = -ij_hit;
-            projection.v = (total_height
-                - (hit.pos() - &self.pos - &self.dir * &self.height).length())
-                / total_height;
-        } else {
-            // Cylinder
-            projection.j = self.dir().clone();
-            projection.v = (level + self.radius) / total_height;
-        }
+        projection.j = self.dir().clone();
+        projection.v = (level + self.radius) / (2. * self.radius * PI);
         projection.v = (projection.v * hit.element().material().v_scale() - hit.element().material().v_shift()).rem_euclid(1.);
         projection
     }
 
     fn norm(&self, hit: &Vec3) -> Vec3 {
-        let pc = hit - &self.pos;
-        let coef = pc.dot(&self.dir);
-        let projection = &self.dir * coef;
-
-        let norm;
-        if coef > -0.000001 && coef < 0.000001 {
-            norm = self.plane[0].norm(hit);
-        } else if coef > self.height - 0.000001 && coef < self.height + 0.000001 {
-            norm = self.plane[1].norm(hit);
-        } else {
-            norm = (pc - &projection).normalize();
-        }
-        return norm;
+        let mut norm = *hit - self.pos;
+        norm -= self.dir * self.dir.dot(&norm);
+        norm.normalize()
     }
+
     fn as_cylinder(&self) -> Option<&Cylinder> {
         Some(self)
     }
+
     fn as_cylinder_mut(&mut self) -> Option<&mut Cylinder> {
         Some(self)
     }
 
     fn pos(&self) -> &Vec3 {
         &self.pos
-    }
-
-    fn aabb(&self) -> Option<&Aabb> {
-        Some(&self.aabb)
     }
 
     fn get_ui(&self, element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene>>) -> UIElement {
@@ -290,28 +215,6 @@ impl Shape for Cylinder {
                     Box::new(|_, _, _| Ok(())),
                     ui.uisettings())),
                 ui.uisettings()));
-
-            category.add_element(UIElement::new(
-                "Height",
-                "height", 
-                ElemType::Property(Property::new(
-                    Value::Float(cylinder.height), 
-                    Box::new(move |_, value, context, _| {
-                        let scene = match context.active_scene {
-                            Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
-                            None => return,
-                        };
-                        let mut scene = scene.write().unwrap();
-                        let elem = scene.element_mut_by_id(id.clone()).unwrap();
-                        if let Some(cylinder) = elem.shape_mut().as_cylinder_mut() {
-                            if let Value::Float(value) = value {
-                                cylinder.set_height(value);
-                            }
-                        }
-                    }),
-                    Box::new(|_, _, _| Ok(())),
-                    ui.uisettings())),
-                ui.uisettings()));
         }
 
         category
@@ -323,53 +226,21 @@ impl Cylinder {
     pub fn pos(&self) -> &Vec3 { &self.pos }
     pub fn dir(&self) -> &Vec3 { &self.dir }
     pub fn radius(&self) -> f64 { self.radius }
-    pub fn height(&self) -> f64 { self.height }
-    pub fn aabb(&self) -> &super::aabb::Aabb { &self.aabb }
 
     // Mutators
     pub fn set_pos(&mut self, pos: Vec3) { 
         self.pos = pos;
-        self.update_cylinder();
     }
     pub fn set_dir(&mut self, dir: Vec3) {
         self.dir = dir;
-        self.update_cylinder();
     }
     pub fn set_radius(&mut self, radius: f64) {
         self.radius = radius;
-        self.update_cylinder();
-    }
-    pub fn set_height(&mut self, height: f64) {
-        self.height = height;
-        self.update_cylinder();
-    }
-    pub fn set_aabb(&mut self, aabb: super::aabb::Aabb) {
-        self.aabb = aabb;
     }
 
     // Constructor
-    pub fn new(pos: Vec3, dir: Vec3, radius: f64, height: f64) -> Cylinder {
+    pub fn new(pos: Vec3, dir: Vec3, radius: f64) -> Cylinder {
         let dir = dir.normalize();
-        let plane1 = Plane::new(pos.clone(), -dir.clone());
-        let plane2 = Plane::new(pos.clone() + dir.clone() * height, dir.clone());
-        let aabb = Cylinder::compute_aabb(pos.clone(), dir.clone(), height, radius);
-        self::Cylinder { pos, dir, radius, height, plane: [plane1, plane2], aabb }
-    }
-
-    fn update_cylinder(&mut self) {
-        self.dir = self.dir.normalize();
-        let plane1 = Plane::new(self.pos.clone(), -self.dir.clone());
-        let plane2 = Plane::new(self.pos.clone() + self.dir.clone() * self.height, self.dir.clone());
-        let aabb = Cylinder::compute_aabb(self.pos.clone(), self.dir.clone(), self.height, self.radius);
-        *self = self::Cylinder { pos: self.pos.clone(), dir: self.dir.clone(), radius: self.radius, height: self.height, plane: [plane1, plane2], aabb };
-    }
-
-    pub fn compute_aabb(pos:Vec3, dir: Vec3, height: f64, radius: f64) -> Aabb {
-        let a = pos;
-        let b = a + dir * height;
-        let tmp = Vec3::new(radius, radius, radius);
-        let min = a.min(b) - tmp;
-        let max = a.max(b) + tmp;
-        Aabb::new(*min.x(), *max.x(), *min.y(), *max.y(), *min.z(), *max.z())
+        self::Cylinder { pos, dir, radius }
     }
 }
