@@ -102,7 +102,7 @@ impl Displayable for Settings {
             |value, scene| {
                 let mut scene = scene.write().unwrap();
                 if let Texture::Texture(path, _) = &value {
-                    scene.load_texture(&path);
+                    scene.load_texture(&path, None);
                 }
                 scene.set_skybox(value);
                 scene.set_dirty(true);

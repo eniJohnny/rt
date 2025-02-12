@@ -1,5 +1,7 @@
 use std::{collections::HashMap, ops::SubAssign};
 
+use image::RgbaImage;
+
 use crate::{
     bvh::{self},
     model::objects::lights::ambient_light::AmbientLight,
@@ -197,21 +199,27 @@ impl Scene {
         &mut self.settings
     }
 
-    pub fn load_texture(&mut self, path: &str) {
-        if path == "" {
+    pub fn load_texture(&mut self, name: &str, opt_img: Option<RgbaImage>) {
+        if name == "" {
             return;
         }
-        if path.contains("..") {
+        if name.contains("..") {
             panic!("Textures should only be stored in the textures folder.");
         }
-        if !self.textures.contains_key(path) {
-            let path_str = String::from("./textures/") + path;
+        if !self.textures.contains_key(name) {
+            let path_str = String::from("./textures/") + name;
+            let img = match opt_img {
+                Some(img) => img,
+                None => {
+                    match image::open(&path_str) {
+                        Ok(img) => img.to_rgba8(),
+                        Err(_) => panic!("Error opening texture file {}", name),
+                    }
+                }
+            };
             self.textures.insert(
-                path.to_string(),
-                match image::open(&path_str) {
-                    Ok(img) => img.to_rgba8(),
-                    Err(_) => panic!("Error opening texture file {}", path),
-                },
+                name.to_string(),
+                img
             );
         }
     }
@@ -230,11 +238,8 @@ impl Scene {
             material.displacement(),
         ];
         for texture in textures.iter() {
-            match texture {
-                Texture::Value(..) => {}
-                Texture::Texture(path, _) => {
-                    self.load_texture(path);
-                }
+            if let Texture::Texture(path, _) = texture {
+                self.load_texture(path, None);
             }
         }
     }
