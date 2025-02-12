@@ -180,7 +180,7 @@ impl Shape for Wireframe {
         let t1_is_wireframe = self.is_wireframe_point(&t1);
         let t2_is_wireframe = self.is_wireframe_point(&t2);
         
-        if tmin > 0.0 && tmax > 0.0 && tmin < tmax && (t1_is_wireframe || t2_is_wireframe) {
+        if tmin < tmax && (t1_is_wireframe || t2_is_wireframe) {
             if !t1_is_wireframe && t2_is_wireframe {
                 tmin = tmax;
             }

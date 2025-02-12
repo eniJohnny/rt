@@ -1,5 +1,29 @@
 [
     {
+        "type": "texture",
+        "pattern": "bumpSine",
+        "name": "BumpSine",
+        "u_variation": 0.5,
+        "v_variation": 0.0
+    },
+    {
+        "type": "texture",
+        "pattern": "checkerboard",
+        "name": "CheckerBW",
+        "color_b": [255, 0, 0]
+    },
+    {
+        "type": "texture",
+        "pattern": "worley",
+        "name": "WorleyBW",
+        "dots": 30,
+        "color_a": [155, 0, 0],
+        "color_b": [0, 0, 180],
+        "res_x": 2000,
+        "res_y": 2000
+    },
+    
+    {
         "type": "sphere",
         "pos": [0, 0, -2],
         "dir": [0, 1, 0],
@@ -13,10 +37,12 @@
         "type": "sphere",
         "pos": [-2.5, 2.5, 2],
         "dir": [0, 1, 0],
-        "color": "bricks_color.jpg",
+        "color": [0, 0, 0],
         "radius": 2.0,
-        "normal": "bricks_normal.jpg",
-        "roughness": "bricks_roughness.jpg"
+        "normal": "BumpSine",
+        "roughness": "bricks_roughness.jpg",
+        "u_scale": 50,
+        "v_scale": 50
     },
     {
         "type": "sphere",
@@ -53,7 +79,7 @@
         "dir_w": [0, 0, 1],
         "length": 100,
         "width": 100,
-        "color": [255, 255, 255]
+        "color": "WorleyBW"
     },
 
     {
