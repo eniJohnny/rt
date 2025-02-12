@@ -49,7 +49,7 @@ impl Shape for Rectangle {
 
         let p = intersection * r.get_dir() + r.get_pos();
 
-        if Triangle::inside_triangle(&p, &self.d, &self.b, &self.c, &self.plane.dir()) || Triangle::inside_triangle(&p, &self.a, &self.b, &self.c, &self.plane.dir()) {
+        if p != *self.pos() && (Triangle::inside_triangle(&p, &self.d, &self.b, &self.c, &self.plane.dir()) || Triangle::inside_triangle(&p, &self.a, &self.b, &self.c, &self.plane.dir())) {
             return Some(Vec::from([intersection]));
         }
         None
