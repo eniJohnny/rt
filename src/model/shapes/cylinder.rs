@@ -41,19 +41,7 @@ impl Shape for Cylinder {
         let t1 = (-b - delta.sqrt()) / (2. * a);
         let t2 = (-b + delta.sqrt()) / (2. * a);
 
-        if t1 < 0. && t2 < 0. {
-            return None;
-        }
-
-        let mut res = Vec::new();
-        if t1 > -EPSILON {
-            res.push(t1);
-        }
-        if t2 > -EPSILON {
-            res.push(t2);
-        }
-
-        Some(res)
+        Some(vec![t1.min(t2), t1.max(t2)])
     }
 
     fn outer_intersect(&self, r: &Ray, _displaced_factor: f64) -> Option<Vec<f64>> {
