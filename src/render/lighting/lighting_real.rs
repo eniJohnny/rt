@@ -221,7 +221,7 @@ fn get_refracted_light_color(scene: &Scene, hit: &Hit, ray: &Ray, n1: f64, n2: f
 		refract_ray.debug = ray.debug;
 		refract_color = get_lighting_from_ray(scene, &refract_ray);
 	}
-	refract_color
+	refract_color * hit.color()
 }
 
 pub fn get_parent<'a>(t_s: Vec<(&Element, Vec<f64>)>, closest_dist: f64) -> Option<&Element> {

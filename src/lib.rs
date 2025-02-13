@@ -14,7 +14,7 @@ const SCREEN_WIDTH: usize = 1800;
 const SCREEN_HEIGHT: usize = 900;
 const SCREEN_WIDTH_U32: u32 = SCREEN_WIDTH as u32;
 const SCREEN_HEIGHT_U32: u32 = SCREEN_HEIGHT as u32;
-const SCENE_FOLDER: &str = "scenes";
+const SCENE_FOLDER: &str = "scenes/shapes";
 // const SCENE: &str = "cornell_box";
 const SKYBOX_TEXTURE: &str = "skybox_night.jpg";
 
@@ -33,7 +33,7 @@ const SPHERE_DISPLACEMENT_STEP: f64 = 0.1;
 const MAX_THREADS: usize = 4;
 const BASE_SIMPLIFICATION: usize = 8;
 const TILE_SIZE: usize = 8;
-const MAX_DEPTH: usize = 10;
+const MAX_DEPTH: usize = 5;
 const ANTIALIASING: f64 = 0.001;
 const MAX_ITERATIONS: usize = 1500;
 const BOUNCE_OFFSET: f64 = 0.0001;

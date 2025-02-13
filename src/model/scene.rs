@@ -42,7 +42,7 @@ impl Scene {
     pub fn new() -> Self {
         Self {
             elements: Vec::new(),
-            skybox: Texture::Value(Vec3::new(0.2, 0.6, 0.6), TextureType::Color),
+            skybox: Texture::Value(Vec3::new(0.1, 0.1, 0.1), TextureType::Color),
             non_bvh_elements_index: Vec::new(),
             non_bvh_composed_elements_index: Vec::new(),
             composed_elements: Vec::new(),
@@ -236,6 +236,7 @@ impl Scene {
             material.emissive(),
             material.opacity(),
             material.displacement(),
+            material.transparency()
         ];
         for texture in textures.iter() {
             if let Texture::Texture(path, _) = texture {

@@ -112,10 +112,9 @@ pub fn get_cylinder(json_cylinder: &HashMap<String, JsonValue>) -> Result<Elemen
 pub fn get_cone(json_cone: &HashMap<String, JsonValue>) -> Result<Element, String> {
     let pos = get_vec3(&json_cone, "pos", None, None, None)?;
     let dir = get_vec3(&json_cone, "dir", None, None, None)?.normalize();
-    let radius = get_number(&json_cone, "radius", Some(0.), None, None)?;
-    let height = get_number(&json_cone, "height", Some(0.), None, None)?;
+    let angle = get_number(&json_cone, "angle", Some(0.), Some(180.), None)?;
 
-    let shape = Box::new(Cone::new(pos, dir, radius, height));
+    let shape = Box::new(Cone::new(pos, dir, angle));
     let material = get_material(&json_cone)?;
     let element = Element::new(shape, material);
     Ok(element)
