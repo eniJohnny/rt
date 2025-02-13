@@ -406,6 +406,10 @@ impl Scene {
         &self.ambient_light
     }
 
+    pub fn ambient_light_mut(&mut self) -> &mut AmbientLight {
+        &mut self.ambient_light
+    }
+
     pub fn textures(&self) -> &HashMap<String, image::RgbaImage> {
         &self.textures
     }
