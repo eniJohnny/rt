@@ -1,5 +1,5 @@
 use std::sync::{Arc, RwLock};
-use crate::{model::{materials::color::Color, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene}, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}, BOUNCE_OFFSET};
+use crate::{model::{materials::color::Color, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene}, render::raycasting::get_closest_hit, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}, BOUNCE_OFFSET};
 use super::light::{AnyLight, Light};
 
 #[derive(Debug, Clone)]
@@ -53,18 +53,23 @@ impl Light for ParallelLight {
         (ratio * self.color()).clamp(0., 1.)
     }
 
-    fn is_shadowed(&self, scene: &Scene, hit: &Hit) -> bool {
-        let shadow_ray = Ray::new(hit.pos() + hit.norm() * BOUNCE_OFFSET, -self.dir(), 0);
-        for element in scene.elements() {
-            if let Some(t) = element.shape().intersect(&shadow_ray) {
-                for t in t {
-                    if t > 0. {
-                        return true;
-                    }
+    fn throughput(&self, scene: &Scene, hit: &Hit) -> Vec3 {
+        let mut shadow_ray = Ray::new(hit.pos() + hit.norm() * BOUNCE_OFFSET, -self.dir(), 0);
+        let mut throughput = Vec3::from_value(1.);
+        while throughput.length() > f64::EPSILON {
+            if let Some(light_hit) = get_closest_hit(scene, &shadow_ray) {
+                if light_hit.opacity() > (1. - f64::EPSILON) {
+                    return Vec3::from_value(0.);
+                } else {
+                    throughput = throughput * (1. - light_hit.opacity()) * light_hit.color().to_vec3();
+                    shadow_ray.set_pos(*light_hit.pos() + *shadow_ray.get_dir() * BOUNCE_OFFSET);
                 }
+            } else {
+                return throughput;
             }
         }
-        false
+        
+        throughput
     }
 
     fn as_parallel_light(&self) -> Option<&ParallelLight> {

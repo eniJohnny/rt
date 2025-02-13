@@ -1,5 +1,5 @@
 use std::{f64::consts::PI, sync::{Arc, RwLock}};
-use crate::{model::{materials::color::Color, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene}, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}, BOUNCE_OFFSET, ELEMENT};
+use crate::{model::{materials::color::Color, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene}, render::raycasting::get_closest_hit, ui::{prefabs::vector_ui::get_vector_ui, ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}, BOUNCE_OFFSET, ELEMENT};
 use super::light::{AnyLight, Light};
 
 #[derive(Debug)]
@@ -86,22 +86,24 @@ impl Light for SpotLight {
         ratio * self.color()
     }
 
-    fn is_shadowed(&self, scene: &Scene, hit: &Hit) -> bool {
+    fn throughput(&self, scene: &Scene, hit: &Hit) -> Vec3 {
         let to_light = (self.pos() - hit.pos()).normalize();
         let shadow_ray = Ray::new(hit.pos() + hit.norm() * BOUNCE_OFFSET, to_light, 0);
-        for element in scene.elements() {
-            if let Some(t) = element.shape().intersect(&shadow_ray) {
-                for t in t {
-                    if t > 0. {
-                        if t < (self.pos() - hit.pos()).length() {
-                            return true;
+        let mut throughput = Vec3::from_value(1.);
+        if let Some(light_hit) = get_closest_hit(scene, &shadow_ray) {
+            for (_, t_list) in light_hit.t_list() {
+                for t in t_list {
+                    if t > &0. && *t < (hit.pos() - self.pos()).length() {
+                        if light_hit.opacity() > (1. - f64::EPSILON) {
+                            return Vec3::from_value(0.);
+                        } else {
+                            throughput = throughput * (1. - light_hit.opacity()) * light_hit.color().to_vec3();
                         }
-                        return false;
                     }
                 }
             }
         }
-        false
+        throughput
     }
 
     fn as_spot_light(&self) -> Option<&SpotLight> {
