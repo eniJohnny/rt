@@ -218,10 +218,10 @@ fn get_filter_ui(settings: &UISettings) -> UIElement {
 }
 
 impl Displayable for Settings {
-    fn get_fields(&self, name: &str, context: &UIContext, settings: &UISettings) -> Vec<UIElement> {
+    fn get_fields(&self, name: &str, _: &UIContext, settings: &UISettings) -> Vec<UIElement> {
         let mut category = Category::default();
 
-        let iterations_property = UIElement::new(
+        category.elems.push(UIElement::new(
             "Iterations",
             "iterations",
             ElemType::Property(Property::new(
