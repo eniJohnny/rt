@@ -1,4 +1,4 @@
-use std::{collections::HashMap, f64::consts::PI};
+use std::collections::HashMap;
 use crate::model::{composed_element::ComposedElement, element::Element, materials::{diffuse::Diffuse, material::Material}, objects::{camera::Camera, lights::{ambient_light::AmbientLight, light::AnyLight, parallel_light::ParallelLight, point_light::PointLight, spot_light::SpotLight}}, shapes::{any::Any, brick::Brick, composed_shape::ComposedShape, cone::Cone, cube::Cube, cubehole::Cubehole, cylinder::Cylinder, ellipse::Ellipse, helix::Helix, hyperboloid::Hyperboloid, mobius::Mobius, nagone::Nagone, obj::Obj, plane::Plane, rectangle::Rectangle, sphere::Sphere, torus::Torus, torusphere::Torusphere, triangle::Triangle}};
 use super::{
     basic::{
@@ -44,7 +44,7 @@ pub fn get_material(json_object: &HashMap<String, JsonValue>) -> Result<Box<dyn 
 pub fn get_camera(json_camera: &HashMap<String, JsonValue>) -> Result<Camera, String> {
     let pos = get_vec3(json_camera, "pos", None, None, None)?;
     let dir = get_vec3(json_camera, "dir", None, None, None)?.normalize();
-    let fov = get_number(json_camera, "fov", Some(0.), Some(360.), None)? * PI / 180.;
+    let fov = get_number(json_camera, "fov", Some(0.), Some(360.), None)?;
     Ok(Camera::new(pos, dir, fov))
 }
 

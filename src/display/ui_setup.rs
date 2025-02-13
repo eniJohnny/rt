@@ -1,8 +1,8 @@
 use std::sync::{Arc, RwLock};
 use crate::{
-    model::{element::Element, scene::Scene}, render::common::start_threads, ui::{
-        prefabs::material_ui::get_material_ui, ui::UI, ui_setup::scene_ui::setup_scene_toolbar, uibox::{BoxPosition, UIBox}, uielement::{Category, UIElement}, utils::{misc::ElemType, ui_utils::UIContext, Displayable}
-    }, ELEMENT, SETTINGS
+    model::{element::Element, materials::texture::Texture, scene::Scene}, render::common::start_threads, ui::{
+        prefabs::{material_ui::get_material_ui, texture_ui::get_texture_ui}, ui::UI, ui_setup::scene_ui::setup_scene_toolbar, uibox::{BoxPosition, UIBox}, uielement::{Category, UIElement}, utils::{misc::ElemType, ui_utils::UIContext, Displayable}
+    }, ELEMENT, OBJECTS, SETTINGS
     };
 
 pub fn setup_settings(ui: &mut UI, context: &mut UIContext) {
@@ -14,6 +14,38 @@ pub fn setup_settings(ui: &mut UI, context: &mut UIContext) {
     settings_box.add_elements(scene.read().unwrap().settings().get_fields("Render settings", context, ui.uisettings()));
     settings_box.set_edit_bar(ui.uisettings(), None);
     ui.add_box(settings_box);
+}
+
+pub fn setup_obejcts_ui(ui: &mut UI, context: &mut UIContext) {
+    let scene = match context.active_scene {
+        Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
+        None => return,
+    };
+    let mut objects_box = UIBox::new(OBJECTS, BoxPosition::CenterLeft(10), ui.uisettings().gui_width, ui.uisettings());
+    let mut ui_elements = vec![];
+    
+    ui_elements.push(scene.read().unwrap().camera().get_ui(ui));
+
+    ui_elements.push(get_texture_ui("Skybox", scene.read().unwrap().skybox(), Box::new(
+        |value, scene| {
+            let mut scene = scene.write().unwrap();
+            if let Texture::Texture(path, _) = &value {
+                scene.load_texture(&path, None);
+            }
+            scene.set_skybox(value);
+            scene.set_dirty(true);
+        },
+    ), ui.uisettings(), true, false, None, None, None));
+
+    ui_elements.push(scene.read().unwrap().ambient_light().get_ui(ui, scene));
+
+    for light in scene.read().unwrap().lights() {
+        ui_elements.push(light.get_ui(light, ui, scene));
+    }
+    
+    objects_box.add_elements(ui_elements);
+    objects_box.set_edit_bar(ui.uisettings(), None);
+    ui.add_box(objects_box);
 }
 
 pub fn setup_ui() -> (UI, UIContext) {
