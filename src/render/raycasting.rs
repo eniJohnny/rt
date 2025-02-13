@@ -91,9 +91,6 @@ pub fn get_closest_hit_from_elements_with_index<'a>(scene: &'a Scene, ray: &Ray,
         	t = element.shape().intersect(ray);
         }
         if let Some(t) = &t {
-            // if ray.debug {
-            //     println!("Hit element {} at dist {}", element.id(), t[0]);
-            // }
             t_list.push((element, t.clone()));
             for dist in t {
                 if closest.is_none() || dist > &0. && (closest.clone().unwrap().dist() < &0. || dist < closest.clone().unwrap().dist()) {
@@ -105,7 +102,7 @@ pub fn get_closest_hit_from_elements_with_index<'a>(scene: &'a Scene, ray: &Ray,
                         scene.textures(),
                         t.clone(),
                     );
-                    if new_hit.opacity() > 0.5 {
+                    if new_hit.opacity() > f64::EPSILON {
                         closest = Some(new_hit);
                     }
                 }
@@ -159,31 +156,36 @@ pub fn get_closest_hit<'a>(scene: &'a Scene, ray: &Ray) -> Option<Hit<'a>> {
 }
 
 pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
-    let hit = get_closest_hit(scene, ray);
+    let mut hit = get_closest_hit(scene, ray);
 
-    return match hit {
-        Some(mut hit) => {
-            if hit.element().shape().as_wireframe().is_some() {
-                return Color::new(1., 1., 1.);
-            }
-			match &scene.settings().view_mode {
-				ViewMode::Simple(ambient, light) => {
-					simple_lighting_from_hit(&hit, ambient, light)
-				}
-				ViewMode::Norm => {
-					norm_lighting_from_hit(&hit)
-				},
-				ViewMode::Phong => {
-					phong_lighting_from_hit(scene, &hit, ray)
-				},
-				ViewMode::Projection => {
-					projection_lighting_from_hit(&mut hit)
-				},
-				_ => global_lighting_from_hit(scene, &mut hit, ray)
-			}
+    if let Some(hit) = &hit {
+        if ray.debug {
+            println!(
+                "Metal : {}, Roughness: {}, Color: {}, Norm: {}, Emissive: {}, Opacity: {}, Refraction index: {}, Transparancy {}",
+                hit.metalness(),
+                hit.roughness(),
+                hit.color(),
+                hit.norm(),
+                hit.emissive(),
+                hit.opacity(),
+                hit.element().material().refraction(),
+                hit.transparency()
+            );
+        }
+    }
+    match &scene.settings().view_mode {
+        ViewMode::Simple(ambient, light) => {
+            simple_lighting_from_hit(scene, &hit, ray, ambient, light)
+        }
+        ViewMode::Norm => {
+            norm_lighting_from_hit(scene, &hit, ray)
         },
-        None => {
-            get_skybox_color(scene, ray)
+        ViewMode::Phong => {
+            phong_lighting_from_hit(scene, &hit, ray)
         },
-    };
+        ViewMode::Projection => {
+            projection_lighting_from_hit(scene, &mut hit, ray)
+        },
+        _ => global_lighting_from_hit(scene, &mut hit, ray)
+    }
 }

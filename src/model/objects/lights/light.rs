@@ -1,5 +1,5 @@
 use std::{fmt::Debug, sync::{Arc, RwLock}};
-use crate::{model::{materials::color::Color, maths::{hit::Hit, ray::Ray}, scene::Scene}, ui::{ui::UI, uielement::UIElement}};
+use crate::{model::{materials::color::Color, maths::{hit::Hit, ray::Ray, vec3::Vec3}, scene::Scene}, ui::{ui::UI, uielement::UIElement}};
 use super::{parallel_light::ParallelLight, point_light::PointLight, spot_light::SpotLight};
 
 #[derive(Debug)]
@@ -38,7 +38,7 @@ impl AnyLight {
 pub trait Light: Debug + Sync {
     fn get_diffuse(&self, hit: &Hit) -> Color;
     fn get_specular(&self, hit: &Hit, ray: &Ray) -> Color;
-    fn is_shadowed(&self, scene: &Scene, hit: &Hit) -> bool;
+    fn throughput(&self, scene: &Scene, hit: &Hit) -> Vec3;
 
     fn as_point_light(&self) -> Option<&PointLight> {
         None
