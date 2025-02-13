@@ -1,12 +1,14 @@
+use std::f64::consts::PI;
+
 use crate::{
-    model::maths::{quaternion::Quaternion, vec3::Vec3},
-    SCREEN_HEIGHT, SCREEN_WIDTH, STEP, LOOK_STEP
+    model::maths::{quaternion::Quaternion, vec3::Vec3}, ui::{ui::UI, uielement::{Category, UIElement}, utils::misc::{ElemType, Property, Value}}, LOOK_STEP, SCREEN_HEIGHT, SCREEN_WIDTH, STEP
 };
 
 #[derive(Debug)]
 pub struct Camera {
     pos: Vec3,
     dir: Vec3,
+    fov_deg: f64,
     fov: f64,
     vfov: f64,
     u: Vec3,
@@ -61,16 +63,18 @@ impl Camera {
 		else {
 			u = Vec3::new(*dir.z(), 0., -*dir.x()).normalize();
 		}
+        let fov_deg = fov;
+        let fov = fov_deg * PI / 180.;
 		let v = dir.cross(&u).normalize();
         let vfov = fov * SCREEN_HEIGHT as f64 / SCREEN_WIDTH as f64;
         let q_up = Quaternion::new_from_axis_angle(&u, -LOOK_STEP);
         let q_down = Quaternion::new_from_axis_angle(&u, LOOK_STEP);
         let q_left = Quaternion::new_from_axis_angle(&Vec3::new(0., 1., 0.), -LOOK_STEP);
         let q_right = Quaternion::new_from_axis_angle(&Vec3::new(0., 1., 0.), LOOK_STEP);
-
         self::Camera {
             pos,
             dir,
+            fov_deg,
             fov,
             u,
             v,
@@ -86,6 +90,7 @@ impl Camera {
         Self {
             pos: Vec3::new(0.0, 0.0, 0.0),
             dir: Vec3::new(0.0, 0.0, 0.0),
+            fov_deg: 0.,
             fov: 0.,
             u: Vec3::new(0.0, 0.0, 0.0),
             v: Vec3::new(0.0, 0.0, 0.0),
@@ -138,5 +143,35 @@ impl Camera {
         println!("dir: {:.2} {:.2} {:.2}", self.dir.x(), self.dir.y(), self.dir.z());
         println!("u: {:.2} {:.2} {:.2}", self.u.x(), self.u.y(), self.u.z());
         println!("v: {:.2} {:.2} {:.2}", self.v.x(), self.v.y(), self.v.z());
+    }
+
+    pub fn get_ui(&self, ui: &mut UI) -> UIElement {
+        let mut category = UIElement::new("Camera", "camera", ElemType::Category(Category::collapsed()), ui.uisettings());
+
+        let fov = UIElement::new("FOV", "fov", ElemType::Property(Property::new(Value::Float(self.fov_deg),
+        Box::new(move |_, value, context, _| {
+            if let Some(scene) = context.get_active_scene() {
+                let mut scene = scene.write().unwrap();
+                let camera = scene.camera_mut();
+                if let Value::Float(value) = value {
+                    camera.fov_deg = value;
+                    camera.fov = value * PI / 180.;
+                }
+            }
+        }),
+        Box::new(move |value, _, _| {
+            if let Value::Float(value) = value {
+                if *value < 0. {
+                    return Err("The value should not be inferior to 0".to_string());
+                }
+                if *value > 360. {
+                    return Err("The value should not be superior to 360".to_string());
+                }
+            }
+            Ok(())
+        }), ui.uisettings())), ui.uisettings());
+
+        category.add_element(fov);
+        category
     }
 }

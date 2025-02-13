@@ -1,9 +1,9 @@
 use crate::{
     display::{anaglyph::Coloring, filters::ColorFilter}, model::{
-        materials::{color::Color, texture::Texture},
+        materials::color::Color,
         maths::vec3::Vec3, objects::lights::parallel_light::ParallelLight,
     }, ui::{
-        prefabs::{texture_ui::get_texture_ui, vector_ui::get_vector_ui}, uielement::{Category, UIElement}, uisettings::UISettings, utils::{
+        uielement::{Category, UIElement}, uisettings::UISettings, utils::{
             misc::{ElemType, Property, Value}, ui_utils::UIContext, Displayable
         }
     }, ANAGLYPH_OFFSET_X, ANAGLYPH_OFFSET_Y, ANTIALIASING, DISPLACEMENT, MAX_DEPTH, MAX_ITERATIONS, PLANE_DISPLACED_DISTANCE, PLANE_DISPLACEMENT_STEP, SKYBOX_TEXTURE, SPHERE_DISPLACED_DISTANCE, SPHERE_DISPLACEMENT_STEP, VIEW_MODE
@@ -218,10 +218,10 @@ fn get_filter_ui(settings: &UISettings) -> UIElement {
 }
 
 impl Displayable for Settings {
-    fn get_fields(&self, name: &str, context: &UIContext, settings: &UISettings) -> Vec<UIElement> {
+    fn get_fields(&self, name: &str, _: &UIContext, settings: &UISettings) -> Vec<UIElement> {
         let mut category = Category::default();
 
-        let iterations_property = UIElement::new(
+        category.elems.push(UIElement::new(
             "Iterations",
             "iterations",
             ElemType::Property(Property::new(
@@ -240,35 +240,7 @@ impl Displayable for Settings {
                 settings,
             )),
             settings,
-        );
-
-        category.elems.push(iterations_property);
-
-        if let Some(scene) = context.get_active_scene() {
-
-            let mut ambient_category = UIElement::new("Ambient light", "ambient", ElemType::Category(Category::default()), settings);
-            ambient_category.add_element(get_vector_ui(Vec3::new(0., 0., 0.), "Color", "ambient.color", settings, 
-            Box::new(move |_, _, _, _| {}), 
-            Box::new(move |_, _, _, _| {}), 
-            Box::new(move |_, _, _, _| {}), true, None, None));
-            category.elems.push(ambient_category);
-
-
-            let skybox_texture = scene.read().unwrap().skybox().clone();
-            category.elems.push(get_texture_ui("Skybox", &skybox_texture, Box::new(
-                |value, scene| {
-                    let mut scene = scene.write().unwrap();
-                    if let Texture::Texture(path, _) = &value {
-                        scene.load_texture(&path, None);
-                    }
-                    scene.set_skybox(value);
-                    scene.set_dirty(true);
-                },
-            ), settings, true, false, None, None, None));
-
-        }
-
-        
+        ));
         category.elems.push(UIElement::new(
             "Ray depth",
             "depth",
