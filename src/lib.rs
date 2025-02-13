@@ -14,7 +14,7 @@ const SCREEN_WIDTH: usize = 1800;
 const SCREEN_HEIGHT: usize = 900;
 const SCREEN_WIDTH_U32: u32 = SCREEN_WIDTH as u32;
 const SCREEN_HEIGHT_U32: u32 = SCREEN_HEIGHT as u32;
-const SCENE_FOLDER: &str = "scenes/shapes";
+const SCENE_FOLDER: &str = "scenes";
 // const SCENE: &str = "cornell_box";
 const SKYBOX_TEXTURE: &str = "skybox_night.jpg";
 
