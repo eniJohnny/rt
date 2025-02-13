@@ -147,66 +147,6 @@ impl Camera {
 
     pub fn get_ui(&self, ui: &mut UI) -> UIElement {
         let mut category = UIElement::new("Camera", "camera", ElemType::Category(Category::collapsed()), ui.uisettings());
-        // let pos = get_vector_ui(self.pos, "Position", "pos", ui.uisettings(), 
-        // Box::new(move |_, value, context, _| {
-        //     if let Some(scene) = context.get_active_scene() {
-        //         let mut scene = scene.write().unwrap();
-        //         let camera = scene.camera_mut();
-        //         if let Value::Float(value) = value {
-        //             camera.pos.set_x(value);
-        //         }
-        //     }
-        // }),
-        // Box::new(move |_, value, context, _| {
-        //     if let Some(scene) = context.get_active_scene() {
-        //         let mut scene = scene.write().unwrap();
-        //         let camera = scene.camera_mut();
-        //         if let Value::Float(value) = value {
-        //             camera.pos.set_y(value);
-        //         }
-        //     }
-        // }),
-        // Box::new(move |_, value, context, _| {
-        //     if let Some(scene) = context.get_active_scene() {
-        //         let mut scene = scene.write().unwrap();
-        //         let camera = scene.camera_mut();
-        //         if let Value::Float(value) = value {
-        //             camera.pos.set_z(value);
-        //         }
-        //     }
-        // }), false, None, None);
-
-        // let dir = get_vector_ui(self.dir, "Direction", "dir", ui.uisettings(), 
-        // Box::new(move |_, value, context, _| {
-        //     if let Some(scene) = context.get_active_scene() {
-        //         let mut scene = scene.write().unwrap();
-        //         let camera = scene.camera_mut();
-        //         if let Value::Float(value) = value {
-        //             camera.dir.set_x(value);
-        //             camera.dir = camera.dir.normalize();
-        //         }
-        //     }
-        // }),
-        // Box::new(move |_, value, context, _| {
-        //     if let Some(scene) = context.get_active_scene() {
-        //         let mut scene = scene.write().unwrap();
-        //         let camera = scene.camera_mut();
-        //         if let Value::Float(value) = value {
-        //             camera.dir.set_y(value);
-        //             camera.dir = camera.dir.normalize();
-        //         }
-        //     }
-        // }),
-        // Box::new(move |_, value, context, _| {
-        //     if let Some(scene) = context.get_active_scene() {
-        //         let mut scene = scene.write().unwrap();
-        //         let camera = scene.camera_mut();
-        //         if let Value::Float(value) = value {
-        //             camera.dir.set_z(value);
-        //             camera.dir = camera.dir.normalize();
-        //         }
-        //     }
-        // }), false, None, None);
 
         let fov = UIElement::new("FOV", "fov", ElemType::Property(Property::new(Value::Float(self.fov_deg),
         Box::new(move |_, value, context, _| {
@@ -231,8 +171,6 @@ impl Camera {
             Ok(())
         }), ui.uisettings())), ui.uisettings());
 
-        // category.add_element(pos);
-        // category.add_element(dir);
         category.add_element(fov);
         category
     }
