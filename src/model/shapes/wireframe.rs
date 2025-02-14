@@ -12,7 +12,7 @@ use crate::{
         uielement::UIElement,
         utils::misc::ElemType,
     },
-    WIREFRAME_THICKNESS
+    WIREFRAME_THICKNESS, ERROR_MARGIN
 };
 
 #[derive(Debug, Clone)]
@@ -260,19 +260,20 @@ impl Shape for Wireframe {
         let y = *hit_position.y();
         let z = *hit_position.z();
     
-        if (x - self.x_min()).abs() < f64::EPSILON {
+        if (x - self.x_min()).abs() < ERROR_MARGIN {
             return Vec3::new(-1.0, 0.0, 0.0);
-        } else if (x - self.x_max()).abs() < f64::EPSILON {
+        } else if (x - self.x_max()).abs() < ERROR_MARGIN {
             return Vec3::new(1.0, 0.0, 0.0);
-        } else if (y - self.y_min()).abs() < f64::EPSILON {
+        } else if (y - self.y_min()).abs() < ERROR_MARGIN {
             return Vec3::new(0.0, -1.0, 0.0);
-        } else if (y - self.y_max()).abs() < f64::EPSILON {
+        } else if (y - self.y_max()).abs() < ERROR_MARGIN {
             return Vec3::new(0.0, 1.0, 0.0);
-        } else if (z - self.z_min()).abs() < f64::EPSILON {
+        } else if (z - self.z_min()).abs() < ERROR_MARGIN {
             return Vec3::new(0.0, 0.0, -1.0);
-        } else if (z - self.z_max()).abs() < f64::EPSILON {
+        } else if (z - self.z_max()).abs() < ERROR_MARGIN {
             return Vec3::new(0.0, 0.0, 1.0);
         } else {
+            // DEBUG
             panic!("Error: hit_position is not on the AABB.\n");
         }
     }
