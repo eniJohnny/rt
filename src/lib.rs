@@ -37,6 +37,7 @@ const MAX_DEPTH: usize = 5;
 const ANTIALIASING: f64 = 0.001;
 const MAX_ITERATIONS: usize = 1500;
 const BOUNCE_OFFSET: f64 = 0.0001;
+const ERROR_MARGIN: f64 = 0.000001;
 
 
 /*************** BVH Settings ************/
