@@ -34,7 +34,7 @@ impl ParallelLight {
 impl Light for ParallelLight {
     fn get_diffuse(&self, hit: &Hit) -> Color {
         let mut ratio = (-self.dir()).dot(hit.norm());
-        if ratio < 0. {
+        if ratio < f64::EPSILON {
             return Color::new(0., 0., 0.);
         }
         ratio *= 0_f64.max(self.intensity());
@@ -45,7 +45,7 @@ impl Light for ParallelLight {
         let to_light = -self.dir();
         let reflected = (-(&to_light) - hit.norm().dot(&-to_light) * 2. * hit.norm()).normalize();
         let mut ratio = (-ray.get_dir()).normalize().dot(&reflected);
-        if ratio < 0. {
+        if ratio < f64::EPSILON {
             return Color::new(0., 0., 0.);
         }
         ratio = ratio.powf(50.);
@@ -56,7 +56,7 @@ impl Light for ParallelLight {
     fn throughput(&self, scene: &Scene, hit: &Hit) -> Vec3 {
         let mut shadow_ray = Ray::new(hit.pos() + hit.norm() * BOUNCE_OFFSET, -self.dir(), 0);
         let mut throughput = Vec3::from_value(1.);
-        while throughput.length() > f64::EPSILON {
+        while throughput.length() > -f64::EPSILON {
             if let Some(light_hit) = get_closest_hit(scene, &shadow_ray) {
                 if light_hit.opacity() > (1. - f64::EPSILON) {
                     return Vec3::from_value(0.);
