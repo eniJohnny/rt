@@ -34,7 +34,7 @@ impl ParallelLight {
 impl Light for ParallelLight {
     fn get_diffuse(&self, hit: &Hit) -> Color {
         let mut ratio = (-self.dir()).dot(hit.norm());
-        if ratio < 0. {
+        if ratio < f64::EPSILON {
             return Color::new(0., 0., 0.);
         }
         ratio *= 0_f64.max(self.intensity());
@@ -45,7 +45,7 @@ impl Light for ParallelLight {
         let to_light = -self.dir();
         let reflected = (-(&to_light) - hit.norm().dot(&-to_light) * 2. * hit.norm()).normalize();
         let mut ratio = (-ray.get_dir()).normalize().dot(&reflected);
-        if ratio < 0. {
+        if ratio < f64::EPSILON {
             return Color::new(0., 0., 0.);
         }
         ratio = ratio.powf(50.);
