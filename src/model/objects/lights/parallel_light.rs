@@ -56,7 +56,7 @@ impl Light for ParallelLight {
     fn throughput(&self, scene: &Scene, hit: &Hit) -> Vec3 {
         let mut shadow_ray = Ray::new(hit.pos() + hit.norm() * BOUNCE_OFFSET, -self.dir(), 0);
         let mut throughput = Vec3::from_value(1.);
-        while throughput.length() > -f64::EPSILON {
+        while throughput.length() > (1. - f64::EPSILON) {
             if let Some(light_hit) = get_closest_hit(scene, &shadow_ray) {
                 if light_hit.opacity() > (1. - f64::EPSILON) {
                     return Vec3::from_value(0.);
