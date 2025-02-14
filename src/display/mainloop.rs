@@ -13,11 +13,11 @@ use winit::{
     window::WindowBuilder,
 };
 use crate::{
-    error, parsing::get_scene, render::render_thread::UIOrder, ui::{ui::UI, ui_setup::scene_ui::{add_scene_to_ui, change_scene}, utils::ui_utils::UIContext}, DISPLAY_WIREFRAME, SCENE_FOLDER, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32, SKYBOX_TEXTURE
+    error, parsing::get_scene, render::render_thread::UIOrder, ui::{ui::UI, ui_setup::scene_ui::{add_scene_to_ui, change_scene}, utils::ui_utils::UIContext}, DISPLAY_WIREFRAME, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32, SKYBOX_TEXTURE
 };
 
 pub fn load_scene(scene_path: &str, context: &mut UIContext, ui: &mut UI) {
-    let path = String::from(format!("{}/{}", SCENE_FOLDER, scene_path));
+    let path = String::from(scene_path);
     let scene = get_scene(&path);
     if let Err(err) = scene {
         error(format!("Error loading scene : {}", err).as_str());
@@ -62,6 +62,10 @@ pub fn main_loop(event_loop: EventLoop<()>, mut pixels: Pixels) {
     let mut last_draw = Instant::now();
     let mut last_input = Instant::now();
     let mut last_scene_change = Instant::now();
+
+    for argument in std::env::args().skip(1) {
+        load_scene(argument.as_str(), &mut context, &mut ui);
+    }
 
     event_loop
         .run(move |event, flow| {

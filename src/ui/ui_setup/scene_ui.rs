@@ -60,78 +60,6 @@ pub fn add_scene_to_ui(ui: &mut UI, _context: &mut UIContext, id: usize, scene_p
     }
 }
 
-// fn setup_objects_ui(ui: &mut UI, context: &mut UIContext) {
-    // if let Some(scene) = context.get_active_scene() {
-    //     let mut settings_box = UIBox::new(OBJECTS, BoxPosition::CenterLeft(10), ui.uisettings().gui_width, ui.uisettings());
-    //     let mut category = UIElement::new("Scene", "scene", ElemType::Category(Category::default()), ui.uisettings());
-    //     let mut light_category = UIElement::new("Lights", "lights", ElemType::Category(Category::default()), ui.uisettings());
-
-    //     {
-    //     let scene_read = scene.read().unwrap();
-    //         for light in scene_read.lights() {
-    //             let light_id = light.id();
-    //             let btn = UIElement::new(format!("Light{}", light_id).as_str(), format!("Light{}", light_id).as_str(), ElemType::Button(Some(Box::new(|_, context: &mut UIContext, ui: &mut UI|  {
-    //                 ui.destroy_box(ELEMENT);
-    //                 if let Some(scene) = context.get_active_scene() {
-    //                     let mut elem_box = UIBox::new(ELEMENT, BoxPosition::CenterRight(10), ui.uisettings().gui_width, ui.uisettings());
-    //                     let light = scene.read().unwrap().get_light(light_id);
-    //                     elem_box.add_elements(vec![light.get_ui(light, ui, scene)]);
-    //                 }   
-    //             }))), ui.uisettings());
-    //             light_category.add_element(light.get_ui(light, ui, scene));
-    //         }
-    //     }
-    //     {
-    //         let scene_read = scene.read().unwrap();
-    //         category.add_element(light_category);
-    //         let mut elements_category = UIElement::new("Elements", "elements", ElemType::Category(Category::default()), ui.uisettings());
-    //         for element in scene_read.elements() {
-    //             if element.composed_id().is_none() {
-    //                 let id = element.id();
-    //                 let name = "Element".to_string() + &id.to_string();
-    //                 let btn = UIElement::new(&name, &name, ElemType::Button(Some(Box::new(|_, context: &mut UIContext, ui: &mut UI|  {
-    //                     ui.destroy_box(ELEMENT);
-    //                     if let Some(scene) = context.get_active_scene() {
-    //                         let scene_read = scene.read().unwrap(); 
-    //                         let element = scene_read.get_element(id);
-    //                         setup_element_ui(element, ui, scene);
-    //                     }   
-    //                 }))), ui.uisettings());
-    //                 elements_category.add_element(btn);
-    //             }
-    //         }
-    //     }
-    //     {
-    //         let scene_read = scene.read().unwrap();
-    //         let mut composed_elements_cat = UIElement::new("Composed Elements", "composed_elements", ElemType::Category(Category::default()), ui.uisettings());
-    //         for composed_element in scene_read.composed_elements() {
-    //             let id = composed_element.id();
-    //             let name = "ComposedElement".to_string() + &id.to_string();
-    //             let btn = UIElement::new(&name, &name, ElemType::Button(Some(Box::new(|_, context: &mut UIContext, ui: &mut UI|  {
-    //                 ui.destroy_box(ELEMENT);
-    //                 if let Some(scene) = context.get_active_scene() {
-    //                     let scene_read = scene.read().unwrap();
-    //                     if let Some(composed_element) = scene_read.composed_element_by_id(id) {
-    //                         setup_element_ui(scene.read().unwrap().get_element(composed_element.elements_index()[0]), ui, scene);
-    //                     }
-    //                 }   
-                    
-    //             }))), ui.uisettings());
-    //             composed_elements_cat.add_element(btn);
-    //         }
-    //         category.add_element(composed_elements_cat);
-    //     }
-
-    //     settings_box.add_elements(vec![category]);
-    //     settings_box.set_edit_bar(ui.uisettings(), Some(Box::new(move |_, context, _| {
-    //         if let Some(scene) = context.get_active_scene() {
-    //             scene.write().unwrap().set_dirty(true);
-    //         }
-    //     })));
-    //     ui.add_box(settings_box);
-    // }
-// }
-
 pub fn setup_scene_options(ui: &mut UI, context: &UIContext, render_id: usize) {
     // let exclusive_uis = [SETTINGS, OBJECTS];
     ui.destroy_box(SCENE_TOOLBAR);
@@ -212,18 +140,6 @@ pub fn setup_scene_options(ui: &mut UI, context: &UIContext, render_id: usize) {
         false => "Pause"
     };
     
-    // let objects_btn = UIElement::new("Objects", "objects", ElemType::Button(Some(Box::new(
-        //     move |_, context, ui| {
-            //         for elem in exclusive_uis.iter() {
-    //             if let Some(_) = ui.get_box(*elem) {
-    //                 ui.destroy_box(*elem);
-    //             }
-    //         }
-    //         setup_objects_ui(ui, context);
-    //         ui.set_dirty();
-    // }))), ui.uisettings());
-    
-    
     let btn_pause = UIElement::new(text, "pause", ElemType::Button(Some(Box::new(
         move |elem, context, _| {
             if let Some(elem) = elem {
@@ -283,9 +199,9 @@ pub fn setup_scene_toolbar(ui: &mut UI, _context: &UIContext) {
     row.style_mut().margin = 0;
     let mut btn_open_scene = UIElement::new("New scene", "open_scene", ElemType::Button(Some(Box::new(
         move |_, _, ui| {
-            let file_box = get_file_box(format!("./{}/", SCENE_FOLDER), "open_scene_box".to_string(), Box::new(move |_, value, context, ui| {
+            let file_box = get_file_box(format!("{}/", SCENE_FOLDER), "open_scene_box".to_string(), Box::new(move |_, value, context, ui| {
                 if let Value::Text(scene_path) = value {
-                    load_scene(&scene_path, context, ui);
+                    load_scene(format!("{}/{}", SCENE_FOLDER, scene_path).as_str(), context, ui);
                 }
             }), ui.uisettings(), "".to_string());
             let box_reference = file_box.reference.clone();
