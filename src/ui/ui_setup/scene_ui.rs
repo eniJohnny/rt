@@ -177,7 +177,6 @@ pub fn setup_scene_options(ui: &mut UI, context: &UIContext, render_id: usize) {
     row.add_element(btn_objects);
     row.add_element(btn_pause);
     row.add_element(btn_close);
-    // row.add_element(objects_btn);
 
     toolbar_box.add_elements(vec![row]);
     ui.add_box(toolbar_box);
