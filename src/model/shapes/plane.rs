@@ -30,14 +30,14 @@ impl Shape for Plane {
         let dist = &self.pos - r.get_pos();
         let mut dir = self.dir.clone();
         let mut dot_product = r.get_dir().dot(&self.dir);
-
-        if dot_product == 0. {
-            return None;
-        } else if dot_product > 0. {
+        if dot_product < 0. {
             dir = -dir;
             dot_product = -dot_product;
         }
 
+        if dot_product < f64::EPSILON {
+            return None;
+        }
         let t = dist.dot(&dir) / dot_product;
         return Some(Vec::from([t]));
     }
