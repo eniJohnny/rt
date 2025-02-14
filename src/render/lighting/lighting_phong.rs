@@ -20,7 +20,7 @@ pub fn phong_lighting_from_hit(scene: &Scene, hit: &Option<Hit>, ray: &Ray) -> C
 				}
 				let specular = light.light().get_specular(&hit, &fake_ray);
 				let diffuse = light.light().get_diffuse(&hit);
-				cam_color += diffuse + specular;
+				cam_color += &diffuse * &diffuse + specular;
 				cam_color = cam_color * Color::from_vec3(&throughput);
 			}
 		}
@@ -36,7 +36,7 @@ pub fn phong_lighting_from_hit(scene: &Scene, hit: &Option<Hit>, ray: &Ray) -> C
 				color = color * Color::from_vec3(&throughput);
 			}
 		}
-		if hit.opacity() < 1. - f64::EPSILON {
+		if hit.opacity() < f64::EPSILON {
 			let light_through = get_lighting_from_ray(scene, &Ray::new(hit.pos().clone() + *ray.get_dir() * BOUNCE_OFFSET, ray.get_dir().clone(), ray.get_depth()));
 			color = color * hit.opacity() + hit.color() * light_through * (1. - hit.opacity());
 		}
