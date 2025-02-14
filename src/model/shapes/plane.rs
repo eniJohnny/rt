@@ -31,14 +31,18 @@ impl Shape for Plane {
         let mut dir = self.dir.clone();
         let mut dot_product = r.get_dir().dot(&self.dir);
 
-        if dot_product == 0. {
-            return None;
-        } else if dot_product > 0. {
+        if dot_product > 0. {
             dir = -dir;
             dot_product = -dot_product;
         }
 
-        let t = dist.dot(&dir) / dot_product;
+        let mut t = dist.dot(&dir);
+
+        // We only divide by the dot product if it is not 0, but we still return the intersection if it is
+        if dot_product != 0. {
+            t /= dot_product;
+        }
+
         return Some(Vec::from([t]));
     }
 
