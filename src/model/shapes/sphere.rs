@@ -1,4 +1,5 @@
 use super::shape::Shape;
+use super::utils::get_cross_axis;
 use std::f64::consts::PI;
 use std::sync::{Arc, RwLock};
 use crate::{
@@ -99,12 +100,7 @@ impl Shape for Sphere {
 
     fn projection(&self, hit: &Hit) -> Projection {
         let mut projection = Projection::default();
-        let constant_axis: Vec3;
-        if *self.dir() == Vec3::new(0., 0., 1.) || *self.dir() == Vec3::new(0., 0., -1.) {
-            constant_axis = Vec3::new(0., 1., 0.);
-        } else {
-            constant_axis = Vec3::new(0., 0., 1.);
-        }
+        let constant_axis = get_cross_axis(&self.dir());
         let i = self.dir().cross(&constant_axis).normalize();
         let j = self.dir().cross(&i).normalize();
         projection.k = hit.norm().clone();
