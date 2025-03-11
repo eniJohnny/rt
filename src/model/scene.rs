@@ -203,9 +203,6 @@ impl Scene {
         if name == "" {
             return;
         }
-        if name.contains("..") {
-            panic!("Textures should only be stored in the textures folder.");
-        }
         if !self.textures.contains_key(name) {
             let img = match opt_img {
                 Some(img) => img,
