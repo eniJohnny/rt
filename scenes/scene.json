@@ -13,8 +13,7 @@
         "color": [224, 92, 202],
         "metalness": 0.6211055886293565,
         "roughness": 0.6113665412631393,
-        "emissive": 0.8069505243108928,
-		"displacement": ""
+        "emissive": 0.8069505243108928
     },
     {
         "type": "sphere",

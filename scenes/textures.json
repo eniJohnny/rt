@@ -31,10 +31,10 @@
         "pos": [0, -2, -2],
         "dir": [0, 0, 1],
         "radius": 2.5,
-        "color": "plates_color.jpg",
-        "roughness": "plates_roughness.jpg",
-        "metalness": "plates_metal.jpg",
-        "normal": "plates_normal.jpg"
+        "color": "plates/plates_color.jpg",
+        "roughness": "plates/plates_roughness.jpg",
+        "metalness": "plates/plates_metal.jpg",
+        "normal": "plates/plates_normal.jpg"
     },
     {
         "type": "plane",
