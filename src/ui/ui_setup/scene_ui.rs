@@ -44,7 +44,8 @@ pub fn change_scene(context: &mut UIContext, ui: &mut UI, render_id: Option<usiz
 pub fn add_scene_to_ui(ui: &mut UI, _context: &mut UIContext, id: usize, scene_path: &str) {
     let uisettings = ui.uisettings().clone();
     if let Some(row) = ui.get_element_mut(TOOLBAR.to_string() + ".row") {
-        let mut btn_scene = UIElement::new(scene_path, &format!("{}.scene_{}", row.reference.clone(), id), ElemType::Button(Some(Box::new(
+        let scene_name = scene_path.split("/").last().unwrap_or_default();
+        let mut btn_scene = UIElement::new(scene_name, &format!("{}.scene_{}", row.reference.clone(), id), ElemType::Button(Some(Box::new(
             move |element, context, ui| {
                 if context.active_scene.is_none() || context.active_scene.unwrap() != id {
                     change_scene(context, ui, Some(id), element);
@@ -198,9 +199,9 @@ pub fn setup_scene_toolbar(ui: &mut UI, _context: &UIContext) {
     row.style_mut().margin = 0;
     let mut btn_open_scene = UIElement::new("New scene", "open_scene", ElemType::Button(Some(Box::new(
         move |_, _, ui| {
-            let file_box = get_file_box(format!("{}/", SCENE_FOLDER), "open_scene_box".to_string(), Box::new(move |_, value, context, ui| {
+            let file_box = get_file_box(SCENE_FOLDER.to_string(), "open_scene_box".to_string(), Box::new(move |_, value, context, ui| {
                 if let Value::Text(scene_path) = value {
-                    load_scene(format!("{}/{}", SCENE_FOLDER, scene_path).as_str(), context, ui);
+                    load_scene(scene_path.as_str(), context, ui);
                 }
             }), ui.uisettings(), "".to_string());
             let box_reference = file_box.reference.clone();

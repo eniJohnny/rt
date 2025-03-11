@@ -171,7 +171,7 @@ pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<dyn Fn(Texture,
             if let ElemType::Property(property) = elem.get_elem_type() {
                 initial_value = property.value.to_string();
             }
-            let file_box = get_file_box("./textures/".to_string(), name.clone(), Box::new(move |_, value, _scene, ui| {
+            let file_box = get_file_box("textures".to_string(), name.clone(), Box::new(move |_, value, _scene, ui| {
                 let elem = ui.get_property_mut(&reference.clone()).unwrap();
                 elem.value = value;
             }), &settings.clone(), initial_value);
