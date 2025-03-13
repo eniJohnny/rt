@@ -13,7 +13,7 @@ use winit::{
     window::WindowBuilder,
 };
 use crate::{
-    error, parsing::get_scene, render::render_thread::UIOrder, ui::{ui::UI, ui_setup::scene_ui::{add_scene_to_ui, change_scene}, utils::ui_utils::UIContext}, DISPLAY_WIREFRAME, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32, SKYBOX_TEXTURE
+    error, parsing::get_scene, render::render_thread::UIOrder, ui::{ui::UI, ui_setup::scene_ui::{add_scene_to_ui, change_scene}, utils::ui_utils::UIContext}, DISPLAY_WIREFRAME, SCREEN_HEIGHT, SCREEN_HEIGHT_U32, SCREEN_WIDTH, SCREEN_WIDTH_U32
 };
 
 pub fn load_scene(scene_path: &str, context: &mut UIContext, ui: &mut UI) {
@@ -24,7 +24,6 @@ pub fn load_scene(scene_path: &str, context: &mut UIContext, ui: &mut UI) {
         return ;
     }
     let mut scene = scene.unwrap();
-    scene.load_texture(SKYBOX_TEXTURE, None);
     
     if DISPLAY_WIREFRAME {
         scene.add_wireframes();

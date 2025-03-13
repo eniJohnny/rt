@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use image::RgbaImage;
 
-use crate::model::{materials::texture::TexturePattern, maths::vec3::Vec3};
+use crate::{model::{materials::texture::TexturePattern, maths::vec3::Vec3}, TEXTURE_FOLDER};
 
 use super::{basic::{get_number, get_string, get_vec3}, json::JsonValue};
 
@@ -10,7 +10,7 @@ use super::{basic::{get_number, get_string, get_vec3}, json::JsonValue};
 
 pub fn get_texture(json_obj: &HashMap<String, JsonValue>) -> Result<(String, RgbaImage), String> {
     let pattern = get_string(&json_obj, "pattern", None)?;
-    let name = get_string(&json_obj, "name", None)?;
+    let name = format!("{}/{}", TEXTURE_FOLDER, get_string(&json_obj, "name", None)?);
     let res_x = get_number(&json_obj, "res_x", Some(0.), None, Some(500.))? as u32;
     let res_y = get_number(&json_obj, "res_y", Some(0.), None, Some(500.))? as u32;
     let img = match pattern.as_str() {

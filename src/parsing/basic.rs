@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::model::{materials::{color::Color, texture::{Texture, TextureType}}, maths::vec3::Vec3};
+use crate::{model::{materials::{color::Color, texture::{Texture, TextureType}}, maths::vec3::Vec3}, TEXTURE_FOLDER};
 use super::json::JsonValue;
 
 pub fn get_vec3(object: &HashMap<String, JsonValue>, key: &str, min: Option<f64>, max: Option<f64>, default: Option<Vec3>) -> Result<Vec3, String> {
@@ -79,7 +79,7 @@ pub fn get_color_texture(json_color: &HashMap<String, JsonValue>) -> Result<Text
     if let Some(json_color) = json_color.get("color") {
         match json_color {
             JsonValue::String(color_texture_path) => {
-                return Ok(Texture::Texture(color_texture_path.clone(), TextureType::Color))
+                return Ok(Texture::Texture(format!("{}/{}", TEXTURE_FOLDER, color_texture_path), TextureType::Color))
             }
             JsonValue::Array(color) => {
                 if color.len() != 3 {
@@ -108,7 +108,7 @@ pub fn get_vec1_texture(json_texture: &HashMap<String, JsonValue>, key: &str, mi
     if let Some(json_texture) = json_texture.get(key) {
         match json_texture {
             JsonValue::String(texture_path) => {
-                return Ok(Texture::Texture(texture_path.clone(), TextureType::Float))
+                return Ok(Texture::Texture(format!("{}/{}", TEXTURE_FOLDER, texture_path), TextureType::Float))
             }
             JsonValue::Number(value) => {
                 if let Some(min) = min {
@@ -135,7 +135,7 @@ pub fn get_normal_texture(json_texture: &HashMap<String, JsonValue>) -> Result<T
     if let Some(json_texture) = json_texture.get("normal") {
         match json_texture {
             JsonValue::String(texture_path) => {
-                return Ok(Texture::Texture(texture_path.clone(), TextureType::Vector))
+                return Ok(Texture::Texture(format!("{}/{}", TEXTURE_FOLDER, texture_path), TextureType::Vector))
             }
             _ => {
                 return Err("The normal of an object must be a file path".to_string());
@@ -149,7 +149,7 @@ pub fn get_opacity_texture(json_texture: &HashMap<String, JsonValue>) -> Result<
     if let Some(json_texture) = json_texture.get("opacity") {
         match json_texture {
             JsonValue::String(texture_path) => {
-                return Ok(Texture::Texture(texture_path.clone(), TextureType::Float))
+                return Ok(Texture::Texture(format!("{}/{}", TEXTURE_FOLDER, texture_path), TextureType::Float))
             }
             JsonValue::Number(value) => {
                 if *value < 0. {
@@ -172,7 +172,7 @@ pub fn get_displacement_texture(json_texture: &HashMap<String, JsonValue>) -> Re
     if let Some(json_texture) = json_texture.get("displacement") {
         match json_texture {
             JsonValue::String(texture_path) => {
-                return Ok(Texture::Texture(texture_path.clone(), TextureType::Float))
+                return Ok(Texture::Texture(format!("{}/{}", TEXTURE_FOLDER, texture_path), TextureType::Float))
             }
             JsonValue::Number(value) => {
                 if *value < 0. {

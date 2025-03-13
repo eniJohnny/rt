@@ -41,7 +41,7 @@
         "color": [0, 0, 0],
         "radius": 2.0,
         "normal": "BumpSine",
-        "roughness": "bricks_roughness.jpg",
+        "roughness": "bricks/bricks_roughness.jpg",
         "u_scale": 50,
         "v_scale": 50
     },
@@ -49,29 +49,29 @@
         "type": "sphere",
         "pos": [2.5, 2.5, 2],
         "dir": [0, 1, 0],
-        "color": "wood_color.jpg",
+        "color": "wood/wood_color.jpg",
         "radius": 2.0,
-        "normal": "wood_normal.jpg",
-        "roughness": "wood_roughness.jpg"
+        "normal": "wood/wood_normal.jpg",
+        "roughness": "wood/wood_roughness.jpg"
     },
     {
         "type": "sphere",
         "pos": [-2, -2, 0],
         "dir": [0, 1, 0],
-        "color": "plates_color.jpg",
+        "color": "plates/plates_color.jpg",
         "radius": 1.5,
-        "normal": "plates_normal.jpg",
-        "roughness": "plates_roughness.jpg",
-        "metalness": "plates_metal.jpg"
+        "normal": "plates/plates_normal.jpg",
+        "roughness": "plates/plates_roughness.jpg",
+        "metalness": "plates/plates_metal.jpg"
     },
     {
         "type": "sphere",
         "pos": [2, -2, 0],
         "dir": [0, 1, 0],
         "radius": 1.5,
-        "color": "Bricks_gray_Color.jpg",
-        "roughness": "Bricks_gray_Roughness.jpg",
-        "normal": "Bricks_gray_Normal.jpg"
+        "color": "Bricks_gray/Bricks_gray_Color.jpg",
+        "roughness": "Bricks_gray/Bricks_gray_Roughness.jpg",
+        "normal": "Bricks_gray/Bricks_gray_Normal.jpg"
     },
     {
         "type": "rectangle",
@@ -127,9 +127,9 @@
     //     "dir": [0, 1, 0],
     //     "rotation": 180,
     //     "file": "obj/knight.obj",
-    //     "color": "plates_color.jpg",
-    //     "normal": "plates_normal.jpg",
-    //     "roughness": "plates_roughness.jpg",
-    //     "metalness": "plates_metal.jpg"
+    //     "color": "plates/plates_color.jpg",
+    //     "normal": "plates/plates_normal.jpg",
+    //     "roughness": "plates/plates_roughness.jpg",
+    //     "metalness": "plates/plates_metal.jpg"
     // }
 ]

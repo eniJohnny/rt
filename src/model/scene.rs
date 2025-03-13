@@ -203,15 +203,11 @@ impl Scene {
         if name == "" {
             return;
         }
-        if name.contains("..") {
-            panic!("Textures should only be stored in the textures folder.");
-        }
         if !self.textures.contains_key(name) {
-            let path_str = String::from("./textures/") + name;
             let img = match opt_img {
                 Some(img) => img,
                 None => {
-                    match image::open(&path_str) {
+                    match image::open(&name) {
                         Ok(img) => img.to_rgba8(),
                         Err(_) => panic!("Error opening texture file {}", name),
                     }

@@ -3,7 +3,7 @@
 	[
 		{
 			"type": "skybox",
-			"color": "./skybox_night.jpg"
+			"color": "skybox/skybox_night.jpg"
 		},
 		{
 			"type": "camera",
