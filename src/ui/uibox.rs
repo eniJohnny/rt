@@ -30,7 +30,7 @@ impl UIBox {
             relative_pos: pos,
             absolute_pos: (0, 0),
             size: (width, 0),
-            max_height: SCREEN_HEIGHT_U32,
+            max_height: SCREEN_HEIGHT_U32 - 100,
             style: Style::uibox(settings),
             elems: vec![],
             reference: reference.to_string(),
@@ -167,7 +167,11 @@ impl UIBox {
                     disabled: matches!(elem.elem_type, ElemType::Row(_)),
                     visible: true
                 };
-                available_height = size.1 + self.offset - current_offset;
+                if current_offset > size.1 + self.offset {
+                    available_height = 0;
+                } else {
+                    available_height = size.1 + self.offset - current_offset;
+                }
                 let needed_height = (hitbox.pos.1 + hitbox.size.1 as i32 + self.offset as i32) as u32;
                 elem.hitbox = Some(hitbox.clone());
                 let vec = elem.generate_hitbox(ui, context, available_height as i32);
@@ -194,7 +198,7 @@ impl UIBox {
                         hitbox.disabled = true;
                         hitbox.visible = false;
                         self.scrollable = true;
-                    } else {
+                    } else if !hitbox.disabled{
                         hitbox_list.push(hitbox);
                         if needed_height > current_offset {
                             current_offset = needed_height;
@@ -204,6 +208,16 @@ impl UIBox {
             }
             // We insert the element back into the ui
             self.elems.insert(i, elem);
+        }
+        let needed_height = current_offset - self.offset;
+        if needed_height < size.1 && self.offset > 0 {
+            let to_scroll_up = size.1 - needed_height;
+            if to_scroll_up > self.offset {
+                self.offset = 0;
+            } else {
+                self.offset -= to_scroll_up;
+            }
+            return self.generate_hitboxes(ui, context, settings);
         }
         let total_height = size.1.min(current_offset - self.offset);
         //We now have the true size of the box
