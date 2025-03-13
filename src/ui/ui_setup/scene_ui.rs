@@ -1,5 +1,5 @@
 use image::Rgba;
-use crate::{display::{mainloop::load_scene, ui_setup::{setup_obejcts_ui, setup_settings}}, render::render_thread::UIOrder, ui::{prefabs::file_ui::get_file_box, ui::UI, uibox::{BoxPosition, UIBox}, uielement::UIElement, uisettings::UISettings, utils::{misc::{ElemType, Value}, style::{Style, StyleBuilder}, ui_utils::UIContext}}, ELEMENT, OBJECTS, SCENE_FOLDER, SCENE_TOOLBAR, SCREEN_WIDTH_U32, SETTINGS, TOOLBAR};
+use crate::{display::{mainloop::load_scene, ui_setup::{setup_objects_ui, setup_settings}}, render::render_thread::UIOrder, ui::{prefabs::file_ui::get_file_box, ui::UI, uibox::{BoxPosition, UIBox}, uielement::UIElement, uisettings::UISettings, utils::{misc::{ElemType, Value}, style::{Style, StyleBuilder}, ui_utils::UIContext}}, ELEMENT, OBJECTS, SCENE_FOLDER, SCENE_TOOLBAR, SCREEN_WIDTH_U32, SETTINGS, TOOLBAR};
 
 
 pub fn change_scene(context: &mut UIContext, ui: &mut UI, render_id: Option<usize>, element: Option<&mut UIElement>) {
@@ -126,7 +126,7 @@ pub fn setup_scene_options(ui: &mut UI, context: &UIContext, render_id: usize) {
                         );
                     }
 
-                    setup_obejcts_ui(ui, scene);
+                    setup_objects_ui(ui, scene);
                     elem.set_style(StyleBuilder::from_existing(&elem.style, ui.uisettings())
                         .bg_color(Some(Rgba([100, 100, 100, 255])))
                         .build()

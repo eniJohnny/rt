@@ -77,10 +77,11 @@ impl UIEditBar {
         let mut offset_y = 0;
         if let Some(str) = &self.text.0 {
             let hitbox = HitBox {
-                pos,
+                pos: (pos.0 as i32, pos.1 as i32),
                 size: get_size(str, &self.text.1, size),
                 reference: self.reference.clone() + "." + TXT_MESSAGE,
                 disabled: false,
+                visible: true
             };
             offset_y += hitbox.size.1;
             self.text.2 = Some(hitbox.clone());
@@ -92,16 +93,18 @@ impl UIEditBar {
         let mid_point = pos.0 + size.0 / 2;
 
         let apply_hitbox = HitBox {
-            pos: (mid_point - 20 - apply_size.0, pos.1 + offset_y),
+            pos: (mid_point as i32 - 20 - apply_size.0 as i32, pos.1 as i32 + offset_y as i32),
             size: apply_size,
             reference: self.reference.clone() + "." + BTN_APPLY,
             disabled: false,
+            visible: true
         };
         let cancel_hitbox = HitBox {
-            pos: (mid_point + 20, pos.1 + offset_y),
+            pos: (mid_point as i32 + 20, pos.1 as i32 + offset_y as i32),
             size: cancel_size,
             reference: self.reference.clone() + "." + BTN_CANCEL,
             disabled: false,
+            visible: true
         };
         self.apply.2 = Some(apply_hitbox.clone());
         self.cancel.2 = Some(cancel_hitbox.clone());
@@ -113,16 +116,16 @@ impl UIEditBar {
 
     pub fn translate_hitboxes (&mut self, absolute_pos: (u32, u32)) {
         if let Some(hitbox) = &mut self.apply.2 {
-            hitbox.pos.0 += absolute_pos.0;
-            hitbox.pos.1 += absolute_pos.1;
+            hitbox.pos.0 += absolute_pos.0 as i32;
+            hitbox.pos.1 += absolute_pos.1 as i32;
         }
         if let Some(hitbox) = &mut self.cancel.2 {
-            hitbox.pos.0 += absolute_pos.0;
-            hitbox.pos.1 += absolute_pos.1;
+            hitbox.pos.0 += absolute_pos.0 as i32;
+            hitbox.pos.1 += absolute_pos.1 as i32;
         }
         if let Some(hitbox) = &mut self.text.2 {
-            hitbox.pos.0 += absolute_pos.0;
-            hitbox.pos.1 += absolute_pos.1;
+            hitbox.pos.0 += absolute_pos.0 as i32;
+            hitbox.pos.1 += absolute_pos.1 as i32;
         }
     }
 
@@ -139,7 +142,7 @@ impl UIEditBar {
                     draw_element_text(
                         img,
                         line,
-                        (hitbox.pos.0, hitbox.pos.1 + offset_y),
+                        (hitbox.pos.0, hitbox.pos.1 + offset_y as i32),
                         size,
                         format,
                     );

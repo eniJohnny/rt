@@ -1,4 +1,4 @@
-use crate::ui::uisettings::UISettings;
+use crate::{ui::uisettings::UISettings, SCROLL_PIXEL_AMOUNT};
 use winit::keyboard::Key;
 use std::
     collections::HashMap
@@ -304,6 +304,27 @@ impl UI {
     }
 }
 
+pub fn ui_scrolled(pos: (u32, u32), scroll:f32, _context: &mut UIContext, ui: &mut UI) {
+    if let Some(active_box) = ui.active_box_mut() {
+        if !is_inside_box(pos, active_box.absolute_pos, active_box.size) {
+            return;
+        }
+        if (scroll < 0. && active_box.offset > 0) || active_box.scrollable {
+            active_box.offset += (scroll * SCROLL_PIXEL_AMOUNT as f32) as u32;
+            ui.set_dirty();
+        }
+    }
+    for (_, uibox) in &mut ui.boxes {
+        if is_inside_box(pos, uibox.absolute_pos, uibox.size) {
+            if (scroll < 0. && uibox.offset > 0) || uibox.scrollable {
+                uibox.offset = (uibox.offset as f32 + scroll * SCROLL_PIXEL_AMOUNT as f32) as u32;
+                ui.set_dirty();
+            }
+            return;
+        }
+    }
+}
+
 pub fn ui_clicked(click: (u32, u32), context: &mut UIContext, ui: &mut UI) -> bool {
     let hitbox_list = ui.hitbox_vec.split_off(0);
     let mut active_box_ref: String = "".to_string();
@@ -316,7 +337,7 @@ pub fn ui_clicked(click: (u32, u32), context: &mut UIContext, ui: &mut UI) -> bo
     for hitbox in hitbox_list {
         if !hitbox.disabled
             && hitbox.reference.starts_with(&active_box_ref)
-            && is_inside_box(click, hitbox.pos, hitbox.size)
+            && is_inside_box(click, (hitbox.pos.0 as u32, hitbox.pos.1 as u32), hitbox.size)
         {
             if hitbox.reference.ends_with("btnApply") || hitbox.reference.ends_with("btnCancel") {
                 let box_ref = get_parent_ref(hitbox.reference.clone());

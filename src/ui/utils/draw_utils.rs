@@ -6,10 +6,11 @@ use rusttype::{Font, Scale};
 pub fn draw_element_text(
     img: &mut RgbaImage,
     text: String,
-    pos: (u32, u32),
+    pos: (i32, i32),
     size: (u32, u32),
     style: &Style,
 ) {
+    let pos = (pos.0 as u32, pos.1 as u32);
     draw_background(img, pos, size, style);
 
     let mut padding_left = style.padding_left;
@@ -92,11 +93,12 @@ fn is_corner(
 
 pub fn draw_checkbox(
     img: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>,
-    pos: (u32, u32),
+    pos: (i32, i32),
     size: (u32, u32),
     value: bool,
     style: &Style,
 ) {
+    let pos = (pos.0 as u32, pos.1 as u32);
     let checkbox_size = (18, 18);
     let height = size.1;
     if size.1 == 0 {
@@ -197,8 +199,8 @@ pub fn is_inside_box(to_check: (u32, u32), box_pos: (u32, u32), box_size: (u32, 
 pub fn get_needed_height(hitbox_vec: &Vec<HitBox>) -> u32 {
     let mut max_needed_height = 0;
     for hitbox in hitbox_vec {
-        if !hitbox.disabled {
-            let needed_height = hitbox.pos.1 + hitbox.size.1;
+        if !hitbox.disabled && hitbox.visible{
+            let needed_height = hitbox.pos.1 as u32 + hitbox.size.1;
             if needed_height > max_needed_height {
                 max_needed_height = needed_height;
             }

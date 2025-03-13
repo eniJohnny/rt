@@ -2,7 +2,7 @@ use std::sync::{Arc, RwLock};
 use crate::{
     model::{element::Element, materials::texture::Texture, scene::Scene}, render::common::start_threads, ui::{
         prefabs::{material_ui::get_material_ui, texture_ui::get_texture_ui}, ui::UI, ui_setup::scene_ui::setup_scene_toolbar, uibox::{BoxPosition, UIBox}, uielement::{Category, UIElement}, utils::{misc::ElemType, ui_utils::UIContext, Displayable}
-    }, ELEMENT, OBJECTS, SETTINGS
+    }, ELEMENT, OBJECTS, SCREEN_HEIGHT_U32, SETTINGS
     };
 
 pub fn setup_settings(ui: &mut UI, context: &mut UIContext) {
@@ -16,12 +16,13 @@ pub fn setup_settings(ui: &mut UI, context: &mut UIContext) {
     ui.add_box(settings_box);
 }
 
-pub fn setup_obejcts_ui(ui: &mut UI, context: &mut UIContext) {
+pub fn setup_objects_ui(ui: &mut UI, context: &mut UIContext) {
     let scene = match context.active_scene {
         Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
         None => return,
     };
     let mut objects_box = UIBox::new(OBJECTS, BoxPosition::CenterLeft(10), ui.uisettings().gui_width, ui.uisettings());
+    objects_box.max_height = SCREEN_HEIGHT_U32 - 100;
     let mut ui_elements = vec![];
     
     ui_elements.push(scene.read().unwrap().camera().get_ui(ui));
@@ -97,86 +98,3 @@ pub fn setup_element_ui(element: &Element, ui: &mut UI, scene: &Arc<RwLock<Scene
     })));
     ui.add_box(elem_box);
 }
-
-// pub fn setup_toolbar(ui: &mut UI, _context: &UIContext) {
-//     let exclusive_uis = [SETTINGS, UISETTINGS];
-
-//     let mut toolbar_box = UIBox::new(TOOLBAR, BoxPosition::TopLeft(0, 0), SCREEN_WIDTH_U32, ui.uisettings());
-//     let toolbar_style =StyleBuilder::from_existing(&toolbar_box.style, ui.uisettings())
-//         .bg_color(None)
-//         .border_size(0)
-//         .build();
-//     toolbar_box.set_style(toolbar_style);
-//     let mut row = UIElement::new("", "row", ElemType::Row(vec![]), ui.uisettings());
-//     row.style_mut().bg_color = None;
-
-    // let btn_uisettings = UIElement::new("UI Settings", UISETTINGS, ElemType::Button(Some(Box::new(
-    //     move |elem, context, ui| {
-    //         if let Some(elem) = elem {
-    //             if let Some(_) = ui.get_box(UISETTINGS) {
-    //                 ui.destroy_box(UISETTINGS);
-    //                 elem.set_style(StyleBuilder::from_existing(&elem.style, ui.uisettings())
-    //                     .bg_color(Some(Rgba([200, 200, 200, 255])))
-    //                     .build()
-    //                 );
-    //             } else {
-    //                 for uibox_ref in exclusive_uis.clone() {
-    //                     if let Some(_) = ui.get_box(uibox_ref) {
-    //                         ui.destroy_box(uibox_ref);
-    //                     }
-    //                 }
-    //                 setup_uisettings(ui, context);
-    //                 elem.set_style(StyleBuilder::from_existing(&elem.style, ui.uisettings())
-    //                     .bg_color(Some(Rgba([100, 100, 100, 255])))
-    //                     .build()
-    //                 );
-    //             }
-    //             if let Some(uibox) = ui.get_box_mut(TOOLBAR) {
-    //                 let row = uibox.elems.get_mut(0).unwrap();
-    //                 if let ElemType::Row(elems) = &mut row.elem_type {
-    //                     for elem in elems {
-    //                         elem.style_mut().bg_color = Some(Rgba([200, 200, 200, 255]));
-    //                     }
-    //                 }
-    //             }
-    //         }
-    // }))), ui.uisettings());
-
-	// let btn_scene_settings = UIElement::new("Scene Settings", SCENE_SETTINGS, ElemType::Button(Some(Box::new(
-	// 	move |elem, scene, ui| {
-    //         if let Some(elem) = elem {
-    //             if let Some(_) = ui.get_box(SCENE_SETTINGS) {
-    //                 ui.destroy_box(SCENE_SETTINGS);
-    //                 elem.set_style(StyleBuilder::from_existing(&elem.style, ui.uisettings())
-    //                     .bg_color(Some(Rgba([200, 200, 200, 255])))
-    //                     .build()
-    //                 );
-    //             } else {
-    //                 for uibox_ref in exclusive_uis.clone() {
-    //                     if let Some(_) = ui.get_box(uibox_ref) {
-    //                         ui.destroy_box(uibox_ref);
-    //                     }
-    //                 }
-	// 				setup_scene_settings(ui, scene);
-	// 				elem.set_style(StyleBuilder::from_existing(&elem.style, ui.uisettings())
-    //                     .bg_color(Some(Rgba([100, 100, 100, 255])))
-    //                     .build()
-    //                 );
-    //             }
-    //             if let Some(uibox) = ui.get_box_mut(TOOLBAR) {
-    //                 let row = uibox.elems.get_mut(0).unwrap();
-    //                 if let ElemType::Row(elems) = &mut row.elem_type {
-    //                     for elem in elems {
-    //                         elem.style_mut().bg_color = Some(Rgba([200, 200, 200, 255]));
-    //                     }
-    //                 }
-    //             }
-	// 		}
-	// 	}
-	// ))), ui.uisettings());
-
-
-//     row.add_element(btn_uisettings);
-//     toolbar_box.add_elements(vec![row]);
-//     ui.add_box(toolbar_box);
-// }

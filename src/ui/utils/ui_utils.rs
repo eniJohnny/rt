@@ -65,17 +65,17 @@ impl UIContext {
     }
 }
 
-pub fn get_pos(parent_pos: (u32, u32), offset_pos: (u32, u32), indent: u32) -> (u32, u32) {
+pub fn get_pos(parent_pos: (i32, i32), offset_pos: (u32, u32), indent: u32) -> (i32, i32) {
     (
-        parent_pos.0 + offset_pos.0 + indent,
-        parent_pos.1 + offset_pos.1,
+        parent_pos.0 + offset_pos.0  as i32 + indent  as i32,
+        parent_pos.1 + offset_pos.1  as i32,
     )
 }
 
 pub fn translate_hitboxes(hitbox_vec: &mut Vec<HitBox>, offset_x: u32, offset_y: u32) {
     for hitbox in hitbox_vec {
-        hitbox.pos.0 += offset_x;
-        hitbox.pos.1 += offset_y;
+        hitbox.pos.0 += offset_x  as i32;
+        hitbox.pos.1 += offset_y  as i32;
     }
 }
 
