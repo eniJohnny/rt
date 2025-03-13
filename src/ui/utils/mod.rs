@@ -11,16 +11,17 @@ pub mod ui_utils;
 
 pub struct HitBox {
     pub reference: String,
-    pub pos: (u32, u32),
+    pub pos: (i32, i32),
     pub size: (u32, u32),
     pub disabled: bool,
+    pub visible: bool
 }
 
 impl HitBox {
-    pub fn x(&self) -> u32 {
+    pub fn x(&self) -> i32 {
         self.pos.0
     }
-    pub fn y(&self) -> u32 {
+    pub fn y(&self) -> i32 {
         self.pos.1
     }
     pub fn width(&self) -> u32 {

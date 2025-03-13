@@ -14,7 +14,9 @@ pub struct UIBox {
     pub relative_pos: BoxPosition,
     pub absolute_pos: (u32, u32),
     pub size: (u32, u32),
+    pub offset: u32,
     pub max_height: u32,
+    pub scrollable: bool,
     // pub borders: Option<(Color, usize)>,
     pub elems: Vec<UIElement>,
     pub reference: String,
@@ -28,11 +30,13 @@ impl UIBox {
             relative_pos: pos,
             absolute_pos: (0, 0),
             size: (width, 0),
-            max_height: SCREEN_HEIGHT_U32,
+            max_height: SCREEN_HEIGHT_U32 - 100,
             style: Style::uibox(settings),
             elems: vec![],
             reference: reference.to_string(),
             edit_bar: None,
+            offset: 0,
+            scrollable: false
         }
     }
 
@@ -124,15 +128,16 @@ impl UIBox {
         context: &UIContext,
         settings: &UISettings,
     ) -> Vec<HitBox> {
+        self.scrollable = false;
         let mut edit_bar_hitbox_list = vec![];
         let mut hitbox_list = vec![];
         let mut edit_bar_height = 0;
-        let pos = (self.style.border_left, self.style.border_top);
+        let pos = (self.style.border_left as i32, self.style.border_top as i32);
         let mut size = (self.size.0 - self.style.border_left - self.style.border_right, self.max_height - self.style.border_top - self.style.border_bot);
         // We process the edit bar first
         if let Some(mut edit_bar) = self.edit_bar.take() {
             edit_bar_hitbox_list = 
-                edit_bar.generate_hitboxes(pos, settings, size);
+                edit_bar.generate_hitboxes((pos.0 as u32, pos.1 as u32), settings, size);
             edit_bar_height = get_needed_height(&edit_bar_hitbox_list);
             self.edit_bar = Some(edit_bar);
             if edit_bar_height > self.max_height {
@@ -140,51 +145,86 @@ impl UIBox {
                 return vec![];
             }
         }
-        let mut fields_height = 0;
         // We always show the edit_bar if present, it's the fields we truncate if needed
         size.1 -= edit_bar_height;
+        let mut available_height;
+        let mut current_offset = 0;
+        
         // We first calculate the positions from position 0,0, we will translate all of the hitboxes later. We need the height to accurately position the box in most cases.
         for i in 0..self.elems.len() {
             // To avoid mutable borrows problems and be able to provide a mutable UI to the needed functions, we take the element out of the UI.
             let mut elem = self.elems.remove(i);
             if elem.style.visible {
-                let hitbox = HitBox {
-                    pos: (pos.0, pos.1 + fields_height + settings.margin),
-                    size: get_size(
-                        &elem.text,
-                        &elem.style,
-                        (size.0, size.1 - fields_height),
-                    ),
+                let hitbox_size = get_size(
+                    &elem.text,
+                    &elem.style,
+                    (size.0, size.1),
+                );
+                let mut hitbox = HitBox {
+                    pos: (pos.0, pos.1 + current_offset as i32 - self.offset as i32 + settings.margin as i32),
+                    size: hitbox_size,
                     reference: elem.reference.clone(),
                     disabled: matches!(elem.elem_type, ElemType::Row(_)),
+                    visible: true
                 };
-                elem.hitbox = Some(hitbox.clone());
-                let vec = elem.generate_hitbox(ui, context, size.1 - fields_height);
-                let needed_height = (hitbox.pos.1 + hitbox.size.1 + settings.margin).max(get_needed_height(&vec));
-                if needed_height >= size.1 {
-                    break;
+                if current_offset > size.1 + self.offset {
+                    available_height = 0;
+                } else {
+                    available_height = size.1 + self.offset - current_offset;
                 }
-                if needed_height > fields_height {
-                    fields_height = needed_height;
+                let needed_height = (hitbox.pos.1 + hitbox.size.1 as i32 + self.offset as i32) as u32;
+                elem.hitbox = Some(hitbox.clone());
+                let vec = elem.generate_hitbox(ui, context, available_height as i32);
+                if hitbox.pos.1 < self.style.border_top as i32 || hitbox.pos.1 as u32 + hitbox.size.1 > size.1 {
+                    hitbox.disabled = true;
+                    hitbox.visible = false;
+                    elem.hitbox = Some(hitbox.clone());
+                }
+                if needed_height > current_offset {
+                    current_offset = needed_height;
                 }
                 hitbox_list.push(hitbox);
-
-                for hitbox in vec {
-                    let needed_height = hitbox.pos.1 + hitbox.size.1 + settings.margin - pos.1;
-                    if needed_height > fields_height {
-                        fields_height = needed_height;
+                
+                for mut hitbox in vec {
+                    let needed_height = (hitbox.pos.1 + hitbox.size.1 as i32 + self.offset as i32) as u32;
+                    if hitbox.pos.1 < 0 {
+                        hitbox.disabled = true;
+                        hitbox.visible = false;
+                        if needed_height > current_offset {
+                            current_offset = needed_height;
+                        }
+                    } else if hitbox.pos.1 as u32 + hitbox.size.1 > size.1 {
+                        current_offset = size.1 + self.offset;
+                        hitbox.disabled = true;
+                        hitbox.visible = false;
+                        self.scrollable = true;
+                    } else if !hitbox.disabled{
+                        hitbox_list.push(hitbox);
+                        if needed_height > current_offset {
+                            current_offset = needed_height;
+                        }
                     }
-                    hitbox_list.push(hitbox)
                 }
             }
             // We insert the element back into the ui
             self.elems.insert(i, elem);
         }
+        let needed_height = current_offset - self.offset;
+        if needed_height < size.1 && self.offset > 0 {
+            let to_scroll_up = size.1 - needed_height;
+            if to_scroll_up > self.offset {
+                self.offset = 0;
+            } else {
+                self.offset -= to_scroll_up;
+            }
+            return self.generate_hitboxes(ui, context, settings);
+        }
+        let total_height = size.1.min(current_offset - self.offset);
         //We now have the true size of the box
         translate_hitboxes(&mut hitbox_list, self.absolute_pos.0, self.absolute_pos.1);
-        translate_hitboxes(&mut edit_bar_hitbox_list, self.absolute_pos.0, self.absolute_pos.1 + fields_height);
+        translate_hitboxes(&mut edit_bar_hitbox_list, self.absolute_pos.0, self.absolute_pos.1 + total_height);
         hitbox_list.append(&mut edit_bar_hitbox_list);
-        self.translate_hitboxes_to_relative_position(fields_height, edit_bar_height, settings);
+        self.translate_hitboxes_to_relative_position(current_offset - self.offset, edit_bar_height, settings);
         hitbox_list
     }
 
