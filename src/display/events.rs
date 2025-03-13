@@ -28,7 +28,7 @@ pub fn handle_event(
         }
         WindowEvent::MouseWheel { delta, .. } => {
             if let MouseScrollDelta::LineDelta(_, y) = delta {
-                ui_scrolled(ui.mouse_position(), y, context, ui);
+                ui_scrolled(ui.mouse_position(), -y, context, ui);
             }
         }
         WindowEvent::MouseInput { state, .. } => {
