@@ -31,7 +31,7 @@ impl AmbientLight {
     pub fn get_ui(&self, ui: &mut UI, _: &Arc<RwLock<Scene>>) -> UIElement {
         let mut ambient_category = UIElement::new("Ambient light", "ambient", ElemType::Category(Category::collapsed()), ui.uisettings());
 
-        ambient_category.add_element(get_vector_ui(self.color.to_vec3(), "Color", "ambient.color", ui.uisettings(), 
+        ambient_category.add_element(get_vector_ui(self.color.to_vec3(), "Color", "color", ui.uisettings(), 
         Box::new(move |_, value, context, _| {
             if let Some(scene) = context.get_active_scene() {
                 let mut scene = scene.write().unwrap();

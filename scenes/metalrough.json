@@ -3,19 +3,19 @@
         "type": "sphere",
         "pos": [-2.5, 2.5, 2],
         "dir": [0, 1, 0],
-        "color": "bricks_color.jpg",
+        "color": "bricks/bricks_color.jpg",
         "radius": 2.0,
-        "normal": "bricks_normal.jpg",
-        "roughness": "bricks_roughness.jpg"
+        "normal": "bricks/bricks_normal.jpg",
+        "roughness": "bricks/bricks_roughness.jpg"
     },
     {
         "type": "sphere",
         "pos": [2.5, 2.5, 2],
         "dir": [0, 1, 0],
-        "color": "wood_color.jpg",
+        "color": "wood/wood_color.jpg",
         "radius": 2.0,
-        "normal": "wood_normal.jpg",
-        "roughness": "wood_roughness.jpg"
+        "normal": "wood/wood_normal.jpg",
+        "roughness": "wood/wood_roughness.jpg"
     },
     {
         "type": "sphere",
@@ -42,20 +42,20 @@
         "type": "sphere",
         "pos": [-2, -2, 0],
         "dir": [0, 1, 0],
-        "color": "plates_color.jpg",
+        "color": "plates/plates_color.jpg",
         "radius": 1.5,
-        "normal": "plates_normal.jpg",
-        "roughness": "plates_roughness.jpg",
-        "metalness": "plates_metal.jpg"
+        "normal": "plates/plates_normal.jpg",
+        "roughness": "plates/plates_roughness.jpg",
+        "metalness": "plates/plates_metal.jpg"
     },
     {
         "type": "sphere",
         "pos": [2, -2, 0],
         "dir": [0, 1, 0],
         "radius": 1.5,
-        "color": "Bricks_gray_Color.jpg",
-        "roughness": "Bricks_gray_Roughness.jpg",
-        "normal": "Bricks_gray_Normal.jpg"
+        "color": "Bricks_gray/Bricks_gray_Color.jpg",
+        "roughness": "Bricks_gray/Bricks_gray_Roughness.jpg",
+        "normal": "Bricks_gray/Bricks_gray_Normal.jpg"
     },
     {
         "type": "camera",
@@ -70,10 +70,10 @@
         "dir_w": [0, 0, 1],
         "length": 10,
         "width": 30,
-        "color": "Bricks_gray_Color.jpg",
-        "roughness": "Bricks_gray_Roughness.jpg",
-        "normal": "Bricks_gray_Normal.jpg",
-        "displacement": "Bricks_gray_Displacement.jpg"
+        "color": "Bricks_gray/Bricks_gray_Color.jpg",
+        "roughness": "Bricks_gray/Bricks_gray_Roughness.jpg",
+        "normal": "Bricks_gray/Bricks_gray_Normal.jpg",
+        "displacement": "Bricks_gray/Bricks_gray_Displacement.jpg"
     },
     {
         "type": "rectangle",
@@ -82,10 +82,10 @@
         "dir_w": [0, 0, 1],
         "length": 10,
         "width": 30,
-        "color": "Bricks_gray_Color.jpg",
-        "roughness": "Bricks_gray_Roughness.jpg",
-        "normal": "Bricks_gray_Normal.jpg",
-        "displacement": "Bricks_gray_Displacement.jpg"
+        "color": "Bricks_gray/Bricks_gray_Color.jpg",
+        "roughness": "Bricks_gray/Bricks_gray_Roughness.jpg",
+        "normal": "Bricks_gray/Bricks_gray_Normal.jpg",
+        "displacement": "Bricks_gray/Bricks_gray_Displacement.jpg"
     },
     {
         "type": "rectangle",
@@ -94,9 +94,9 @@
         "dir_w": [0, 0, 1],
         "length": 10,
         "width": 30,
-        "color": "bricks_color.jpg",
-        "roughness": "bricks_roughness.jpg",
-        "normal": "bricks_normal.jpg"
+        "color": "bricks/bricks_color.jpg",
+        "roughness": "bricks/bricks_roughness.jpg",
+        "normal": "bricks/bricks_normal.jpg"
     },
     {
         "type": "rectangle",
@@ -116,9 +116,9 @@
         "dir_w": [0, 1, 0],
         "length": 10,
         "width": 10,
-        "color": "bricks_color.jpg",
-        "roughness": "bricks_roughness.jpg",
-        "normal": "bricks_normal.jpg"
+        "color": "bricks/bricks_color.jpg",
+        "roughness": "bricks/bricks_roughness.jpg",
+        "normal": "bricks/bricks_normal.jpg"
     },
     {
         "type": "rectangle",
@@ -127,9 +127,9 @@
         "dir_w": [0, 1, 0],
         "length": 10,
         "width": 10,
-        "color": "bricks_color.jpg",
-        "roughness": "bricks_roughness.jpg",
-        "normal": "bricks_normal.jpg"
+        "color": "bricks/bricks_color.jpg",
+        "roughness": "bricks/bricks_roughness.jpg",
+        "normal": "bricks/bricks_normal.jpg"
     },
     {
         "type": "rectangle",
@@ -138,12 +138,12 @@
         "dir_w": [0, 1, 0],
         "length": 10,
         "width": 10,
-        "color": "MetalWalkway007_1K-JPG_Color.jpg",
-        "normal": "MetalWalkway007_1K-JPG_Normal.jpg",
-        "roughness": "MetalWalkway007_1K-JPG_Roughness.jpg",
-        "metalness": "MetalWalkway007_1K-JPG_Metalness.jpg",
-        "opacity": "MetalWalkway007_1K-JPG_Opacity.jpg",
-        "displacement": "MetalWalkway007_1K-JPG_Displacement.jpg"
+        "color": "MetalWalkway007_1K-JPG/MetalWalkway007_1K-JPG_Color.jpg",
+        "normal": "MetalWalkway007_1K-JPG/MetalWalkway007_1K-JPG_Normal.jpg",
+        "roughness": "MetalWalkway007_1K-JPG/MetalWalkway007_1K-JPG_Roughness.jpg",
+        "metalness": "MetalWalkway007_1K-JPG/MetalWalkway007_1K-JPG_Metalness.jpg",
+        "opacity": "MetalWalkway007_1K-JPG/MetalWalkway007_1K-JPG_Opacity.jpg",
+        "displacement": "MetalWalkway007_1K-JPG/MetalWalkway007_1K-JPG_Displacement.jpg"
     },
     // {
     //     "type": "obj",

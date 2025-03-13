@@ -3,11 +3,11 @@
         "type": "sphere",
         "pos": [0, 0, -5],
         "dir": [0, 1, 0],
-        "color": "Bricks_gray_Color.jpg",
+        "color": "Bricks_gray/Bricks_gray_Color.jpg",
         "radius": 2.0,
-        "normal": "Bricks_gray_Normal.jpg",
-        "roughness": "Bricks_gray_Roughness.jpg",
-        "displacement": "Bricks_gray_Displacement.jpg",
+        "normal": "Bricks_gray/Bricks_gray_Normal.jpg",
+        "roughness": "Bricks_gray/Bricks_gray_Roughness.jpg",
+        "displacement": "Bricks_gray/Bricks_gray_Displacement.jpg",
         "metallness": 0.0
     },
     {
