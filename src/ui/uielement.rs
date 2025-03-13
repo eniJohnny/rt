@@ -308,11 +308,8 @@ impl UIElement {
         }
     }
 
-    pub fn generate_hitbox(&mut self, ui: &UI, context: &UIContext, max_height: u32) -> Vec<HitBox> {
+    pub fn generate_hitbox(&mut self, ui: &UI, context: &UIContext, max_height: i32) -> Vec<HitBox> {
         let mut vec = vec![];
-        if max_height == 0 {
-            return vec;
-        }
         let mut indent: u32 = 10;
         if let ElemType::Row(_vec) = &self.elem_type {
             indent = 0;
@@ -325,17 +322,18 @@ impl UIElement {
                     let mut offset_x = indent;
                     for elem in elems {
                         if elem.style.visible {
-                            let size = get_size(&elem.text, &elem.style, (available_width, max_height));
+                            let size = get_size(&elem.text, &elem.style, (available_width, max_height as u32));
                             let center = (available_width / 2, parent_hitbox.size.1 / 2);
                             let pos = (
-                                parent_hitbox.pos.0 + offset_x + center.0 - size.0 / 2,
-                                parent_hitbox.pos.1 + center.1 - size.1 / 2,
+                                parent_hitbox.pos.0 + offset_x as i32 + center.0 as i32 - size.0 as i32 / 2,
+                                parent_hitbox.pos.1 + center.1 as i32 - size.1 as i32 / 2,
                             );
                             let hitbox = HitBox {
                                 pos,
                                 size,
                                 reference: elem.reference.clone(),
                                 disabled: matches!(elem.elem_type, ElemType::Row(_)),
+                                visible: true
                             };
                             elem.hitbox = Some(hitbox.clone());
                             let hitbox_list = elem.generate_hitbox(ui, context, max_height);
@@ -359,41 +357,36 @@ impl UIElement {
                                 let size = get_size(&elem.text, &elem.style, parent_hitbox.size);
                                 let mut hitbox = HitBox {
                                     pos: get_pos(
-                                        (parent_hitbox.pos.0 + indent, parent_hitbox.pos.1 + offset_y),
+                                        (parent_hitbox.pos.0 + indent as i32, parent_hitbox.pos.1 + offset_y as i32),
                                         (0, 0),
                                         0,
                                     ),
                                     size: (size.0 - indent, size.1),
                                     reference: elem.reference.clone(),
                                     disabled: matches!(elem.elem_type, ElemType::Row(_)),
+                                    visible: true
                                 };
-                                if parent_hitbox.disabled || offset_y + size.1 > max_height {
+                                let mut needed_height =
+                                        hitbox.pos.1 + hitbox.size.1 as i32 - parent_hitbox.pos.1;
+                                elem.hitbox = Some(hitbox.clone());
+                                let hitbox_list = elem.generate_hitbox(ui, context, max_height - offset_y as i32);
+                                if hitbox.pos.1 < ui.uisettings().margin as i32 || needed_height > max_height {
                                     hitbox.disabled = true;
-                                    offset_y = max_height;
-                                } else {
+                                    hitbox.visible = false;
                                     elem.hitbox = Some(hitbox.clone());
-                                    let hitbox_list = elem.generate_hitbox(ui, context, max_height - offset_y);
-                                    let mut needed_height =
-                                        hitbox.pos.1 + hitbox.size.1 - parent_hitbox.pos.1;
-                                    if !hitbox.disabled {
-                                        needed_height += ui.uisettings().margin;
-                                        if needed_height > offset_y {
-                                            offset_y = needed_height;
-                                        }
+                                }
+                                needed_height += ui.uisettings().margin as i32;
+                                if needed_height > offset_y as i32 {
+                                    offset_y = needed_height as u32;
+                                }
+                                vec.push(hitbox);
+                                for hitbox in hitbox_list {
+                                    let needed_height =
+                                        hitbox.pos.1 + hitbox.size.1 as i32 + ui.uisettings().margin as i32 - parent_hitbox.pos.1;
+                                    if needed_height > offset_y as i32{
+                                        offset_y = needed_height as u32;
                                     }
-                                    if !hitbox.disabled {
-                                        vec.push(hitbox);
-                                    }
-                                    for hitbox in hitbox_list {
-                                        let needed_height =
-                                            hitbox.pos.1 + hitbox.size.1 + ui.uisettings().margin - parent_hitbox.pos.1;
-                                        if needed_height > offset_y {
-                                            offset_y = needed_height;
-                                        }
-                                        if !hitbox.disabled {
-                                            vec.push(hitbox);
-                                        }
-                                    }
+                                    vec.push(hitbox);
                                 }
                             }
                             cat.elems.insert(i, elem);
@@ -422,8 +415,8 @@ impl UIElement {
 
     pub fn translate_hitboxes(&mut self, absolute_pos: (u32, u32)) {
         if let Some(hitbox) = &mut self.hitbox {
-            hitbox.pos.0 += absolute_pos.0;
-            hitbox.pos.1 += absolute_pos.1;
+            hitbox.pos.0 += absolute_pos.0 as i32;
+            hitbox.pos.1 += absolute_pos.1 as i32;
         }
         if let ElemType::Category(cat) = &mut self.elem_type {
             for elem in &mut cat.elems {
@@ -447,10 +440,14 @@ impl UIElement {
                     }
                 }
                 ElemType::Button(..) => {
-                    draw_element_text(&mut context.ui_img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
+                    if hitbox.visible {
+                        draw_element_text(&mut context.ui_img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
+                    }
                 }
                 ElemType::Category(cat) => {
-                    draw_element_text(&mut context.ui_img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
+                    if hitbox.visible {
+                        draw_element_text(&mut context.ui_img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
+                    }
 
                     if !cat.collapsed {
                         for elem in &cat.elems {
@@ -461,65 +458,71 @@ impl UIElement {
                     }
                 }
                 ElemType::Property(property) => {
-                    draw_element_text(&mut context.ui_img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
-                    if let Value::Bool(value) = property.value {
-                        draw_checkbox(&mut context.ui_img, hitbox.pos, hitbox.size, value, &self.style);
-                    } else {
-                        let format;
-                        let value = match &self.value {
-                            Some(value) => {
-                                format = &property.editing_format;
-                                value.clone()
-                            }
-                            None => {
-                                format = &self.style;
-                                property.value.to_string()
-                            }
-                        };
-                        let value_width = value.len() as u32 * format.font_size as u32 / 2
-                            + format.padding_left
-                            + format.padding_right;
-                        let offset = hitbox.size.0 - value_width;
-                        draw_element_text(
-                            &mut context.ui_img,
-                            value,
-                            (hitbox.pos.0 + offset, hitbox.pos.1),
-                            (value_width, hitbox.size.1),
-                            format,
-                        );
+                    if !hitbox.disabled && hitbox.visible {
+                        draw_element_text(&mut context.ui_img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
+                        if let Value::Bool(value) = property.value {
+                            draw_checkbox(&mut context.ui_img, hitbox.pos, hitbox.size, value, &self.style);
+                        } else {
+                            let format;
+                            let value = match &self.value {
+                                Some(value) => {
+                                    format = &property.editing_format;
+                                    value.clone()
+                                }
+                                None => {
+                                    format = &self.style;
+                                    property.value.to_string()
+                                }
+                            };
+                            let value_width = value.len() as u32 * format.font_size as u32 / 2
+                                + format.padding_left
+                                + format.padding_right;
+                            let offset = hitbox.size.0 - value_width;
+                            draw_element_text(
+                                &mut context.ui_img,
+                                value,
+                                (hitbox.pos.0 + offset as i32, hitbox.pos.1),
+                                (value_width, hitbox.size.1),
+                                format,
+                            );
+                        }
                     }
                 }
                 ElemType::Stat(_) => {
-                    draw_element_text(&mut context.ui_img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
-                    if let Some(value) = &self.value {
-                        let value_width = value.len() as u32 * self.style.font_size as u32 / 2
-                            + self.style.padding_left
-                            + self.style.padding_right;
-                        let offset = hitbox.size.0 - value_width;
-                        draw_element_text(
-                            &mut context.ui_img,
-                            value.clone(),
-                            (hitbox.pos.0 + offset, hitbox.pos.1),
-                            (value_width, hitbox.size.1),
-                            &self.style,
-                        );
+                    if hitbox.visible {
+                        draw_element_text(&mut context.ui_img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
+                        if let Some(value) = &self.value {
+                            let value_width = value.len() as u32 * self.style.font_size as u32 / 2
+                                + self.style.padding_left
+                                + self.style.padding_right;
+                            let offset = hitbox.size.0 - value_width;
+                            draw_element_text(
+                                &mut context.ui_img,
+                                value.clone(),
+                                (hitbox.pos.0 + offset as i32, hitbox.pos.1),
+                                (value_width, hitbox.size.1),
+                                &self.style,
+                            );
+                        }
                     }
                 }
                 ElemType::Text => {
-                    let available_width =
-                        self.style.width - self.style.padding_left - self.style.padding_right;
-                    let lines = split_in_lines(self.text.clone(), available_width, &self.style);
-                    let mut height = 0;
-                    for line in lines {
-                        let size = get_size(&line, &self.style, (available_width, hitbox.size.1));
-                        draw_element_text(
-                            &mut context.ui_img,
-                            line,
-                            (hitbox.pos.0, hitbox.pos.1 + height),
-                            size,
-                            &self.style,
-                        );
-                        height += size.1;
+                    if hitbox.visible {
+                        let available_width =
+                            self.style.width - self.style.padding_left - self.style.padding_right;
+                        let lines = split_in_lines(self.text.clone(), available_width, &self.style);
+                        let mut height = 0;
+                        for line in lines {
+                            let size = get_size(&line, &self.style, (available_width, hitbox.size.1));
+                            draw_element_text(
+                                &mut context.ui_img,
+                                line,
+                                (hitbox.pos.0, hitbox.pos.1 + height as i32),
+                                size,
+                                &self.style,
+                            );
+                            height += size.1;
+                        }
                     }
                 }
             }

@@ -66,6 +66,7 @@ const FIELD_PADDING_X: u32 = 10;
 const FIELD_PADDING_Y: u32 = 3;
 const BASE_FONT_SIZE: u32 = 16;
 const UI_REFRESH_TIME: u32 = 1000;
+const SCROLL_PIXEL_AMOUNT: u32 = 6;
 
 /*********** UI default references *********/
 const SETTINGS: &str = "settings";

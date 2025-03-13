@@ -4,14 +4,14 @@ use std::
     path::Path
 ;
 use winit::{
-    event::WindowEvent,
+    event::{MouseScrollDelta, WindowEvent},
     event_loop::EventLoopWindowTarget,
     keyboard::{Key, NamedKey},
 };
 use crate::{
     render::raycasting::{get_closest_hit, get_lighting_from_ray, get_ray_debug},
     ui::{
-        ui::{ui_clicked, UI},
+        ui::{ui_clicked, ui_scrolled, UI},
         utils::{misc::Value, ui_utils::{Editing, UIContext}},
     }
 };
@@ -25,6 +25,11 @@ pub fn handle_event(
     match event {
         WindowEvent::CursorMoved { position, .. } => {
             ui.set_mouse_position((position.x as u32, position.y as u32))
+        }
+        WindowEvent::MouseWheel { delta, .. } => {
+            if let MouseScrollDelta::LineDelta(_, y) = delta {
+                ui_scrolled(ui.mouse_position(), y, context, ui);
+            }
         }
         WindowEvent::MouseInput { state, .. } => {
             if state == winit::event::ElementState::Released {
