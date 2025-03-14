@@ -332,5 +332,77 @@
         "length": 4.5,
         "width": 8,
         "color": "flashback/36.png"
+    },
+    {
+        "type": "rectangle",
+        "pos": [4, 0, 380],
+        "dir_w": [0, 0, -1],
+        "dir_l": [0, 1, 0],
+        "length": 4.5,
+        "width": 8,
+        "color": "flashback/37.png"
+    },
+    {
+        "type": "rectangle",
+        "pos": [4, 0, 390],
+        "dir_w": [0, 0, -1],
+        "dir_l": [0, 1, 0],
+        "length": 4.5,
+        "width": 8,
+        "color": "flashback/38.png"
+    },
+    {
+        "type": "rectangle",
+        "pos": [4, 0, 400],
+        "dir_w": [0, 0, -1],
+        "dir_l": [0, 1, 0],
+        "length": 4.5,
+        "width": 8,
+        "color": "flashback/39.png"
+    },
+    {
+        "type": "rectangle",
+        "pos": [4, 0, 410],
+        "dir_w": [0, 0, -1],
+        "dir_l": [0, 1, 0],
+        "length": 4.5,
+        "width": 8,
+        "color": "flashback/40.png"
+    },
+    {
+        "type": "rectangle",
+        "pos": [4, 0, 420],
+        "dir_w": [0, 0, -1],
+        "dir_l": [0, 1, 0],
+        "length": 4.5,
+        "width": 8,
+        "color": "flashback/41.png"
+    },
+    {
+        "type": "rectangle",
+        "pos": [4, 0, 430],
+        "dir_w": [0, 0, -1],
+        "dir_l": [0, 1, 0],
+        "length": 4.5,
+        "width": 8,
+        "color": "flashback/42.png"
+    },
+    {
+        "type": "rectangle",
+        "pos": [4, 0, 440],
+        "dir_w": [0, 0, -1],
+        "dir_l": [0, 1, 0],
+        "length": 4.5,
+        "width": 8,
+        "color": "flashback/43.png"
+    },
+    {
+        "type": "rectangle",
+        "pos": [4, 0, 450],
+        "dir_w": [0, 0, -1],
+        "dir_l": [0, 1, 0],
+        "length": 4.5,
+        "width": 8,
+        "color": "flashback/44.png"
     }
 ]
