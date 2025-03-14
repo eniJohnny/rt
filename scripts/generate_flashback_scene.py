@@ -25,15 +25,15 @@ def generate_flashback():
     },
     {
         "type": "camera",
-        "pos": [0, 0, 0],
-        "dir": [0, 0, 1],
+        "pos": [-3.5, 0, 0],
+        "dir": [1, 0, 0],
         "fov": 70
     }"""
 
     for i in range(n):
         content += ',\n    {\n'
         content += '        "type": "rectangle",\n'
-        content += f'        "pos": [4, 0, {i * 10 + 20}],\n'
+        content += f'        "pos": [4, 0, {i * 10}],\n'
         content += '        "dir_w": [0, 0, -1],\n'
         content += '        "dir_l": [0, 1, 0],\n'
         content += '        "length": 4.5,\n'
