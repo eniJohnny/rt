@@ -3,7 +3,7 @@ pub mod basic;
 pub mod elements;
 pub mod textures;
 
-use elements::{get_ambient, get_any, get_brick, get_camera, get_cone, get_cube, get_cubehole, get_cylinder, get_ellipse, get_helix, get_hyperboloid, get_light, get_mobius, get_nagone, get_obj, get_parallel, get_plane, get_rectangle, get_sphere, get_spot, get_torus, get_torusphere, get_triangle};
+use elements::{get_ambient, get_any, get_brick, get_camera, get_cone, get_cube, get_cubehole, get_cylinder, get_ellipse, get_helix, get_hyperboloid, get_light, get_mobius, get_nagone, get_obj, get_parallel, get_plane, get_rectangle, get_sphere, get_spot, get_torus, get_torusphere, get_triangle, get_viewmode};
 use json::JsonValue;
 use basic::get_color_texture;
 use textures::get_texture;
@@ -138,6 +138,10 @@ fn match_object(scene: &mut Scene, object: HashMap<String, JsonValue>) -> Result
                 "texture" => {
                     let (name, img) = get_texture(&object)?;
                     scene.load_texture(&name, Some(img));
+                }
+                "viewmode" => {
+                    let viewmode = get_viewmode(&object)?;
+                    scene.settings_mut().view_mode = viewmode;
                 }
                 _ => {
                     return Err(format!("Unknown type detected: {}", object_type));

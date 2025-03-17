@@ -217,7 +217,7 @@ impl Shape for Plane {
                         }
                     }
                 }),
-                true, Some(-1.), Some(1.)));
+                false, Some(-1.), Some(1.)));
         }
         category
     }

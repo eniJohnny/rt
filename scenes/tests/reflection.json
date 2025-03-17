@@ -1,8 +1,12 @@
 [
     {
+        "type": "viewmode",
+        "value": "Global"
+    },
+    {
         "type": "camera",
-        "pos": [0.0, 0.0, -15.0],
-        "dir": [0, 0, 1],
+        "pos": [-10, 0, -15.0],
+        "dir": [0.5, 0, 1],
         "fov": 75
     },
     {
@@ -47,5 +51,16 @@
         "color": [255, 255, 255],
         "roughness": 0,
         "metalness": 1.0
+    },
+    {
+        "type": "plane",
+        "pos": [0, -20, 0],
+        "dir": [0, 1, 0],
+        "color": [255, 255, 255],
+        "emissive": 1.0
+    },
+    {
+        "type": "skybox",
+        "color": "skybox/skybox_night.jpg"
     }
 ]

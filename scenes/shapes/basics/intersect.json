@@ -1,0 +1,46 @@
+[
+    {
+        "type": "viewmode",
+        "value": "Phong"
+    },
+    {
+        "type": "camera",
+        "pos": [-15, 0, -2],
+        "dir": [1, 0, 0],
+        "fov": 75
+    },
+    {
+        "type": "light",
+        "intensity": 100,
+        "pos": [-50, 50, -10],
+        "color": [255, 255, 255]
+    },
+    {
+        "type": "plane",
+        "pos": [0, 0, 0],
+        "dir": [0, 1, -1],
+        "color": "default.jpg"
+    },
+    {
+        "type": "cone",
+        "pos": [0, 0, 0],
+        "dir": [0, -1, 0],
+        "radius": 1,
+        "angle": 45,
+        "color": [255, 255, 255]
+    },
+    {
+        "type": "sphere",
+        "pos": [0, 0, 0],
+        "dir": [0, 0, 1],
+        "radius": 3.0,
+        "color": [255, 255, 255]
+    },
+    {
+        "type": "cylinder",
+        "pos": [0, 0, 0],
+        "dir": [0, 1, 1],
+        "radius": 2.0,
+        "color": [255, 255, 255]
+    }
+]

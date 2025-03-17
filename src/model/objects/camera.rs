@@ -122,10 +122,16 @@ impl Camera {
         self.pos += Vec3::new(0., 1., 0.) * STEP;
     }
     pub fn look_up(&mut self) {
-        self.set_dir(self.q_up.rotate(&self.dir()));
+        let new_dir = self.q_up.rotate(&self.dir());
+        if new_dir.dot(&Vec3::new(0., 1., 0.)) < 0.9995 {
+            self.set_dir(new_dir);
+        }
 	}
     pub fn look_down(&mut self) {
-        self.set_dir(self.q_down.rotate(&self.dir()));
+        let new_dir = self.q_down.rotate(&self.dir());
+        if new_dir.dot(&Vec3::new(0., -1., 0.)) < 0.9995 {
+            self.set_dir(new_dir);
+        }
     }
     pub fn look_left(&mut self) {
         self.set_dir(self.q_left.rotate(&self.dir()));
