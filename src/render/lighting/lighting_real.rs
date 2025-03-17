@@ -120,7 +120,7 @@ pub fn global_lighting_from_hit(scene: &Scene, hit: &Option<Hit>, ray: &Ray) -> 
 			}
 		}
 
-		let fresnel_factor = fresnel_reflect_ratio(current_refraction_index, next_refraction_index, &hit.norm(), ray.get_dir(), 1.0 - hit.roughness());
+		let fresnel_factor = fresnel_reflect_ratio(current_refraction_index, next_refraction_index, &hit.norm(), ray.get_dir(), hit.reflectivity());
 		
 		let reflected = fresnel_factor * (1.0 - hit.metalness());
 		let absorbed = 1.0 - hit.metalness() - reflected;

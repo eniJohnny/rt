@@ -31,6 +31,9 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
     //Displacement
     material_category.add_element(get_texture_ui("Displacement", element.material().displacement(), Box::new(move |texture, scene| {
         let mut scene_write = scene.write().unwrap();
+        if let Texture::Texture(file, _) = &texture {
+            scene_write.load_texture(file, None);
+        }
         if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
             element.material_mut().set_displacement(texture);
         } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
@@ -41,6 +44,9 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
     //Norm variation
     let norm_variation = get_texture_ui("Norm", element.material().norm(), Box::new(move |texture, scene| {
         let mut scene_write = scene.write().unwrap();
+        if let Texture::Texture(file, _) = &texture {
+            scene_write.load_texture(file, None);
+        }
         if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
             element.material_mut().set_norm(texture);
         } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
@@ -52,6 +58,9 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
     //Metalness
     let metalness = get_texture_ui("Metalness", element.material().metalness(), Box::new(move |texture, scene| {
         let mut scene_write = scene.write().unwrap();
+        if let Texture::Texture(file, _) = &texture {
+            scene_write.load_texture(file, None);
+        }
         if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
             element.material_mut().set_metalness(texture);
         } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
@@ -93,6 +102,9 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
     //Transparency
     let transparency = get_texture_ui("Transparency", element.material().transparency(), Box::new(move |texture, scene| {
         let mut scene_write = scene.write().unwrap();
+        if let Texture::Texture(file, _) = &texture {
+            scene_write.load_texture(file, None);
+        }
         if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
             element.material_mut().set_transparency(texture);
         } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
@@ -104,6 +116,9 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
     //Roughness
     let roughness = get_texture_ui("Roughness", element.material().roughness(), Box::new(move |texture, scene| {
         let mut scene_write = scene.write().unwrap();
+        if let Texture::Texture(file, _) = &texture {
+            scene_write.load_texture(file, None);
+        }
         if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
             element.material_mut().set_roughness(texture);
         } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
@@ -115,6 +130,9 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
     //Emissive
     material_category.add_element(get_texture_ui("Emissive", element.material().emissive(), Box::new(move |texture, scene| {
         let mut scene_write = scene.write().unwrap();
+        if let Texture::Texture(file, _) = &texture {
+            scene_write.load_texture(file, None);
+        }
         if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
             element.material_mut().set_emissive(texture);
         } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
@@ -150,12 +168,42 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
     //Opacity
     material_category.add_element(get_texture_ui("Opacity", element.material().opacity(), Box::new(move |texture, scene| {
         let mut scene_write = scene.write().unwrap();
+        if let Texture::Texture(file, _) = &texture {
+            scene_write.load_texture(file, None);
+        }
         if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
             element.material_mut().set_opacity(texture);
         } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
             element.material_mut().set_opacity(texture);
         }
     }), ui.uisettings(), true, false, Some(0.), Some(1.), None));
+
+    //Reflectivity
+    material_category.add_element(UIElement::new("Reflectivity", "reflectivity", ElemType::Property(Property::new(Value::Float(element.material().reflectivity()),
+    Box::new(move |_, value, context, _| {
+        if let Some(scene) = context.get_active_scene() {
+            let mut scene_write = scene.write().unwrap();
+            if let Value::Float(float_value) = value {
+                if let Some(element) = scene_write.composed_element_mut_by_element_id(id_element) {
+                    element.material_mut().set_reflectivity(float_value);
+                } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
+                    element.material_mut().set_reflectivity(float_value);
+                }
+            }
+        }
+    }), Box::new(|value, _, _| {
+        if let Value::Float(float_value) = value {
+            if float_value < &0. {
+                return Err("Reflectivity cannot be negative.".to_string());
+            }
+            if float_value > &1. {
+                return Err("Reflectivity cannot be over 1".to_string());
+            }
+            Ok(())
+        } else {
+            Err("Reflectivity must be a valid float.".to_string())
+        }
+    }), ui.uisettings())), ui.uisettings()));
 
 
     let mut mapping_category = UIElement::new("Mapping", "mapping", ElemType::Category(Category::collapsed()), ui.uisettings());
