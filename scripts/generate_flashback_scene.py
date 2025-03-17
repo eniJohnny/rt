@@ -1,7 +1,7 @@
 import os
 
 def rename_screens():
-    path = 'textures/screenshots'
+    path = '../textures/screenshots'
     files = os.listdir(path)
     files = [file for file in files if file.endswith('.png')]
     
@@ -17,7 +17,7 @@ def rename_screens():
         os.rename(f'{path}/{file[1]}', f'{path}/{i + 1}.png')
 
 def generate_flashback():
-    n = len(os.listdir('textures/flashback'))
+    n = len(os.listdir('../textures/flashback'))
     content = """[
     {
         "type": "skybox",
@@ -25,15 +25,15 @@ def generate_flashback():
     },
     {
         "type": "camera",
-        "pos": [0, 0, 0],
-        "dir": [0, 0, 1],
+        "pos": [-3.5, 0, 0],
+        "dir": [1, 0, 0],
         "fov": 70
     }"""
 
     for i in range(n):
         content += ',\n    {\n'
         content += '        "type": "rectangle",\n'
-        content += f'        "pos": [4, 0, {i * 10 + 20}],\n'
+        content += f'        "pos": [4, 0, {i * 10}],\n'
         content += '        "dir_w": [0, 0, -1],\n'
         content += '        "dir_l": [0, 1, 0],\n'
         content += '        "length": 4.5,\n'
@@ -44,7 +44,7 @@ def generate_flashback():
     content += '\n]'
 
 
-    with open('scenes/flashback.json', 'w') as file:
+    with open('../scenes/flashback.json', 'w') as file:
         file.seek(0)
         file.write(content)
 
