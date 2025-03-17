@@ -1,5 +1,9 @@
 [
     {
+        "type": "viewmode",
+        "value": "Phong"
+    },
+    {
         "type": "camera",
         "pos": [-15, 5, -15],
         "dir": [0.75, 0, 1],

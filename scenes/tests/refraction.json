@@ -1,0 +1,94 @@
+[
+    {
+        "type": "viewmode",
+        "value": "Global"
+    },
+    {
+        "type": "skybox",
+        "color": "skybox/skybox_night.jpg"
+    },
+    {
+        "type": "sphere",
+        "pos": [0, 0, -13],
+        "dir": [0, 1, 0],
+        "color": [255, 255, 255],
+        "radius": 2,
+		"transparency": 1.0,
+		"refraction": 1.52,
+        "roughness": 0.0
+    },
+    {
+        "type": "camera",
+        "pos": [0.0, 0.0, -24.9],
+        "dir": [0, 0, 1],
+        "fov": 75
+    },
+    {
+        "type": "rectangle",
+        "pos": [0, -5, -10],
+        "dir_l": [1, 0, 0],
+        "dir_w": [0, 0, 1],
+        "length": 10,
+        "width": 30,
+        "color": "bricks/bricks_color.jpg",
+        "roughness": "bricks/bricks_roughness.jpg",
+        "normal": "bricks/bricks_normal.jpg"
+    },
+    {
+        "type": "rectangle",
+        "pos": [0, 5, -10],
+        "dir_l": [1, 0, 0],
+        "dir_w": [0, 0, 1],
+        "length": 10,
+        "width": 30,
+        "color": [255, 255, 255],
+        "emissive": 2
+    },
+
+    {
+        "type": "rectangle",
+        "pos": [0, 0, 5],
+        "dir_l": [1, 0, 0],
+        "dir_w": [0, 1, 0],
+        "length": 10,
+        "width": 10,
+        "color": "bricks/bricks_color.jpg",
+        "roughness": "bricks/bricks_roughness.jpg",
+        "normal": "bricks/bricks_normal.jpg"
+    },
+    {
+        "type": "rectangle",
+        "pos": [0, 0, -25],
+        "dir_l": [1, 0, 0],
+        "dir_w": [0, 1, 0],
+        "length": 10,
+        "width": 10,
+        "color": "bricks/bricks_color.jpg",
+        "roughness": "bricks/bricks_roughness.jpg",
+        "normal": "bricks/bricks_normal.jpg"
+    },
+    {
+        "type": "rectangle",
+        "pos": [0, 0, -2],
+        "dir_l": [1, 0, 0],
+        "dir_w": [0, 1, 0],
+        "length": 10,
+        "width": 10,
+        "color": "MetalWalkway007_1K-JPG/MetalWalkway007_1K-JPG_Color.jpg",
+        "normal": "MetalWalkway007_1K-JPG/MetalWalkway007_1K-JPG_Normal.jpg",
+        "roughness": "MetalWalkway007_1K-JPG/MetalWalkway007_1K-JPG_Roughness.jpg",
+        "metalness": "MetalWalkway007_1K-JPG/MetalWalkway007_1K-JPG_Metalness.jpg",
+        "opacity": "MetalWalkway007_1K-JPG/MetalWalkway007_1K-JPG_Opacity.jpg",
+        "displacement": "MetalWalkway007_1K-JPG/MetalWalkway007_1K-JPG_Displacement.jpg",
+        "u_scale": 3,
+        "v_scale": 3
+    },
+    // {
+    //     "type": "obj",
+    //     "pos": [0, -2, -4],
+    //     "scale": 1,
+    //     "dir": [0, 1, 0],
+    //     "file": "obj/knight.obj",
+    //     "color": [150, 125, 1]
+    // }
+]

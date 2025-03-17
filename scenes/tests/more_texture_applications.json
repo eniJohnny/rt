@@ -1,0 +1,84 @@
+[
+    {
+        "type": "viewmode",
+        "value": "global"
+    },
+    {
+        "type": "texture",
+        "pattern": "worley",
+        "name": "WorleyBW",
+        "dots": 30,
+        "color_a": [155, 0, 0],
+        "color_b": [0, 0, 180],
+        "res_x": 2000,
+        "res_y": 2000
+    },
+    {
+        "type": "texture",
+        "pattern": "bumpSine",
+        "name": "BumpSine",
+        "u_variation": 0.5,
+        "v_variation": 0.0
+    },
+    {
+        "type": "texture",
+        "pattern": "checkerboard",
+        "name": "CheckerBW",
+        "color_b": [255, 0, 0]
+    },
+    {
+        "type": "sphere",
+        "pos": [-2.5, 2.5, 2],
+        "dir": [0, 1, 0],
+        "color": [255, 255, 255],
+        "radius": 2.0,
+        "normal": "plates/plates_normal.jpg"
+    },
+    {
+        "type": "sphere",
+        "pos": [2.5, 2.5, 2],
+        "dir": [0, 1, 0],
+        "color": "Fence/Fence_Color.jpg",
+        "normal": "Fence/Fence_Normal.jpg",
+        "opacity": "Fence/Fence_Opacity.jpg",
+        "roughness": "Fence/Fence_Roughness.jpg",
+        "displacement": "Fence/Fence_Displacement.jpg",
+        "radius": 2.0
+    },
+    {
+        "type": "rectangle",
+        "pos": [0, -4, 0],
+        "dir_l": [1, 0, 0],
+        "dir_w": [0, 0, 1],
+        "color": [255, 255, 255],
+        "length": 100,
+        "width": 100
+    },
+
+    {
+        "type": "rectangle",
+        "pos": [0, 6, 0],
+        "dir_l": [1, 0, 0],
+        "dir_w": [0, 0, 1],
+        "length": 10,
+        "width": 10,
+        "color": [255, 255, 255],
+        "emissive": 4
+    },
+    {
+        "type": "rectangle",
+        "pos": [0, 5.5, 0],
+        "dir_l": [1, 0, 0],
+        "dir_w": [0, 0, 1],
+        "length": 10,
+        "width": 10,
+        "color": "WorleyBW",
+        "opacity": 0.2
+    },
+    {
+        "type": "camera",
+        "pos": [0.0, 2.0, -8],
+        "dir": [0, 0, 1],
+        "fov": 75
+    }
+]
