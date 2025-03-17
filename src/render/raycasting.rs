@@ -160,7 +160,7 @@ pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
     if let Some(hit) = &hit {
         if ray.debug {
             println!(
-                "Metal : {}, Roughness: {}, Color: {}, Norm: {}, Emissive: {}, Opacity: {}, Refraction index: {}, Transparancy {}",
+                "Metal : {}, Roughness: {}, Color: {}, Norm: {}, Emissive: {}, Opacity: {}, Refraction index: {}, Transparancy {}, Reflectivity {}",
                 hit.metalness(),
                 hit.roughness(),
                 hit.color(),
@@ -168,7 +168,8 @@ pub fn get_lighting_from_ray(scene: &Scene, ray: &Ray) -> Color {
                 hit.emissive(),
                 hit.opacity(),
                 hit.element().material().refraction(),
-                hit.transparency()
+                hit.transparency(),
+                hit.reflectivity(),
             );
         }
     }

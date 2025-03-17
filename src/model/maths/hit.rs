@@ -153,7 +153,7 @@ impl<'a> Hit<'a> {
                 + *vec.z() * projection.k.clone();
         } else {
             norm = (vec.x() - 0.5) * 2. * projection.i.clone()
-                + (vec.y() - 0.5) * 2. * projection.j.clone()
+                + ((1. - vec.y()) - 0.5) * 2. * projection.j.clone()
                 + (vec.z() - 0.5) * 2. * projection.k.clone();
         }
         self.norm = norm.normalize();
@@ -183,7 +183,6 @@ impl<'a> Hit<'a> {
             .to_value();
     }
 
-    //Set to public, as we are checking opacity at every hit during get_closest_hit, so we don't need to compute the rest if we only go through
     fn map_opacity(&mut self, textures: &HashMap<String, RgbaImage>) {
         self.opacity = self
             .map_texture(self.element.material().opacity(), textures, Vec3::from_value(1.))

@@ -21,21 +21,10 @@
         "type": "sphere",
         "pos": [0, 0, -4],
         "dir": [0, 1, 0],
-        "color": [0, 0, 0],
+        "color": [255, 255, 255],
         "radius": 1.5,
 		"transparency": 1.0,
 		"refraction": 1.52,
-        "roughness": 0.0
-    },
-
-    {
-        "type": "sphere",
-        "pos": [0, 0, -4],
-        "dir": [0, 1, 0],
-        "color": [0, 0, 0],
-        "radius": 1.48,
-		"transparency": 1.0,
-		"refraction": 1.0,
         "roughness": 0.0
     },
     {
@@ -94,9 +83,8 @@
         "dir_w": [0, 0, 1],
         "length": 10,
         "width": 30,
-        "color": "bricks/bricks_color.jpg",
-        "roughness": "bricks/bricks_roughness.jpg",
-        "normal": "bricks/bricks_normal.jpg"
+        "color": [255, 50, 50],
+        "emissive": 1
     },
     {
         "type": "rectangle",
@@ -105,8 +93,8 @@
         "dir_w": [0, 0, 1],
         "length": 10,
         "width": 30,
-        "color": [255, 255, 255],
-        "emissive": 2
+        "color": [50, 255, 50],
+        "emissive": 1
     },
 
     {
@@ -144,13 +132,5 @@
         "metalness": "MetalWalkway007_1K-JPG/MetalWalkway007_1K-JPG_Metalness.jpg",
         "opacity": "MetalWalkway007_1K-JPG/MetalWalkway007_1K-JPG_Opacity.jpg",
         "displacement": "MetalWalkway007_1K-JPG/MetalWalkway007_1K-JPG_Displacement.jpg"
-    },
-    // {
-    //     "type": "obj",
-    //     "pos": [0, -2, -4],
-    //     "scale": 1,
-    //     "dir": [0, 1, 0],
-    //     "file": "obj/knight.obj",
-    //     "color": [150, 125, 1]
-    // }
+    }
 ]

@@ -1,5 +1,9 @@
 [
     {
+        "type": "viewmode",
+        "value": "Phong"
+    },
+    {
         "type": "sphere",
         "pos": [0, 0, 0],
         "dir": [1, 0, 0],
