@@ -464,7 +464,7 @@ impl UIElement {
                             draw_checkbox(&mut context.ui_img, hitbox.pos, hitbox.size, value, &self.style);
                         } else {
                             let format;
-                            let value = match &self.value {
+                            let mut value = match &self.value {
                                 Some(value) => {
                                     format = &property.editing_format;
                                     value.clone()
@@ -474,10 +474,22 @@ impl UIElement {
                                     property.value.to_string()
                                 }
                             };
-                            let value_width = value.len() as u32 * format.font_size as u32 / 2
+                            let mut value_width = value.len() as u32 * format.font_size as u32 / 2
                                 + format.padding_left
                                 + format.padding_right;
-                            let offset = hitbox.size.0 - value_width;
+                            let offset;
+                            if value_width > hitbox.size.0 {
+                                let value_max_len = (hitbox.size.0  - format.padding_left - format.padding_right) / format.font_size as u32;
+                                value.truncate(value_max_len as usize - 2);
+                                value += "..";
+
+                                value_width = value_max_len * format.font_size as u32 / 2
+                                    + format.padding_left
+                                    + format.padding_right;
+                                offset = hitbox.size.0 - value_width;
+                            } else {
+                                offset = hitbox.size.0 - value_width;
+                            }
                             draw_element_text(
                                 &mut context.ui_img,
                                 value,

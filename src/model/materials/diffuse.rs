@@ -16,6 +16,7 @@ pub struct Diffuse {
     opacity: Texture,
     displacement: Texture,
     refraction: f64,
+    reflectivity: f64,
     u_scale: f64,
     v_scale: f64,
     u_shift: f64,
@@ -34,6 +35,7 @@ impl Diffuse {
         opacity: Texture,
         displacement: Texture,
         refraction: f64,
+        reflectivity: f64,
         u_scale: f64,
         v_scale: f64,
         u_shift: f64,
@@ -54,6 +56,7 @@ impl Diffuse {
             v_scale,
             u_shift,
             v_shift,
+            reflectivity,
         }
     }
 
@@ -69,6 +72,7 @@ impl Diffuse {
             Texture::Value(Vec3::from_value(1.), TextureType::Float),
             Texture::Value(Vec3::from_value(0.), TextureType::Float),
             0.,
+            0.1,
             1.,
             1.,
             0.,
@@ -149,6 +153,13 @@ impl Material for Diffuse {
     }
     fn set_displacement(&mut self, displacement: Texture) {
         self.displacement = displacement;
+    }
+
+    fn reflectivity(&self) -> f64 {
+        self.reflectivity
+    }
+    fn set_reflectivity(&mut self, reflectivity: f64) {
+        self.reflectivity = reflectivity;
     }
 
     fn u_scale(&self) -> f64 {

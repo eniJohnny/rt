@@ -14,6 +14,14 @@
         "color": [255, 0, 255]
     },
     {
+        "type": "torusphere",
+        "pos": [-5, 0, 0],
+        "dir": [0, 0, 1],
+        "radius": 5.0,
+        "steps": 24,
+        "color": [255, 0, 255]
+    },
+    {
         "type": "helix",
         "pos": [5, 0, 0],
         "dir": [0, 1, 0],

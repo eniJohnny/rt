@@ -301,12 +301,12 @@ impl Sphere {
     }
 
     fn update_aabb(&mut self) {
-        self.aabb.set_x_min(self.pos.x() - self.radius);
-        self.aabb.set_x_max(self.pos.x() + self.radius);
-        self.aabb.set_y_min(self.pos.y() - self.radius);
-        self.aabb.set_y_max(self.pos.y() + self.radius);
-        self.aabb.set_z_min(self.pos.z() - self.radius);
-        self.aabb.set_z_max(self.pos.z() + self.radius);
+        self.aabb.set_x_min(self.pos.x() - self.radius - 0.2);
+        self.aabb.set_x_max(self.pos.x() + self.radius + 0.2);
+        self.aabb.set_y_min(self.pos.y() - self.radius - 0.2);
+        self.aabb.set_y_max(self.pos.y() + self.radius + 0.2);
+        self.aabb.set_z_min(self.pos.z() - self.radius - 0.2);
+        self.aabb.set_z_max(self.pos.z() + self.radius + 0.2);
     }
 
     pub fn compute_aabb(pos: &Vec3, radius: f64) -> super::aabb::Aabb {

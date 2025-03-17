@@ -25,6 +25,7 @@ pub struct Hit<'a> {
 	transparency: f64,
     emissive: f64,
     opacity: f64,
+    reflectivity: f64,
     all_dist: Vec<f64>,
     t_list: Vec<(&'a Element, Vec<f64>)>
 }
@@ -53,6 +54,7 @@ impl<'a> Hit<'a> {
             roughness: 0.,
             transparency: 0.,
             emissive: 0.,
+            reflectivity: element.material().reflectivity(),
             opacity: 1.,
             all_dist,
             t_list: vec![]
@@ -114,6 +116,9 @@ impl<'a> Hit<'a> {
     }
     pub fn opacity(&self) -> f64 {
         self.opacity
+    }
+    pub fn reflectivity(&self) -> f64 {
+        self.reflectivity
     }
 
     pub fn map_texture(&mut self, texture: &Texture, map: &HashMap<String, RgbaImage>, default: Vec3) -> Vec3 {

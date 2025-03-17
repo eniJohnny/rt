@@ -1,0 +1,24 @@
+[
+    {
+        "type": "viewmode",
+        "value": "Phong"
+    },
+    {
+        "type": "camera",
+        "pos": [0, 0, -15],
+        "dir": [0, 0, 1],
+        "fov": 75
+    },
+    {
+        "type": "light",
+        "intensity": 60,
+        "pos": [0, 50, -15],
+        "color": [255, 255, 255]
+    },
+    {
+        "type": "plane",
+        "pos": [0, 0, 0],
+        "dir": [0, 1, -1],
+        "color": "default.jpg"
+    }
+]

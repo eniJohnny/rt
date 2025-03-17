@@ -1,5 +1,6 @@
 use std::collections::HashMap;
-use crate::model::{composed_element::ComposedElement, element::Element, materials::{diffuse::Diffuse, material::Material}, objects::{camera::Camera, lights::{ambient_light::AmbientLight, light::AnyLight, parallel_light::ParallelLight, point_light::PointLight, spot_light::SpotLight}}, shapes::{any::Any, brick::Brick, composed_shape::ComposedShape, cone::Cone, cube::Cube, cubehole::Cubehole, cylinder::Cylinder, ellipse::Ellipse, helix::Helix, hyperboloid::Hyperboloid, mobius::Mobius, nagone::Nagone, obj::Obj, plane::Plane, rectangle::Rectangle, sphere::Sphere, torus::Torus, torusphere::Torusphere, triangle::Triangle}};
+
+use crate::{model::{composed_element::ComposedElement, element::Element, materials::{color::Color, diffuse::Diffuse, material::Material}, maths::vec3::Vec3, objects::{camera::Camera, lights::{ambient_light::AmbientLight, light::AnyLight, parallel_light::ParallelLight, point_light::PointLight, spot_light::SpotLight}}, shapes::{any::Any, brick::Brick, composed_shape::ComposedShape, cone::Cone, cube::Cube, cubehole::Cubehole, cylinder::Cylinder, ellipse::Ellipse, helix::Helix, hyperboloid::Hyperboloid, mobius::Mobius, nagone::Nagone, obj::Obj, plane::Plane, rectangle::Rectangle, sphere::Sphere, torus::Torus, torusphere::Torusphere, triangle::Triangle}}, render::settings::ViewMode};
 use super::{
     basic::{
         get_color, get_color_texture, get_displacement_texture, get_normal_texture, get_number, get_opacity_texture, get_string, get_vec1_texture, get_vec3
@@ -17,6 +18,7 @@ pub fn get_material(json_object: &HashMap<String, JsonValue>) -> Result<Box<dyn 
     let opacity = get_opacity_texture(json_object)?;
     let displacement = get_displacement_texture(json_object)?;
     let refraction = get_number(json_object, "refraction", Some(1.), None, Some(1.))?;
+    let reflectivity = get_number(json_object, "reflectivity", Some(0.), Some(1.), Some(0.1))?;
     let emissive_intensity = get_number(json_object, "emissive_intensity", Some(0.), None, Some(1.))?;
     let u_scale = get_number(json_object, "u_scale", None, None, Some(1.))?;
     let v_scale = get_number(json_object, "v_scale", None, None, Some(1.))?;
@@ -34,6 +36,7 @@ pub fn get_material(json_object: &HashMap<String, JsonValue>) -> Result<Box<dyn 
         opacity,
         displacement,
         refraction,
+        reflectivity,
         u_scale,
         v_scale,
         u_shift,
@@ -284,4 +287,19 @@ pub fn get_obj(json_obj: &HashMap<String, JsonValue>) -> Result<ComposedElement,
     let material = get_material(&json_obj)?;
     let element = ComposedElement::new(shape, material);
     Ok(element)
+}
+
+pub fn get_viewmode(json_obj: &HashMap<String, JsonValue>) -> Result<ViewMode, String> {
+    let viewmode = get_string(&json_obj, "value", Some("simple".to_string()))?;
+    match viewmode.to_lowercase().as_str() {
+        "norm" => Ok(ViewMode::Norm),
+        "global" => Ok(ViewMode::HighDef),
+        "bvh" => Ok(ViewMode::BVH),
+        "phong" => Ok(ViewMode::Phong),
+        "projection" => Ok(ViewMode::Projection),
+        "simple" | _ => Ok(ViewMode::Simple(
+            Color::new(0.2, 0.2, 0.2),
+            ParallelLight::new(Vec3::new(0.5, -0.5, 0.5), 1., Color::new(1., 1., 1.)),
+        ))
+    }
 }

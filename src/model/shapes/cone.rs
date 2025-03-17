@@ -197,7 +197,7 @@ impl Shape for Cone {
                         }
                     }
                 }),
-                true, Some(-1.), Some(1.)));
+                false, Some(-1.), Some(1.)));
 
             category.add_element(UIElement::new(
                 "Angle",

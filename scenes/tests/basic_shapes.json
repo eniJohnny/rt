@@ -9,44 +9,30 @@
         "type": "plane",
         "pos": [0, 0, 5],
         "dir": [0, 0, 1],
-        "color": [255, 255, 255]
-    },
-    {
-        "type": "sphere",
-        "pos": [5, 5, 0],
-        "dir": [0, 1, 0],
-        "radius": 2.0,
-        "color": [255, 0, 0]
+        "color": "default.jpg"
     },
     {
         "type": "sphere",
         "pos": [0, 0, 7],
         "dir": [0, 1, 0],
         "radius": 3.0,
-        "color": [0, 255, 0]
-    },
-    {
-        "type": "sphere",
-        "pos": [-5, -5, 0],
-        "dir": [0, 1, 0],
-        "radius": 2.0,
-        "color": [0, 0, 255]
+        "color": "default.jpg"
     },
     {
         "type": "cone",
         "pos": [5, -3, 0],
         "dir": [0, -1, 0],
         "radius": 2.0,
-        "height": 4.0,
-        "color": [0, 255, 255]
+        "angle": 45,
+        "color": "default.jpg",
+        "v_scale": 0.1
     },
     {
         "type": "cylinder",
         "pos": [-5, 3, 0],
         "dir": [0, 1, 0],
         "radius": 2.0,
-        "height": 4.0,
-        "color": [255, 255, 0]
+        "color": "default.jpg"
     }
     
 ]

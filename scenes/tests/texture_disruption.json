@@ -1,5 +1,14 @@
 [
-
+    {
+        "type": "viewmode",
+        "value": "Phong"
+    },
+    {
+        "type": "light",
+        "pos": [0, 5.7, -5],
+        "intensity": 15,
+        "color": [255, 255, 255]
+    },
     {
         "type": "texture",
         "pattern": "worley",
@@ -28,20 +37,19 @@
         "type": "sphere",
         "pos": [0, 0, -2],
         "dir": [0, 1, 0],
-        "color": [0, 0, 0],
         "radius": 1.5,
-		"transparency": 1.0,
-		"refraction": 1.52,
-        "roughness": 0.0
+        "color": "CheckerBW",
+        "roughness": 0.0,
+        "u_scale": 50,
+        "v_scale": 50
     },
     {
         "type": "sphere",
         "pos": [-2.5, 2.5, 2],
         "dir": [0, 1, 0],
-        "color": [0, 0, 0],
+        "color": [255, 255, 255],
         "radius": 2.0,
         "normal": "BumpSine",
-        "roughness": "bricks/bricks_roughness.jpg",
         "u_scale": 50,
         "v_scale": 50
     },
@@ -49,29 +57,8 @@
         "type": "sphere",
         "pos": [2.5, 2.5, 2],
         "dir": [0, 1, 0],
-        "color": "wood/wood_color.jpg",
-        "radius": 2.0,
-        "normal": "wood/wood_normal.jpg",
-        "roughness": "wood/wood_roughness.jpg"
-    },
-    {
-        "type": "sphere",
-        "pos": [-2, -2, 0],
-        "dir": [0, 1, 0],
-        "color": "plates/plates_color.jpg",
-        "radius": 1.5,
-        "normal": "plates/plates_normal.jpg",
-        "roughness": "plates/plates_roughness.jpg",
-        "metalness": "plates/plates_metal.jpg"
-    },
-    {
-        "type": "sphere",
-        "pos": [2, -2, 0],
-        "dir": [0, 1, 0],
-        "radius": 1.5,
-        "color": "Bricks_gray/Bricks_gray_Color.jpg",
-        "roughness": "Bricks_gray/Bricks_gray_Roughness.jpg",
-        "normal": "Bricks_gray/Bricks_gray_Normal.jpg"
+        "color": "WorleyBW",
+        "radius": 2.0
     },
     {
         "type": "rectangle",
@@ -105,31 +92,8 @@
     },
     {
         "type": "camera",
-        "pos": [0.0, 0.0, -14.9],
+        "pos": [0.0, 0.0, -20],
         "dir": [0, 0, 1],
         "fov": 75
-    },
-    // {
-    //     "type": "obj",
-    //     "pos": [-2, -2, -5],
-    //     "scale": 2,
-    //     "dir": [0, 1, 0],
-    //     "rotation": 180,
-    //     "file": "obj/knight.obj",
-    //     "color": [255, 255, 255],
-	// 	"transparency": 1.0,
-	// 	"refraction": 1.3
-    // },
-    // {
-    //     "type": "obj",
-    //     "pos": [2, -2, -5],
-    //     "scale": 2,
-    //     "dir": [0, 1, 0],
-    //     "rotation": 180,
-    //     "file": "obj/knight.obj",
-    //     "color": "plates/plates_color.jpg",
-    //     "normal": "plates/plates_normal.jpg",
-    //     "roughness": "plates/plates_roughness.jpg",
-    //     "metalness": "plates/plates_metal.jpg"
-    // }
+    }
 ]
