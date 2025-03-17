@@ -20,7 +20,6 @@ pub struct UI {
     uisettings: UISettings,
     box_index: usize,
     active_box_queue: Vec<String>,
-    // active_box_reference: String,
     editing: Option<Editing>,
     mouse_position: (u32, u32),
     inputs: Vec<Key>,
@@ -34,7 +33,6 @@ impl UI {
             box_index: 0,
             boxes: HashMap::new(),
             uisettings: UISettings::default(),
-            // active_box_reference: "".to_string(),
             active_box_queue: vec![],
             editing: None,
             mouse_position: (0, 0),
@@ -309,15 +307,15 @@ pub fn ui_scrolled(pos: (u32, u32), scroll:f32, _context: &mut UIContext, ui: &m
         if !is_inside_box(pos, active_box.absolute_pos, active_box.size) {
             return;
         }
-        if (scroll < 0. && active_box.offset > 0) || active_box.scrollable {
-            active_box.offset += (scroll * SCROLL_PIXEL_AMOUNT as f32) as u32;
+        if (scroll > 0. && active_box.offset > 0) || active_box.scrollable {
+            active_box.offset -= (scroll * SCROLL_PIXEL_AMOUNT as f32) as u32;
             ui.set_dirty();
         }
     }
     for (_, uibox) in &mut ui.boxes {
         if is_inside_box(pos, uibox.absolute_pos, uibox.size) {
-            if (scroll < 0. && uibox.offset > 0) || uibox.scrollable {
-                uibox.offset = (uibox.offset as f32 + scroll * SCROLL_PIXEL_AMOUNT as f32) as u32;
+            if (scroll > 0. && uibox.offset > 0) || uibox.scrollable {
+                uibox.offset = (uibox.offset as f32 - scroll * SCROLL_PIXEL_AMOUNT as f32) as u32;
                 ui.set_dirty();
             }
             return;

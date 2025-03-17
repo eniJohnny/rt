@@ -7,7 +7,7 @@ use elements::{get_ambient, get_any, get_brick, get_camera, get_cone, get_cube, 
 use json::JsonValue;
 use basic::get_color_texture;
 use textures::get_texture;
-use crate::model::{materials::texture::Texture, scene::Scene};
+use crate::{model::{materials::texture::{Texture, TextureType}, scene::Scene}, DEFAULT_SKYBOX_TEXTURE, TEXTURE_FOLDER};
 use std::{collections::HashMap, io::{stdout, Write}};
 
 pub fn print_scene(scene: &Scene) {
@@ -171,6 +171,9 @@ pub fn parse_scene_content(scene: &mut Scene, scene_content: JsonValue) -> Resul
 
 pub fn get_scene(scene_file: &String) -> Result<Scene, String> {
     let mut scene = Scene::new();
+    let default_skybox = format!("{}/{}", TEXTURE_FOLDER, DEFAULT_SKYBOX_TEXTURE).to_string();
+    scene.load_texture(&default_skybox, None);
+    scene.set_skybox(Texture::Texture(default_skybox, TextureType::Color));
     match json::parse_json_file(scene_file) {
         Ok(json_value) => {
             match parse_scene_content(&mut scene, json_value) {

@@ -254,7 +254,7 @@ pub fn get_cubehole(json_cube: &HashMap<String, JsonValue>) -> Result<Element, S
 
 pub fn get_hyperboloid(json_hyperboloid: &HashMap<String, JsonValue>) -> Result<Element, String> {
     let pos = get_vec3(&json_hyperboloid, "pos", None, None, None)?;
-    let z_shift = get_number(&json_hyperboloid, "z_shift", Some(0.), None, None)?;
+    let z_shift = get_number(&json_hyperboloid, "z_shift", None, None, None)?;
 
     let shape = Box::new(Hyperboloid::new(pos, z_shift));
     let material = get_material(&json_hyperboloid)?;

@@ -15,9 +15,8 @@ const SCREEN_HEIGHT: usize = 900;
 const SCREEN_WIDTH_U32: u32 = SCREEN_WIDTH as u32;
 const SCREEN_HEIGHT_U32: u32 = SCREEN_HEIGHT as u32;
 const SCENE_FOLDER: &str = "scenes";
-// const SCENE: &str = "cornell_box";
 const TEXTURE_FOLDER: &str = "textures";
-const SKYBOX_TEXTURE: &str = "skybox/skybox_night.jpg";
+const DEFAULT_SKYBOX_TEXTURE: &str = "skybox/skybox_night.jpg";
 
 /************* Camera **************/
 const STEP: f64 = 0.2;

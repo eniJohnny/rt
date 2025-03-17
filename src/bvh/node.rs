@@ -47,11 +47,8 @@ impl Node {
     }
 
     fn build_node(&mut self, scene: &Scene, depth: usize) {
-        // println!("Initial children {}", self.elements.len());
         let (node_a, node_b) = self.split_node(scene, depth);
-        // println!("Depth {}, parent {}, a {}, b {}", depth, self.elements().len(), node_a.clone().map(|node| node.elements().len()).unwrap_or(0), node_b.clone().map(|node| node.elements().len()).unwrap_or(0));
         if node_a.is_none() && node_b.is_none() {
-            // println!("Ended with depth {} and children elements {}", depth, self.elements().len());
             self.set_is_leaf(true);
         }
         if let Some(mut node_a) = node_a {
