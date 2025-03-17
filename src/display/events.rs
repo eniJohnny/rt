@@ -146,11 +146,13 @@ fn key_pressed_editing(
             if char.len() == 1 {
                 let c = char.chars().next().unwrap();
                 if c.is_alphanumeric() || c == '.' || c == '-' {
-                    value += &c.to_string();
-                    ui.set_editing(Some(Editing {
-                        reference: edit.reference,
-                        value,
-                    }));
+                    if value.len() <= 15 {
+                        value += &c.to_string();
+                        ui.set_editing(Some(Editing {
+                            reference: edit.reference,
+                            value,
+                        }));
+                    }
                 }
             }
         }
