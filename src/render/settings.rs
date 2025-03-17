@@ -6,7 +6,7 @@ use crate::{
         uielement::{Category, UIElement}, uisettings::UISettings, utils::{
             misc::{ElemType, Property, Value}, ui_utils::UIContext, Displayable
         }
-    }, ANAGLYPH_OFFSET_X, ANAGLYPH_OFFSET_Y, ANTIALIASING, DISPLACEMENT, MAX_DEPTH, MAX_ITERATIONS, PLANE_DISPLACED_DISTANCE, PLANE_DISPLACEMENT_STEP, SKYBOX_TEXTURE, SPHERE_DISPLACED_DISTANCE, SPHERE_DISPLACEMENT_STEP, VIEW_MODE
+    }, ANAGLYPH_OFFSET_X, ANAGLYPH_OFFSET_Y, ANTIALIASING, DEFAULT_SKYBOX_TEXTURE, DISPLACEMENT, MAX_DEPTH, MAX_ITERATIONS, PLANE_DISPLACED_DISTANCE, PLANE_DISPLACEMENT_STEP, SPHERE_DISPLACED_DISTANCE, SPHERE_DISPLACEMENT_STEP, VIEW_MODE
 };
 
 #[derive(Debug, Clone)]
@@ -56,7 +56,7 @@ impl Settings {
             indirect: true,
             iterations: MAX_ITERATIONS,
             displacement: DISPLACEMENT,
-            skybox_texture: SKYBOX_TEXTURE.to_string(),
+            skybox_texture: DEFAULT_SKYBOX_TEXTURE.to_string(),
             plane_displaced_distance: PLANE_DISPLACED_DISTANCE,
             plane_displacement_step: PLANE_DISPLACEMENT_STEP,
             sphere_displaced_distance: SPHERE_DISPLACED_DISTANCE,

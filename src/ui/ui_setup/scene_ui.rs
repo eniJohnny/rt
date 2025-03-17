@@ -62,7 +62,6 @@ pub fn add_scene_to_ui(ui: &mut UI, _context: &mut UIContext, id: usize, scene_p
 }
 
 pub fn setup_scene_options(ui: &mut UI, context: &UIContext, render_id: usize) {
-    // let exclusive_uis = [SETTINGS, OBJECTS];
     ui.destroy_box(SCENE_TOOLBAR);
 
     let mut toolbar_box = UIBox::new(SCENE_TOOLBAR, BoxPosition::TopLeft(20, 0), SCREEN_WIDTH_U32, ui.uisettings());

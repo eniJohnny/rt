@@ -37,38 +37,17 @@ pub fn get_refraction_indices(hit: &Hit, ray: &Ray) -> (f64, f64) {
 	let mut t_s = hit.t_list().clone();
 	let mut t_final: Vec<(&Element, Vec<f64>)> = vec![];
 	for (elem, mut t) in t_s.clone() {
-		// if ray.debug {
-		// 	println!("Checking composed id for elem {}", elem.id());
-		// }
 		if let Some(composed_id) = elem.composed_id() {
-			// if ray.debug {
-			// 	println!("Checking for other intersects for {}", composed_id);
-			// }
 			let mut first = false;
 			for (elem2, t2) in &mut t_s {
 				if let Some(composed_id2) = elem2.composed_id() {
-					// if ray.debug {
-					// 	println!("Composed found {} for elem {}", composed_id2, elem2.id());
-					// }
 					if composed_id == composed_id2{
 						if elem2.id() == elem.id() {
-							// if ray.debug {
-							// 	println!("First");
-							// }
 							first = true;
 						} else {
-							// if ray.debug {
-							// 	println!("Not same element");
-							// }
 							if !first {
-								// if ray.debug {
-								// 	println!("Not first");
-								// }
 								break;
 							}
-							// if ray.debug {
-							// 	println!("Appending hits");
-							// }
 							t.append(t2);
 						}
 					}
@@ -81,17 +60,11 @@ pub fn get_refraction_indices(hit: &Hit, ray: &Ray) -> (f64, f64) {
 			t_final.push((elem, t));
 		}
 	}
-	// if ray.debug {
-	// 	println!("Current parent");
-	// }
 	let current_parent_index = if let Some(parent) = get_parent_debug(t_final.clone(), hit.dist() - BOUNCE_OFFSET, ray.debug) {
 		parent.material().refraction()
 	} else {
 		1.0
 	};
-	// if ray.debug {
-	// 	println!("Next parent");
-	// }
 	let next_parent_index = if let Some(parent) = get_parent_debug(t_final, hit.dist() + BOUNCE_OFFSET, ray.debug) {
 		parent.material().refraction()
 	} else {
@@ -115,9 +88,6 @@ pub fn global_lighting_from_hit(scene: &Scene, hit: &Option<Hit>, ray: &Ray) -> 
 		let mut next_refraction_index = 1.;
 		if hit.transparency() > EPSILON {
 			(current_refraction_index, next_refraction_index) = get_refraction_indices(hit, ray);
-			if ray.debug {
-				println!("Current {}, next {}", current_refraction_index, next_refraction_index);
-			}
 		}
 
 		let fresnel_factor = fresnel_reflect_ratio(current_refraction_index, next_refraction_index, &hit.norm(), ray.get_dir(), hit.reflectivity());
@@ -224,25 +194,15 @@ pub fn get_parent<'a>(t_s: Vec<(&Element, Vec<f64>)>, closest_dist: f64) -> Opti
 	get_parent_debug(t_s, closest_dist, false)
 }
 
-pub fn get_parent_debug<'a>(mut t_s: Vec<(&Element, Vec<f64>)>, closest_dist: f64, debug: bool) -> Option<&Element> {
+pub fn get_parent_debug<'a>(mut t_s: Vec<(&Element, Vec<f64>)>, closest_dist: f64, _debug: bool) -> Option<&Element> {
 	for (_, t) in t_s.iter_mut() {
 		for dist in t.iter_mut() {
 			*dist -= closest_dist;
 		}
 	}
     let mut closest: Option<(&Element, f64)> = None;
-	// if debug {
-	// 	println!("Get parent");
-	// }
 
 	for (elem, t) in t_s {
-		if debug {
-			// print!("For element {}, nb_hit {} : ", elem.id(), t.len());
-			// for dist in &t {
-			// 	print!("{} ", dist);
-			// }
-			// println!();
-		}
 		if t.len() > 1 {
 			if t.len() % 2 == 0 {
 				let mut nb_t_positives = 0;
@@ -256,16 +216,10 @@ pub fn get_parent_debug<'a>(mut t_s: Vec<(&Element, Vec<f64>)>, closest_dist: f6
 						if &dist > &0. {
 							if let Some((_, closest_dist)) = closest {
 								if &dist < &closest_dist {
-									// if debug {
-									// 	println!("Closest is {} at dist {}", elem.id(), dist);
-									// }
 									closest = Some((elem, dist));
 								}
 							}
 							else {
-								// if debug {
-								// 	println!("Closest is {} at dist {}", elem.id(), dist);
-								// }
 								closest = Some((elem, dist));
 							}
 						}

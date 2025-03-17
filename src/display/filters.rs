@@ -116,8 +116,6 @@ fn sobel(gray:&mut ImageBuffer<image::Rgba<u8>, Vec<u8>>, image: &mut ImageBuffe
             let original_pixel = image.get_pixel_mut(x, y);
 
             let edge_intensity = (edge_pixel[0] as u32 + edge_pixel[1] as u32 + edge_pixel[2] as u32) / 3;
-            // let average_color = (original_pixel[0] as u32 + original_pixel[1] as u32 + original_pixel[2] as u32) / 3;
-            // let simplified_color = if average_color >= 128 { 255 } else { 0 };
 
             if edge_intensity > EDGE_THRESHOLD {
                 *original_pixel = image::Rgba([0, 0, 0, 255]);

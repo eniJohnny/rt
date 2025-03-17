@@ -209,7 +209,10 @@ impl Scene {
                 None => {
                     match image::open(&name) {
                         Ok(img) => img.to_rgba8(),
-                        Err(_) => panic!("Error opening texture file {}", name),
+                        Err(_) => {
+                            println!("Can't find texture file {}", name);
+                            return;
+                        },
                     }
                 }
             };

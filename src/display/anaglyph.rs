@@ -73,8 +73,6 @@ pub fn create(img: &mut ImageBuffer<Rgba<u8>, Vec<u8>>, offset_x: isize, offset_
         out_x: out_x.abs() as usize,
         
         offset_y: offset_y.abs() as usize,
-        // in_y: in_y.abs() as usize,
-        // out_y: out_y.abs() as usize,
 
         color_left,
         color_right,
@@ -84,7 +82,6 @@ pub fn create(img: &mut ImageBuffer<Rgba<u8>, Vec<u8>>, offset_x: isize, offset_
 
     anaglyph.fill(&mut out_buf);
 
-    // image::save_buffer(&output_file, &out_buf, out_x as u32, out_y as u32, image::ColorType::Rgb8).unwrap();
     let mut res = DynamicImage::ImageRgba8(ImageBuffer::from_raw(out_x as u32, out_y as u32, out_buf).unwrap());
     res = res.resize_to_fill(in_x as u32, in_y as u32, image::imageops::FilterType::Nearest);
     img.copy_from_slice(&res.to_bytes());
@@ -97,9 +94,7 @@ struct Anaglyph {
     in_x: usize,
     out_x: usize,
 
-    // in_y: usize,
     offset_y: usize,
-    // out_y: usize,
 
     color_left: [f32 ; 4],
     color_right: [f32 ; 4],
