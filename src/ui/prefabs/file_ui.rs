@@ -1,4 +1,4 @@
-use std::{fs::read_dir, io::Result, path::{self, Path}};
+use std::{fs::read_dir, io::Result, path::{self, Path}, process::exit};
 
 use image::Rgba;
 use crate::ui::{
@@ -190,5 +190,6 @@ pub fn get_file_box(default_folder: String, box_name: String, submit: FnSubmitVa
         })));
         return file_box;
     }
-    panic!("Problem opening files");
+    println!("Please reopen the program from the main folder root.");
+    exit(1);
 }

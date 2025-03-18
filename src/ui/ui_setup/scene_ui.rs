@@ -44,8 +44,8 @@ pub fn change_scene(context: &mut UIContext, ui: &mut UI, render_id: Option<usiz
 pub fn add_scene_to_ui(ui: &mut UI, _context: &mut UIContext, id: usize, scene_path: &str) {
     let uisettings = ui.uisettings().clone();
     if let Some(row) = ui.get_element_mut(TOOLBAR.to_string() + ".row") {
-        let scene_name = scene_path.split("/").last().unwrap_or_default();
-        let mut btn_scene = UIElement::new(scene_name, &format!("{}.scene_{}", row.reference.clone(), id), ElemType::Button(Some(Box::new(
+        let scene_name = scene_path.split("/").last().unwrap_or_default().to_string();
+        let mut btn_scene = UIElement::new(&scene_name, &format!("{}.scene_{}", row.reference.clone(), id), ElemType::Button(Some(Box::new(
             move |element, context, ui| {
                 if context.active_scene.is_none() || context.active_scene.unwrap() != id {
                     change_scene(context, ui, Some(id), element);
