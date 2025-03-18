@@ -1,4 +1,4 @@
-use std::{fs::read_dir, io::Result, path::{self, Path}};
+use std::{fs::read_dir, io::Result, path::{self, Path}, process::exit};
 
 use image::Rgba;
 use crate::ui::{
@@ -163,6 +163,9 @@ fn create_value_element(settings: &UISettings, id: &str) -> UIElement {
 pub fn get_file_box(default_folder: String, box_name: String, submit: FnSubmitValue, settings: &UISettings, initial_value: String) -> UIBox {
     let mut file_box =  UIBox::new("file_box", BoxPosition::Center, settings.gui_width, settings);
     let mut cat = UIElement::new(&box_name, "cat_file", ElemType::Category(Category::default()), settings);
+    cat.on_click = Some(Box::new(move |_element,_scene, ui| {
+        ui.destroy_box("file_box");
+    }));
     let mut value_element = create_value_element(settings, "value");
     
     let file_ui = create_files_ui(&mut value_element, &mut cat, &default_folder, settings, initial_value, "file_box.cat_file".to_string());
@@ -187,5 +190,6 @@ pub fn get_file_box(default_folder: String, box_name: String, submit: FnSubmitVa
         })));
         return file_box;
     }
-    panic!("Problem opening files");
+    println!("Please reopen the program from the main folder root.");
+    exit(1);
 }

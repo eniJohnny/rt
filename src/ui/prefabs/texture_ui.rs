@@ -19,7 +19,7 @@ use crate::{
 };
 
 
-pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<dyn Fn(Texture, &Arc<RwLock<Scene>>)>, settings: &UISettings, file: bool, only_file: bool, min: Option<f64>, max: Option<f64>, only_file_default: Option<Vec3>) -> UIElement {
+pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<dyn Fn(Texture, &Arc<RwLock<Scene>>)>, settings: &UISettings, file: bool, only_file: bool, min: Option<f64>, max: Option<f64>, only_file_default: Option<Texture>) -> UIElement {
     let mut category = UIElement::new(name, name, ElemType::Category(Category::collapsed()), settings);
     
 
@@ -71,12 +71,12 @@ pub fn get_texture_ui(name: &str, texture: &Texture, submit: Box<dyn Fn(Texture,
                                         }
                                     }
                                 } else if only_file {
-                                    if let Some(default) = only_file_default {
+                                    if let Some(default) = only_file_default.clone() {
                                         let scene = match context.active_scene {
                                             Some(active_scene_index) => context.scene_list.get(&active_scene_index).unwrap(),
                                             None => return,
                                         };
-                                        submit(Texture::from_vector("", default), scene);
+                                        submit(default, scene);
                                     }
                                 } else {
                                     let scene = match context.active_scene {

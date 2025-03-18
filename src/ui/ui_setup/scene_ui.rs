@@ -1,5 +1,5 @@
 use image::Rgba;
-use crate::{display::{mainloop::load_scene, ui_setup::{setup_objects_ui, setup_settings}}, render::render_thread::UIOrder, ui::{prefabs::file_ui::get_file_box, ui::UI, uibox::{BoxPosition, UIBox}, uielement::UIElement, uisettings::UISettings, utils::{misc::{ElemType, Value}, style::{Style, StyleBuilder}, ui_utils::UIContext}}, ELEMENT, OBJECTS, SCENE_FOLDER, SCENE_TOOLBAR, SCREEN_WIDTH_U32, SETTINGS, TOOLBAR};
+use crate::{display::{mainloop::load_scene, ui_setup::{setup_objects_ui, setup_settings}}, render::render_thread::UIOrder, ui::{prefabs::file_ui::get_file_box, ui::UI, uibox::{BoxPosition, UIBox}, uielement::UIElement, uisettings::UISettings, utils::{misc::{ElemType, Value}, style::{Style, StyleBuilder}, ui_utils::UIContext}}, ELEMENT, MAX_OPENED_SCENES, OBJECTS, SCENE_FOLDER, SCENE_TOOLBAR, SCREEN_WIDTH_U32, SETTINGS, TOOLBAR};
 
 
 pub fn change_scene(context: &mut UIContext, ui: &mut UI, render_id: Option<usize>, element: Option<&mut UIElement>) {
@@ -44,8 +44,8 @@ pub fn change_scene(context: &mut UIContext, ui: &mut UI, render_id: Option<usiz
 pub fn add_scene_to_ui(ui: &mut UI, _context: &mut UIContext, id: usize, scene_path: &str) {
     let uisettings = ui.uisettings().clone();
     if let Some(row) = ui.get_element_mut(TOOLBAR.to_string() + ".row") {
-        let scene_name = scene_path.split("/").last().unwrap_or_default();
-        let mut btn_scene = UIElement::new(scene_name, &format!("{}.scene_{}", row.reference.clone(), id), ElemType::Button(Some(Box::new(
+        let scene_name = scene_path.split("/").last().unwrap_or_default().to_string();
+        let mut btn_scene = UIElement::new(&scene_name, &format!("{}.scene_{}", row.reference.clone(), id), ElemType::Button(Some(Box::new(
             move |element, context, ui| {
                 if context.active_scene.is_none() || context.active_scene.unwrap() != id {
                     change_scene(context, ui, Some(id), element);
@@ -61,7 +61,7 @@ pub fn add_scene_to_ui(ui: &mut UI, _context: &mut UIContext, id: usize, scene_p
     }
 }
 
-pub fn setup_scene_options(ui: &mut UI, context: &UIContext, render_id: usize) {
+pub fn setup_scene_options(ui: &mut UI, _context: &UIContext, _render_id: usize) {
     ui.destroy_box(SCENE_TOOLBAR);
 
     let mut toolbar_box = UIBox::new(SCENE_TOOLBAR, BoxPosition::TopLeft(20, 0), SCREEN_WIDTH_U32, ui.uisettings());
@@ -133,29 +133,6 @@ pub fn setup_scene_options(ui: &mut UI, context: &UIContext, render_id: usize) {
                 }
             }
     }))), ui.uisettings());
-
-    
-    let text = match context.scene_list.get(&render_id).unwrap().read().unwrap().paused() {
-        true => "Start",
-        false => "Pause"
-    };
-    
-    let btn_pause = UIElement::new(text, "pause", ElemType::Button(Some(Box::new(
-        move |elem, context, _| {
-            if let Some(elem) = elem {
-                let mut scene = context.scene_list.get(&render_id).unwrap().write().unwrap();
-            if scene.paused() {
-                elem.text = "Pause".to_string();
-                context.transmitter.send(UIOrder::SceneStart(render_id)).unwrap();
-                scene.set_paused(false);
-                
-            } else {
-                elem.text = "Start".to_string();
-                context.transmitter.send(UIOrder::ScenePause(render_id)).unwrap();
-                scene.set_paused(true);
-            }
-        }
-    }))), ui.uisettings());
     
     let row_reference = row.reference.clone();
     
@@ -168,14 +145,29 @@ pub fn setup_scene_options(ui: &mut UI, context: &UIContext, render_id: usize) {
                 ui.remove_element_by_reference(format!("{}.{}.scene_{}",TOOLBAR, row_reference, id));
                 
                 context.active_scene = None;
-                change_scene(context,ui, context.previous_active_scene.clone(), None);
+                let next_scene = match context.previous_active_scene.is_none() {
+                    false => {
+                        context.previous_active_scene.clone()
+                    },
+                    true if context.scene_list.len() > 0 => {
+                        let mut render_id = None;
+                        for (id, _) in &context.scene_list {
+                            render_id = Some(*id);
+                            break;
+                        }
+                        render_id
+                    }
+                    _ => {
+                        None
+                    }
+                };
+                change_scene(context,ui, next_scene, None);
                 elem.style_mut().visible = false;
             }
         }))), ui.uisettings());
         
     row.add_element(btn_settings);
     row.add_element(btn_objects);
-    row.add_element(btn_pause);
     row.add_element(btn_close);
 
     toolbar_box.add_elements(vec![row]);
@@ -196,16 +188,20 @@ pub fn setup_scene_toolbar(ui: &mut UI, _context: &UIContext) {
     row.style_mut().padding_left = 0;
     row.style_mut().padding_right = 0;
     row.style_mut().margin = 0;
-    let mut btn_open_scene = UIElement::new("New scene", "open_scene", ElemType::Button(Some(Box::new(
-        move |_, _, ui| {
-            let file_box = get_file_box(SCENE_FOLDER.to_string(), "open_scene_box".to_string(), Box::new(move |_, value, context, ui| {
-                if let Value::Text(scene_path) = value {
-                    load_scene(scene_path.as_str(), context, ui);
-                }
-            }), ui.uisettings(), "".to_string());
-            let box_reference = file_box.reference.clone();
-            ui.add_box(file_box);
-            ui.set_active_box(box_reference);
+    let mut btn_open_scene = UIElement::new("Open scene", "open_scene", ElemType::Button(Some(Box::new(
+        move |_, context, ui| {
+            if context.scene_list.len() < MAX_OPENED_SCENES {   
+                let file_box = get_file_box(SCENE_FOLDER.to_string(), "Scene list".to_string(), Box::new(move |_, value, context, ui| {
+                    if let Value::Text(scene_path) = value {
+                        load_scene(scene_path.as_str(), context, ui);
+                    }
+                }), ui.uisettings(), "".to_string());
+                let box_reference = file_box.reference.clone();
+                ui.add_box(file_box);
+                ui.set_active_box(box_reference);
+            } else {
+                println!("Too much scenes currently opened, close one before attempting to open another one.");
+            }
     }))), ui.uisettings());
 
     btn_open_scene.set_style(get_unselected_scene_tab_style(ui.uisettings(), true));

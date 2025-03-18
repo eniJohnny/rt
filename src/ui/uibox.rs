@@ -17,7 +17,6 @@ pub struct UIBox {
     pub offset: u32,
     pub max_height: u32,
     pub scrollable: bool,
-    // pub borders: Option<(Color, usize)>,
     pub elems: Vec<UIElement>,
     pub reference: String,
     pub style: Style,

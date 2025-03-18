@@ -1,5 +1,5 @@
 use super::{aabb::Aabb, shape::Shape};
-use std::sync::{Arc, RwLock};
+use std::{process::exit, sync::{Arc, RwLock}};
 use crate::{
     model::{
         materials::material::Projection,
@@ -274,7 +274,8 @@ impl Shape for Wireframe {
             return Vec3::new(0.0, 0.0, 1.0);
         } else {
             // DEBUG
-            panic!("Error: hit_position is not on the AABB.\n");
+            println!("Error: hit_position is not on the AABB.\n");
+            exit(1)
         }
     }
 

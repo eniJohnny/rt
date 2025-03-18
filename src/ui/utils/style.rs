@@ -22,7 +22,8 @@ pub struct Style {
     pub padding_top: u32,
     pub padding_bot: u32,
     pub text_center: bool,
-    pub margin: u32
+    pub margin: u32,
+    pub multilines: bool
 }
 pub trait Formattable {
     fn base_style(&self, settings: &UISettings) -> Style {
@@ -55,6 +56,7 @@ impl StyleBuilder {
             .border_size(2)
             .border_color(Some(Rgba([30, 30, 30, 255])))
             .border_radius(3)
+            .multilines(false)
     }
     pub fn padding_left(mut self, padding_left: u32) -> Self {
         self.style.padding_left = padding_left;
@@ -144,6 +146,10 @@ impl StyleBuilder {
         self.style.margin = margin;
         self
     }
+    pub fn multilines(mut self, multilines: bool) -> Self {
+        self.style.multilines = multilines;
+        self
+    }
     pub fn build(self) -> Style {
         self.style
     }
@@ -187,7 +193,8 @@ impl Style {
             visible: true,
             disabled: false,
             fill_width: false,
-            margin: settings.margin
+            margin: settings.margin,
+            multilines: true
         }
     }
 

@@ -82,13 +82,5 @@
         "displacement": "MetalWalkway007_1K-JPG/MetalWalkway007_1K-JPG_Displacement.jpg",
         "u_scale": 3,
         "v_scale": 3
-    },
-    // {
-    //     "type": "obj",
-    //     "pos": [0, -2, -4],
-    //     "scale": 1,
-    //     "dir": [0, 1, 0],
-    //     "file": "obj/knight.obj",
-    //     "color": [150, 125, 1]
-    // }
+    }
 ]

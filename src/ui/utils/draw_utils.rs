@@ -5,18 +5,33 @@ use rusttype::{Font, Scale};
 
 pub fn draw_element_text(
     img: &mut RgbaImage,
-    text: String,
-    pos: (i32, i32),
+    mut text: String,
+    mut pos: (i32, i32),
     size: (u32, u32),
     style: &Style,
 ) {
+    if pos.0 < 0 {
+        pos.0 = 0;
+    }
+    if pos.1 < 0 {
+        pos.1 = 0;
+    }
     let pos = (pos.0 as u32, pos.1 as u32);
     draw_background(img, pos, size, style);
 
     let mut padding_left = style.padding_left;
     if style.text_center {
-        let text_width = style.font_size() as u32 / 2 * (text.len() as u32 + 1);
         let available_width = size.0 - style.padding_left - style.padding_right;
+        let text_allowed_len = available_width as usize / (style.font_size() as usize / 2) - 1;
+        if text.len() > text_allowed_len {
+            if text_allowed_len < 2 {
+                text = "".to_string();
+            } else {
+                text.truncate(text_allowed_len - 2);
+                text = text + ".."
+            }
+        }
+        let text_width = style.font_size() as u32 / 2 * (text.len() as u32 + 1);
         padding_left += (available_width - text_width) / 2;
     }
     
@@ -224,7 +239,7 @@ pub fn get_size(text: &String, style: &Style, max_size: (u32, u32)) -> (u32, u32
     if wanted_width > width {
         width = wanted_width;
     }
-    if width > max_size.0 {
+    if width > max_size.0 && style.multilines {
         let lines = split_in_lines(text.clone(), style.width, style);
         height += (style.font_size() as u32 + style.padding_bot) * lines.len() as u32;
     }

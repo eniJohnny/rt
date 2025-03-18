@@ -36,16 +36,18 @@ pub fn handle_event(
                 let pos = ui.mouse_position();
                 if !ui_clicked(pos, context, ui) {
                     if let None = ui.editing() {
-                        if let Some(scene) = match context.active_scene {
-                            Some(active_scene_index) => Some(context.scene_list.get(&active_scene_index).unwrap()),
-                            None => None,
-                        } {
-                            let scene_read = scene.read().unwrap();
-                            let mut ray = get_ray_debug(&scene_read, pos.0 as usize, pos.1 as usize, true);
-                            get_lighting_from_ray(&scene_read, &ray);
-                            ray.debug = false;
-                            if let Some(hit) = get_closest_hit(&scene_read, &ray) {
-                                setup_element_ui(hit.element(), ui, scene);
+                        if ui.active_box_reference() == "" {
+                            if let Some(scene) = match context.active_scene {
+                                Some(active_scene_index) => Some(context.scene_list.get(&active_scene_index).unwrap()),
+                                None => None,
+                            } {
+                                let scene_read = scene.read().unwrap();
+                                let mut ray = get_ray_debug(&scene_read, pos.0 as usize, pos.1 as usize, true);
+                                get_lighting_from_ray(&scene_read, &ray);
+                                ray.debug = false;
+                                if let Some(hit) = get_closest_hit(&scene_read, &ray) {
+                                    setup_element_ui(hit.element(), ui, scene);
+                                }
                             }
                         }
                     } else {
@@ -79,7 +81,7 @@ fn handle_keyboard_press(
     if let Some(edit) = ui.editing().clone() {
         key_pressed_editing(ui, flow, &input, edit);
     } else {
-        key_pressed_non_editing(ui, context, flow, &input);
+        key_pressed_non_editing(ui, context, &input);
     }
 }
 
@@ -221,12 +223,17 @@ pub fn key_held(context: &UIContext, _: &mut UI, _: &EventLoopWindowTarget<()>, 
 fn key_pressed_non_editing(
     ui: &mut UI,
     context: &UIContext,
-    flow: &EventLoopWindowTarget<()>,
     input: &Key,
 ) {
     match input {
         Key::Named(NamedKey::Escape) => {
-            flow.exit();
+            if ui.active_box().is_some() {
+                ui.destroy_box(&ui.active_box_reference().clone());
+                ui.set_dirty();
+            } else {
+                ui.destroy_last_box();
+                ui.set_dirty();
+            }
         }
         Key::Character(c) => {
             if c.len() == 1 {

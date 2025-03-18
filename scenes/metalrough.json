@@ -1,5 +1,9 @@
 [
     {
+        "type": "viewmode",
+        "value": "global"
+    },
+    {
         "type": "sphere",
         "pos": [-2.5, 2.5, 2],
         "dir": [0, 1, 0],
@@ -83,7 +87,7 @@
         "dir_w": [0, 0, 1],
         "length": 10,
         "width": 30,
-        "color": [255, 50, 50],
+        "color": [255, 120, 120],
         "emissive": 1
     },
     {
@@ -93,7 +97,7 @@
         "dir_w": [0, 0, 1],
         "length": 10,
         "width": 30,
-        "color": [50, 255, 50],
+        "color": [120, 255, 120],
         "emissive": 1
     },
 

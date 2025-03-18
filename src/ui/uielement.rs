@@ -1,3 +1,4 @@
+
 use super::{
     ui::UI,
     uisettings::UISettings,
@@ -32,18 +33,6 @@ impl UIElement {
             on_click: None
         }
     }
-
-    // pub fn add_element_to_front(&mut self, elem: UIElement) {
-    //     if let ElemType::Category(cat) = &mut self.elem_type {
-    //         let mut new_elems = vec![elem];
-    //         new_elems.append(&mut cat.elems);
-    //         cat.elems = new_elems;
-    //     } else if let ElemType::Row(elems) = &mut self.elem_type {
-    //         let len = elems.len();
-
-    //         elems.push(elem);
-    //     }
-    // }
 
     pub fn add_element(&mut self, elem: UIElement) {
         if let ElemType::Category(cat) = &mut self.elem_type {
