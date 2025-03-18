@@ -1,8 +1,10 @@
 use std::sync::{Arc, RwLock};
+use image::Rgba;
+
 use crate::{
     model::{element::Element, materials::texture::Texture, scene::Scene}, render::common::start_threads, ui::{
-        prefabs::{material_ui::get_material_ui, texture_ui::get_texture_ui}, ui::UI, ui_setup::scene_ui::setup_scene_toolbar, uibox::{BoxPosition, UIBox}, uielement::{Category, UIElement}, utils::{misc::ElemType, ui_utils::UIContext, Displayable}
-    }, ELEMENT, OBJECTS, SCREEN_HEIGHT_U32, SETTINGS
+        prefabs::{material_ui::get_material_ui, texture_ui::get_texture_ui}, ui::UI, ui_setup::scene_ui::setup_scene_toolbar, uibox::{BoxPosition, UIBox}, uielement::{Category, UIElement}, utils::{misc::ElemType, style::StyleBuilder, ui_utils::UIContext, Displayable}
+    }, ELEMENT, OBJECTS, SCENE_TOOLBAR, SCREEN_HEIGHT_U32, SETTINGS
     };
 
 pub fn setup_settings(ui: &mut UI, context: &mut UIContext) {
@@ -24,6 +26,23 @@ pub fn setup_objects_ui(ui: &mut UI, context: &mut UIContext) {
     let mut objects_box = UIBox::new(OBJECTS, BoxPosition::CenterLeft(10), ui.uisettings().gui_width, ui.uisettings());
     objects_box.max_height = SCREEN_HEIGHT_U32 - 100;
     let mut ui_elements = vec![];
+
+    let mut category = UIElement::new(
+        "Objects",
+        "objects",
+        ElemType::Category(Category::default()),
+        ui.uisettings(),
+    );
+    category.on_click = Some(Box::new(move |_element,_scene, ui| {
+        let settings = ui.uisettings().clone();
+        ui.destroy_box(OBJECTS);
+        if let Some(elem) = ui.get_element_mut(format!("{}.row.{}", SCENE_TOOLBAR, OBJECTS)) {
+            elem.set_style(StyleBuilder::from_existing(&elem.style, &settings)
+                .bg_color(Some(Rgba([200, 200, 200, 255])))
+                .build()
+            );
+        }
+    }));
     
     ui_elements.push(scene.read().unwrap().camera().get_ui(ui));
 
@@ -44,7 +63,10 @@ pub fn setup_objects_ui(ui: &mut UI, context: &mut UIContext) {
         ui_elements.push(light.get_ui(light, ui, scene));
     }
     
-    objects_box.add_elements(ui_elements);
+    for elem in ui_elements {
+        category.add_element(elem);
+    }
+    objects_box.add_elements(vec![category]);
     objects_box.set_edit_bar(ui.uisettings(), None);
     ui.add_box(objects_box);
 }

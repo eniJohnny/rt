@@ -148,7 +148,7 @@ impl Shape for Triangle {
                     }
                 }
             }),
-            true, None, None));
+            false, None, None));
             category.add_element(get_vector_ui(triangle.b.clone(), "Point B", "pB", &ui.uisettings_mut(), 
             Box::new(move |_, value, context, _| {
                     let scene = match context.active_scene {
@@ -189,7 +189,7 @@ impl Shape for Triangle {
                     }
                 }
             }),
-            true, Some(-1.), Some(1.)));
+            false, Some(-1.), Some(1.)));
             category.add_element(get_vector_ui(triangle.c.clone(), "Point C", "pC", &ui.uisettings_mut(), 
             Box::new(move |_, value, context, _| {
                     let scene = match context.active_scene {
@@ -230,7 +230,7 @@ impl Shape for Triangle {
                     }
                 }
             }),
-            true, Some(-1.), Some(1.)));
+            false, Some(-1.), Some(1.)));
         }
         category
     }
