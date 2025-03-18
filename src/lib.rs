@@ -17,6 +17,7 @@ const SCREEN_HEIGHT_U32: u32 = SCREEN_HEIGHT as u32;
 const SCENE_FOLDER: &str = "scenes";
 const TEXTURE_FOLDER: &str = "textures";
 const DEFAULT_SKYBOX_TEXTURE: &str = "skybox/skybox_night.jpg";
+const MAX_OPENED_SCENES: usize = 5;
 
 /************* Camera **************/
 const STEP: f64 = 0.2;

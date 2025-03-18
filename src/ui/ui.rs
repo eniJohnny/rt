@@ -1,4 +1,5 @@
-use crate::{ui::uisettings::UISettings, SCROLL_PIXEL_AMOUNT};
+use crate::{ui::uisettings::UISettings, OBJECTS, SCENE_TOOLBAR, SCROLL_PIXEL_AMOUNT, SETTINGS, TOOLBAR};
+use image::Rgba;
 use winit::keyboard::Key;
 use std::
     collections::HashMap
@@ -8,10 +9,7 @@ use super::{
     uieditbar::UIEditBar,
     uielement::UIElement,
      utils::{
-        draw_utils::is_inside_box,
-        ui_utils::{get_parent_ref, give_back_element, take_element, Editing, UIContext},
-        misc::Property,
-        HitBox
+        draw_utils::is_inside_box, misc::Property, style::StyleBuilder, ui_utils::{get_parent_ref, give_back_element, take_element, Editing, UIContext}, HitBox
     }
 };
 
@@ -107,6 +105,28 @@ impl UI {
             if reference == *last_reference {
                 self.active_box_queue.pop();
             }
+        }
+    }
+
+    pub fn destroy_last_box(&mut self) {
+        let mandatory_boxes = [TOOLBAR, SCENE_TOOLBAR];
+        let mut last_reference = None;
+        for (value, _) in &self.boxes {
+            if !mandatory_boxes.contains(&value.as_str()) {
+                last_reference = Some(value.clone());
+            }
+        }
+        let settings = self.uisettings.clone();
+        if let Some(reference) = last_reference {
+            if reference == SETTINGS || reference == OBJECTS{
+                if let Some(elem) = self.get_element_mut(format!("{}.row.{}", SCENE_TOOLBAR, reference)) {
+                    elem.set_style(StyleBuilder::from_existing(&elem.style, &settings)
+                        .bg_color(Some(Rgba([200, 200, 200, 255])))
+                        .build()
+                    );
+                }
+            }
+            self.destroy_box(&reference);
         }
     }
 
@@ -307,15 +327,15 @@ pub fn ui_scrolled(pos: (u32, u32), scroll:f32, _context: &mut UIContext, ui: &m
         if !is_inside_box(pos, active_box.absolute_pos, active_box.size) {
             return;
         }
-        if (scroll > 0. && active_box.offset > 0) || active_box.scrollable {
-            active_box.offset -= (scroll * SCROLL_PIXEL_AMOUNT as f32) as u32;
+        if (scroll < 0. && active_box.offset > 0) || active_box.scrollable {
+            active_box.offset = (active_box.offset as f32 + scroll * SCROLL_PIXEL_AMOUNT as f32) as u32;
             ui.set_dirty();
         }
     }
     for (_, uibox) in &mut ui.boxes {
         if is_inside_box(pos, uibox.absolute_pos, uibox.size) {
-            if (scroll > 0. && uibox.offset > 0) || uibox.scrollable {
-                uibox.offset = (uibox.offset as f32 - scroll * SCROLL_PIXEL_AMOUNT as f32) as u32;
+            if (scroll < 0. && uibox.offset > 0) || uibox.scrollable {
+                uibox.offset = (uibox.offset as f32 + scroll * SCROLL_PIXEL_AMOUNT as f32) as u32;
                 ui.set_dirty();
             }
             return;

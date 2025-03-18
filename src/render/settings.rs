@@ -1,12 +1,14 @@
+use image::Rgba;
+
 use crate::{
     display::{anaglyph::Coloring, filters::ColorFilter}, model::{
         materials::color::Color,
         maths::vec3::Vec3, objects::lights::parallel_light::ParallelLight,
     }, ui::{
         uielement::{Category, UIElement}, uisettings::UISettings, utils::{
-            misc::{ElemType, Property, Value}, ui_utils::UIContext, Displayable
+            misc::{ElemType, Property, Value}, style::StyleBuilder, ui_utils::UIContext, Displayable
         }
-    }, ANAGLYPH_OFFSET_X, ANAGLYPH_OFFSET_Y, ANTIALIASING, DEFAULT_SKYBOX_TEXTURE, DISPLACEMENT, MAX_DEPTH, MAX_ITERATIONS, PLANE_DISPLACED_DISTANCE, PLANE_DISPLACEMENT_STEP, SPHERE_DISPLACED_DISTANCE, SPHERE_DISPLACEMENT_STEP, VIEW_MODE
+    }, ANAGLYPH_OFFSET_X, ANAGLYPH_OFFSET_Y, ANTIALIASING, DEFAULT_SKYBOX_TEXTURE, DISPLACEMENT, MAX_DEPTH, MAX_ITERATIONS, PLANE_DISPLACED_DISTANCE, PLANE_DISPLACEMENT_STEP, SCENE_TOOLBAR, SETTINGS, SPHERE_DISPLACED_DISTANCE, SPHERE_DISPLACEMENT_STEP, VIEW_MODE
 };
 
 #[derive(Debug, Clone)]
@@ -443,6 +445,16 @@ impl Displayable for Settings {
             ElemType::Category(category),
             settings,
         );
+        category.on_click = Some(Box::new(move |_element,_scene, ui| {
+            let settings = ui.uisettings().clone();
+            ui.destroy_box(SETTINGS);
+            if let Some(elem) = ui.get_element_mut(format!("{}.row.{}", SCENE_TOOLBAR, SETTINGS)) {
+                elem.set_style(StyleBuilder::from_existing(&elem.style, &settings)
+                    .bg_color(Some(Rgba([200, 200, 200, 255])))
+                    .build()
+                );
+            }
+        }));
 
         category.add_element(get_viewmode_ui(settings));
         category.add_element(get_filter_ui(settings));

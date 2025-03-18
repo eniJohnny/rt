@@ -1,7 +1,7 @@
 use super::texture_ui::get_texture_ui;
 use std::sync::{Arc, RwLock};
 use crate::{
-    model::{materials::texture::Texture, maths::vec3::Vec3, scene::Scene, element::Element},
+    model::{element::Element, materials::texture::{Texture, TextureType}, maths::vec3::Vec3, scene::Scene},
     ui::{
         ui::UI,
         uielement::{Category, UIElement},
@@ -39,7 +39,7 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
         } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
             element.material_mut().set_displacement(texture);
         }
-    }), ui.uisettings(), true, true, None, None, None));
+    }), ui.uisettings(), true, true, None, None, Some(Texture::Value(Vec3::from_value(0.), TextureType::Float))));
 
     //Norm variation
     let norm_variation = get_texture_ui("Norm", element.material().norm(), Box::new(move |texture, scene| {
@@ -52,7 +52,7 @@ pub fn get_material_ui(element: &Element, ui: &mut UI, _scene: &Arc<RwLock<Scene
         } else if let Some(element) = scene_write.element_mut_by_id(id_element) {
             element.material_mut().set_norm(texture);
         }
-    }), ui.uisettings(), true, true, None, None, Some(Vec3::new(0., 0., 1.)));
+    }), ui.uisettings(), true, true, None, None, Some(Texture::Value(Vec3::new(0., 0., 1.0), TextureType::Vector)));
     material_category.add_element(norm_variation);
 
     //Metalness

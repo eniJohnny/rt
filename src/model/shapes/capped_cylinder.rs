@@ -227,7 +227,7 @@ impl Shape for CappedCylinder {
                         }
                     }
                 }),
-                true, None, None));
+                false, None, None));
             category.add_element(get_vector_ui(cylinder.dir.clone(), "Direction", "dir", &ui.uisettings_mut(),
                 Box::new(move |_, value, context, _| {
                     let scene = match context.active_scene {

@@ -30,7 +30,7 @@ pub fn fresnel_reflect_ratio(n1: f64, n2: f64, norm: &Vec3, ray: &Vec3, reflecti
     let x = 1.0 - cos_x;
     let ret = r0 + (1.0 - r0) * x.powf(5.);
     // adjust reflect multiplier for object reflectivity
-    reflectivity * ret
+    reflectivity + (1.0 - reflectivity) * ret
 }
 
 pub fn get_refraction_indices(hit: &Hit, ray: &Ray) -> (f64, f64) {
