@@ -1,4 +1,6 @@
-use crate::{model::{scene::Scene, shapes::aabb::Aabb}, BVH_SPLIT_STEPS};
+use std::thread::current;
+
+use crate::{model::{scene::Scene, shapes::aabb::Aabb}, BVH_COMPLETION_REPORTS_THRESHOLD, BVH_SPLIT_STEPS};
 
 #[derive(Debug, Clone)]
 pub struct Node {
@@ -41,32 +43,42 @@ impl Node {
     // Methods
     pub fn build_tree(&mut self, scene: &Scene) {
         let parent_children = self.aabb.get_children_and_shrink(scene, &(0..scene.elements().len()).collect());
+        println!("------- BUILDING BVH ----------");
+        println!("-- This may take a long time --");
+        println!("--- Depending on the scenes ---");
+        println!("-------       0%     ----------");
         self.set_elements(parent_children);
 
-        self.build_node(scene, 1);
+        self.build_node(scene, 0, 0., 100.);
+        println!("-------     100%     ----------");
     }
 
-    fn build_node(&mut self, scene: &Scene, depth: usize) {
-        let (node_a, node_b) = self.split_node(scene, depth);
+    fn build_node(&mut self, scene: &Scene, depth: usize, mut completion: f64, mut increment: f64) {
+        increment /= 10.;
+        let (node_a, node_b) = self.split_node(scene, depth, completion, increment * 4.);
+        completion += increment * 4.;
         if node_a.is_none() && node_b.is_none() {
             self.set_is_leaf(true);
         }
         if let Some(mut node_a) = node_a {
-            node_a.build_node(scene, depth + 1);
+            node_a.build_node(scene, depth + 1, completion, increment * 3.);
+            completion += increment * 3.;
             self.a = Some(Box::new(node_a));
         }
         if let Some(mut node_b) = node_b {
-            node_b.build_node(scene, depth + 1);
+            node_b.build_node(scene, depth + 1, completion, increment * 3.);
             self.b = Some(Box::new(node_b));
         }
     }
 
-    pub fn split_node(&mut self, scene: &Scene, _depth: usize) -> (Option<Node>, Option<Node>) {
+    pub fn split_node(&mut self, scene: &Scene, _depth: usize, mut completion: f64, mut increment: f64) -> (Option<Node>, Option<Node>) {
+        let mut current_completion = completion;
+        increment /= 3. * BVH_SPLIT_STEPS as f64;
         let t_vec = get_t_vec(BVH_SPLIT_STEPS);
 
         let mut best_configuration: Option<(f64, (Node, Node, Vec<usize>))> = None;
 
-        for axis in 0..2 {
+        for axis in 0..3 {
             for t in &t_vec {
                 let (mut aabb1_tmp, mut aabb2_tmp) = self.aabb.split_aabb(axis, *t);
                 
@@ -93,7 +105,11 @@ impl Node {
                         best_configuration = Some((cost, (node_a, node_b, new_parent_child)));
                     }
                 }
-                
+                current_completion += increment;
+                if current_completion - completion.floor() > 1. {
+                    completion = current_completion;
+                    println!("-------      {:.0}%     ----------", completion);
+                }
             }
         }
 
