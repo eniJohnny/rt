@@ -9,10 +9,8 @@ use winit::{
     keyboard::{Key, NamedKey},
 };
 use crate::{
-    render::raycasting::{get_closest_hit, get_lighting_from_ray, get_ray_debug},
-    ui::{
-        ui::{ui_clicked, ui_scrolled, UI},
-        utils::{misc::Value, ui_utils::{Editing, UIContext}},
+    render::raycasting::{get_closest_hit, get_lighting_from_ray, get_ray_debug}, ui::{
+        ui::{ui_clicked, ui_scrolled, UI}, uielement::UIElement, utils::{misc::{ElemType, Value}, ui_utils::{get_parent_ref, Editing, UIContext}}
     }
 };
 
@@ -85,6 +83,93 @@ fn handle_keyboard_press(
     }
 }
 
+fn validate_input(ui: &mut UI, edit_ref: String, value: String) {
+    let mut err = None;
+    let mut value_to_set: Option<Value> = None;
+    if let Some(property) = ui.get_property(&edit_ref) {
+        match property.get_value_from_string(value.clone()) {
+            Err(error) => {
+                err = Some(error);
+            }
+            Ok(value) => {
+                if let Some(elem) = ui.get_element(edit_ref.clone()) {
+                    if let Err(e) = (property.fn_validate)(&value, elem, ui) {
+                        err = Some(e.to_string());
+                    } else {
+                        value_to_set = Some(value);
+                    }
+                }
+            }
+        }
+    }
+    if let Some(property) = ui.get_property_mut(&edit_ref) {
+        if let Some(value) = value_to_set {
+            property.initial_value = property.value.clone();
+            property.value = value;
+        }
+    }
+    let tmp_ref = edit_ref.clone();
+    let box_ref = tmp_ref.split(".").next().unwrap().to_string();
+    let uibox = ui.get_box_mut(&box_ref);
+    if let Some(uibox) = uibox {
+        if let Some(edit_bar) = &mut uibox.edit_bar {
+            if let Some(err) = err {
+                edit_bar.text.0 = Some(err);
+            } else {
+                edit_bar.text.0 = None
+            }
+        }
+    }
+    ui.set_editing(None);
+}
+
+fn get_next_property<'a>(ui: &'a UI, elem: &UIElement) -> Option<&'a UIElement> {
+    let parent_ref = get_parent_ref(elem.reference.clone());
+    let parent = ui.get_element(parent_ref.clone());
+    if let Some(parent) = parent {
+        match &parent.elem_type {
+            ElemType::Category(cat) => {
+                for (i, sibling) in cat.elems.iter().enumerate() {
+                    if sibling.reference == elem.reference {
+                        if i + 1 < cat.elems.len() {
+                            let next_elem = &cat.elems[i + 1];
+                            if let ElemType::Property(property) = &next_elem.elem_type {
+                                match property.value {
+                                    Value::Text(_)
+                                    | Value::Unsigned(_)
+                                    | Value::Float(_) => { return Some(next_elem); }
+                                    _ => {}
+                                };
+                            }
+                        }
+                    }
+                }
+            },
+            _ => {}
+        }
+    }
+    None
+}
+
+fn edit_next_property(ui: &mut UI, edit_ref: String) {
+    let edit  = ui.get_element(edit_ref.clone());
+    if let Some(edit) = edit {
+        if let Some(next_elem) = get_next_property(ui, edit) {
+            if let ElemType::Property(property) = &next_elem.elem_type {
+                let value = &property.value;
+                if let Value::Bool(_) = value {
+                    return ;
+                } else {
+                    ui.set_editing(Some(Editing {
+                        reference: next_elem.reference.clone(),
+                        value: value.to_string(),
+                    }));
+                }
+            }
+        }
+    }
+}
+
 fn key_pressed_editing(
     ui: &mut UI,
     _: &EventLoopWindowTarget<()>,
@@ -106,43 +191,11 @@ fn key_pressed_editing(
             }
         }
         Key::Named(NamedKey::Enter) => {
-            let mut err = None;
-            let mut value_to_set: Option<Value> = None;
-            if let Some(property) = ui.get_property(&edit.reference) {
-                match property.get_value_from_string(value.clone()) {
-                    Err(error) => {
-                        err = Some(error);
-                    }
-                    Ok(value) => {
-                        if let Some(elem) = ui.get_element(edit.reference.clone()) {
-                            if let Err(e) = (property.fn_validate)(&value, elem, ui) {
-                                err = Some(e.to_string());
-                            } else {
-                                value_to_set = Some(value);
-                            }
-                        }
-                    }
-                }
-            }
-            if let Some(property) = ui.get_property_mut(&edit.reference) {
-                if let Some(value) = value_to_set {
-                    property.initial_value = property.value.clone();
-                    property.value = value;
-                }
-            }
-            let tmp_ref = edit.reference.clone();
-            let box_ref = tmp_ref.split(".").next().unwrap().to_string();
-            let uibox = ui.get_box_mut(&box_ref);
-            if let Some(uibox) = uibox {
-                if let Some(edit_bar) = &mut uibox.edit_bar {
-                    if let Some(err) = err {
-                        edit_bar.text.0 = Some(err);
-                    } else {
-                        edit_bar.text.0 = None
-                    }
-                }
-            }
-            ui.set_editing(None);
+            validate_input(ui, edit.reference, value);
+        }
+        Key::Named(NamedKey::Tab) => {
+            validate_input(ui, edit.reference.clone(), value);
+            edit_next_property(ui, edit.reference);
         }
         Key::Character(char) => {
             if char.len() == 1 {
