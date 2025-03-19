@@ -1,6 +1,4 @@
-use std::thread::current;
-
-use crate::{model::{scene::Scene, shapes::aabb::Aabb}, BVH_COMPLETION_REPORTS_THRESHOLD, BVH_SPLIT_STEPS};
+use crate::{model::{scene::Scene, shapes::aabb::Aabb}, BVH_SPLIT_STEPS};
 
 #[derive(Debug, Clone)]
 pub struct Node {
