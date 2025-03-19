@@ -214,6 +214,7 @@ impl Shape for Plane {
                     if let Some(plane) = elem.shape_mut().as_plane_mut() {
                         if let Value::Float(value) = value {
                             plane.dir.set_z(value);
+                            plane.set_dir(plane.dir.normalize());
                         }
                     }
                 }),

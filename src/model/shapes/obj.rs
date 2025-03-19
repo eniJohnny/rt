@@ -165,6 +165,7 @@ impl ComposedShape for Obj {
                 if let Some(obj) = elem.composed_shape_mut().as_obj_mut() {
                     if let Value::Float(value) = value {
                         obj.dir.set_z(value);
+                        obj.set_dir(obj.dir.normalize());
                     }
                 }
             }),

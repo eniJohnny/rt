@@ -137,6 +137,7 @@ impl ComposedShape for Nagone {
                 if let Some(nagone) = elem.composed_shape_mut().as_nagone_mut() {
                     if let Value::Float(value) = value {
                         nagone.dir.set_z(value);
+                        nagone.set_dir(nagone.dir.normalize());
                     }
                 }
             }),
