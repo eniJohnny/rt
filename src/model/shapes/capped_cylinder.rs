@@ -265,6 +265,7 @@ impl Shape for CappedCylinder {
                     if let Some(cylinder) = elem.shape_mut().as_capped_cylinder_mut() {
                         if let Value::Float(value) = value {
                             cylinder.dir.set_z(value);
+                            cylinder.dir = cylinder.dir.normalize();
                         }
                     }
                 }),

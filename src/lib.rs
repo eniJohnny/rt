@@ -43,7 +43,7 @@ const ERROR_MARGIN: f64 = 0.000001;
 
 /*************** BVH Settings ************/
 const USING_BVH: bool = true;
-const BVH_SPLIT_STEPS: usize = 50;
+const BVH_SPLIT_STEPS: usize = 5;
 
 
 //Debug settings

@@ -170,6 +170,7 @@ impl ComposedShape for Brick {
                 if let Some(brick) = elem.composed_shape_mut().as_brick_mut() {
                     if let Value::Float(value) = value {
                         brick.dir.set_z(value);
+                        brick.dir = brick.dir.normalize();
                     }
                 }
             }),

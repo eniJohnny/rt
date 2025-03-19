@@ -30,7 +30,6 @@ impl ComposedShape for Torusphere {
         let dir_x = get_cross_axis(&dir_y);
 
         for i in 1..self.steps + 1 {
-            // let factor = (i as i32 - steps as i32 / 2) as f64 * 2.0;
             let factor = (i * 2) as f64;
             sph_vec.push((PI * factor / self.steps as f64).sin() * dir_y + (PI * factor / self.steps as f64).cos() * dir_x);
         }
@@ -137,6 +136,7 @@ impl ComposedShape for Torusphere {
                 if let Some(torusphere) = elem.composed_shape_mut().as_torusphere_mut() {
                     if let Value::Float(value) = value {
                         torusphere.dir.set_z(value);
+                        torusphere.set_dir(torusphere.dir.normalize());
                     }
                 }
             }),
