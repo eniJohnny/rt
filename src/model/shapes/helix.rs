@@ -149,6 +149,7 @@ impl ComposedShape for Helix {
                 if let Some(helix) = elem.composed_shape_mut().as_helix_mut() {
                     if let Value::Float(value) = value {
                         helix.dir.set_z(value);
+                        helix.set_dir(helix.dir.normalize());
                     }
                 }
             }),

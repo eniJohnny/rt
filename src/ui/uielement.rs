@@ -430,12 +430,30 @@ impl UIElement {
                 }
                 ElemType::Button(..) => {
                     if hitbox.visible {
-                        draw_element_text(&mut context.ui_img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
+                        let mut value = self.text.clone();
+                        let value_width = value.len() as u32 * self.style.font_size as u32 / 2
+                            + self.style.padding_left
+                            + self.style.padding_right;
+                        if value_width > hitbox.size.0 {
+                            let value_max_len = (hitbox.size.0  - self.style.padding_left - self.style.padding_right) / self.style.font_size as u32;
+                            value.truncate(value_max_len as usize - 2);
+                            value += "..";
+                        }
+                        draw_element_text(&mut context.ui_img, value, hitbox.pos, hitbox.size, &self.style);
                     }
                 }
                 ElemType::Category(cat) => {
                     if hitbox.visible {
-                        draw_element_text(&mut context.ui_img, self.text.clone(), hitbox.pos, hitbox.size, &self.style);
+                        let mut value = self.text.clone();
+                        let value_width = value.len() as u32 * self.style.font_size as u32 / 2
+                            + self.style.padding_left
+                            + self.style.padding_right;
+                        if value_width > hitbox.size.0 {
+                            let value_max_len = (hitbox.size.0  - self.style.padding_left - self.style.padding_right) / self.style.font_size as u32;
+                            value.truncate(value_max_len as usize - 2);
+                            value += "..";
+                        }
+                        draw_element_text(&mut context.ui_img, value, hitbox.pos, hitbox.size, &self.style);
                     }
 
                     if !cat.collapsed {

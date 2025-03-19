@@ -63,7 +63,6 @@ pub fn create(img: &mut ImageBuffer<Rgba<u8>, Vec<u8>>, offset_x: isize, offset_
     let out_y = in_y - offset_y.abs();
     let in_buf = img.clone().into_raw();
     let mut out_buf = vec![0u8 ; (out_x * out_y * 4) as usize];
-    println!("Direction {}, In {}, Out {}", direction, in_x*in_y * 4, out_x * out_y * 4);
 
     let mut anaglyph = Anaglyph {
         in_buf,

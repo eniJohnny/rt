@@ -178,6 +178,7 @@ impl Shape for Cylinder {
                     if let Some(cylinder) = elem.shape_mut().as_cylinder_mut() {
                         if let Value::Float(value) = value {
                             cylinder.dir.set_z(value);
+                            cylinder.dir = cylinder.dir.normalize();
                         }
                     }
                 }),

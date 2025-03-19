@@ -375,7 +375,9 @@ pub fn ui_clicked(click: (u32, u32), context: &mut UIContext, ui: &mut UI) -> bo
                     take_element(ui, hitbox.reference.clone())
                 {
                     elem.clicked(context, ui);
-                    give_back_element(ui, elem, parent_ref, index);
+                    if hitbox.reference.clone() != format!("{}.row.close", SCENE_TOOLBAR) {
+                        give_back_element(ui, elem, parent_ref, index);
+                    }
                     return true;
                 } else {
                     println!("ERROR: UIElement {} not found", &hitbox.reference)
