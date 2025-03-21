@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use crate::{model::{scene::Scene, shapes::aabb::Aabb}, BVH_SPLIT_STEPS};
 
 #[derive(Debug, Clone)]
@@ -41,14 +43,13 @@ impl Node {
     // Methods
     pub fn build_tree(&mut self, scene: &Scene) {
         let parent_children = self.aabb.get_children_and_shrink(scene, &(0..scene.elements().len()).collect());
-        println!("------- BUILDING BVH ----------");
-        println!("-- This may take a long time --");
-        println!("--- Depending on the scenes ---");
-        println!("-------       0%     ----------");
+        println!("-------- BUILDING BVH  --------");
+        println!("-  This may take a long time  -");
+        println!("-    Depending on the scene   -");
         self.set_elements(parent_children);
-
         self.build_node(scene, 0, 0., 100.);
-        println!("-------     100%     ----------");
+        println!("- │████████████████████│ 100%  -");
+        println!("---------- BVH BUILT ----------");
     }
 
     fn build_node(&mut self, scene: &Scene, depth: usize, mut completion: f64, mut increment: f64) {
@@ -106,7 +107,18 @@ impl Node {
                 current_completion += increment;
                 if current_completion - completion.floor() > 1. {
                     completion = current_completion;
-                    println!("-------      {:.0}%     ----------", completion);
+                    print!("\r{}\r", " ".repeat(40));
+                    print!("- │");
+                    std::io::stdout().flush().unwrap();
+                    for _ in 0..(completion / 5.) as usize {
+                        print!("█");
+                    }
+                    for _ in 0..(20. - completion / 5.) as usize {
+                        print!(" ");
+                    }
+                    print!("│ {: >3.0}%  -", completion);
+                    write!(std::io::stdout(), "\x1b[?25l").unwrap();
+                    std::io::stdout().flush().unwrap();
                 }
             }
         }
