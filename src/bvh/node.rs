@@ -48,7 +48,7 @@ impl Node {
         println!("-    Depending on the scene   -");
         self.set_elements(parent_children);
         self.build_node(scene, 0, 0., 100.);
-        println!("- │████████████████████│ 100%  -");
+        println!("\r- │████████████████████│ 100% -");
         println!("---------- BVH BUILT ----------");
     }
 
